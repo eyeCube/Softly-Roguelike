@@ -1,12 +1,11 @@
 '''
     components.py
+
+    Jacob Wharton
 '''
 
-import esper
 
-
-
-class Renderable:
+class Draw:
     def __init__(self, char, color, bgcol):
         self.char=char
         self.color=color
@@ -17,20 +16,6 @@ class Name:
         self.name = name
         self.title = title
         self.pronouns = pronouns
-
-class Health:
-    def __init__(self, hp, mp):
-        self.hpmax=hp
-        self.mpmax=mp
-        self.hp=hp
-        self.mp=mp
-
-class Resistances:
-    def __init__(self, fir=0, bio=0, elc=0, phs=0):
-        self.fire=fir
-        self.bio=bio
-        self.elec=elc
-        self.phys=phs
 
 class DeathFunction:
     def __init__(self, func):
@@ -64,7 +49,7 @@ class Seer:
         self.sight = sight
         self.fov_map = rog.init_fov_map(FOV_NORMAL)
         self.events = []
-
+        
 class Listener:
     def __init__(self, hearing=100):
         self.hearing = hearing
@@ -76,35 +61,28 @@ class Skills:
         for arg in args:
             self.skills.add(arg)
 
-class CanEquipArmor:
+class EquipBody:
     def __init__(self):
         self.slot=None
-
-class CanEquipHats:
+class EquipHead:
     def __init__(self):
         self.slot=None
-
-class CanEquipBack:
+class EquipBack:
     def __init__(self):
         self.slot=None
-
-class CanEquipAmmo:
+class EquipAmmo:
     def __init__(self):
         self.slot=None
-
-class CanEquipWeapon:
+class EquipMainhand:
     def __init__(self):
         self.slot=None
-
-class CanEquipOffhand:
+class EquipOffhand:
     def __init__(self):
         self.slot=None
-
 class EquipSlot:
     def __init__(self, item=None, modID=None):
         self.item=item
         self.modID=modID
-
 class CanBeEquipped:
     def __init__(self, equipType, statMods):
         self.equipType=equipType
@@ -117,7 +95,7 @@ class Gun:
         self.reloadTime=reloadTime
         self.jamChance=jamChance
 
-class Food:
+class Edible:
     def __init__(self, nutrition, taste, time=1):
         self.nutrition=nutrition
         self.taste=taste
@@ -128,15 +106,58 @@ class Use:
         self.funcPC=funcPC
         self.funcNPC=funcNPC
 
+class Form:
+    def __init__(self, mass=0): #, volume, shape
+        self.mass=mass
+
+class Inventory:
+    def __init__(self, capacity):
+        self.capacity=capacity
+        self.size=0
+        self.data=[]
+
 class FluidContainer:
     def __init__(self, capacity):
         self.capacity=capacity
-        self.volume=0
-        self.fluids={}
+        self.size=0
+        self.data={}
 
-class Form:
-    def __init__(self, mass): #, volume, shape
-        self.mass=mass
+class TakesTurns: #participates in the game by gaining and spending action points
+    def __init__(self, speed=1):
+        self.ap=0 #action points
+        self.speed=speed
+
+class BasicStats:
+    def __init__(self, hp=1, mp=1,
+                 resFire=0,resBio=0,resElec=0,resPhys=0):
+        self.hpmax=hp
+        self.hp=hp
+        self.mpmax=mp
+        self.mp=mp
+        self.resFire=resFire    #resistances
+        self.resBio=resBio
+        self.resElec=resElec
+        self.resPhys=resPhys
+        self.temp=0             #meters
+        self.rads=0
+        self.sick=0
+        self.expo=0
+    
+class CombatStats:
+    def __init__(self, atk=0,dfn=0,dmg=0,arm=0,rng=0,_pow=0,asp=0,msp=0):
+        self.atk=atk    #attack
+        self.dfn=dfn    #DV
+        self.dmg=dmg    #melee damage
+        self.arm=arm    #AV
+        self.rng=rng    #range
+        self.pow=_pow   #ranged damage
+        self.asp=asp    #atk spd
+        self.msp=msp    #move spd
+
+class ElementalDamage:
+    def __init__(self, element, dmg):
+        self.element=element
+        self.dmg=dmg
 
 class StatMods:
     def __init__(self, *args, **kwargs):
@@ -146,21 +167,12 @@ class StatMods:
         for k,w in kwargs:
             self.mods.append((k,w,))
 
-class Stats:
+class StatusEffects:
     def __init__(self):
-        self.base_atk=0
-        self.atk=0
-    @property
-    def atk(self): return self._atk
-    @atk.setter
-    def atk(self, val):
-        self._atk = max(0, val)
-    @property
-    def base_atk(self): return self._base_atk
-    @base_atk.setter
-    def base_atk(self, val):
-        self._base_atk = max(0, val)
-    
+        self.effects={}
+
+
+
 
 
 
