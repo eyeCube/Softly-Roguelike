@@ -21,6 +21,10 @@ class DeathFunction:
     def __init__(self, func):
         self.func=func
 
+class Material:
+    def __init__(self, flag):
+        self.flag=flag
+
 class Position:
     def __init__(self, x, y):
         self.x = x
