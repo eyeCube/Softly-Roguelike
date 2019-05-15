@@ -23,7 +23,8 @@ dirStr=" <hjklyubn.>"
 # pickup
 # grab an item from the game world, removing it from the grid
 def pickup_pc(pc):
-    pos = rog.get(pc, cmp.Position)
+    world = rog.world()
+    pos = world.component_for_entity(pc, cmp.Position)
     pcx = pos.x
     pcy = pos.y
     rog.alert("Pick up what?{d}".format(d=dirStr))
@@ -56,11 +57,11 @@ def pickup_pc(pc):
         if choice == K_ESCAPE:
             return
         
-        #thing is creature! You can't pick up creatures :(
-        if rog.has(choice, cmp.Creature):
+        #thing is creature! You can't pick up creatures :( or can you...?
+        if world.has_component(choice, cmp.Creature):
             rog.alert("You can't pick that up!")
             return
-        #thing is on fire! What are you doing trying to pick it up??
+        #thing is on fire, prompt user & burn persistent rogues
         if rog.on(choice,FIRE):
             answer=""
             while True:
@@ -77,45 +78,50 @@ def pickup_pc(pc):
                     return
         # put in inventory
         pocketThing(pc, choice)
-    #elif choice == "all":
-    #    
+##    elif choice == "all":
+##        for tt in things:
+##            pocketThing(pc, tt)
     else:
         rog.alert("There is nothing there to pick up.")
 
 
 def inventory_pc(pc,pcInv):
-    if not pc.inv:
-        rog.alert(ALERT_EMPTYCONTAINER)
-        return
+    world=Rogue.world()
+##    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
+    pcInv = world.component_for_entity(pc, cmp.Inventory)
+    pcn = world.component_for_entity(pc, cmp.Name)
     x=0
     y=rog.view_port_y()
 #   items menu
-    item=rog.menu("{}'s Inventory".format(pc.name), x,y, pcInv.items)
+    item=rog.menu("{}{}'s Inventory".format(
+        pcn.title,pcn.name), x,y, pcInv.items)
     
 #   viewing an item
     if not item == -1:
+        itemn = world.component_for_entity(item, cmp.Name)
+##        itemn = world.component_for_entity(item, cmp.Name)
         keysItems={}
         
     #   get available actions for this item...
-        if rog.has(item, cmp.Edible):
+        if world.has_component(item, cmp.Edible):
             keysItems.update({"E":"Eat"})
-        if rog.has(item, cmp.Quaffable):
+        if world.has_component(item, cmp.Quaffable):
             keysItems.update({"q":"quaff"})
-        if rog.has(item, cmp.Equipable):
+        if world.has_component(item, cmp.Equipable):
             keysItems.update({"e":"equip"})
             # throwables - subset of equipables
-            if rog.get(item, cmp.Equipable).equipType == EQ_MAINHAND:
+            if world.component_for_entity(item, cmp.Equipable).equipType == EQ_MAINHAND:
                 keysItems.update({"t":"throw"})
-        if rog.has(item, cmp.Usable):
+        if world.has_component(item, cmp.Usable):
             keysItems.update({"u":"use"})
-        if rog.has(item, cmp.Openable):
+        if world.has_component(item, cmp.Openable):
             keysItems.update({"o":"open"})
         keysItems.update({"x":"examine"})
         keysItems.update({"d":"drop"})
         #
         
         opt=rog.menu(
-            "{}".format(item.name), x,y,
+            "{}".format(itemn.name), x,y,
             keysItems, autoItemize=False
         )
         #print(opt)
@@ -230,14 +236,17 @@ def towel_pc(pc, item):
 #wait
 #just stand still and do nothing
 #recover your Action Points to their maximum
-def wait(obj):
-    obj.stats.nrg=0
+def wait(ent):
+    rog.world().component_for_entity(ent, cmp.Actor).ap = 0
 
-def cough(obj):
-    wait(obj)
-    rog.event_sound(obj.x,obj.y, SND_COUGH)
-    rog.event_sight(obj.x,obj.y, "{t}{n} hacks up a lung.".format(
-        t=obj.title,n=obj.name))
+def cough(ent):
+    world = rog.world()
+    pos = world.component_for_entity(ent, cmp.Position)
+    entn = world.component_for_entity(ent, cmp.Name)
+    wait(ent)
+    rog.event_sound(pos.x,pos.y, SND_COUGH)
+    rog.event_sight(pos.x,pos.y, "{t}{n} hacks up a lung.".format(
+        t=entn.title,n=entn.name))
 
 #use
 #"use" an item, whatever that means for the specific item
@@ -249,21 +258,25 @@ def use(obj, item):
 #a thing puts a thing in its inventory
 def pocketThing(ent, item):
 ##    if not item: return False
+    world = rog.world()
     rog.drain(ent, 'nrg', NRG_POCKET)
     rog.give(ent, item)
     rog.release_inanimate(item)
-    entn = rog.get(ent, cmp.Name)
-    itemn = rog.get(item, cmp.Name)
+    entn = world.component_for_entity(ent, cmp.Name)
+    itemn = world.component_for_entity(item, cmp.Name)
     rog.msg("{t}{n} packs {ti}{ni}.".format(
         t=entn.title,n=entn.name,ti=itemn.title,ni=itemn.name))
 ##    return True
 
 def drop(ent, item):
-    if not rog.wallat(pc.x+dx,pc.y+dy):
+    world = rog.world()
+    pos = world.component_for_entity(ent, cmp.Position)
+    dx=0; dy=0; # TODO: code AI to find a place to drop item
+    if not rog.wallat(pos.x+dx,pos.y+dy):
         rog.drain(ent, 'nrg', NRG_RUMMAGE)
         rog.drop(ent,item, dx,dy)
-        entn = rog.get(ent, cmp.Name)
-        itemn = rog.get(item, cmp.Name)
+        entn = world.component_for_entity(ent, cmp.Name)
+        itemn = world.component_for_entity(item, cmp.Name)
         rog.msg("{t}{n} drops {ti}{ni}.".format(
             t=entn.title,n=entn.name,ti=itemn.title,ni=itemn.name))
         return True
@@ -274,10 +287,11 @@ def drop(ent, item):
 #quaff
 #drinking is instantaneous action
 def quaff(ent, drink): 
-    quaffable=rog.get(drink, cmp.Quaffable)
-    pos = rog.get(ent, cmp.Position)
-    entn = rog.get(ent, cmp.Name)
-    drinkn = rog.get(drink, cmp.Name)
+    world = rog.world()
+    pos = world.component_for_entity(ent, cmp.Position)
+    quaffable=world.component_for_entity(drink, cmp.Quaffable)
+    entn = world.component_for_entity(ent, cmp.Name)
+    drinkn = world.component_for_entity(drink, cmp.Name)
     
     #quaff function
     quaffable.func(ent)
@@ -294,44 +308,54 @@ def quaff(ent, drink):
             t=entn.title, n=entn.name, p=drinkn.name))
     #events - sound
     rog.event_sound(pos.x,pos.y, SND_QUAFF)
+    # TODO: make sure this works...
+    world.delete_entity(drink)
 
 
 #move
 #returns True if move was successful, else False
 #do not drain Action Points unless move was successful
-def move(obj,dx,dy):  # locomotion
-    xto=obj.x+dx
-    yto=obj.y+dy
-    terrain_cost=rog.cost_move(obj.x,obj.y,xto,yto, None)
+def move(ent,dx,dy):  # locomotion
+    world = rog.world()
+    pos = world.component_for_entity(ent, cmp.Position)
+    cstats = world.component_for_entity(ent, cmp.CombatStats)
+    actor = world.component_for_entity(ent, cmp.Actor)
+    xto=pos.x+dx
+    yto=pos.y+dy
+    terrain_cost=rog.cost_move(pos.x,pos.y,xto,yto, None)
     if terrain_cost == 0:  return False     # 0 means we can't move there
     mult = 1.41 if (dx + dy) % 2==0 else 1  # diagonal extra cost
     modf=NRG_MOVE
-    nrg_cost=round(modf*mult*terrain_cost*AVG_SPD/max(1, obj.stats.get('msp')))
-    rog.drain(obj, 'nrg', nrg_cost)
-    rog.port(obj, xto, yto)
+    nrg_cost=round(modf*mult*terrain_cost*AVG_SPD/max(1, cstats.msp))
+    actor.ap -= nrg_cost
+    rog.port(ent, xto, yto)
     return True
 
-def openClose(obj, xto, yto):
+def openClose(ent, xto, yto):
+    world = rog.world()
+    actor = world.component_for_entity(ent, cmp.Actor)
+    entn = world.component_for_entity(ent, cmp.Name)
     #open containers
     #close containers
     #open doors
     if rog.tile_get(xto,yto) == DOORCLOSED:
-        rog.drain(obj, 'nrg', NRG_OPEN)
+        actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOOROPEN)
-        rog.msg("{n} opened a door.".format(n=obj.name))
+        rog.msg("{t}{n} opened a door.".format(t=entn.title,n=entn.name))
         return True
     #close doors
     if rog.tile_get(xto,yto) == DOOROPEN:
-        rog.drain(obj, 'nrg', NRG_OPEN)
+        actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOORCLOSED)
-        rog.msg("{n} closed a door.".format(n=obj.name))
+        rog.msg("{t}{n} closed a door.".format(t=entn.title,n=entn.name))
         return True
     return False
 
-def sprint(obj):
+def sprint(ent):
+    entn = rog.world().component_for_entity(ent, cmp.Name)
     #if sprint cooldown elapsed
-    rog.set_status(obj, SPRINT)
-    rog.msg("{n} begins sprinting.".format(n=obj.name))
+    rog.set_status(ent, SPRINT)
+    rog.msg("{n} begins sprinting.".format(n=entn.name))
 
 
 #
@@ -349,19 +373,23 @@ def fight(attkr,dfndr,adv=0):
         #-material of weapon
         #-element of weapon
         #-flags of weapon
-    nrg_cost = round( NRG_ATTACK*AVG_SPD/max(1, attkr.stats.get('asp')) )
-    attkr.stats.nrg -= nrg_cost
+    world = rog.world()
+    cstats = world.component_for_entity(attkr, cmp.CombatStats)
+    dpos = world.component_for_entity(dfndr, cmp.Position)
+    element = ELEM_PHYS #****TEMPORARY!!!! has_component...
+    nrg_cost = round( NRG_ATTACK*AVG_SPD/max(1, cstats.asp) )
+    cstats.ap -= nrg_cost
 
     die=COMBATROLL
-    acc=attkr.stats.get('atk')
-    dv=dfndr.stats.get('dfn')
+    acc=cstats.atk
+    dv=cstats.dfn
     hit = False
     rol = dice.roll(die + acc + adv - dv) - dice.roll(die)
     if (rol >= 0): # HIT!!!
         hit = True
         
         #type of damage dealt depends on the element attacker is using
-        if attkr.stats.element == ELEM_PHYS:
+        if element == ELEM_PHYS:
             #high attack values can pierce armor
 ##            if rol > ATK_BONUS_DMG_CUTOFF:
 ##                pierce = int( (rol - ATK_BONUS_DMG_CUTOFF)/2 )
@@ -370,15 +398,15 @@ def fight(attkr,dfndr,adv=0):
             armor = dfndr.stats.get('arm') #max(0, dfndr.stats.get('arm') - pierce)
             dmg = max(0, attkr.stats.get('dmg') - armor)
             rog.hurt(dfndr, dmg)
-        elif attkr.stats.element == ELEM_FIRE:
+        elif element == ELEM_FIRE:
             rog.burn(dfndr, dmg)
-        elif attkr.stats.element == ELEM_BIO:
+        elif element == ELEM_BIO:
             rog.disease(dfndr, dmg)
-        elif attkr.stats.element == ELEM_ELEC:
+        elif element == ELEM_ELEC:
             rog.electrify(dfndr, dmg)
-        elif attkr.stats.element == ELEM_CHEM:
+        elif element == ELEM_CHEM:
             rog.exposure(dfndr, dmg)
-        elif attkr.stats.element == ELEM_RADS:
+        elif element == ELEM_RADS:
             rog.irradiate(dfndr, dmg)
         
         killed = rog.on(dfndr,DEAD) #...did we kill it?
@@ -397,13 +425,13 @@ def fight(attkr,dfndr,adv=0):
             dfndr.x,dfndr.y,
             "{t1}{a} {v} {t2}{n}{x}".format(a=a,v=v,n=n,t1=t1,t2=t2,x=x)
         )
-        rog.event_sound(dfndr.x,dfndr.y, SND_FIGHT)
+        rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
     
 # end def
 
 
 # not necessarily creature actions #
-
+''' TODO: UPDATE THIS FUNCTION
 def explosion(bomb):
     con=libtcod.console_new(ROOMW, ROOMH)
     rog.msg("{t}{n} explodes!".format(t=bomb.title, n=bomb.name))
@@ -441,7 +469,7 @@ def explosion(bomb):
                             and hasattr(thing,'explode')
                             and dist <= bomb.r/2 ):
                         thing.timer=0
-
+'''
 
 
 
