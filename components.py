@@ -12,7 +12,7 @@ class Draw:
         self.bgcol=bgcol
         
 class Name:
-    def __init__(self, name, title="the ", pronouns=("it","it","its",)):
+    def __init__(self, name: str, title="the ", pronouns=("it","it","its",)):
         self.name = name
         self.title = title
         self.pronouns = pronouns
@@ -20,10 +20,6 @@ class Name:
 class DeathFunction:
     def __init__(self, func):
         self.func=func
-
-class Material:
-    def __init__(self, flag):
-        self.flag=flag
 
 class Position:
     def __init__(self, x, y):
@@ -65,9 +61,16 @@ class Skills:
         for arg in args:
             self.skills.add(arg)
 
+class Ammo:
+    def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
+        self.ammoType=ammoType
+        self.capacity=capacity
+        self.reloadTime=reloadTime
+        self.jamChance=jamChance
+        
 class EquipBody:
     def __init__(self):
-        self.slot=None
+        self.slot=None #(item, modID)
 class EquipHead:
     def __init__(self):
         self.slot=None
@@ -83,32 +86,46 @@ class EquipMainhand:
 class EquipOffhand:
     def __init__(self):
         self.slot=None
-class EquipSlot:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class CanBeEquipped:
-    def __init__(self, equipType, statMods):
-        self.equipType=equipType
-        self.statMods=statMods
+        
+class CanEquipInBodySlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
+class CanEquipInBackSlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
+class CanEquipInHeadSlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
+class CanEquipInMainhandSlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
+class CanEquipInOffhandSlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
+class CanEquipInAmmoSlot:
+    def __init__(self, mods): #{component : {var : modf}}
+        self.mods=mods
 
-class Gun:
-    def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
-        self.ammoType=ammoType
-        self.capacity=capacity
-        self.reloadTime=reloadTime
-        self.jamChance=jamChance
-
-class Edible:
-    def __init__(self, nutrition, taste, time=1):
-        self.nutrition=nutrition
-        self.taste=taste
-        self.timeToConsume=time
-
-class Use:
+class Usable:
     def __init__(self, funcPC, funcNPC=None):
         self.funcPC=funcPC
         self.funcNPC=funcNPC
+class Edible:
+    def __init__(self, func, satiation, taste, time=1):
+        self.func=func
+        self.satiation=satiation
+        self.taste=taste
+        self.timeToConsume=time
+class Quaffable:
+    def __init__(self, func, hydration, taste, time=1):
+        self.func=func
+        self.hydration=hydration
+        self.taste=taste
+        self.timeToConsume=time
+class Openable:
+    def __init__(self, isOpen=False, isLocked=False):
+        self.isOpen=isOpen
+        self.isLocked=isLocked
 
 class Form:
     def __init__(self, mass=0): #, volume, shape
@@ -133,15 +150,18 @@ class TakesTurns: #participates in the game by gaining and spending action point
 
 class BasicStats:
     def __init__(self, hp=1, mp=1,
-                 resFire=0,resBio=0,resElec=0,resPhys=0):
+                 resFire=0,resBio=0,resElec=0,resPhys=0,
+                 material=None,value=0):
         self.hpmax=hp
         self.hp=hp
         self.mpmax=mp
         self.mp=mp
-        self.resFire=resFire    #resistances
-        self.resBio=resBio
-        self.resElec=resElec
-        self.resPhys=resPhys
+        self.resfire=resFire    #resistances
+        self.resbio=resBio
+        self.reselec=resElec
+        self.resphys=resPhys
+        self.material=material
+        self.value=value
         self.temp=0             #meters
         self.rads=0
         self.sick=0

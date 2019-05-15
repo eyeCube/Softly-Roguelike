@@ -94,54 +94,56 @@ RAVAGED     = i; i+=1;  # Creature is starved: strong desire for food
 THIEF       = i; i+=1;  # Creature desires gold / treasure and will steal it
 MEAN        = i; i+=1;  # Creature is always hostile to rogues
 DEAD        = i; i+=1;  # Is dead
-NVISION     = i; i+=1;  # Has Night vision
+FLYING      = i; i+=1;  # Is currently flying
 IMMUNE      = i; i+=1;  # Immune to poison
+NVISION     = i; i+=1;  # Has Night vision
 SEEINV      = i; i+=1;  # Can see invisible
 SEEXRAY     = i; i+=1;  # LOS not blocked by walls
-FLYING      = i; i+=1;  # Is currently flying
 CANFLY      = i; i+=1;  # Can fly
 CANWET      = i; i+=1;  # Can get wet
 CANTALK     = i; i+=1;  # Can engage in jolly conversation
-CANEAT      = i; i+=1;  # Can be eaten
-CANQUAFF    = i; i+=1;  # Can be quaffed
-CANEQUIP    = i; i+=1;  # Can be equipped
-CANUSE      = i; i+=1;  # Can be used
-CANPUSH     = i; i+=1;  # Can be pushed
-CANOPEN     = i; i+=1;  # Can open it like a container (not doors)
-INTERACT    = i; i+=1;  # Can interact with it (like a computer terminal, etc.)
-HOLDSFLUID  = i; i+=1;  # Can contain fluids
-WATERKILLS  = i; i+=1;  # Is killed by water
 REACH       = i; i+=1;  # Has long reach
+STABS       = i; i+=1;  # Can stab things
+CUTS        = i; i+=1;  # Can cut things
 ISSOLID     = i; i+=1;  # Is solid (cannot walk through it)
+##CANEAT      = i; i+=1;  # Can be eaten
+##CANQUAFF    = i; i+=1;  # Can be quaffed
+##CANEQUIP    = i; i+=1;  # Can be equipped
+##CANUSE      = i; i+=1;  # Can be used
+##CANPUSH     = i; i+=1;  # Can be pushed
+##CANOPEN     = i; i+=1;  # Can open it like a container (not doors)
+##INTERACT    = i; i+=1;  # Can interact with it (like a computer terminal, etc.)
+##HOLDSFLUID  = i; i+=1;  # Can contain fluids
+##WATERKILLS  = i; i+=1;  # Is killed by water
 #status flags
-WET         = i; i+=1;  # Is wet
-OILY        = i; i+=1;  # Is oily
-BLOODY      = i; i+=1;  # Is covered in blood
-CHARRED     = i; i+=1;  # Is charred from fire
-HASTE       = i; i+=1;  # Is hasty
-SLOW        = i; i+=1;  # Is slow
-SPRINT      = i; i+=1;  # Is sprinting
-TIRED       = i; i+=1;  # Is tired
-CONFU       = i; i+=1;  # Is confused
-TRIPN       = i; i+=1;  # Is hallucinating
-SLEEP       = i; i+=1;  # Is asleep
-FIRE        = i; i+=1;  # Is burning
-ACID        = i; i+=1;  # Is corroding in acid
-SICK        = i; i+=1;  # Is poisoned / ill
-IRRIT       = i; i+=1;  # Is irritated by chemicals
-BLIND       = i; i+=1;  # Is blinded
-PARAL       = i; i+=1;  # Is paralyzed
-COUGH       = i; i+=1;  # Is in a coughing fit
-VOMIT       = i; i+=1;  # Is in a vomiting fit
-DRUNK       = i; i+=1;  # Is drunk
-DEAF        = i; i+=1;  # Is deafened
-INVIS       = i; i+=1;  # Is invisible
-TRAUMA      = i; i+=1;  # Is psychologically traumatized
-STATUSFLAGS=(
-WET, OILY, BLOODY, CHARRED, HASTE, SLOW, SPRINT, TIRED,
-CONFU, TRIPN, SLEEP, FIRE, ACID, SICK, IRRIT, BLIND,
-PARAL, COUGH, VOMIT, DRUNK, DEAF, INVIS, TRAUMA,
-    )
+##WET         = i; i+=1;  # Is wet
+##OILY        = i; i+=1;  # Is oily
+##BLOODY      = i; i+=1;  # Is covered in blood
+##CHARRED     = i; i+=1;  # Is charred from fire
+##HASTE       = i; i+=1;  # Is hasty
+##SLOW        = i; i+=1;  # Is slow
+##SPRINT      = i; i+=1;  # Is sprinting
+##TIRED       = i; i+=1;  # Is tired
+##CONFU       = i; i+=1;  # Is confused
+##TRIPN       = i; i+=1;  # Is hallucinating
+##SLEEP       = i; i+=1;  # Is asleep
+##FIRE        = i; i+=1;  # Is burning
+##ACID        = i; i+=1;  # Is corroding in acid
+##SICK        = i; i+=1;  # Is poisoned / ill
+##IRRIT       = i; i+=1;  # Is irritated by chemicals
+##BLIND       = i; i+=1;  # Is blinded
+##PARAL       = i; i+=1;  # Is paralyzed
+##COUGH       = i; i+=1;  # Is in a coughing fit
+##VOMIT       = i; i+=1;  # Is in a vomiting fit
+##DRUNK       = i; i+=1;  # Is drunk
+##DEAF        = i; i+=1;  # Is deafened
+##INVIS       = i; i+=1;  # Is invisible
+##TRAUMA      = i; i+=1;  # Is psychologically traumatized
+##STATUSFLAGS=(
+##WET, OILY, BLOODY, CHARRED, HASTE, SLOW, SPRINT, TIRED,
+##CONFU, TRIPN, SLEEP, FIRE, ACID, SICK, IRRIT, BLIND,
+##PARAL, COUGH, VOMIT, DRUNK, DEAF, INVIS, TRAUMA,
+##    )
 
 #
 # Gameplay Constants

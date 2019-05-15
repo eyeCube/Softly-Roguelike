@@ -88,162 +88,176 @@ def singe(x,y): #burn tile
         tile_change(x,y,FLOOR)
 
 # entity functions
-def on(obj, flag):
-    return flag in Rogue.world.component_for_entity(obj, set)
-def make(obj, flag):
-    Rogue.world.component_for_entity(obj, set).add(flag)
-def makenot(obj, flag):
-    Rogue.world.component_for_entity(obj, set).remove(flag)
-def get(objID, component): #return an entity's component
-    return Rogue.world.component_for_entity(objID, component)
-def has(objID, component): #return whether entity has component
-    return Rogue.world.has_component(objID, component)
+# flags
+def on(ent, flag):
+    return flag in Rogue.world.component_for_entity(ent, set)
+def make(ent, flag):
+    Rogue.world.component_for_entity(ent, set).add(flag)
+def makenot(ent, flag):
+    Rogue.world.component_for_entity(ent, set).remove(flag)
+def get(ent, component): #return an entity's component
+    return Rogue.world.component_for_entity(ent, component)
+
+# component functions - better to call directly and save the function call overhead
+def has(ent, component): #return whether entity has component
+    return Rogue.world.has_component(ent, component)
 def match(component):
     return Rogue.world.get_component(component)
 def matchx(*components):
     return Rogue.world.get_components(components)
     return True
-def copyflags(toObj,fromObj,copyStatusFlags=True): #use this to set an object's flags to that of another object.
-    for flag in Rogue.world.component_for_entity(fromObj, set):
+def copyflags(toEnt,fromEnt,copyStatusFlags=True): #use this to set an object's flags to that of another object.
+    for flag in Rogue.world.component_for_entity(fromEnt, set):
         if (copyStatusFlags or not flag in STATUSFLAGS):
-            make(toObj, flag)
+            make(toEnt, flag)
+            
 ##def has_equip(obj,item):
 ##    return item in Rogue.world.component_for_entity(obj, )
-def give(obj,item):
+def give(ent,item):
     if on(item,FIRE):
-        burn(obj, FIRE_BURN)
+        burn(ent, FIRE_BURN)
         cooldown(item)
-    get(obj, cmp.Inventory).data.append(item)
-def take(obj,item):
-    get(obj, cmp.Inventory).data.remove(item)
-def mutate(obj):
-    #do mutation
-    get(obj, cmp.Mutable)
-    event_sight(obj.x,obj.y,"{t}{n} mutated!".format(t=obj.title,n=obj.name))
-def has_sight(obj):
-    if (obj.stats.get('sight') and not on(obj,BLIND)): return True
+    Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
+def take(ent,item):
+    Rogue.world.component_for_entity(ent, cmp.Inventory).data.remove(item)
+def mutate(ent):
+    # TODO: do mutation
+    mutable = Rogue.world.component_for_entity(ent, cmp.Mutable)
+    pos = Rogue.world.component_for_entity(ent, cmp.Position)
+    entn = Rogue.world.component_for_entity(ent, cmp.Name)
+    event_sight(pos.x,pos.y,"{t}{n} mutated!".format(t=entn.title,n=entn.name))
+def has_sight(ent):
+    if (ent.stats.get('sight') and not on(ent,BLIND)): return True
     return False
-def port(obj,x,y): # move thing to absolute location, update grid and FOV
-    grid_remove(obj)
-    pos = get(obj, cmp.Position)
+def port(ent,x,y): # move thing to absolute location, update grid and FOV
+    grid_remove(ent)
+    pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
-    grid_insert(obj)
-    update_fov(obj)
-def drop(obj,item,dx=0,dy=0):   #remove item from obj's inventory, place it
-    take(obj,item)              #on ground nearby obj.
-    itempos=get(item, cmp.Position)
-    objpos=get(obj, cmp.Position)
-    itempos.x=objpos.x + dx
-    itempos.y=objpos.y + dy
+    grid_insert(ent)
+    update_fov(ent)
+def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
+    take(ent,item)              #on ground nearby ent.
+    itempos=Rogue.world.component_for_entity(item, cmp.Position)
+    entpos=Rogue.world.component_for_entity(ent, cmp.Position)
+    itempos.x=entpos.x + dx
+    itempos.y=entpos.y + dy
     register_inanimate(item)
-def givehp(obj,val=9999):   get(obj, cmp.Health).hp+=val; caphp(obj)
-def givemp(obj,val=9999):   get(obj, cmp.Health).mp+=val; capmp(obj)
-def caphp (obj):
-    health = get(obj, cmp.Health)
+def givehp(ent,val=9999):
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.hp = min(stats.hpmax, stats.hp + val)
+def givemp(ent,val=9999):
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.mp = min(stats.mpmax, stats.mp + val)
+def caphp (ent):
+    health = Rogue.world.component_for_entity(ent, cmp.Health)
     health.hp = min(health.hp, health.hpmax)
-def capmp (obj):
-    health = get(obj, cmp.Health)
+def capmp (ent):
+    health = Rogue.world.component_for_entity(ent, cmp.Health)
     health.mp = min(health.mp, health.mpmax)
 #train (improve) skill
-def train (obj,skill):
-    skills = get(obj, cmp.Skills)
+def train (ent,skill):
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
     skills.update({skill : max(SKILLMAX, skills.get(skill,0)+1) })
 #damage hp
-def hurt(obj, dmg: int):
+def hurt(ent, dmg: int):
 ##    assert isinstance(dmg, int)
     if dmg < 0: return
-    health = get(obj, cmp.Health)
-    health.hp -= dmg
-    if health.hp <= 0:
-        kill(obj)
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.hp -= dmg
+    if stats.hp <= 0:
+        kill(ent)
 #damage mp
-def sap(obj, dmg):
-    dmg = round(dmg)
-    health = get(obj, cmp.Health)
-    health.mp -= dmg
-    if health.mp <= 0:
-        zombify(obj)
+def sap(ent, dmg: int):
+##    assert isinstance(dmg, int)
+    if dmg < 0: return
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.mp -= dmg
+    if stats.mp <= 0:
+        zombify(ent)
 #deal fire damage
-def burn(obj, dmg, maxTemp=FIRE_MAXTEMP):
-    if on(obj, DEAD): return False
-    if on(obj, WET):
-        clear_status(obj, WET)
-        #steam=create_fluid(obj.x, obj.y, "steam")
+def burn(ent, dmg, maxTemp=FIRE_MAXTEMP):
+    if on(ent, DEAD): return False
+    if on(ent, WET):
+        clear_status(ent, WET)
+        #steam=create_fluid(ent.x, ent.y, "steam")
         return False
-    stuff.burn(obj, dmg, maxTemp)
+    stuff.burn(ent, dmg, maxTemp)
     return True
-def cooldown(obj, temp=999):
-    if on(obj, DEAD): return False
-    stuff.cooldown(obj, temp)
+def cooldown(ent, temp=999):
+    if on(ent, DEAD): return False
+    stuff.cooldown(ent, temp)
 #deal bio damage
-def disease(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.disease(obj, dmg)      #sick damage
-def exposure(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.exposure(obj, dmg)    #chem damage
-def corrode(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.corrode(obj, dmg)      #acid damage
-def irradiate(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.irradiate(obj, dmg)  #rad damage
-def intoxicate(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.intoxicate(obj, dmg)#drunk damage
-def cough(obj, dmg): #coughing fit status
-    if on(obj, DEAD): return False
-    stuff.cough(obj, dmg)
-def vomit(obj, dmg): #vomiting fit status
-    if on(obj, DEAD): return False
-    stuff.vomit(obj, dmg)
+def disease(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.disease(ent, dmg)      #sick damage
+def exposure(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.exposure(ent, dmg)    #chem damage
+def corrode(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.corrode(ent, dmg)      #acid damage
+def irradiate(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.irradiate(ent, dmg)  #rad damage
+def intoxicate(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.intoxicate(ent, dmg)#drunk damage
+def cough(ent, dmg): #coughing fit status
+    if on(ent, DEAD): return False
+    stuff.cough(ent, dmg)
+def vomit(ent, dmg): #vomiting fit status
+    if on(ent, DEAD): return False
+    stuff.vomit(ent, dmg)
 #deal electric damage
-def electrify(obj, dmg):
-    if on(obj, DEAD): return False
-    stuff.electrify(obj, dmg)
+def electrify(ent, dmg):
+    if on(ent, DEAD): return False
+    stuff.electrify(ent, dmg)
 #paralyze
-def paralyze(obj, turns):
-    if on(obj, DEAD): return False
-    stuff.paralyze(obj, turns)
+def paralyze(ent, turns):
+    if on(ent, DEAD): return False
+    stuff.paralyze(ent, turns)
 #mutate
-def mutate(obj):
-    if on(obj, DEAD): return False
-    stuff.mutate(obj)
-def kill(obj): #remove a thing from the world
-    if on(obj, DEAD): return
+def mutate(ent):
+    if on(ent, DEAD): return False
+    stuff.mutate(ent)
+def kill(ent): #remove a thing from the world
+    if on(ent, DEAD): return
     world = Rogue.world
-    if world.has_component(obj, cmp.DeathFunction): # call destroy function
-        world.component_for_entity(obj, cmp.DeathFunction)()
-    make(obj, DEAD)
-    clear_status_all(obj)
+    _type = world.component_for_entity(ent, cmp.Draw).char
+    if world.has_component(ent, cmp.DeathFunction): # call destroy function
+        world.component_for_entity(ent, cmp.DeathFunction)(ent)
+    make(ent, DEAD)
+    clear_status_all(ent)
     #drop inventory
-    if has(obj, cmp.Inventory):
-        for tt in get(obj, cmp.Inventory):
-            drop(obj, tt)
+    if world.has_component(ent, cmp.Inventory):
+        for tt in world.component_for_entity(ent, cmp.Inventory):
+            drop(ent, tt)
     #creatures
-    isCreature = has(obj, cmp.Creature)
+    isCreature = world.has_component(ent, cmp.Creature)
     if isCreature:
         #create a corpse
-        if dice.roll(100) < monsters.corpse_recurrence_percent[obj.type]:
-            create_corpse(obj)
+        if dice.roll(100) < monsters.corpse_recurrence_percent[_type]:
+            create_corpse(ent)
     #inanimate things
     else:
         #burn to ashes
-        if on(obj, FIRE):
-            mat = get(obj, cmp.Material).flag
+        if on(ent, FIRE):
+            mat = world.component_for_entity(ent, cmp.Material).flag
             if (mat==MAT_FLESH
                 or mat==MAT_WOOD
                 or mat==MAT_FUNGUS
                 or mat==MAT_VEGGIE
                 or mat==MAT_LEATHER
                 ):
-                create_ashes(obj)
+                create_ashes(ent)
     #remove dead thing
-    if on(obj, ONGRID):
+    if on(ent, ONGRID):
         if isCreature:
-            release_creature(obj)
+            release_creature(ent)
         else:
-            release_inanimate(obj)
+            release_inanimate(ent)
+def zombify(ent):
+    pass
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
 
@@ -265,12 +279,12 @@ def release_thing(ent):
     grid_remove(ent)
     Rogue.world.delete_entity(ent)
 def register_inanimate(ent):
-    name = get(ent, cmp.Name).name
-    pos = get(ent, cmp.Position)
+    name = Rogue.world.component_for_entity(ent, cmp.Name).name
+    pos = Rogue.world.component_for_entity(ent, cmp.Position)
     print("registering {} at {},{}".format(name, pos.x, pos.y))
     grid_insert(ent)
-def release_inanimate(obj):
-    grid_remove(obj)
+def release_inanimate(ent):
+    grid_remove(ent)
 
 
 #---------------------#
