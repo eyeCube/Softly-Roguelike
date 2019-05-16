@@ -157,38 +157,40 @@ def _molotov(tt):
     #   BIO     Bio Resist
     #
 GEAR = {
-#--Name-----------------------Type,Dlv,$$$$$, KG,   Dur, Mat, (DV, AV, MSp, Vis,FIR,BIO,ELE,PHS), script
+#--Name-----------------------Type,$$$$$, KG,   Dur, Mat, (DV, AV, MSp, Vis,FIR,BIO,ELE,PHS), script
     #Back
-"cloak"                     :(BACK,1,  420,   6.0,  150, CLTH,( 4,  1, -3,  0,  10, 10, 0,  0,), _cloak,),
+"cloak"                     :(BACK,420,   6.0,  150, CLTH,( 4,  1, -3,  0,  10, 10, 0,  0,), _cloak,),
     #Armor
-"skin suit"                 :(ARMR,1,  450,   14.7, 90,  FLSH,( 2,  2, -6,  0,  0,  10, 3,  0,), None,),
-"boiled leather plate"      :(ARMR,1,  975,   12.5, 180, LETH,( 0,  3, -6,  0,  5,  5,  15, 0,), None,),
-"bone armor"                :(ARMR,2,  890,   27.8, 475, BONE,(-6,  5, -18, 0,  15, 10, 0,  0,), None,),
-"carb garb"                 :(ARMR,2,  1100,  22.5, 600, CARB,(-3,  3, -12, 0,  10, 10, 0,  0,), None,),
-"riot gear"                 :(ARMR,3,  3490,  20.5, 700, CARB,(-2,  5, -12, 0,  33, 25, 0,  0,), None,),
-"metal gear"                :(ARMR,12, 9950,  27.5, 740, METL,(-4,  7, -18, 0,  5,  5,  -10,0,), None,),
-"full metal suit"           :(ARMR,14, 12000, 35.1, 850, METL,(-5,  10,-21, 0,  5,  10, -20,0,), None,),
-"graphene armor"            :(ARMR,18, 58250, 16.5, 900, CARB,(-2,  8, -9,  0,  20, 20, 25, 0,), None,),
-"bullet-proof armor"        :(ARMR,18, 135000,12.8, 1000,CARB,(-1,  12,-3,  0,  5,  5,  0,  0,), None,),
-"space suit"                :(ARMR,15, 36000, 40.0, 50,  CARB,(-15, 3, -33, 0,  20, 40, 5,  0,), None,),
-"hazard suit"               :(ARMR,10, 2445,  14.5, 75,  PLAS,(-12, 2, -24, 0,  5,  50, 10, 0,), None,),
-"disposable PPE"            :(ARMR,1,  110,   9.25, 25,  PLAS,(-9,  1, -15, 0,  -15,30, 5,  0,), None,),
-"wetsuit"                   :(ARMR,3,  1600,  8.2,  50,  PLAS,( 0,  0, -6,  0,  33, 5,  21, 0,), None,),
-"fire blanket"              :(BACK,4,  600,   12.4, 175, CLTH,(-3,  1, -9,  0,  40, 15, 10, 0,), None,),
-"burn jacket"               :(ARMR,8,  1965,  19.5, 150, CLTH,(-5,  2, -12, 0,  55, 15, 15, 0,), None,),
+"skin suit"                 :(ARMR,450,   14.7, 90,  FLSH,( 2,  1, -6,  0,  0,  10, 3,  0,), None,),
+"bone armor"                :(ARMR,790,   27.8, 475, BONE,(-6,  5, -18, 0,  15, 10, 0,  0,), None,),
+"cloth armor"               :(ARMR,950,   15.6, 125, CLTH,(-3,  2, -6,  0,  5,  5,  3,  0,), None,),
+"carb garb"                 :(ARMR,1060,  22.5, 600, CARB,(-3,  3, -12, 0,  10, 10, 0,  0,), None,),
+"boiled leather plate"      :(ARMR,1175,  12.5, 180, LETH,( 0,  3, -6,  0,  5,  5,  15, 0,), None,),
+"riot gear"                 :(ARMR,3490,  20.5, 500, CARB,(-2,  5, -12, 0,  33, 25, 0,  0,), None,),
+"metal gear"                :(ARMR,9950,  27.5, 740, METL,(-4,  7, -18, 0,  5,  5,  -10,0,), None,),
+"full metal suit"           :(ARMR,12000, 35.1, 850, METL,(-5,  10,-21, 0,  5,  10, -20,0,), None,),
+"graphene armor"            :(ARMR,58250, 16.5, 900, CARB,(-2,  8, -9,  0,  20, 20, 30, 0,), None,),
+"bullet-proof armor"        :(ARMR,135000,12.8, 1000,CARB,(-1,  12,-3,  0,  5,  5,  0,  0,), None,),
+"space suit"                :(ARMR,36000, 40.0, 50,  CARB,(-15, 3, -33, 0,  20, 40, 6,  0,), None,),
+"hazard suit"               :(ARMR,2445,  14.5, 75,  PLAS,(-12, 2, -24, 0,  5,  50, 12, 0,), None,),
+"disposable PPE"            :(ARMR,110,   9.25, 25,  PLAS,(-9,  1, -15, 0,  -15,30, 3,  0,), None,),
+"wetsuit"                   :(ARMR,1600,  8.2,  50,  PLAS,( 0,  0, -6,  0,  33, 5,  21, 0,), None,),
+"fire blanket"              :(BACK,600,   12.4, 175, CLTH,(-3,  1, -9,  0,  40, 15, 9,  0,), None,),
+"burn jacket"               :(ARMR,1965,  19.5, 150, CLTH,(-5,  2, -12, 0,  55, 15, 15, 0,), None,),
     #Helmets
-"bandana"                   :(HELM,1,  40,    0.1,  30,  CLTH,( 2,  0,  0,  0,  5,  10, 5,  0,), None,),
-"skin mask"                 :(HELM,1,  180,   1.25, 20,  FLSH,( 1,  0,  0,  -1, 0,  5,  2,  0,), None,),
-"wood mask"                 :(HELM,1,  10,    1.0,  60,  WOOD,( 1,  1, -3,  -1, -5, 5,  5,  0,), None,),
-"skull helm"                :(HELM,2,  750,   2.8,  125, BONE,(-3,  2, -6,  -2, 5,  5,  5,  0,), None,),
-"metal mask"                :(HELM,12, 6000,  2.2,  375, METL,(-3,  3, -3,  -2, 0,  5,  -5, 0,), None,),
-"metal helm"                :(HELM,14, 8500,  3.0,  600, METL,(-4,  4, -6,  -2, 0,  5,  -10,0,), None,),
-"graphene mask"             :(HELM,18, 21850, 0.8,  225, CARB,(-1,  2, -3,  -2, 10, 10, 8,  0,), None,),
-"graphene helmet"           :(HELM,18, 25450, 1.2,  310, CARB,(-1,  3, -3,  -1, 10, 10, 10, 0,), None,),
-"kevlar hat"                :(HELM,14, 89500, 1.5,  750, CARB,(-1,  4, -3,  0,  0,  0,  0,  0,), None,),
-"space helmet"              :(HELM,15, 51950, 3.5,  50,  CARB,(-4,  1, -12, -1, 15, 25, 5,  0,), None,),
-"gas mask"                  :(HELM,11, 19450, 2.5,  40,  PLAS,(-2,  1, -3,  -2, 10, 45, 6,  0,), None,),
-"respirator"                :(HELM,5,  2490,  1.7,  35,  PLAS,(-3,  0, -6,  0,  20, 30, 3,  0,), None,),
+"bandana"                   :(HELM,40,    0.1,  20,  CLTH,( 2,  0,  0,  0,  5,  10, 3,  0,), None,),
+"skin mask"                 :(HELM,180,   1.25, 10,  FLSH,( 1,  0,  0,  -1, 0,  5,  0,  0,), None,),
+"wood mask"                 :(HELM,10,    1.0,  30,  WOOD,(-1,  1, -3,  -5, -5, 5,  3,  0,), None,),
+"skull helm"                :(HELM,750,   2.8,  115, BONE,(-3,  2, -9,  -3, 5,  5,  6,  0,), None,),
+"motorcycle helmet"         :(HELM,1500,  0.75, 145, PLAS,(-1,  2, -3,  -3, 0,  5,  6,  0,), None,),
+"metal mask"                :(HELM,6000,  2.2,  275, METL,(-3,  3, -6,  -7, 0,  5,  -6, 0,), None,),
+"metal helm"                :(HELM,8500,  3.0,  300, METL,(-4,  4, -9,  -10,0,  5,  -12,0,), None,),
+"graphene mask"             :(HELM,21850, 0.8,  285, CARB,(-2,  2, -3,  -7, 10, 10, 9,  0,), None,),
+"graphene helmet"           :(HELM,25450, 1.2,  310, CARB,(-2,  3, -3,  -7, 10, 10, 9,  0,), None,),
+"kevlar hat"                :(HELM,89500, 1.5,  350, CARB,(-2,  4, -3,  0,  0,  0,  0,  0,), None,),
+"space helmet"              :(HELM,51950, 3.5,  40,  CARB,(-4,  1, -15, -5, 15, 25, 6,  0,), None,),
+"gas mask"                  :(HELM,19450, 2.5,  30,  PLAS,(-3,  1, -6,  -1, 10, 45, 6,  0,), None,),
+"respirator"                :(HELM,2490,  1.7,  25,  PLAS,(-3,  0, -6,  0,  20, 30, 3,  0,), None,),
 #"night vision goggles"
 #"ear plugs"
     }        
@@ -210,26 +212,37 @@ WEAPONS = {
     
            ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
     # melee weapons
-"stone"             :(TSTO,1,    0.3, 150, 0,  0,  0,  STON,(6, 3, 3, 0,  0,  0, -33, 0, PH,),None,(), None,),
-"stick"             :(MEL, 1,    0.75,50,  0,  0,  0,  WOOD,(4, 2, 2, 0,  0,  0,   0,-3, PH,),None,(), None,),
-"fork"              :(MEL, 3,    0.1, 40,  0,  0,  0,  METL,(4, 3, 1, 0,  0,  0,  15, 0, PH,),None,(STABS,), None,),
-"cudgel"            :(MEL, 5,    1.5, 980, 0,  0,  0,  WOOD,(3, 3, 10,0,  -3, 0, -33,-12,PH,),None,(), None,),
-"staff"             :(MEL, 15,   1.2, 400, 0,  0,  0,  WOOD,(4, 9, 4, 0,  1,  0,  33,-15,PH,),None,(REACH,), None,),
-"axe"               :(MEL, 20,   1.25,650, 0,  0,  0,  WOOD,(4, 5, 12,0,  -2, 0, -25,-12,PH,),None,(CHOPS,CUTS,), None,),
-"baton"             :(MEL, 35,   0.75,500, 0,  0,  0,  PLAS,(3, 5, 2, 0,  0,  0,  10, 0, PH,),None,(), None,),
-"spear"             :(MEL, 35,   1.5, 325, 0,  0,  0,  WOOD,(10,16,8, 0,  -1, 0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"pocket knife"      :(MEL, 95,   0.2, 120, 0,  0,  0,  METL,(3, 7, 4, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"bayonet"           :(MEL, 150,  0.3, 200, 0,  0,  0,  METL,(6, 9, 4, 0,  2,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"dagger"            :(MEL, 275,  0.4, 240, 0,  0,  0,  METL,(6, 12,5, 0,  3,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"sword"             :(MEL, 650,  1.25,260, 0,  0,  0,  METL,(6, 13,6, 0,  4,  0,  25,-6, PH,),None,(CUTS,STABS,), None,),
+"stone"             :(TSTO,1,    0.35,50,  0,  0,  0,  STON,(10,3, 4, 0,  0,  0, -33, 0, PH,),None,(CRUSHES,), None,),
+"stick"             :(MEL, 1,    0.6, 40,  0,  0,  0,  WOOD,(8, 2, 2, 0,  0,  0,  0, -6, PH,),None,(), None,),
+"bone"              :(MEL, 1,    0.25,320, 0,  0,  0,  BONE,(8, 4, 4, 0,  0,  0,  0,  0, PH,),None,(CRUSHES,), None,),
+"fork"              :(MEL, 2,    0.05,20,  0,  0,  0,  METL,(1, 3, 1, 0,  0,  0,  10, 0, PH,),None,(STABS,), None,),
+"cudgel"            :(MEL, 2,    1.5, 550, 0,  0,  0,  WOOD,(5, 3, 9, 0,  -3, 0, -33,-15,PH,),None,(CRUSHES,), None,),
+"war frisbee"       :(MEL, 3,    0.4, 5,   0,  0,  0,  PLAS,(12,4, 4, 0,  0,  0, -33,-3, PH,),None,(), None,),
+"stone axe"         :(MEL, 5,    1.55,40,  0,  0,  0,  WOOD,(8, 5, 11,0,  -2, 0, -25,-15,PH,),None,(CHOPS,), None,),
+"dart"              :(MEL, 6,    0.2, 15,  0,  0,  0,  METL,(14,8, 3, 0,  0,  0, -10, 0, PH,),None,(), None,),
+"javelin"           :(MEL, 10,   0.5, 10,  0,  0,  0,  WOOD,(20,14,6, 0,  1,  0,  33,-9, PH,),None,(REACH,STABS,), None,),
+"staff"             :(MEL, 15,   1.2, 260, 0,  0,  0,  WOOD,(10,9, 5, 0,  2,  0,  33,-18,PH,),None,(REACH,), None,),
+"hammer"            :(MEL, 20,   1.15,650, 0,  0,  0,  METL,(8, 4, 12,0,  -1, 0, -33,-6, PH,),None,(CRUSHES,), None,),
+"metal axe"         :(MEL, 25,   1.25,365, 0,  0,  0,  WOOD,(8, 5, 14,0,  -2, 0, -25,-12,PH,),None,(CHOPS,CUTS,), None,),
+"spear"             :(MEL, 30,   1.5, 185, 0,  0,  0,  WOOD,(16,16,10,0,  2,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
+"wooden sword"      :(MEL, 35,   1.2, 50,  0,  0,  0,  WOOD,(8, 7, 3, 0,  2,  0,  20,-6, PH,),None,(), None,),
+"baton"             :(MEL, 55,   0.75,450, 0,  0,  0,  PLAS,(4, 6, 3, 0,  0,  0,  15,-3, PH,),None,(), None,),
+"pocket knife"      :(MEL, 75,   0.2, 75,  0,  0,  0,  METL,(6, 8, 4, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"crowbar"           :(MEL, 80,   0.8, 600, 0,  0,  0,  METL,(6, 8, 10,0,  0,  0, -33,-3, PH,),None,(CRUSHES,), None,),
+"scalpel"           :(MEL, 95,   0.05,5,   0,  0,  0,  METL,(1, 16,6, 0,  0,  0,  33, 0, PH,),None,(CUTS,STABS,), None,),
+"bayonet"           :(MEL, 110,  0.3, 100, 0,  0,  0,  METL,(10,10,5, 0,  2,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"dagger"            :(MEL, 155,  0.4, 190, 0,  0,  0,  METL,(10,12,5, 0,  3,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"metal sword"       :(MEL, 250,  1.25,220, 0,  0,  0,  METL,(8, 14,8, 0,  4,  0,  25,-6, PH,),None,(CUTS,STABS,CHOPS,), None,),
 #chainsaw
 #plasma sword
     # shields
-"wooden shield"     :(OFF, 145,  5.3, 520, 0,  0,  0,  WOOD,(3, 0, 1, 0,  4,  3,  0, -24,PH,),None,(), None,),
-"metal shield"      :(OFF, 540,  7.5, 900, 0,  0,  0,  METL,(3, 0, 2, 0,  3,  5,  0, -33,PH,),None,(), None,),
+"wooden shield"     :(OFF, 205,  5.3, 520, 0,  0,  0,  WOOD,(4, 0, 1, 0,  4,  3,  0, -21,PH,),None,(), None,),
+"metal shield"      :(OFF, 540,  7.5, 900, 0,  0,  0,  METL,(1, 0, 2, 0,  3,  5,  0, -27,PH,),None,(), None,),
+"riot shield"       :(OFF, 2250, 8.2, 450, 0,  0,  0,  PLAS,(1, 0, 1, 0,  1,  7,  0, -30,PH,),None,(), None,),
     # bows
-"short bow"         :(BOW, 60,   1.1, 40,  1,  1,  0,  WOOD,(20,12,1, 2,  -1, 0, -10,-6,PH,),A_ARRO,(), None,),
-"longbow"           :(BOW, 120,  1.6, 60,  1,  1,  0,  WOOD,(35,9, 1, 5,  -2, 0, -20,-9,PH,),A_ARRO,(), None,),
+"composite bow"     :(BOW, 125,  1.2, 50,  1,  1,  0,  BONE,(32,14,0, 4,  -1, 0, -10,-6,PH,),A_ARRO,(), None,),
+"short bow"         :(BOW, 180,  1.1, 40,  1,  1,  0,  WOOD,(20,12,0, 2,  -1, 0, -10,-6,PH,),A_ARRO,(), None,),
+"longbow"           :(BOW, 360,  1.8, 60,  1,  1,  0,  WOOD,(36,16,1, 6,  -2, 0, -20,-12,PH,),A_ARRO,(), None,),
     # exposives
 "molotov"           :(EXPL,50,   1.2, 5,   0,  0,  0,  METL,(8, 3, 1, 1,  -1, 0, -10,-6,PH,),None,(), None,), #_molotov
 "IED"               :(EXPL,75,   2.5, 5,   0,  0,  0,  METL,(8, 3, 1, 1,  -1, 0, -10,-6,PH,),None,(), None,), #_ied
@@ -239,20 +252,21 @@ WEAPONS = {
 "MK-18 shitstormer" :(HEVY,2090, 2.5, 220, 100,3,  0,  PLAS,(7, 3, 1, 25, -4, 0,  0, -15,BI,),A_HAZM,(), None,),
 "raingun"           :(HEVY,2990, 2.85,175, 125,3,  0,  PLAS,(7, 5, 1, 40, -5, 0,  0, -18,CH,),A_ACID,(), None,),
 "supersoaker 9000"  :(HEVY,3750, 3.5, 100, 200,5,  0,  PLAS,(9, 5, 0, 3,  -10,0,  10,-18,None,),A_FLUID,(), None,),
-"spring gun"        :(HEVY,1860, 7.3, 75,  1,  4,  0,  METL,(10,5, 0, 3,  -10,0, -33,-21,PH,),A_ANY,(), None,),
+"spring cannon"     :(HEVY,1860, 7.3, 75,  1,  4,  0,  METL,(10,5, 0, 3,  -10,0, -33,-21,PH,),A_ANY,(), None,),
 "flamethrower"      :(HEVY,5800, 12.7,100, 300,8,  0,  METL,(5, 15,2, 100,-15,0,  33,-40,FI,),A_FLAM,(), None,), #_flamethrower
 #"napalm thrower"      :(HEVY,5800, 12.7,100, 300,8,  0,  METL,(5, 15,2, 100,-15,0,  33,-40,FI,),A_FLAM,(),), #_flamethrower
+#"compressed air gun":(HEVY,5800, 12.7,100, 300,8,  0,  METL,(5, 15,2, 100,-15,0,  33,-40,FI,),A_FLAM,(),), #_flamethrower
     # guns
-"hand cannon"       :(GUN, 145,  8.75,450, 1,  10, 15, METL,(6, 18,5, 8,  -15,1, -50,-30,PH,),A_BALL,(), None,),
-"musket"            :(GUN, 975,  2.5, 120, 1,  8,  8,  WOOD,(14,12,4, 6,  -3, 0, -33,-12,PH,),A_BALL,(), None,),
-"flintlock pistol"  :(GUN, 1350, 1.3, 150, 1,  8,  12, WOOD,(8, 7, 2, 2,   0, 0, -25,-3, PH,),A_BALL,(), None,),
-"revolver"          :(GUN, 3990, 1.1, 360, 6,  1,  8,  METL,(12,10,3, 4,   0, 0, -15,-3, PH,),A_BULL,(), None,),
-"rifle"             :(GUN, 4575, 2.2, 280, 1,  1,  8,  WOOD,(30,16,4, 8,  -3, 0, -33,-12,PH,),A_BULL,(), None,),
-"repeater"          :(GUN, 13450,2.0, 300, 7,  1,  7,  WOOD,(22,14,4, 8,  -3, 0, -15,-9, PH,),A_BULL,(), None,),
-"'03 Springfield"   :(GUN, 26900,2.5, 350, 5,  1,  6,  WOOD,(50,22,4, 11, -3, 0, -33,-12,PH,),A_BULL,(), None,),
-"luger"             :(GUN, 55450,0.9, 210, 8,  1,  10, METL,(16,12,3, 6,   0, 0, -6, -3, PH,),A_BULL,(), None,),
-"shotgun"           :(GUN, 2150, 2.0, 325, 1,  1,  8,  WOOD,(8, 6, 4, 2,  -2, 0, -33,-9, PH,),A_SHOT,(), None,),
-"double barrel shotgun":(GUN,6200,2.8,285, 2,  1,  8,  WOOD,(8, 6, 4, 2,  -3, 0, -33,-12,PH,),A_SHOT,(), None,),
+"hand cannon"       :(GUN, 145,  8.75,450, 1,  10, 15, METL,(8, 10,6, 8,  -15,1, -50,-30,PH,),A_BALL,(), None,),
+"musket"            :(GUN, 975,  2.5, 120, 1,  8,  8,  WOOD,(14,8, 5, 6,  -3, 0, -33,-12,PH,),A_BALL,(), None,),
+"flintlock pistol"  :(GUN, 1350, 1.3, 150, 1,  8,  12, WOOD,(10,6, 3, 0,   0, 0, -25,-3, PH,),A_BALL,(), None,),
+"revolver"          :(GUN, 3990, 1.1, 360, 6,  1,  8,  METL,(15,8, 3, 3,   0, 0, -15,-3, PH,),A_BULL,(), None,),
+"rifle"             :(GUN, 4575, 2.2, 280, 1,  1,  8,  WOOD,(36,12,5, 8,  -3, 0, -33,-12,PH,),A_BULL,(), None,),
+"repeater"          :(GUN, 13450,2.0, 300, 7,  1,  7,  WOOD,(30,10,5, 8,  -3, 0, -15,-9, PH,),A_BULL,(), None,),
+"'03 Springfield"   :(GUN, 26900,2.5, 350, 5,  1,  6,  WOOD,(60,16,5, 12, -3, 0, -33,-12,PH,),A_BULL,(), None,),
+"luger"             :(GUN, 55450,0.9, 210, 8,  1,  10, METL,(18,12,3, 6,   0, 0, -6, -3, PH,),A_BULL,(), None,),
+"shotgun"           :(GUN, 2150, 2.0, 325, 1,  1,  8,  WOOD,(12,6, 5, 2,  -2, 0, -33,-9, PH,),A_SHOT,(), None,),
+"double barrel shotgun":(GUN,6200,2.8,285, 2,  1,  8,  WOOD,(12,6, 5, 2,  -3, 0, -33,-12,PH,),A_SHOT,(), None,),
     # energy weapons
 "battery gun"       :(ENER,3250, 4.20,175, 20, 1,  0,  PLAS,(5, 40,2, 70, -7,  0, -60,-24,EL,),A_ELEC,(),),
                       
@@ -266,12 +280,12 @@ WEAPONS = {
 #"grenade launcher"  :(HEVY,45910,8.2, 200, 1,  3,  0,  METL,(12,5, 0, 4,  -15,0, -33,-30,PH,),A_GREN,(),),
 }
 #add extra weapons (variations)
-BAYONETS=("musket","rifle","shotgun","'03 Springfield",)
-for wpn in BAYONETS:
-##    _stats = WEAPONS[wpn]
-##    bayonetDmg = 4
-##    _stats.update( {set_weapon_dmg() : get_weapon_dmg(WEAPONS[wpn]) + bayonetDmg} )
-    WEAPONS.update( {"{} with bayonet".format(wpn) : _stats} ))
+##BAYONETS=("musket","rifle","shotgun","'03 Springfield",)
+##for wpn in BAYONETS:
+####    _stats = WEAPONS[wpn]
+####    bayonetDmg = 4
+####    _stats.update( {set_weapon_dmg() : get_weapon_dmg(WEAPONS[wpn]) + bayonetDmg} )
+##    WEAPONS.update( {"{} with bayonet".format(wpn) : _stats} ))
 
 
 AMMUNITION={
@@ -281,14 +295,17 @@ AMMUNITION={
 #   n           number shots
 #   Acc, Atk, Dmg, Asp      Range, Attack, Damage, Attack Speed
 # name                  : type,  $$$, KG, n, (Acc,Atk,Dmg,Asp,),script
+##hollow arrows
 "metal ball"            :(A_BALL,2,  0.1, 1, (-2, 0,  4,  0,), None,)
 "Minni ball"            :(A_BALL,3,  0.1, 1, (0,  2,  6,  0,), None,)
-"paper cartridge"       :(A_BALL,5,  0.15,1, (0,  2,  6,  0,), _paperCartridge,)
-"shotgun shell"         :(A_SHOT,7,  0.1, 5, (-4, -4, 2,  0,), None,)
+"paper cartridge"       :(A_BALL,4,  0.15,1, (0,  2,  6,  0,), _paperCartridge,)
+"birdshot shell"        :(A_SHOT,4,  0.1, 12,(-4, -9, 0,  0,), None,)
+"shotgun shell"         :(A_SHOT,6,  0.1, 5, (-2, -5, 2,  0,), None,)
 "shotgun slug"          :(A_SHOT,8,  0.1, 1, (0,  0,  10, -10,), None,)
-"small cartridge"       :(A_BULL,8,  0.02,1, (0,  2,  2,  0,), None,)
-"magnum cartridge"      :(A_BULL,15, 0.04,1, (-2, -2, 8,  -33,), None,)
-"large cartridge"       :(A_BULL,12, 0.06,1, (5,  6,  5,  -15,), None,)
+"pistol cartridge"      :(A_BULL,6,  0.02,1, (0,  2,  3,  0,), None,)
+"magnum cartridge"      :(A_BULL,16, 0.04,1, (-2, 4,  9,  -33,), None,)
+"rifle cartridge"       :(A_BULL,15, 0.06,1, (5,  8,  6,  -15,), None,)
+"hollow-point cartridge":(A_BULL,12, 0.04,1, (-5, -4, 12, -15,), None,)
 "incendiary cartridge"  :(A_BULL,36, 0.08,1, (-2, 12, 12, -33,), _incendiary)
     }
 
@@ -323,40 +340,40 @@ def create_gear(name,x,y,quality):
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,color=color,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mass=mass, material=material, value=value))
     world.add_component(ent, cmp.BasicStats(
         hp=hpmax,mp=hpmax,
-        resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys,
-        mass=mass, material=material, value=value
+        resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
         ) )
 
     #stat mod dictionaries
     #{component : {var : modf}}
     basicStatsDict = {}
-    seerDict = {}
     combatDict = {}
+    sightDict = {}
     if resbio: basicStatsDict.update({"resbio":resbio})
     if resfire: basicStatsDict.update({"resfire":resfire})
     if reselec: basicStatsDict.update({"reselec":reselec})
     if resphys: basicStatsDict.update({"resphys":resphys})
-    if sight: seerDict.update({"sight":sight})
     if dfn: combatDict.update({"dfn":dfn})
     if arm: combatDict.update({"arm":arm})
     if msp: combatDict.update({"msp":msp})
+    if sight: sightDict.update({"sight":sight})
     modDict = {}
     if not basicStatsDict == {}: modDict.update({cmp.BasicStats : basicStatsDict})
-    if not seerDict == {}: modDict.update({cmp.Seer : seerDict})
     if not combatDict == {}: modDict.update({cmp.CombatStats : combatDict})
+    if not sightDict == {}: modDict.update({cmp.SenseSight : sightDict})
         
     if _type == ARMR:
-        rog.world().add_component(ent, cmp.CanEquipInBodySlot(modDict))
+        world.add_component(ent, cmp.CanEquipInBodySlot(modDict))
     elif _type == HELM:
-        rog.world().add_component(ent, cmp.CanEquipInHeadSlot(modDict))
+        world.add_component(ent, cmp.CanEquipInHeadSlot(modDict))
     elif _type == BACK:
-        rog.world().add_component(ent, cmp.CanEquipInBackSlot(modDict))
+        world.add_component(ent, cmp.CanEquipInBackSlot(modDict))
     
     #item resistances based on material??? How to do this?
 
-    script(ent)
+    if script: script(ent)
     return ent
 #
 
@@ -393,12 +410,12 @@ def create_weapon(name, x,y):
     
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
-    world.add_component(ent, cmp.Draw(char=_type,color=color,bgcol=bgcol) )
+    world.add_component(ent, cmp.Draw( char=_type, color=color, bgcol=bgcol ))
+    world.add_component(ent, cmp.Form( mass=mass, material=material, value=value ))
     world.add_component(ent, cmp.BasicStats(
         hp=hpmax,mp=hpmax,
-        #resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys,
-        mass=mass, material=material, value=value
-        ) )
+        #resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
+        ))
 
     ammoDict={}
     mainhandDict={}
@@ -420,13 +437,13 @@ def create_weapon(name, x,y):
     modDict={}
     if not ammoDict == {}: modDict.update({cmp.Ammo : ammoDict})
     if not mainhandDict == {}: modDict.update({cmp.CombatStats : mainhandDict})
-    if not elementalDict == {}: world.add_component(ent, cmp.ElementalDamage(elementalDict))
     world.add_component(ent, cmp.CanEquipInMainhand(modDict))
+    if not elementalDict == {}: world.add_component(ent, cmp.ElementalDamage(elementalDict))
     
     for flag in flags:
         rog.make(ent, flag)
-    
-    script(weap)
+
+    if script: script(weap)
     return weap
 #
 

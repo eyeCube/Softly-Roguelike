@@ -87,18 +87,9 @@ def singe(x,y): #burn tile
     if Rogue.Map.get_char(x,y) == FUNGUS:
         tile_change(x,y,FLOOR)
 
-# entity functions
-# flags
-def on(ent, flag):
-    return flag in Rogue.world.component_for_entity(ent, set)
-def make(ent, flag):
-    Rogue.world.component_for_entity(ent, set).add(flag)
-def makenot(ent, flag):
-    Rogue.world.component_for_entity(ent, set).remove(flag)
+# component functions - better to call directly and save the function call overhead
 def get(ent, component): #return an entity's component
     return Rogue.world.component_for_entity(ent, component)
-
-# component functions - better to call directly and save the function call overhead
 def has(ent, component): #return whether entity has component
     return Rogue.world.has_component(ent, component)
 def match(component):
@@ -111,6 +102,14 @@ def copyflags(toEnt,fromEnt,copyStatusFlags=True): #use this to set an object's 
         if (copyStatusFlags or not flag in STATUSFLAGS):
             make(toEnt, flag)
             
+# entity functions
+# flags
+def on(ent, flag):
+    return flag in Rogue.world.component_for_entity(ent, set)
+def make(ent, flag):
+    Rogue.world.component_for_entity(ent, set).add(flag)
+def makenot(ent, flag):
+    Rogue.world.component_for_entity(ent, set).remove(flag)
 ##def has_equip(obj,item):
 ##    return item in Rogue.world.component_for_entity(obj, )
 def give(ent,item):
@@ -127,8 +126,10 @@ def mutate(ent):
     entn = Rogue.world.component_for_entity(ent, cmp.Name)
     event_sight(pos.x,pos.y,"{t}{n} mutated!".format(t=entn.title,n=entn.name))
 def has_sight(ent):
-    if (ent.stats.get('sight') and not on(ent,BLIND)): return True
-    return False
+    if (Rogue.world.has_component(ent, cmp.SenseSight) and not on(ent,BLIND)):
+        return True
+    else:
+        return False
 def port(ent,x,y): # move thing to absolute location, update grid and FOV
     grid_remove(ent)
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
@@ -149,15 +150,15 @@ def givemp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
     stats.mp = min(stats.mpmax, stats.mp + val)
 def caphp (ent):
-    health = Rogue.world.component_for_entity(ent, cmp.Health)
-    health.hp = min(health.hp, health.hpmax)
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.hp = min(stats.hp, stats.hpmax)
 def capmp (ent):
-    health = Rogue.world.component_for_entity(ent, cmp.Health)
-    health.mp = min(health.mp, health.mpmax)
-#train (improve) skill
+    stats = Rogue.world.component_for_entity(ent, cmp.BasicStats)
+    stats.mp = min(stats.mp, stats.mpmax)
+#train skill
 def train (ent,skill):
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.update({skill : max(SKILLMAX, skills.get(skill,0)+1) })
+    skills.skills.add(skill) #({skill : max(SKILLMAX, skills.get(skill,0)+1) })
 #damage hp
 def hurt(ent, dmg: int):
 ##    assert isinstance(dmg, int)
@@ -271,6 +272,10 @@ def explosion(name, x, y, radius):
 #     Things     #
 #----------------#
 
+def create_thing():
+    ent = Rogue.world.create_entity()
+    Rogue.world.add_component(ent, set) #flagset
+    return ent
 def create_stuff(ID, x,y):
     tt = stuff.create(x,y, ID)
     register_inanimate(tt)
@@ -351,7 +356,7 @@ def create_thing(name, x, y, char, color, bgcol):
 def create_creature(name, x, y):
     ent = Rogue.world.create_entity(
         cmp.Draw(),
-        cmp.Name(name), cmp.Position(x,y), cmp.TakesTurns(100),
+        cmp.Name(name), cmp.Position(x,y), cmp.Actor(100),
         cmp.BasicStats(), cmp.CombatStats(), cmp.Creature(),
         cmp.Purse(), cmp.Inventory(), cmp.Skills(), cmp.Form(),
         cmp.StatMods(), cmp.StatusEffects(), cmp.Mutable(), 

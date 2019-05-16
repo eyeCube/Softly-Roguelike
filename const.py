@@ -105,6 +105,8 @@ CANTALK     = i; i+=1;  # Can engage in jolly conversation
 REACH       = i; i+=1;  # Has long reach
 STABS       = i; i+=1;  # Can stab things
 CUTS        = i; i+=1;  # Can cut things
+CHOPS       = i; i+=1;  # Can chop things (dmg+ to wood)
+CRUSHES     = i; i+=1;  # Can crush or hammer things
 ISSOLID     = i; i+=1;  # Is solid (cannot walk through it)
 ##CANEAT      = i; i+=1;  # Can be eaten
 ##CANQUAFF    = i; i+=1;  # Can be quaffed
@@ -192,37 +194,11 @@ MAX_FLUID_IN_TILE   = 1000
 
 
 
-
-#
-# Status effects
-#
-STATUSES={
-# ID    : defaultDur, onVerb, statusVerb,
-WET     : (100,     "is",   "wet",),
-SPRINT  : (10,      "begins", "sprinting",),
-TIRED   : (50,      "is", "tired",),
-HASTE   : (20,      "is", "hasty",),
-SLOW    : (10,      "is", "slowed",),
-FIRE    : (99999999,"catches", "on fire",),
-SICK    : (500,     "is", "sick",),
-ACID    : (7,       "begins", "corroding",),
-IRRIT   : (200,     "is", "irritated",),
-PARAL   : (5,       "is", "paralyzed",),
-COUGH   : (10,      "is", "in a coughing fit",),
-VOMIT   : (25,      "is", "wretching",),
-BLIND   : (20,      "is", "blinded",),
-DEAF    : (100,     "is", "deafened",),
-TRAUMA  : (99999999,"is", "traumatized",),
-    }
-
 #wet
 WET_RESFIRE     = 50    # fire resistance gained while wet
 
 #sprint
 SPRINT_SPEEDMOD     = 100   # move speed bonus when you sprint
-
-#tired
-#
 
 #hasty
 HASTE_SPEEDMOD      = 50    # speed bonus when hasty
@@ -459,6 +435,7 @@ MAT_STONE       = i; i+=1;
 MAT_DUST        = i; i+=1;
 MAT_WOOD        = i; i+=1;
 MAT_SAWDUST     = i; i+=1;
+MAT_GUNPOWDER   = i; i+=1;
 MAT_PAPER       = i; i+=1;
 MAT_LEATHER     = i; i+=1;
 MAT_CLOTH       = i; i+=1;
@@ -582,18 +559,18 @@ i=0;
 #
 i=0;
 QU_CRUDE        =i; i+=1;
-QU_COUNTERFEIT  =i; i+=1;
+QU_IMPROV       =i; i+=1;
 QU_MARKET       =i; i+=1;
 QU_POLICE       =i; i+=1;
 QU_MILITARY     =i; i+=1;
 
 QUALITIES={
-# ID            :   name        Color,      %Acc,Atk,Dmg,Dur,$$$,KG%,
-QU_CRUDE        : ("crude",     "gray",     (-50,-50,-50,-50,-66,22,),),
-QU_COUNTERFEIT  : ("counterfeit","white",   (-25,-25,-25,-25,-33,-10,),),
-QU_MARKET       : ("market",    "green",    (0,  0,  0,  0,  0,  0,),),
-QU_POLICE       : ("police",    "blue",     (25, 25, 25, 25, 50, -10,),),
-QU_MILITARY     : ("military", "truepurple",(50, 50, 50, 50, 150,50,),),
+# ID            :   name        Color,      %Rng,Atk,Dmg,Dur,$$$,KG%,
+QU_CRUDE        : ("crude",     "neutral",  (-33,-50,-40,-66,-250,33,),),
+QU_IMPROV       : ("improvised","ltgray",   (-16,-25,-20,-33,-125,16,),),
+QU_MARKET       : ("",          "accent",   (0,  0,  0,  0,  0,  0,),),
+QU_POLICE       : ("police",    "trueblue", (16, 25, 20, 25, 125,-16,),),
+QU_MILITARY     : ("military", "truepurple",(33, 50, 50, 50, 250,33,),),
     }
 
 

@@ -44,13 +44,13 @@ class Purse: #Money Container
     def __init__(self, purse=0): #, capacity=99999999
         self.purse=purse
 
-class Seer:
+class SenseSight:
     def __init__(self, sight=20):
         self.sight = sight
         self.fov_map = rog.init_fov_map(FOV_NORMAL)
         self.events = []
         
-class Listener:
+class SenseSound:
     def __init__(self, hearing=100):
         self.hearing = hearing
         self.events = []
@@ -127,11 +127,13 @@ class Openable:
         self.isOpen=isOpen
         self.isLocked=isLocked
 
-class Form:
-    def __init__(self, mass=0): #, volume, shape
+class Form: #physical makeup of the object
+    def __init__(self, mass=0, mat=0, val=0): #, volume, shape
         self.mass=mass
+        self.material=mat
+        self.value=val
 
-class Inventory:
+class Inventory: #item container
     def __init__(self, capacity):
         self.capacity=capacity
         self.size=0
@@ -143,31 +145,28 @@ class FluidContainer:
         self.size=0
         self.data={}
 
-class TakesTurns: #participates in the game by gaining and spending action points
+class Actor: #participates in the game by gaining and spending action points
     def __init__(self, speed=1):
-        self.ap=0 #action points
+        self.ap=0 #action points (energy/potential to act)
         self.speed=speed
 
-class BasicStats:
+class BasicStats: #stats any thing is expected to have
     def __init__(self, hp=1, mp=1,
-                 resFire=0,resBio=0,resElec=0,resPhys=0,
-                 material=None,value=0):
+                 resfire=0,resbio=0,reselec=0,resphys=0):
         self.hpmax=hp
         self.hp=hp
         self.mpmax=mp
         self.mp=mp
-        self.resfire=resFire    #resistances
-        self.resbio=resBio
-        self.reselec=resElec
-        self.resphys=resPhys
-        self.material=material
-        self.value=value
+        self.resfire=resfire    #resistances
+        self.resbio=resbio
+        self.reselec=reselec
+        self.resphys=resphys
         self.temp=0             #meters
         self.rads=0
         self.sick=0
         self.expo=0
     
-class CombatStats:
+class CombatStats: #stats any fighter is expected to have
     def __init__(self, atk=0,dfn=0,dmg=0,arm=0,rng=0,_pow=0,asp=0,msp=0):
         self.atk=atk    #attack
         self.dfn=dfn    #DV
@@ -178,10 +177,14 @@ class CombatStats:
         self.asp=asp    #atk spd
         self.msp=msp    #move spd
 
-class ElementalDamage:
+class ElementalDamage: #special elemental damage
     def __init__(self, element, dmg):
         self.element=element
         self.dmg=dmg
+##class ElementalPower: #special elemental ranged damage
+##    def __init__(self, element, dmg):
+##        self.element=element
+##        self.dmg=dmg
 
 class StatMods:
     def __init__(self, *args, **kwargs):
@@ -191,9 +194,48 @@ class StatMods:
         for k,w in kwargs:
             self.mods.append((k,w,))
 
-class StatusEffects:
-    def __init__(self):
-        self.effects={}
+#status effects
+    #owned by entities currently exhibiting status effect(s)
+class StatusBurning:
+    def __init__(self, t=-1): #,dmg=1
+        self.timer=t
+        #self.dmg=dmg
+class StatusCorroding:
+    def __init__(self, t=8):
+        self.timer=t
+class StatusBlinded:
+    def __init__(self, t=20):
+        self.timer=t
+class StatusDeafened:
+    def __init__(self, t=150):
+        self.timer=t
+class StatusIrritated:
+    def __init__(self, t=200):
+        self.timer=t
+class StatusParalyzed:
+    def __init__(self, t=5):
+        self.timer=t
+class StatusVomiting:
+    def __init__(self, t=50):
+        self.timer=t
+class StatusCoughing:
+    def __init__(self, t=25):
+        self.timer=t
+class StatusSprinting:
+    def __init__(self, t=10):
+        self.timer=t
+class StatusHasty:
+    def __init__(self, t=25):
+        self.timer=t
+class StatusSlowed:
+    def __init__(self, t=25):
+        self.timer=t
+class StatusWet:
+    def __init__(self, t=100):
+        self.timer=t
+class StatusDrunk:
+    def __init__(self, t=250):
+        self.timer=t
 
 
 
