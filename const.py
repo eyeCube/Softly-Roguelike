@@ -207,12 +207,12 @@ HASTE_SPEEDMOD      = 50    # speed bonus when hasty
 SLOW_SPEEDMOD       = -33   # speed penalty while slowed
 
 # temp (fire)
-FIRE_METERLOSS  = 2     #temperature points lost per turn
+FIRE_METERLOSS  = 1     #temperature points lost per turn
 FIRE_METERGAIN  = FIRE_METERLOSS
 FIRE_METERMAX   = 1000  #maximum temperature a thing can reach
 FIRE_MAXTEMP    = 400   #max temperature you can reach from normal means
 FIRE_TEMP       = 100   #avg. temperature at which a thing will set fire
-FIRE_BURN       = 40    #dmg fire deals to things (in fire damage) per turn
+FIRE_BURN       = 34    #dmg fire deals to things (in fire damage) per turn
 FIRE_HURT       = 1     #lo dmg dealt per turn to things w/ burning status effect
 FIRE_LIGHT      = 12    #how much light is produced by fire?
 #FIRE_LEVELMAX     = 3     #max fire level; 0 is no fire, max is blazing flame
