@@ -1,6 +1,7 @@
 '''
     const.py
-    
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 
@@ -9,10 +10,20 @@ from enum import Flag, auto
 import tcod as libtcod
 
 
+#------------#
+# Exceptions #
+#------------#
 
-#
+class Error_wrongNumberCommandsLoaded(Exception):
+#tried to load key commands from key_bindings
+#but received the wrong number of commands.
+    pass
+
+
+
+#-----------------------#
 # Init Global Constants #
-#
+#-----------------------#
 
 
 
@@ -313,7 +324,7 @@ T_TREE          =   5       # club
 T_SHROOM        =   6       # spade
 T_TABLE         =   10      # pi
 T_FIREPIT       =   15      # gear-looking thing
-T_VORTEX        =   21 
+T_VORTEX        =   21      # hurricane-looking thing
 T_BOX           =   22      # horizontal rectangle
 T_LOG           =   28      # upside down gun-looking char
 T_GRAVE         =   127     # house looking thing
@@ -322,7 +333,7 @@ T_STILL         =   150     # u ^
 T_CRUCIBLE      =   154     # U umlaut
 T_CREDITS       =   155     # cents symbol
 T_TERMINAL      =   167     # o underlined
-T_DEVICE        =   168     # upside down '?' - basically a "magic scroll"
+T_DEVICE        =   168     # upside down '?'
 T_GUN           =   169     # pistol-looking char
 T_ENERGYWEAPON  =   170     # backward pistol-looking char
 T_SCRAPMETAL    =   171     # 1/2

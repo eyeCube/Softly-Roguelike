@@ -1,6 +1,9 @@
-#
-# action
-#
+'''
+    action.py
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
+'''
+
 # wrapper for things that creatures can do in the game
 #   - actions cost energy
 # PC actions are for the player object to give feedback

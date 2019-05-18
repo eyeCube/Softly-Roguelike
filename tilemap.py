@@ -1,9 +1,7 @@
 '''
     tilemap.py
-
-    Contents:
-      - class Map
-
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 import time
@@ -24,23 +22,15 @@ from colors import COLORS as COL
 
 
 
-
-
-
-
-
-
-#
-#   Tile
-#
-#Tiles are simple objects that can be minimally interacted with
-#   without much overhead (that's the plan).
-#   There is only one instance of each type of tile.
-#       References to a particular tile on the grid look at the unique
-#       instance created in the TILES constant.
-
 @dataclass
 class Tile():
+    '''
+    Tiles are simple objects that can be minimally interacted with
+       without much overhead.
+       There is only one instance of each type of tile.
+           References to a particular tile on the grid look at the unique
+           instance created in the TILES constant.
+    '''
     char:       str     #ASCII character to represent the tile
     fg:         str     #foreground color
     bg:         str     #background color
@@ -50,9 +40,6 @@ class Tile():
     dampen:     int     #volume dampen amount
 
 
-#unique instances of Tile object
-#each x,y position in the grid points to exactly one of these unique Tiles
-#   (so it is not necessary to instantiate dozens of each Tile type.)
 TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     FLOOR       : Tile(FLOOR,     'neutral', 'deep',    100,0,  False,1,),
     WALL        : Tile(WALL,      'dkred', 'orange',     0,0,  True, 50,),
@@ -70,20 +57,16 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     #SHALLOW     : Tile(SHALLOW,   'blue',  'dkblue',     100,25,  True,2,),
     #WATER       : Tile(WATER,     'trueblue','dkblue',  100,50,  True,2,),
     #DEEPWATER   : Tile(DEEPWATER, 'dkblue', 'deep',     100,100,  True,2,),
-        
-'''class Floor(Tile):
-    def __init__(self, *args,**kwargs):
-        super(Floor, self).__init__(*args,**kwargs)'''
+     
 
-
-
-#TileMap
-#   The grid class that stores data about:
-#   terrain, things, lights, fluids, fires...
-#this class depends on grid_things being in a particular order:
-#   creature goes on top (only one creature allowed per tile)
-#   inanimate things below that.
 class TileMap():
+    '''
+   The grid class that stores data about:
+   terrain, things, lights,   -fluids?? -fires??
+    grid_things must be in a particular order:
+      creature goes on top (currently only one creature allowed per tile)
+      inanimate things below that.
+    '''
 
     def __init__(self,w,h):
         self.BG_COLOR_MAIN = COL['deep']
@@ -123,11 +106,12 @@ class TileMap():
             # init consoles for UI 
         self.con_memories = libtcod.console_new(w,h)
         self.con_map_state = libtcod.console_new(w,h)
-    #
-    # init_terrain
-    # call this to initialize the terrain tile grid with default data
-    # only call once!
+
     def init_terrain(self):
+    '''
+        call this to initialize the terrain tile grid with default data
+        only call once!
+    '''
         w=self.w
         h=self.h
         for x in range(w):
@@ -137,11 +121,12 @@ class TileMap():
             for y in range(h):
                 if random.random()*100 > 50:
                     self._tile_init(x,y,FUNGUS)
-                    
-    # tile_change
-        #change a tile, update fov_map if necessary
-        #return True if fov_maps for objects must now be updated, too
+                 
     def tile_change(self, x,y, typ):
+        '''
+            change a tile, update fov_map if necessary
+            return True if fov_maps for objects must now be updated, too
+        '''
         try:
             currentOpacity=self.get_blocks_sight(x,y)
             self.grid_terrain[x][y] = TILES[typ]
@@ -284,9 +269,10 @@ Reason: other.'''.format(x,y,typ))
 
     # private functions
 
-    # initialize a tile that has not been set yet
-    # do not call this function from outside this class
     def _tile_init(self, x,y, typ):
+        '''
+            initialize a tile that has not yet been set
+        '''
         self.grid_terrain[x][y] = TILES[typ]
         newOpacity = self.get_blocks_sight(x,y)
         self._update_fov_map_cell_opacity(x,y,(not newOpacity))
@@ -329,9 +315,11 @@ Reason: other.'''.format(x,y,typ))
                         self.get_char(x, y),
                         self.get_color(x, y), self.get_bgcolor(x, y))
 
-    # get and apply the proper background color
-    #   for the tile containing a thing
     def _apply_rendered_bgcol(self, x, y, ent):
+        '''
+           get and apply the proper background color
+           for the tile containing a thing
+        '''
         bgTile=self.get_bgcolor(x, y) #terrain, fires
         bgCol=bgTile
         if not rog.fireat(x,y):
@@ -343,10 +331,8 @@ Reason: other.'''.format(x,y,typ))
                 bgCol=bgTile
             else:
                 bgCol=rog.get(ent, cmp.Draw).bgcolor
-        #
         libtcod.console_set_char_background(
             self.con_map_state, x,y, bgCol)
-    #end def
         
     def _discover_place(self, x,y,ent=None):
         ent = self.thingat(x,y)
@@ -360,7 +346,6 @@ Reason: other.'''.format(x,y,typ))
                                         COL['dkgray'], COL['black'])
     
     def _create_memories(self, pc):
-        
         rang = pc.stats.sight
         for x in     range( max(0, pc.x-rang), min(self.w, pc.x+rang+1) ):
             for y in range( max(0, pc.y-rang), min(self.h, pc.y+rang+1) ):
@@ -368,7 +353,6 @@ Reason: other.'''.format(x,y,typ))
                 if rog.can_see(pc,x,y):
                     self._discover_place(x,y,self.inanat(x,y))
                     
-
     def _draw_distant_lights(self, pc, view_x,view_y,view_w,view_h):
         for light in rog.list_lights():
             lx=light.x
@@ -389,12 +373,14 @@ Reason: other.'''.format(x,y,typ))
                 libtcod.console_put_char(self.con_map_state, lx,ly, "?")
     
     def _draw_silhouettes(self, pc, tx,ty, ent):
-    #   extend a line from tile tx,ty to a distant tile
-    #   which is in the same direction from the player.
-    #   Check for lit tiles, and if we find any along the way,
-    #   draw a silhouette for the location of interest.
-    #   Basically, if the ent is backlit, you can see
-    #   a silhouette.
+        '''
+        #   extend a line from tile tx,ty to a distant tile
+        #   which is in the same direction from the player.
+        #   Check for lit tiles, and if we find any along the way,
+        #   draw a silhouette for the location of interest.
+        #   Basically, if the ent is backlit, you can see
+        #   a silhouette.
+        '''
         if not (ent and rog.get(ent, cmp.Creature)): return
         pos=rog.get(ent, cmp.Position)
         sight=rog.get(pc, cmp.Seer).sight
@@ -419,21 +405,23 @@ Reason: other.'''.format(x,y,typ))
 # procedural generation #
 #-----------------------#
 
-    # apply cellular automata to the terrain map
-    # Parameters:
-    #   onChar : the "1" state character
-    #   offChar: the "0" state char
-    #   iterations: number of iterations to perform
-    #   nValues: tuple containing 9 values. Represents 0-8 neighbors;
-    #       - contains birth and death parameters.
-    #       - what to do when number of neighbors of a given cell is
-    #       the index value of nValues:
-    #       -1      : switch to "0" or "off" if value at nValues[numNeighbors] == -1
-    #       0       : remain unchanged
-    #       1       : switch to "1" or "on"
-    #   simultaneous: whether to update all cells at the same time or one by one
-    #       True value results in smoother output
     def cellular_automata(self,onChar,offChar,iterations,nValues,simultaneous=True):
+        '''
+        # apply cellular automata to the terrain map
+        # Parameters:
+        #   onChar : the "1" state character
+        #   offChar: the "0" state char
+        #   iterations: number of iterations to perform
+        #   nValues: tuple containing 9 values. Represents 0-8 neighbors;
+        #       - contains birth and death parameters.
+        #       - what to do when number of neighbors of a given cell is
+        #       the index value of nValues:
+        #       -1      : switch to "0" or "off" if value at nValues[numNeighbors] == -1
+        #       0       : remain unchanged
+        #       1       : switch to "1" or "on"
+        #   simultaneous: whether to update all cells at the same time or one by one
+        #       True value results in smoother output
+        '''
         newMap = None
         if simultaneous:
             newMap = TileMap(self.w,self.h)
@@ -459,7 +447,6 @@ Reason: other.'''.format(x,y,typ))
                     _doYourThing(x,y,num,nValues)
         if simultaneous:
             self.COPY(newMap)
-    #end def
 
 
 

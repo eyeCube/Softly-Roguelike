@@ -1,7 +1,7 @@
 '''
     components.py
-
-    Jacob Wharton
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 
@@ -34,7 +34,7 @@ class Creature:
 
 class AI:
     def __init__(self, ai=None):
-        self.ai=ai
+        self.func=func
 
 class Mutable:
     def __init__(self):
@@ -146,9 +146,9 @@ class FluidContainer:
         self.data={}
 
 class Actor: #participates in the game by gaining and spending action points
-    def __init__(self, speed=1):
+    def __init__(self, spd=1):
         self.ap=0 #action points (energy/potential to act)
-        self.speed=speed
+        self.spd=spd #AP gained per turn
 
 class BasicStats: #stats any thing is expected to have
     def __init__(self, hp=1, mp=1,

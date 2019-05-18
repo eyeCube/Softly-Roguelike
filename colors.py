@@ -1,6 +1,6 @@
 '''
-    colors
-
+    colors.py
+    Jacob Wharton
 '''
 
 # The values here are just used as the defaults,

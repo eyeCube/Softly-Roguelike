@@ -1,14 +1,33 @@
 '''
     rogue.py
-
-    Jacob Wharton
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 import esper
+import libtcodpy as libtcod
+import math
 
+from const      import *
 import components as cmp
-import tilemap
+import orangio  as IO
+import action
+import debug
+import dice
+import fluids
+import game
+import items
+import levels
+import lights
+import misc
+import monsters
+import managers
+import maths
 import player
+import stuff
+import thing
+import tilemap
+from colors import COLORS as COL
 
 
 ##

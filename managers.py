@@ -1,6 +1,7 @@
 '''
     managers.py
-
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 import math

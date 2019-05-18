@@ -1,5 +1,6 @@
 '''
     dice.py
+    Jacob Wharton
 '''
 
 import random

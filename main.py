@@ -1,7 +1,7 @@
 '''
     main.py
-
-    Jacob Wharton
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 import esper

@@ -1,9 +1,10 @@
-#
-# some various managers
-# and parent manager objects
-#
+'''
+    processors.py
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
+'''
 
-import libtcodpy as libtcod
+import tcod as libtcod
 import numpy as np
 import esper
 import time
