@@ -11,13 +11,13 @@ import random
 import math
 from dataclasses import dataclass
 
-import rogue as rog
 from const import *
+import rogue as rog
+from colors import COLORS as COL
 import maths
 import misc
 import monsters
 import dice
-from colors import COLORS as COL
 
 
 
@@ -27,7 +27,7 @@ class Tile():
     '''
     Tiles are simple objects that can be minimally interacted with
        without much overhead.
-       There is only one instance of each type of tile.
+       There is only one instance for each type of tile.
            References to a particular tile on the grid look at the unique
            instance created in the TILES constant.
     '''
@@ -151,7 +151,6 @@ Reason: other.'''.format(x,y,typ))
     def get_nrg_cost_enter(self,x,y):   return self.grid_terrain[x][y].nrg_enter
     def get_nrg_cost_leave(self,x,y):   return self.grid_terrain[x][y].nrg_leave
     def get_audio_dampen(self,x,y):     return self.grid_terrain[x][y].dampen
-    
     def get_char(self,x,y):             return self.grid_terrain[x][y].char
     def get_color(self,x,y):            return COL[ self.grid_terrain[x][y].fg ]
     def get_bgcolor(self,x,y):
@@ -162,7 +161,7 @@ Reason: other.'''.format(x,y,typ))
         return bgCol
     
     def add_thing(self, ent): #try to add a thing to the grid, return success
-        pos = rog.get(ent, cmp.Position)
+        pos = rog.world().component_for_entity(ent, cmp.Position)
         x = pos.x; y = pos.y;
         if self.monat(x,y): 
             if rog.world().has_component(ent, Creature):
@@ -174,7 +173,7 @@ Reason: other.'''.format(x,y,typ))
             self.grid_things[x][y].append(ent)
             return True
     def remove_thing(self, ent):
-        pos = rog.get(ent, cmp.Position)
+        pos = rog.world().component_for_entity(ent, cmp.Position)
         x = pos.x; y = pos.y;
         grid = self.grid_things[x][y]
         if ent in grid:
@@ -233,7 +232,7 @@ Reason: other.'''.format(x,y,typ))
         
     def get_map_state(self):
         self._recall_memories( 0,0,ROOMW,ROOMH)
-        self._draw_what_player_sees(rog.Ref.pc)
+        self._draw_what_player_sees(rog.pc())
         return self.con_map_state
     
     # A* paths wrappers
@@ -285,11 +284,11 @@ Reason: other.'''.format(x,y,typ))
                              self.con_map_state, view_x,view_y)
             
     def _draw_what_player_sees(self, pc):
-
-        seer=rog.get(pc, cmp.Seer)
+        world=rog.world()
+        seer=world.component_for_entity(pc, cmp.SenseSight)
         rang=seer.sight
-        pos=rog.get(pc, cmp.Position)
-        rend=rog.get(ent, cmp.Draw)
+        pos=world.component_for_entity(pc, cmp.Position)
+        rend=world.component_for_entity(ent, cmp.Draw)
         for     x in range( max(0, pc.x-rang), min(self.w, pc.x+rang+1) ):
             for y in range( max(0, pc.y-rang), min(self.h, pc.y+rang+1) ):
                 canSee=False
@@ -330,40 +329,46 @@ Reason: other.'''.format(x,y,typ))
             elif not bgTile == self.BG_COLOR_MAIN:
                 bgCol=bgTile
             else:
-                bgCol=rog.get(ent, cmp.Draw).bgcolor
-        libtcod.console_set_char_background(
-            self.con_map_state, x,y, bgCol)
+                bgCol=rog.world().component_for_entity(ent, cmp.Draw).bgcolor
+        libtcod.console_set_char_background(self.con_map_state, x,y, bgCol)
         
     def _discover_place(self, x,y,ent=None):
+        world=rog.world()
         ent = self.thingat(x,y)
-        if ent and not rog.get(ent, Creature):
-            libtcod.console_put_char_ex(self.con_memories, x,y,
-                                        rog.get(ent, Draw).mask,
-                                        COL['dkgray'], COL['black'])
+        if ent and not world.component_for_entity(ent, Creature):
+            draw=world.component_for_entity(ent, Draw):
+            libtcod.console_put_char_ex(
+                self.con_memories, x,y, draw.char, COL['dkgray'],COL['black']
+                )
         else:
             libtcod.console_put_char_ex(self.con_memories, x,y,
                                         self.get_char(x,y),
                                         COL['dkgray'], COL['black'])
     
     def _create_memories(self, pc):
-        rang = pc.stats.sight
-        for x in     range( max(0, pc.x-rang), min(self.w, pc.x+rang+1) ):
-            for y in range( max(0, pc.y-rang), min(self.h, pc.y+rang+1) ):
+        world=rog.world()
+        pos=world.component_for_entity(pc, cmp.Position)
+        if world.has_component(pc, cmp.SenseSight):
+            rang=world.component_for_entity(pc, cmp.SenseSight).sight
+        else:
+            self._discover_place(pos.x,pos.y,self.inanat(x,y))
+        for x in     range( max(0, pos.x-rang), min(self.w, pos.x+rang+1) ):
+            for y in range( max(0, pos.y-rang), min(self.h, pos.y+rang+1) ):
                 
                 if rog.can_see(pc,x,y):
                     self._discover_place(x,y,self.inanat(x,y))
                     
     def _draw_distant_lights(self, pc, view_x,view_y,view_w,view_h):
+        pcPos=rog.world().component_for_entity(pc, cmp.Position)
         for light in rog.list_lights():
             lx=light.x
             ly=light.y
-            if (lx == pc.x and ly == pc.y): continue
-            if not (lx >= view_x
-                    and ly >= view_y
-                    and lx <= view_x + view_w
-                    and ly <= view_y + view_h
-            ): continue
-            libtcod.line_init(pc.x,pc.y, lx,ly)
+            if (lx == pcPos.x and ly == pcPos.y): continue
+            if not (lx >= view_x and ly >= view_y
+                and lx <= view_x + view_w and ly <= view_y + view_h
+                ):
+                continue
+            libtcod.line_init(pcPos.x,pcPos.y, lx,ly)
             canSee=True
             while True:
                 x,y=libtcod.line_step()
@@ -381,10 +386,14 @@ Reason: other.'''.format(x,y,typ))
         #   Basically, if the ent is backlit, you can see
         #   a silhouette.
         '''
-        if not (ent and rog.get(ent, cmp.Creature)): return
-        pos=rog.get(ent, cmp.Position)
-        sight=rog.get(pc, cmp.Seer).sight
-        
+        world=rog.world()
+        if world.has_component(pc, cmp.SenseSight):
+            sight=world.component_for_entity(pc, cmp.SenseSight).sight
+        else:
+            return      
+        if not (ent and world.has_component(ent, cmp.Creature)):
+            return
+        pos=world.component_for_entity(ent, cmp.Position)  
         dist=maths.dist(pos.x,pos.y, tx,ty)
         dx=(tx - pos.x)/dist
         dy=(ty - pos.y)/dist

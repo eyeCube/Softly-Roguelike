@@ -193,10 +193,10 @@ def _earPlugs(tt):
 
 def _incendiary(tt):
     def deathFunc(ent):
-        entn = rog.get(ent, cmp.Name)
-        pos = rog.get(ent, cmp.Position)
+        entn=rog.world().component_for_entity(ent, cmp.Name)
+        pos=rog.world().component_for_entity(ent, cmp.Position)
         rog.set_fire(pos.x, pos.y)
-        radius = 1
+        radius=1
         rog.explosion("{}{}".format(entn.title,entn.name), pos.x,pos.y, radius)
     rog.world().add_component(tt, cmp.DeathFunction(deathFunc))
 def _paperCartridge(tt):
@@ -204,18 +204,19 @@ def _paperCartridge(tt):
     pass
 
 def _molotov(tt):
-    def func(self):
+    def deathFunc(ent):
+        pos=rog.world().component_for_entity(ent, cmp.Position)
         diameter = 7
         radius = int(diameter/2)
         for i in range(diameter):
             for j in range(diameter):
-                xx = self.x + i - radius
-                yy = self.y + j - radius
-                if not rog.in_range(self.x,self.y, xx,yy, radius):
+                xx = pos.x + i - radius
+                yy = pos.y + j - radius
+                if not rog.in_range(pos.x,pos.y, xx,yy, radius):
                     continue
                 rog.create_fluid(FL_NAPALM, xx,yy, dice.roll(3))
                 rog.set_fire(xx,yy)
-    tt.deathFunction = func
+    tt.deathFunction = deathFunc
 
 
 #GEAR
@@ -526,97 +527,136 @@ def create_weapon(name, x,y):
 # STUFF #
 #  ITEMS / INTERACTABLE DUNGEON FEATURES #
 
-
+##
+###quick functions for multiple types of objects:
+##def _hp(tt, value): #give a Thing a specified amount of HP and fully heal them
+##    tt.stats.hpmax=value; rog.givehp(tt);
+###give a random number of items to the inventory of Thing tt
+##    #func is a function to build the items
+##    #_min is minimum number of items possible to give
+##    #_max is maximum "
+##def _giveRandom(tt, func, _min, _max):
+##    for ii in range((_min - 1) + dice.roll(_max - (_min - 1))):
+##        item = func()
+##        rog.give(tt, item)
+        
 #conversion functions:
 # convert things into specific types of things by giving them certain data
-def _edible(tt, nutrition, taste):
-    rog.make(tt,EDIBLE)
-    rog.taste=taste
-    tt.nutrition=nutrition
+
+def _food_poison(ent):  #deceptively sweet but makes you sick
+    rog.world().add_component(ent, cmp.Edible(
+        func=_sick, sat=FOOD_RATION, taste=TASTE_SWEET
+        ))
+def _food_morsel_savory(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MORSEL, taste=TASTE_SAVORY
+        ))
+def _food_morsel_bloody_nasty(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=_bloody, sat=FOOD_MORSEL, taste=TASTE_NASTY
+        ))
+def _food_serving_savory(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_SERVING, taste=TASTE_SAVORY
+        ))
+def _food_ration_savory(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_RATION, taste=TASTE_SAVORY
+        ))
+def _food_meal_savory(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MEAL, taste=TASTE_SAVORY
+        ))
+def _food_bigMeal_savory(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_BIGMEAL, taste=TASTE_SAVORY
+        ))
     
-def _food_poison(tt):
-    _edible(tt, RATIONFOOD, TASTE_SWEET) #deceptively sweet
-    rog.make(tt,SICK) #makes you sick when you eat it
-def _food_ration_savory(tt):
-    _edible(tt, FOOD_MORSEL, TASTE_SAVORY)
-def _food_ration_savory(tt):
-    _edible(tt, FOOD_RATION, TASTE_SAVORY)
-def _food_serving_savory(tt):
-    _edible(tt, FOOD_RATION*3, TASTE_SAVORY)
-def _food_meal_savory(tt):
-    _edible(tt, FOOD_RATION*9, TASTE_SAVORY)
-def _food_bigMeal_savory(tt):
-    _edible(tt, FOOD_RATION*18, TASTE_SAVORY)
+def _wood(ent):
+##    rog.make(ent, CANWET)
+    pass
     
-def _wood(tt):
-    rog.make(tt, CANWET)
-    
-def _pot(tt): #metal pot
-    rog.init_fluidContainer(tt, 200)
+def _pot(ent): #metal pot
+    rog.init_fluidContainer(ent, 200)
 ##    rog.make(tt, CANUSE)
 ##    tt.useFunctionPlayer = action.pot_pc
 ##    tt.useFunctionMonster = action.pot
 
-def _clayPot(tt):
-    rog.make(tt, HOLDSFLUID)
-    tt.capacity = 20
+def _clayPot(ent):
+    rog.world().add_component(ent, cmp.FluidContainer(capacity=50))
     
-def _gunpowder(tt):
-    rog.make(tt, WATERKILLS)
+def _gunpowder(ent):
+    rog.world().add_component(ent, cmp.DiesInWater(func=None))
 
-def _boxOfItems1(tt):
-    rog.init_inventory(tt, 200)
+def _boxOfItems1(ent):
+    rog.world().add_component(ent, cmp.Inventory(capacity=100))
     #newt=
     #rog.give(tt, newt)
 
-def _safe(tt):
-    rog.init_inventory(tt, 200)
-    rog.make(tt, CANOPEN)
-    rog.make(tt, INTERACT) #interact to lock or unlock
+def _safe(ent):
+    world=rog.world()
+    def funcPC(thing, actor):
+        pass
+    def funcNPC(thing, actor):
+        pass
+    world.add_component(ent, cmp.Interactable(funcPC,funcNPC))
+    world.add_component(ent, cmp.Inventory(capacity=200))
+    world.add_component(ent, cmp.Openable(isOpen=False,isLocked=True))
     
-def _still(tt):
-    rog.make(tt, HOLDSFLUID)
-    rog.make(tt, INTERACT)
+def _still(ent):
+    world=rog.world()
+    def funcPC(thing, actor):
+        pass
+    def funcNPC(thing, actor):
+        pass
+    world.add_component(ent, cmp.Interactable(funcPC,funcNPC))
+    world.add_component(ent, cmp.FluidContainer(capacity=100))
     #...
     
 def _dosimeter(tt):
     #use function two options: 1) toggles on/off. 2) displays a reading only when you use it.
-    rog.make(tt, WATERKILLS)
-    rog.make(tt, CANUSE)
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods={"range":3, "atk":2, "dmg":1,}
-    def funcPlayer(self, obj): 
-        xx=obj.x
-        yy=obj.y
-        reading = rog.radsat(xx,yy)
+    world=rog.world()
+    def diesInWaterFunc(ent):
+        world.delete_entity(ent)
+    def funcDeath(ent):
+        entn=world.component_for_entity(ent, cmp.Name)
+        pos=world.component_for_entity(ent, cmp.Position)
+        rog.explosion(entn.name, pos.x,pos.y, 1)
+    def funcUsePC(self, ent): 
+        pos=world.component_for_entity(ent, cmp.Position)
+        reading = rog.radsat(pos.x,pos.y)
         rog.msg("The geiger counter reads '{} RADS'".format(reading))
         #could do, instead:
         # use turns it on, activates an observer.
         # updates when rad damage received by player. Adds rad value to dosimeter
         # when you use again, you can either read it or turn it off.
-        rog.drain(obj, 'nrg', NRG_USE)
-    def funcMonster(self, obj):
-        rog.drain(obj, 'nrg', NRG_USE)
-        rog.event_sight(obj.x,obj.y,"{t}{n} looks at a geiger counter.")
-    def funcDeath(self):
-        rog.explosion(self.name, self.x,self.y, 1)
-    tt.useFunctionPlayer = funcPlayer
-    tt.useFunctionMonster = funcMonster
-    tt.deathFunction = funcDeath
+        rog.spendAP(ent, NRG_USE)
+    def funcUseNPC(self, ent):
+        rog.spendAP(ent, NRG_USE)
+        pos=world.component_for_entity(ent, cmp.Position)
+        rog.event_sight(pos.x,pos.y,"{t}{n} looks at a geiger counter.")
+    statMods={cmp.CombatStats : {"rng":3,"atk":2,"dmg":1,},}
+    world.add_component(ent, cmp.Usable(funcUsePC,funcUseNPC))
+    world.add_component(ent, cmp.ReactsToWater(diesInWaterFunc))
+    world.add_component(ent, cmp.CanEquipInMainhandSlot(statMods))
+    world.add_component(ent, cmp.DeathFunction(funcDeath))
     
-def _towel(tt):
-    rog.make(tt, CANWET)
-    rog.make(tt, CANUSE)
-    rog.makeEquip(tt, EQ_BODY)
-    tt.statMods={"rescold":20,}
-    tt.useFunctionPlayer = action.towel_pc
-    tt.useFunctionMonster = action.towel
-def _towel_wield(tt): #prepare a towel for wielding. Transforms it into a wielding item.
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods={"atk":3, "dmg":2,}
-def _towel_wield(tt): #prepare a towel for headwear. Transforms it into head gear
-    rog.makeEquip(tt, EQ_HEAD)
-    tt.statMods={"resbio":15,}
+def _towel(ent):
+    world=rog.world()
+    def funcPC(thing, actor):
+        pass
+    def funcNPC(thing, actor):
+        pass
+    statMods={cmp.BasisStats : {"rescold":20,},}
+    world.add_component(ent, cmp.GetsWet(capacity=100))
+    world.add_component(ent, cmp.Usable(funcPC,funcNPC))
+    world.add_component(ent, cmp.CanEquipInBodySlot(statMods))
+def _towel_wield(ent): #prepare a towel for wielding. Transforms it into a wielding item.
+    statMods={cmp.CombatStats : {"atk":3, "dmg":2, "dfn":2,},}
+    world.add_component(ent, cmp.CanEquipInMainhandSlot(statMods))
+def _towel_wearOnHead(ent): #prepare a towel for headwear. Transforms it into head gear
+    statMods={cmp.BasisStats : {"resbio":15,},}
+    world.add_component(ent, cmp.CanEquipInHeadSlot(statMods))
     
 def _torch(tt):
     rog.make(tt, CANEQUIP)
@@ -673,20 +713,6 @@ def create_item(x,y,ID):
     return tt
 
 
-
-#quick functions for multiple types of objects:
-def _hp(tt, value): #give a Thing a specified amount of HP and fully heal them
-    tt.stats.hpmax=value; rog.givehp(tt);
-#give a random number of items to the inventory of Thing tt
-    #func is a function to build the items
-    #_min is minimum number of items possible to give
-    #_max is maximum "
-def _giveRandom(tt, func, _min, _max):
-    for ii in range((_min - 1) + dice.roll(_max - (_min - 1))):
-        item = func()
-        rog.give(tt, item)
-
-
 # FOOD #
 
 
@@ -696,15 +722,10 @@ FOOD = {
     #   $$$         cost
     #   KG          mass
     #   Mat         material
-    #   Taste       flag describing the flavor
-    #   Sat         satiation or nutrition
-    #   P           poison value
-    #   C           bool: Can be Cooked    # TODO: All food should be cookable 
-    #   S           bool: Can be Salted    # and saltable. Should instead have...
-            #...a function for what happens when cooked and when salted, etc.
+    #   script      script to run to initialize values for the food item
 '''
-#--Name-------------------$$$,  KG,   Mat,  Taste, Sat, Chew,P, C,S,
-"Corpse Button"         :(1,    0.03, FUNG, NASTY,  1,   2,  3, 1,1,),
+#--Name-------------------$$$,  KG,   Mat,  script
+"Corpse Button"         :(1,    0.03, FUNG, _food_morsel_bloody_nasty,),
 "Hack Leaf"             :(1,    0.02, VEGG, BITTR,  1,   2,  0, 1,1,),
 "Juniper Berry"         :(3,    0.01, VEGG, SWEET,  1,   1,  0, 0,0,),
 "Coke Nut"              :(12,   0.02, WOOD, BITTR,  2,   2,  1, 1,1,),
