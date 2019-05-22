@@ -412,20 +412,20 @@ class FOV_Processor(esper.Processor):
     def __init__(self):
         super(FOV_Processor, self).__init__()
 
-        self.update_objs=[]
+        self.update_ents=[]
 
     def process(self):
         super(FOV_Processor, self).run()
         
-        for obj in self.update_objs:
+        for obj in self.update_ents:
             rog.fov_compute(obj)
         
-        self.update_objs=[]
+        self.update_ents=[]
     
     # register a monster to have its FOV updated next turn
-    def add(self,obj):
-        if obj.stats.get('sight') > 0:     # reject objects that can't see
-            self.update_objs.append(obj)
+    def add(self,ent):
+        if self.world.has_component(ent, cmp.SenseSight): # reject objects that can't see
+            self.update_ents.append(ent)
         
 
 

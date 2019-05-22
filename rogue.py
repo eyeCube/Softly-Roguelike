@@ -122,6 +122,9 @@ def copyflags(toEnt,fromEnt,copyStatusFlags=True): #use this to set an object's 
             make(toEnt, flag)
             
 # entity functions
+def spendAP(ent, amt):
+    actor=world().component_for_entity(ent, cmp.Actor)
+    actor.ap -= amt
 # flags
 def on(ent, flag):
     return flag in Rogue.world.component_for_entity(ent, set)

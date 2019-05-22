@@ -4,6 +4,13 @@
     Copyright 2019.
 '''
 
+class Observable:
+    def __init__(self):
+        self.observers=[]
+
+class DeathFunction:
+    def __init__(self, func):
+        self.func=func
 
 class Draw:
     def __init__(self, char, color, bgcol):
@@ -17,9 +24,11 @@ class Name:
         self.title = title
         self.pronouns = pronouns
 
-class DeathFunction:
-    def __init__(self, func):
-        self.func=func
+class Form: #physical makeup of the object
+    def __init__(self, mass=0, mat=0, val=0): #, volume, shape
+        self.mass=mass
+        self.material=mat
+        self.value=val
 
 class Position:
     def __init__(self, x, y):
@@ -49,7 +58,6 @@ class SenseSight:
         self.sight = sight
         self.fov_map = rog.init_fov_map(FOV_NORMAL)
         self.events = []
-        
 class SenseSound:
     def __init__(self, hearing=100):
         self.hearing = hearing
@@ -61,63 +69,76 @@ class Skills:
         for arg in args:
             self.skills.add(arg)
 
-class Ammo:
+##class Ammo:
+##    def __init__(self, ammoType=0):
+##        self.ammoType=ammoType
+class UsesAmmo:
     def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
         self.ammoType=ammoType
         self.capacity=capacity
         self.reloadTime=reloadTime
         self.jamChance=jamChance
         
-class EquipBody:
-    def __init__(self):
-        self.slot=None #(item, modID)
+class EquipBody: # can equip things in the body slot
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
 class EquipHead:
-    def __init__(self):
-        self.slot=None
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
 class EquipBack:
-    def __init__(self):
-        self.slot=None
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
 class EquipAmmo:
-    def __init__(self):
-        self.slot=None
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
 class EquipMainhand:
-    def __init__(self):
-        self.slot=None
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
 class EquipOffhand:
-    def __init__(self):
-        self.slot=None
+    def __init__(self, item=None, modID=None):
+        self.item=item
+        self.modID=modID
         
-class CanEquipInBodySlot:
-    def __init__(self, mods): #{component : {var : modf}}
+class CanEquipInBodySlot: # can be equipped in the body slot
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 class CanEquipInBackSlot:
-    def __init__(self, mods): #{component : {var : modf}}
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 class CanEquipInHeadSlot:
-    def __init__(self, mods): #{component : {var : modf}}
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 class CanEquipInMainhandSlot:
-    def __init__(self, mods): #{component : {var : modf}}
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 class CanEquipInOffhandSlot:
-    def __init__(self, mods): #{component : {var : modf}}
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 class CanEquipInAmmoSlot:
-    def __init__(self, mods): #{component : {var : modf}}
+    def __init__(self, mods): #{component : {var : modf,}}
         self.mods=mods
 
-class Usable:
-    def __init__(self, funcPC, funcNPC=None):
+class Usable: #usable from within actor's inventory
+    def __init__(self, funcPC=None, funcNPC=None):
+        self.funcPC=funcPC
+        self.funcNPC=funcNPC
+class Interactable: #usable while on the game grid
+    def __init__(self, funcPC=None, funcNPC=None):
         self.funcPC=funcPC
         self.funcNPC=funcNPC
 class Edible:
-    def __init__(self, func, satiation, taste, time=1):
+    def __init__(self, func=None, sat=0, taste=0, time=1):
         self.func=func
         self.satiation=satiation
         self.taste=taste
         self.timeToConsume=time
 class Quaffable:
-    def __init__(self, func, hydration, taste, time=1):
+    def __init__(self, func=None, hydration=0, taste=0, time=1):
         self.func=func
         self.hydration=hydration
         self.taste=taste
@@ -126,12 +147,13 @@ class Openable:
     def __init__(self, isOpen=False, isLocked=False):
         self.isOpen=isOpen
         self.isLocked=isLocked
-
-class Form: #physical makeup of the object
-    def __init__(self, mass=0, mat=0, val=0): #, volume, shape
-        self.mass=mass
-        self.material=mat
-        self.value=val
+class Ingredient: #can be used in crafting, cooking, etc.
+    def __init__(self, data):
+        self.data=data
+        
+class ReactsWithWater:
+    def __init__(self, func=None):
+        self.func=func
 
 class Inventory: #item container
     def __init__(self, capacity):

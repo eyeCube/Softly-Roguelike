@@ -166,7 +166,10 @@ ISSOLID     = i; i+=1;  # Is solid (cannot walk through it)
 VOLUME_DEAFEN       = 500
 
 #items
-FOOD_RATION         = 3
+FOOD_BIGMEAL        = 24
+FOOD_MEAL           = 12
+FOOD_RATION         = 6
+FOOD_SERVING        = 3
 FOOD_MORSEL         = 1
 
 SATIETY_PER_RATION  = 100   # how much hunger is healed per ration of food
@@ -576,12 +579,16 @@ QU_POLICE       =i; i+=1;
 QU_MILITARY     =i; i+=1;
 
 QUALITIES={
-# ID            :   name        Color,      %Rng,Atk,Dmg,Dur,$$$,KG%,
-QU_CRUDE        : ("crude",     "neutral",  (-33,-50,-40,-66,-250,33,),),
-QU_IMPROV       : ("improvised","ltgray",   (-16,-25,-20,-33,-125,16,),),
-QU_MARKET       : ("",          "accent",   (0,  0,  0,  0,  0,  0,),),
-QU_POLICE       : ("police",    "trueblue", (16, 25, 20, 25, 125,-16,),),
-QU_MILITARY     : ("military", "truepurple",(33, 50, 50, 50, 250,33,),),
+# ID            :   name        Color,      %
+QU_CRUDE        : ("crude",     "neutral",  -50,), #(-33,-50,-40,-66,-333,42,),),
+QU_IMPROV       : ("improvised","ltgray",   -33,),    #(-16,-25,-20,-33,-150,25,),),
+QU_MARKET       : ("",          "accent",   -15,),   #(0,  0,  0,  0,  0,  0,),),
+QU_POLICE       : ("police",    "trueblue", 0,),  #(16, 25, 20, 25, 150,-16,),),
+QU_MILITARY     : ("military", "truepurple",25,), #(33, 50, 50, 50, 333,33,),),
+    }
+QUALITIES_STATS={
+    cmp.CombatStats : {"range":16,"atk":25,"dfn":20,},
+    cmp.Form : {"value":150,"mass":16,},
     }
 
 
@@ -608,18 +615,19 @@ FL_HAZMATS      =i; i+=1;
 #
 
 NOISE_SOME      = "something"
-NOISE_WHISPER   = "a whisper"
+NOISE_WHISPER   = "someone whisper"
 NOISE_SQUEAK    = "a squeak"
-NOISE_LOUD      = "a racket"
+NOISE_RACKET    = "a violent racket"
 NOISE_POP       = "popping noises"
-NOISE_BANG      = "banging noises"
-NOISE_DING      = "a high-pitched ring"
+NOISE_BANG      = "an explosion"
+NOISE_DING      = "a high-pitched ringing sound"
 NOISE_SCREECH   = "someone screeching"
 NOISE_WATERFALL = "water falling"
+NOISE_CLATTER   = "the kind of clattering that elicits concern"
 
                 # vol, superHearing, generic sound
 SND_FIRE        = (40, "a fire",    NOISE_POP,)
-SND_FIGHT       = (100,"a struggle",NOISE_LOUD,)
+SND_FIGHT       = (100,"a struggle",NOISE_RACKET,)
 SND_DOUSE       = (30, "a fire going out",NOISE_WHISPER,)
 SND_QUAFF       = (20, "gulping noises",NOISE_SOME,)
 SND_COUGH       = (80, "someone coughing",NOISE_SCREECH,)
