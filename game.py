@@ -89,8 +89,8 @@ class GlobalSettings:
     '''
 
     settingsDir = os.path.join(os.path.curdir,"settings")
-    settingsFile = os.path.join(settingsDir,"settings.txt")
     settingsFileName="settings.txt"
+    settingsFile = os.path.join(settingsDir,settingsFileName)
     
     _errorSettingsCorrupted="ERROR: Settings file '{f}' corrupted. (a) Fix the syntax error, OR (b) delete '{f}' and restart the game to reset to default settings.".format(f=settingsFileName)
     _alertSettingsNotFound="ALERT: Settings file '{}' not found. Creating file from defaults...".format(settingsFileName)
@@ -108,7 +108,7 @@ class GlobalSettings:
         "HIGHLIGHT PC"      : 0,
         "HIGHLIGHT COLOR"   : "TRUEBLUE",
         "SLEEP TIME"        : 1,
-        "COLORED STRINGS"   : "__see__,green;__hear__,blue;fire,red;",
+        "COLORED STRINGS"   : "",
     }
 
     COMMENTS = {

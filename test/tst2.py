@@ -1,2 +1,3 @@
-import random
-print(random.choice(list({'a':1,'b':2}.keys())))
+lis = [1]
+##print(lis[1])
+print(lis.find(1))

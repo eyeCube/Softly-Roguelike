@@ -5,7 +5,7 @@ player.py
 
 import os
 from const      import *
-from colors     import COLORS
+from colors     import COLORS as COL
 import rogue    as rog
 import action
 import debug
@@ -59,6 +59,7 @@ def commands_pages(pc, pcAct):
 directional_command = 'move'
 
 def commands(pc, pcAct):
+    world = rog.world()
     
     for act,arg in pcAct:
         
@@ -88,8 +89,9 @@ def commands(pc, pcAct):
             mousex,mousey,z=arg
             if rog.wallat(mousex,mousey):
                 return
+            pos = world.component_for_entity(pc, cmp.Position)
             
-            rog.path_compute(pc.path, pc.x,pc.y, rog.mapx(mousex), rog.mapy(mousey))
+            rog.path_compute(pc.path, pos.x,pos.y, rog.mapx(mousex), rog.mapy(mousey))
             #rog.occupation_set(pc,'path')
 
         if act == 'rclick':
@@ -99,12 +101,14 @@ def commands(pc, pcAct):
         
         if act == 'move':
             dx,dy,dz=arg
-            xto=pc.x + dx
-            yto=pc.y + dy
+            pos = world.component_for_entity(pc, cmp.Position)
+            actor = world.component_for_entity(pc, cmp.Actor)
+            xto=pos.x + dx
+            yto=pos.y + dy
 
             # wait
-            if (xto==pc.x and yto==pc.y):
-                pc.stats.nrg = 0
+            if (xto==pos.x and yto==pos.y):
+                actor.ap = 0
                 return
 
             # out of bounds
@@ -145,18 +149,20 @@ def commands(pc, pcAct):
         #
         
         if act == 'find player': #useful to immediately show where the player is
+            pos = world.component_for_entity(pc, cmp.Position)
             rog.view_center_player()
             rog.update_game()
             rog.update_final()
             rog.update_base()
             rog.game_update() #call all the updates
             rog.alert('press any key to continue...')
-            rog.Input(rog.getx(pc.x), rog.gety(pc.y), mode='wait')
+            rog.Input(rog.getx(pos.x), rog.gety(pos.y), mode='wait')
             rog.update_base()
             rog.alert('')
             return
         if act == "look":
-            rog.routine_look(pc.x,pc.y)
+            pos = world.component_for_entity(pc, cmp.Position)
+            rog.routine_look(pos.x,pos.y)
             return
         if act == "move view":
             rog.routine_move_view()
@@ -165,6 +171,7 @@ def commands(pc, pcAct):
             rog.fixedViewMode_toggle()
             return  
         if act == 'select':
+            # TESTING
             print(rog.Input(0,0,20))
             return
         if act == 'exit':
@@ -180,8 +187,11 @@ def commands(pc, pcAct):
 # Chargen
 # Create and return the player Thing object,
 #   and get/set the starting conditions for the player
+# Arguments:
+#   sx, sy: starting position x, y of player entity
 #
-def chargen():
+def chargen(sx, sy):
+    world = rog.world()
     # init
     x1 = 0; y1 = 0;
     xx = 0; yy = 4;
@@ -343,17 +353,25 @@ def chargen():
         _gift = 0
 
         #create pc object from the data given in chargen
-        pc = rog.create_monster('@',0,0,COLORS['white'],mutate=0)
-        pc.name = _name
-        pc.title = _title
-        pc.mask = '@'
-        pc.job = _className
-        pc.gender = _genderName
-        pc.pronouns = _pronouns
-        pc.faction = FACT_ROGUE
-        #add additional skill
-        rog.train(pc,_skillID)
-        #add specific class stats
+        
+##        pc = world.create_entity( # USE create_monster function!!!!
+##            cmp.Position(sx,sy),
+##            cmp.Name(_name, title=_title,pronouns=_pronouns),
+##            cmp.Draw('@', COL['white']),
+##            cmp.Form(
+##            )
+        
+##        pc = rog.create_monster('@',0,0,COL['white'],mutate=0)
+##        pc.name = _name
+##        pc.title = _title
+##        pc.mask = '@'
+##        pc.job = _className
+##        pc.gender = _genderName
+##        pc.pronouns = _pronouns
+##        pc.faction = FACT_ROGUE
+##        #add additional skill
+##        rog.train(pc,_skillID)
+##        #add specific class stats
     
     return pc
 #
@@ -418,11 +436,33 @@ Possessive pronoun: {}
 
 #
 def loadFromSaveFile(save):
-    #MUST DO THIS FOR EVERY THING.
-    #THERE MUST BE A MUCH BETTER WAY TO DO THIS.
+    # TODO: learn pickle / serialization
     pickle.dump(stats, save)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    # commented out code below. #
+
+
+
+
+                    
+                    
+    
     '''
-    pc = rog.create_monster('@',0,0,COLORS['white'],mutate=0)
+    pc = rog.create_monster('@',0,0,COL['white'],mutate=0)
     pc.name=save.readline().strip()
     pc.title=save.readline().strip()
     pc.pronouns=save.readline().strip()
@@ -471,26 +511,6 @@ def loadFromSaveFile(save):
     pc.stats.sick=save.readline().strip()
     '''
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 '''
             # TESTING INPUT
             rog.update_final()
@@ -509,7 +529,5 @@ def loadFromSaveFile(save):
                     rog.view_center(pc)
                     ##
                     '''
-
-
 
 

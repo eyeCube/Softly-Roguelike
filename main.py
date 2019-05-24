@@ -51,7 +51,7 @@ def main():
     rog.Rogue.create_savedGame()
     rog.Rogue.create_processors()
     rog.Rogue.create_managers()
-    rog.Rogue.create_player()
+    rog.Rogue.create_player(0,0) # what position should be given?
     
     rog.init_keyBindings()
         
