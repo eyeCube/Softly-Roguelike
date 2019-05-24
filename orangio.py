@@ -55,7 +55,7 @@ import time
 import textwrap
 
 from const import *
-from manager import Manager     
+import managers   
 import maths
 import word
 
@@ -508,7 +508,7 @@ class Cursor():
 # bool insert       begin in "insert" mode?
 #
 
-class TextInputManager(Manager):
+class TextInputManager(managers.Manager):
     
     def __init__(self, x,y, w,h, default,mode,insert):
         
@@ -729,10 +729,13 @@ class TextInputManager(Manager):
 
 
 #key functions
-# we add 256 here to differentiate character (text) codes from
-# special key codes, like NumLock, which happens to have the same
-# integer code (62) as > (greater than symbol), for example.
-def key_getchar(k):     return k + 256
+def key_getchar(k):
+    '''
+    # we add 256 here to differentiate character (text) codes from
+    # special key codes, like NumLock, which happens to have the same
+    # integer code (62) as > (greater than symbol), for example.
+    '''
+    return k + 256
 def key_get_pressed():      # get both vk and text in one variable
     k = libtcod.KEY_NONE
     if libtcod.console_is_key_pressed(key.vk) : k = key.vk 

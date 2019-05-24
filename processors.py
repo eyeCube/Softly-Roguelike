@@ -83,7 +83,7 @@ return timer
     # stores fire grid; controls fires;
     #   light and messages from fire, fire spreading and dousing
     # Note: does not control burning status effect
-class FiresProcessor(esper.Processor):
+class FireProcessor(esper.Processor):
 
     def __init__(self):
         super(FiresProcessor, self).__init__()
@@ -270,7 +270,7 @@ class FiresProcessor(esper.Processor):
 # Fluids
 #
 
-class FluidsProcessor(esper.Processor):
+class FluidProcessor(esper.Processor):
     def __init__(self):
         super(FluidsProcessor, self).__init__()
         
@@ -430,6 +430,7 @@ class FOV_Processor(esper.Processor):
 
 
 
+# TODO: make this, consolidate with ActionQueueProcessor
 class DelayedActionProcessor(esper.Processor):
     
     def __init__(self): 

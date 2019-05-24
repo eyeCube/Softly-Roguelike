@@ -8,59 +8,264 @@ import esper
 import libtcodpy as libtcod
 import math
 
-from const      import *
+from const import *
+from colors import COLORS as COL
 import components as cmp
+import processors as proc
 import orangio  as IO
 import action
 import debug
 import dice
-import fluids
+import entities
 import game
-import items
 import levels
 import lights
 import misc
-import monsters
 import managers
 import maths
 import player
-import stuff
-import thing
 import tilemap
-from colors import COLORS as COL
 
 
-##
-##class Ref():        # stores global references to objects
-##    ctrl        = None  # global controller
-##    con         = None  # consoles
-##    data        = None
-##    Map         = None
-##    clock       = None
-##    update      = None
-##    settings    = None
-##    view        = None
-##    log         = None  # messages
-##    pc          = None
-##    environ     = None
-##    manager     = None  # current active game state manager
-##    savedGame   = None
-##    et_managers = {}    # per turn managers that tick at end of each turn
-##    bt_managers = {}    # per turn managers that tick at beginning of each turn
-##    c_managers  = {}    # const managers, ran manually
-##
-
+#----------------#
+# global objects #
+#----------------#
 
 class Rogue:
+    occupations={}
+    et_managers={} #end of turn managers
+    bt_managers={} #beginning of turn managers
+    c_managers={} #const managers
+##    manager = None # current active game state manager
+    
     @classmethod
-    def create_world(cls):  cls.world = esper.World()
+    def create_settings(cls): # later controllers might depend on settings
+        cls.settings = game.GlobalSettings()
+        cls.settings.read() # go ahead and read/apply settings
+        cls.settings.apply()
     @classmethod
-    def create_map(cls):    cls.Map = tilemap.Tilemap()
+    def create_world(cls):      cls.world = esper.World()
     @classmethod
-    def create_player(cls): cls.pc = player.chargen()
+    def create_controller(cls): cls.ctrl = game.Controller()
+    @classmethod
+    def create_window(cls):
+        cls.window = game.Window(
+            cls.settings.window_width, cls.settings.window_height
+            )
+    @classmethod
+    def create_consoles(cls):   cls.con = game.Console(window_w(),window_h())
+    @classmethod
+    def create_data(cls):       cls.data = game.GameData()
+    @classmethod
+    def create_map(cls):        cls.map = tilemap.Tilemap()
+    @classmethod
+    def create_clock(cls):      cls.clock = game.Clock()
+    @classmethod
+    def create_updater(cls):    cls.update = game.Update()
+    @classmethod
+    def create_view(cls):       cls.view = game.View(view_port_w(),view_port_h(), ROOMW,ROOMH)
+    @classmethod
+    def create_log(cls):        cls.log = game.MessageLog()
+    @classmethod
+    def create_player(cls):     cls.pc = player.chargen()
+    @classmethod
+    def create_savedGame(cls):  cls.savedGame = game.SavedGame()
+    @classmethod
+    def create_processors(cls):
+        #Processor class, priority (higher = processed first)
+##        cls.world.add_processor(proc.ActionQueueProcessor(), 100)
+        cls.world.add_processor(proc.StatusProcessor(), 11)
+        cls.world.add_processor(proc.MetersProcessor(), 10)
+        cls.world.add_processor(proc.FluidProcessor(), 2)
+        cls.world.add_processor(proc.FireProcessor(), 1)
+        cls.world.add_processor(proc.FOVProcessor(), 0)
+##    @classmethod # TODO : implement this fxn
+##    def create_managers(cls):
+##        cls.et_managers.update()
+##    @classmethod
+##    def create_environment(cls):cls.environ = game.Environment()
 
+# world
 def world():    return Rogue.world
+
+# player
 def pc():       return Rogue.pc
+
+# saved game
+def playableJobs():
+    return Rogue.savedGame.playableJobs
+
+# log
+def logNewEntry():      Rogue.log.drawNew()
+def msg(txt, col=None):
+    if col is None: #default text color
+        col=COL['white']
+    Rogue.log.add(txt, str(get_turn()) )
+def msg_clear():
+    clr=libtcod.console_new(msgs_w(), msgs_h())
+    libtcod.console_blit(clr, 0,0, msgs_w(),msgs_h(),  con_game(), 0,0)
+    libtcod.console_delete(clr)
+
+# game data
+def dlvl():             return Rogue.data.dlvl() #current dungeon level of player
+def level_up():         Rogue.data.dlvl_update(Rogue.data.dlvl() + 1)
+def level_down():       Rogue.data.dlvl_update(Rogue.data.dlvl() - 1)
+
+# clock
+def turn_pass():        Rogue.clock.turn_pass()
+def get_turn():         return Rogue.clock.turn
+
+# view
+def view_nudge(dx,dy):      Rogue.view.nudge(dx,dy)
+def view_nudge_towards(obj):Rogue.view.follow(obj)
+def view_center(obj):       Rogue.view.center(obj.x, obj.y)
+def view_center_player():   Rogue.view.center(Rogue.pc.x, Rogue.pc.y)
+def view_center_coords(x,y):Rogue.view.center(x,y)
+def view_x():       return  Rogue.view.x
+def view_y():       return  Rogue.view.y
+def view_w():       return  Rogue.view.w
+def view_h():       return  Rogue.view.h
+def view_max_x():   return  ROOMW - Rogue.view.w #constraints on view panning
+def view_max_y():   return  ROOMH - Rogue.view.h
+def fixedViewMode_toggle(): Rogue.view.fixed_mode_toggle()
+
+# map
+def map():          return Rogue.map
+def tile_get(x,y):          return Rogue.map.get_char(x,y)
+def tile_change(x,y,char):
+    updateNeeded=Rogue.map.tile_change(x,y,char)
+    if updateNeeded:
+        update_all_fovmaps()
+def map_reset_lighting():   Rogue.map.grid_lighting_init()
+def tile_lighten(x,y,value):Rogue.map.tile_lighten(x,y,value)
+def tile_darken(x,y,value): Rogue.map.tile_darken(x,y,value)
+def tile_set_light_value(x,y,value):Rogue.map.tile_set_light_value(x,y,value)
+def get_light_value(x,y):   return Rogue.map.get_light_value(x,y)
+def map_generate(Map,level): levels.generate(Map,level)
+def identify_symbol_at(x,y):
+    asci = libtcod.console_get_char(0, getx(x),gety(y))
+    char = "{} ".format(chr(asci)) if (asci < 128 and not asci==32) else ""
+    desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
+    return "{}{}".format(char, desc)
+def grid_remove(ent): #kill thing
+    Rogue.map.remove_thing(ent)
+def grid_insert(ent): #add thing
+    Rogue.map.add_thing(ent)
+def grid_lights_insert(obj):    Rogue.map.grid_lights[obj.x][obj.y].append(obj)
+def grid_lights_remove(obj):    Rogue.map.grid_lights[obj.x][obj.y].remove(obj)
+def grid_fluids_insert(obj):    Rogue.map.grid_fluids[obj.x][obj.y].append(obj)
+def grid_fluids_remove(obj):    Rogue.map.grid_fluids[obj.x][obj.y].remove(obj)
+
+# updater
+def update_base():      Rogue.update.base()
+#def update_pcfov():     Rogue.update.pcfov()
+def update_game():      Rogue.update.game()
+def update_msg():       Rogue.update.msg()
+def update_hud():       Rogue.update.hud()
+def update_final():     Rogue.update.final()
+#apply all updates if applicable
+def game_update():      Rogue.update.update()
+
+# consoles
+def con_game():             return Rogue.con.game
+def con_final():            return Rogue.con.final
+
+# controller
+def end():                  Rogue.control.end()
+def game_state():           return Rogue.control.state
+def game_is_running():      return Rogue.control.isRunning
+def game_set_state(state="normal"):
+    print("$---Game State changed from {} to {}".format(game_state(), state))
+    Rogue.control.set_state(state)
+def game_resume_state():    return Rogue.control.resume_state
+def set_resume_state(state):Rogue.control.set_resume_state(state)
+
+# window
+def window_w():         return Rogue.window.root.w
+def window_h():         return Rogue.window.root.h
+def view_port_x():      return Rogue.window.scene.x
+def view_port_y():      return Rogue.window.scene.y
+def view_port_w():      return Rogue.window.scene.w
+def view_port_h():      return Rogue.window.scene.h
+def hud_x():            return Rogue.window.hud.x
+def hud_y():            return Rogue.window.hud.y
+def hud_w():            return Rogue.window.hud.w
+def hud_h():            return Rogue.window.hud.h
+def msgs_x():           return Rogue.window.msgs.x
+def msgs_y():           return Rogue.window.msgs.y
+def msgs_w():           return Rogue.window.msgs.w
+def msgs_h():           return Rogue.window.msgs.h
+def set_hud_left():     Rogue.window.set_hud_left()
+def set_hud_right():    Rogue.window.set_hud_right()
+
+
+
+#------------------------#
+# functions from modules #
+#------------------------#
+
+# orangio
+
+def init_keyBindings():
+    IO.init_keyBindings()
+
+
+# game
+
+
+'''
+#
+# func textbox
+#
+# display text box with border and word wrapping
+#
+    Args:
+    x,y,w,h     location and size
+    text        display string
+    border      border style. None = No border
+    wrap        whether to use automatic word wrapping
+    margin      inside-the-box text padding on top and sides
+    con         console on which to blit textbox, should never be 0
+                    -1 (default) : draw to con_game()
+    disp        display mode: 'poly','mono'
+
+'''
+def dbox(x,y,w,h,text='', wrap=True,border=0,margin=0,con=-1,disp='poly'):
+    if con==-1: con=con_game()
+    misc.dbox(x,y,w,h,text, wrap=wrap,border=border,margin=margin,con=con,disp=disp)
+    
+def makeConBox(w,h,text):
+    con = libtcod.console_new(w,h)
+    dbox(0,0, w,h, text, con=con, wrap=False,disp='mono')
+    return con
+
+
+
+# printing functions #
+
+#@debug.printr
+def refresh():  # final to root and flush
+    libtcod.console_blit(con_final(), 0,0,window_w(),window_h(),  0, 0,0)
+    libtcod.console_flush()
+#@debug.printr
+def render_gameArea(pc) :
+    con = Ref.Map.render_gameArea(pc, view_x(),view_y(),view_w(),view_h() )
+    #libtcod.console_clear(con_game())
+    libtcod.console_clear(con_game())
+    libtcod.console_blit(con, view_x(),view_y(),view_w(),view_h(),
+                         con_game(), view_port_x(),view_port_y())
+#@debug.printr
+def render_hud(pc) :
+    con = misc.render_hud(hud_w(),hud_h(), pc, get_turn(), d_level() )
+    libtcod.console_blit(con,0,0,0,0, con_game(),hud_x(),hud_y())
+#@debug.printr
+def blit_to_final(con,xs,ys, xdest=0,ydest=0): # window-sized blit to final
+    libtcod.console_blit(con, xs,ys,window_w(),window_h(),
+                         con_final(), xdest,ydest)
+#@debug.printr
+def alert(text=""):    # message that doesn't go into history
+    dbox(msgs_x(),msgs_y(),msgs_w(),msgs_h(),text,wrap=False,border=None,con=con_final())
+    refresh()
 
 
 
@@ -70,20 +275,20 @@ def pc():       return Rogue.pc
 #-------------#
 
 # tilemap
-def thingat(x,y):       return Rogue.Map.thingat(x,y) #Thing object
-def thingsat(x,y):      return Rogue.Map.thingsat(x,y) #list
-def inanat(x,y):        return Rogue.Map.inanat(x,y) #inanimate Thing at
-def monat (x,y):        return Rogue.Map.monat(x,y) #monster at
-def solidat(x,y):       return Rogue.Map.solidat(x,y) #solid Thing at
-def wallat(x,y):        return (not Rogue.Map.get_nrg_cost_enter(x,y) ) #tile wall
+def thingat(x,y):       return Rogue.map.thingat(x,y) #Thing object
+def thingsat(x,y):      return Rogue.map.thingsat(x,y) #list
+def inanat(x,y):        return Rogue.map.inanat(x,y) #inanimate Thing at
+def monat (x,y):        return Rogue.map.monat(x,y) #monster at
+def solidat(x,y):       return Rogue.map.solidat(x,y) #solid Thing at
+def wallat(x,y):        return (not Rogue.map.get_nrg_cost_enter(x,y) ) #tile wall
 def fluidsat(x,y):      return Rogue.et_managers['fluids'].fluidsat(x,y) #list
-def lightsat(x,y):      return Rogue.Map.lightsat(x,y) #list
+def lightsat(x,y):      return Rogue.map.lightsat(x,y) #list
 def fireat(x,y):        return Rogue.et_managers['fire'].fireat(x,y)
 
-def cost_enter(x,y):    return Rogue.Map.get_nrg_cost_enter(x,y)
-def cost_leave(x,y):    return Rogue.Map.get_nrg_cost_leave(x,y)
+def cost_enter(x,y):    return Rogue.map.get_nrg_cost_enter(x,y)
+def cost_leave(x,y):    return Rogue.map.get_nrg_cost_leave(x,y)
 def cost_move(xf,yf,xt,yt,data):
-    return Rogue.Map.path_get_cost_movement(xf,yf,xt,yt,data)
+    return Rogue.map.path_get_cost_movement(xf,yf,xt,yt,data)
 
 def is_in_grid_x(x):    return (x>=0 and x<ROOMW)
 def is_in_grid_y(y):    return (y>=0 and y<ROOMH)
@@ -103,7 +308,7 @@ def dig(x,y):
     #use rogue's tile_change func so we update all FOVmaps
     tile_change(x,y,FLOOR)
 def singe(x,y): #burn tile
-    if Rogue.Map.get_char(x,y) == FUNGUS:
+    if Rogue.map.get_char(x,y) == FUNGUS:
         tile_change(x,y,FLOOR)
 
 # component functions - better to call directly and save the function call overhead
@@ -122,9 +327,12 @@ def copyflags(toEnt,fromEnt,copyStatusFlags=True): #use this to set an object's 
             make(toEnt, flag)
             
 # entity functions
+def setAP(ent, val):
+    actor=world().component_for_entity(ent, cmp.Actor)
+    actor.ap = val
 def spendAP(ent, amt):
     actor=world().component_for_entity(ent, cmp.Actor)
-    actor.ap -= amt
+    actor.ap = actor.ap - amt
 # flags
 def on(ent, flag):
     return flag in Rogue.world.component_for_entity(ent, set)
@@ -332,6 +540,47 @@ def release_creature(ent):
     release_thing(ent)
     remove_listener_sights(ent)
     remove_listener_sounds(ent)
+
+
+    
+#-------------#
+# occupations #
+#-------------#
+
+def occupations(ent):
+    return Rogue.occupations.get(ent, None)
+def occupation_add(ent,turns,fxn,args,helpless):
+    '''
+        fxn: function to call each turn.
+        args: arguments to pass into fxn
+        turns: turns remaining in current occupation
+        helpless: bool, whether ent can be interrupted
+        interrupted: bool, whether ent has been interrupted in this action
+    '''
+    Rogue.occupations.update({ ent : (fxn,args,turns,helpless,False) })
+def occupation_remove(ent):
+    del Rogue.occupations[ent]
+def occupation_elapse_turn(ent):
+    fxn,args,turns,helpless,interrupted = Rogue.occupations[ent]
+    if interrupted:
+        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
+        return False    # interrupted occupation
+    if turns:
+        setAP(ent, 0)
+        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
+    elif fxn is not None:
+        fxn(ent, args)
+    return True     # successfully continued occupation
+    
+
+    
+
+
+
+
+
+
+
 
 
 

@@ -50,8 +50,8 @@ def stateless(bot):
     desires=Desires(wander=7)
     sight=world.component_for_entity(bot, cmp.SenseSight).sight
     pos=world.component_for_entity(bot, cmp.Position)
-    botType=world.component_for_entity(bot, cmp.Draw).char
     botCreature=world.component_for_entity(bot, cmp.Creature).char
+##    botType=world.component_for_entity(bot, cmp.Draw).char #should not depend on draw component
 
     # TODO: write this function
     def isFoe(faction):

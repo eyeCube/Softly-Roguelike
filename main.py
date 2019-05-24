@@ -37,29 +37,24 @@ def main():
 #------------------------------------------------#
 
     # new way to init
+    rog.Rogue.create_settings() # later controllers might depend on settings
+    rog.Rogue.create_window()
+    rog.Rogue.create_consoles()
     rog.Rogue.create_world()
+    rog.Rogue.create_controller()
+    rog.Rogue.create_data()
     rog.Rogue.create_map()
+    rog.Rogue.create_clock()
+    rog.Rogue.create_updater()
+    rog.Rogue.create_view()
+    rog.Rogue.create_log()
+    rog.Rogue.create_savedGame()
+    rog.Rogue.create_processors()
+    rog.Rogue.create_managers()
     rog.Rogue.create_player()
-##    
-##    # init settings
-##    settings=rog.init_settings()
-##    rog.init_keyBindings()
-##    # init global controllers
-##    rog.create_window(settings.window_width, settings.window_height)
-##    rog.create_consoles()
-##    rog.create_map()
-##    rog.create_data()
-##    rog.create_view()
-##    rog.create_clock()
-##    rog.create_log()
-##    rog.create_update()
-##    rog.create_environment()
-##    rog.create_controller()
-##    rog.create_savedGame()
-##    # init managers
-##    rog.create_const_managers()
-##    rog.create_perturn_managers()
-##    
+    
+    rog.init_keyBindings()
+        
 ##    #map generation
 ##    rog.map_generate(rog.map(),rog.dlvl())
 ##
@@ -132,10 +127,11 @@ def main():
 
     rog.game_set_state("normal")
 
-    # initialize fov for creatures with sight
-    for creat in rog.list_creatures():
-        if creat.stats.sight > 0:
-            rog.fov_compute(creat)
+##    # initialize fov for creatures with sight
+##    # IS THIS NOT WORKING???? WHAT'S GOING ON?
+##    for creat in rog.list_creatures():
+##        if creat.stats.sight > 0:
+##            rog.fov_compute(creat)
     
     while rog.game_is_running():
 
@@ -161,34 +157,31 @@ def main():
                         #----------#
                         #   PLAY   #
                         #----------#
-                        
-        world.process()
+                
+        #
+        # normal game play
+        #
+        if gameState == "normal":
+            game.play(pc, pcAct)
+        #
+        # other game states #
+        #
+        elif (gameState == "move view"
+                or gameState == "look"
+                or gameState == "busy"
+                or gameState == "message history"
+                ):
+            manager=rog.get_active_manager()
+            manager.run(pcAct)
+            if manager.result:
+                rog.close_active_manager()
+        #
+        
+        elif gameState == "game over":
+            rog.msg("You died...")
 
-##        
-##        #
-##        # normal game play
-##        #
-##        if gameState == "normal":
-##            game.play(pc, pcAct)
-##        #
-##        # other game states #
-##        #
-##        elif (gameState == "move view"
-##                or gameState == "look"
-##                or gameState == "busy"
-##                or gameState == "message history"
-##                ):
-##            manager=rog.get_active_manager()
-##            manager.run(pcAct)
-##            if manager.result:
-##                rog.close_active_manager()
-##        #
-##        
-##        elif gameState == "game over":
-##            rog.msg("You died...")
-##
-##        
-##    # end while
+        
+    # end while
 
     
         

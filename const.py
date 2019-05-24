@@ -20,6 +20,25 @@ class Error_wrongNumberCommandsLoaded(Exception):
     pass
 
 
+#------------#
+#  History   #
+#------------#
+
+HISTORY_EPITAPHS=(
+"here lies a mother, a father, a hermaphrodite, and a friend",
+"Richy ",
+    )
+HISTORY_ROADNAMES=(
+"Any Witch Way",
+"Roadkill Rd",
+"Murder Dr",
+"Raven Rider Rd",
+"Avelyn Ave",
+"Bullshit Blvd",
+"",
+    )
+
+
 
 #-----------------------#
 # Init Global Constants #
@@ -306,7 +325,7 @@ T_CORPSE        = ord('%')
 T_MEAL          = ord('&')
 T_RATION        = ord(',')
 T_STONE         = ord('.')
-T_BULLET        = ord(':')  # bullet / shell / ball
+T_AMMO          = ord(':')  # bullet / shell / ball / cartridge / arrow
 T_TORCH         = ord(';')
 T_BOULDER       = ord('0')
 T_DUST          = ord('^')
@@ -317,7 +336,7 @@ T_HEAVYWEAPON   = ord('=')
 T_MGUN          =   20      # backward |P
 T_EXPLOSIVE     = ord('*')
 T_BOW           = ord(')')
-T_ARROW         = ord('(')
+T_SLING         = ord('(')
 T_ARMOR         = ord(']')
 T_HELMET        = ord('[')
 T_SHIELD        = ord('}')
@@ -453,6 +472,7 @@ MAT_GUNPOWDER   = i; i+=1;
 MAT_PAPER       = i; i+=1;
 MAT_LEATHER     = i; i+=1;
 MAT_CLOTH       = i; i+=1;
+MAT_ROPE        = i; i+=1;
 MAT_GLASS       = i; i+=1;
 MAT_GAS         = i; i+=1;
 MAT_WATER       = i; i+=1;
@@ -467,6 +487,8 @@ i=0;
 AMMO_BULLETS    = i; i+=1;  # bullets for rifles, pistols, etc.
 AMMO_BALLS      = i; i+=1;  # balls for muskets
 AMMO_SHOT       = i; i+=1;  # shotgun shells
+AMMO_STONES     = i; i+=1;  
+AMMO_SLING      = i; i+=1;  # sling ammo; either bullets or stones
 AMMO_ELEC       = i; i+=1;  # electricity
 AMMO_OIL        = i; i+=1;
 AMMO_HAZMATS    = i; i+=1;
@@ -687,6 +709,9 @@ class THG:#(Flag)
     SCRAPELECTRONICS    = i; i+=1;
     SPRING              = i; i+=1;
     CHAINGUN            = i; i+=1;
+    LIGHTER             = i; i+=1;
+    CLAYPOT             = i; i+=1;
+    EXTINGUISHER        = i; i+=1;
 
 
 

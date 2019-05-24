@@ -19,7 +19,6 @@ import items
 
 
 
-occupations={}
 dirStr=" <hjklyubn.>"
 
 
@@ -88,7 +87,7 @@ def pickup_pc(pc):
         rog.alert("There is nothing there to pick up.")
 
 
-def inventory_pc(pc,pcInv):
+def inventory_pc(pc):
     world=Rogue.world()
 ##    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
     pcInv = world.component_for_entity(pc, cmp.Inventory)

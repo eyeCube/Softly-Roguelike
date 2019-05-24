@@ -17,8 +17,7 @@ import misc
 import player
 import debug
 import jobs
-
-    
+#define
 timer = debug.Timer()
 
 
@@ -32,26 +31,30 @@ def play(pc, pcAct):
     
     world = rog.world()
     
+    world.process() # where to put this?
+    
     #timer.reset() #DEBUG TESTING. USED WITH timer.print()
     
-    rog.release_souls()
+##    rog.release_souls() #handled by esper now
+    
     rog.compute_fovs() 
 
     #-------------------#
     #   NPC turn        #
     #-------------------#
-    
-    if pc.stats.nrg <= 0:
+
+    pcActor = world.component_for_entity(pc, cmp.Actor)
+    if pcActor.ap <= 0:
 
         #beginning of turn is considered when the monsters begin their turns
         #   /right after player turn.
         rog.managers_beginturn_run()
         
-        for mon in rog.list_creatures():
-            if rog.on(mon,DEAD): continue
+        for ent in rog.list_creatures():
+            if rog.on(ent,DEAD): continue
             
-            ai.tick(mon) # AI function
-            actor = world.component_for_entity(mon, cmp.Actor)
+            ai.tick(ent) # AI function
+            actor = world.component_for_entity(ent, cmp.Actor)
             actor.nrg = min(actor.nrg + actor.spd, actor.spd)
         
         rog.turn_pass()

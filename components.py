@@ -13,9 +13,9 @@ class DeathFunction:
         self.func=func
 
 class Draw:
-    def __init__(self, char, color, bgcol):
+    def __init__(self, char, fgcol, bgcol):
         self.char=char
-        self.color=color
+        self.fgcol=fgcol
         self.bgcol=bgcol
         
 class Name:
