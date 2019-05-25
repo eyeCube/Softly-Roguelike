@@ -1,6 +1,9 @@
-#
-# observer
-#
+'''
+    observer.py
+    by Jacob Wharton
+
+    TODO: implement this into new ECS system, but how...?
+'''
 
 
 import rogue as rog

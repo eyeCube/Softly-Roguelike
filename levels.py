@@ -1,5 +1,6 @@
 '''
     levels.py
+    by Jacob Wharton
 
     level design algorithms
 '''

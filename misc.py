@@ -1,10 +1,9 @@
-#
-# misc.py
-#
-# misc functions
-#
-
-#TODO: distribute these functions into other modules
+'''
+    misc.py
+    by Jacob Wharton
+    
+    #TODO: distribute these functions into other modules
+'''
 
 import libtcodpy as libtcod
 import textwrap

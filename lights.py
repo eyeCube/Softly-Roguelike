@@ -1,9 +1,7 @@
 '''
     lights
-
-    Light class:
-        casts / uncasts light onto lightmap
-    light-source objects
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 '''
 
 import libtcodpy as libtcod
@@ -15,6 +13,10 @@ import observer
 
 
 class Light(observer.Observer):
+    '''
+        casts and uncasts light
+            by adding or subtracting values from a lightmap
+    '''
 
     def __init__(self, x,y, brightness, owner=None):
         super(Light, self).__init__()

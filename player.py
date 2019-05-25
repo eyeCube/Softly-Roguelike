@@ -1,6 +1,10 @@
 '''
-player.py
+    player.py
+    Part of Softly Into the Night, a roguelike by Jacob Wharton.
+    Copyright 2019.
 
+    TODO : finish up chargen function
+    
 '''
 
 import os
