@@ -134,15 +134,15 @@ CANWET      = i; i+=1;  # Can get wet
 CANTALK     = i; i+=1;  # Can engage in jolly conversation
 REACH       = i; i+=1;  # Has long reach
 STABS       = i; i+=1;  # Can stab things
-CUTS        = i; i+=1;  # Can cut things
-CHOPS       = i; i+=1;  # Can chop things (dmg+ to wood)
-CRUSHES     = i; i+=1;  # Can crush or hammer things
+CUTS        = i; i+=1;  # Can cut things (dmg+ to flesh,...)
+CHOPS       = i; i+=1;  # Can chop things (dmg+ to wood,...)
+CRUSHES     = i; i+=1;  # Can crush or hammer things (dmg+ to glass,...)
 ISSOLID     = i; i+=1;  # Is solid (cannot walk through it)
+##CANPUSH     = i; i+=1;  # Can be pushed
 ##CANEAT      = i; i+=1;  # Can be eaten
 ##CANQUAFF    = i; i+=1;  # Can be quaffed
 ##CANEQUIP    = i; i+=1;  # Can be equipped
 ##CANUSE      = i; i+=1;  # Can be used
-##CANPUSH     = i; i+=1;  # Can be pushed
 ##CANOPEN     = i; i+=1;  # Can open it like a container (not doors)
 ##INTERACT    = i; i+=1;  # Can interact with it (like a computer terminal, etc.)
 ##HOLDSFLUID  = i; i+=1;  # Can contain fluids

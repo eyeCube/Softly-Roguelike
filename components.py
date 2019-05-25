@@ -131,6 +131,9 @@ class Interactable: #usable while on the game grid
     def __init__(self, funcPC=None, funcNPC=None):
         self.funcPC=funcPC
         self.funcNPC=funcNPC
+class Pushable:
+    def __init__(self, slides=False):
+        self.slides=slides
 class Edible:
     def __init__(self, func=None, sat=0, taste=0, time=1):
         self.func=func
@@ -152,6 +155,10 @@ class Ingredient: #can be used in crafting, cooking, etc.
         self.data=data
         
 class ReactsWithWater:
+    def __init__(self, func=None):
+        self.func=func
+class ReactsWithFire: # fire makes it boil, explode, etc.
+    # IS this the best way to handle this? ...
     def __init__(self, func=None):
         self.func=func
 
@@ -218,17 +225,19 @@ class StatMods:
 
 #status effects
     #owned by entities currently exhibiting status effect(s)
-class StatusBurning:
+class StatusFire:
     def __init__(self, t=-1): #,dmg=1
         self.timer=t
-        #self.dmg=dmg
-class StatusCorroding:
+##class StatusSmoldering:
+##    def __init__(self, t=-1):
+##        self.timer=t
+class StatusAcid:
     def __init__(self, t=8):
         self.timer=t
-class StatusBlinded:
+class StatusBlind:
     def __init__(self, t=20):
         self.timer=t
-class StatusDeafened:
+class StatusDeaf:
     def __init__(self, t=150):
         self.timer=t
 class StatusIrritated:
@@ -237,19 +246,19 @@ class StatusIrritated:
 class StatusParalyzed:
     def __init__(self, t=5):
         self.timer=t
-class StatusVomiting:
+class StatusVomit:
     def __init__(self, t=50):
         self.timer=t
-class StatusCoughing:
+class StatusCough:
     def __init__(self, t=25):
         self.timer=t
-class StatusSprinting:
+class StatusSprint:
     def __init__(self, t=10):
         self.timer=t
-class StatusHasty:
+class StatusHaste:
     def __init__(self, t=25):
         self.timer=t
-class StatusSlowed:
+class StatusSlow:
     def __init__(self, t=25):
         self.timer=t
 class StatusWet:
@@ -281,6 +290,54 @@ class StatusDrunk:
 
 
 
+# TODO: make Fluid property into a component
 
+##
+##class Fluid:
+##
+##    def __init__(self, x,y):
+##        super(Fluid, self).__init__(x, y)
+##        self.dic={}
+##        self.size=0 #total quantity of fluid in this tile
+##
+##    def getData(self, stat):    #get a particular stat about the fluid
+##        return FLUIDS[self.name].__dict__[stat]
+##    
+##    def clear(self):            #completely remove all fluids from the tile
+##        self.dic={}
+##        self.size=0
+##    
+##    def add(self, name, quantity=1):
+##        newQuant = self.dic.get(name, 0) + quantity
+##        self.dic.update({name : newQuant})
+##        self.size += quantity
+##        
+##        '''floodFill = False
+##        if self.size + quantity > MAX_FLUID_IN_TILE:
+##            quantity = MAX_FLUID_IN_TILE - self.size
+##            floodFill = True #partial floodfill / mixing
+##            #how should the fluids behave when you "inject" a new fluid into a full lake of water, etc.?
+##            #regular floodfill will not cut it
+##            #maybe just replace the current fluid with the new fluid to keep it simple.
+##            '''
+##
+##        '''if floodFill:
+##            #do flood fill algo.
+##            #this is going to also have to run a cellular automata to distribute different types of fluids
+##            return'''
+##
+##    def removeType(self, name, quantity=1):
+##        if self.size > 0:
+##            curQuant = self.dic.get(name, 0)
+##            newQuant = max(0, curQuant - quantity)
+##            diff = curQuant - newQuant
+##            if not diff:     #no fluid of that type to remove
+##                return
+##            self.size -= diff
+##            if newQuant != 0:
+##                self.dic.update({name : newQuant})
+##            else:
+##                #we've run out of this type of fluid
+##                self.dic.remove(name)
 
 

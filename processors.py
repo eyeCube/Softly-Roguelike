@@ -319,7 +319,7 @@ class StatusProcessor(esper.Processor):
         removals=[]
         burningData_init=[]
         burningData=[]
-        for ent, cc in self.world.get_component(cmp.StatusBurning):
+        for ent, cc in self.world.get_component(cmp.StatusFire):
             hp = self.world.component_for_entity(ent, cmp.BasicStats).hp
             burningData_init.append((ent, cc.timer, hp,))
         
@@ -328,10 +328,10 @@ class StatusProcessor(esper.Processor):
             hp -= 1
             timer -= 1
             if timer <= 0:
-                removals.update({ent, cmp.StatusBurning})
+                removals.update({ent, cmp.StatusFire})
                 continue
             if hp <= 0:
-                removals.update({ent, cmp.StatusBurning})
+                removals.update({ent, cmp.StatusFire})
                 rog.kill(ent)
                 continue
             burningData.append((ent, timer, hp,))
@@ -339,7 +339,7 @@ class StatusProcessor(esper.Processor):
         #distribute data
         for ent, timer, hp in burningData:
             stats = self.world.component_for_entity(ent, cmp.BasicStats)
-            status = self.world.component_for_entity(ent, cmp.StatusBurning)
+            status = self.world.component_for_entity(ent, cmp.StatusFire)
             stats.timer = timer
             stats.hp = hp
         
@@ -386,7 +386,7 @@ class MetersProcessor(esper.Processor):
             stats = self.world.component_for_entity(ent, cmp.BasicStats)
             #print(thing.name," is getting cooled down") #TESTING
             # cool down temperature meter if not currently burning
-            if (stats.temp > 0 and not rog.on(ent, FIRE)):
+            if (stats.temp > 0 and not rog.world().component_for_entity(ent, cmp.StatusFire)):
                 stats.temp = max(0, stats.temp - FIRE_METERLOSS)
             #warm up
             if (stats.temp < 0):
