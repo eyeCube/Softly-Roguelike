@@ -29,16 +29,25 @@ import player
 import tilemap
 
 
-#----------------#
-# global objects #
-#----------------#
+    #----------------#
+    # global objects #
+    #----------------#
 
 class Rogue:
     occupations={}
     et_managers={} #end of turn managers
     bt_managers={} #beginning of turn managers
     c_managers={} #const managers
-##    manager = None # current active game state manager
+    manager = None # current active game state manager
+    
+    @classmethod
+    def run_endTurn_managers(cls):
+        for v in cls.et_managers.values():
+            v.run()
+    @classmethod
+    def run_beginTurn_managers(cls):
+        for v in cls.bt_managers.values():
+            v.run()
     
     @classmethod
     def create_settings(cls): # later controllers might depend on settings
@@ -81,34 +90,40 @@ class Rogue:
         cls.world.add_processor(proc.MetersProcessor(), 10)
         cls.world.add_processor(proc.FluidProcessor(), 2)
         cls.world.add_processor(proc.FireProcessor(), 1)
-        cls.world.add_processor(proc.FOVProcessor(), 0)
-##    @classmethod # TODO : implement this fxn
-##    def create_managers(cls):
-##        cls.et_managers.update()
-##    @classmethod
-##    def create_environment(cls):cls.environ = game.Environment()
+        cls.world.add_processor(proc.FOVProcessor(), 0)        
 
+    @classmethod
+    def create_perturn_managers():
         '''
-
-    # constant managers, ran each turn
-def create_perturn_managers():
-    #end of turn (end of monster's turn)
-    Ref.et_managers.update({'fire'      : managers.Manager_Fires()})
-    Ref.et_managers.update({'fluids'    : managers.Manager_Fluids()})
-    #beginning of turn (beginning of monster's turn)
-    Ref.bt_managers.update({'timers'    : managers.Manager_Timers()})
-    Ref.bt_managers.update({'status'    : managers.Manager_Status()})
-    Ref.bt_managers.update({'meters'    : managers.Manager_Meters()})
+            constant managers, ran each turn
+        '''
+        #end of turn (end of monster's turn)
+        #beginning of turn (beginning of monster's turn)
+        pass
     
-    # constant managers, manually ran
-def create_const_managers():
-    Ref.c_managers.update({'fov'        : managers.Manager_FOV()})
-    Ref.c_managers.update({'events'     : managers.Manager_Events()})
-    Ref.c_managers.update({'sights'     : managers.Manager_SightsSeen()})
-    Ref.c_managers.update({'sounds'     : managers.Manager_SoundsHeard()})
-    Ref.c_managers.update({'actionQueue': managers.Manager_ActionQueue()})
+    @classmethod
+    def create_const_managers():
+        '''
+            constant managers, manually ran
+        '''
+        Rogue.c_managers.update({'sights'     : managers.Manager_SightsSeen()})
+        Rogue.c_managers.update({'sounds'     : managers.Manager_SoundsHeard()})
+        
+'''
+    Rogue.c_managers.update({'fov'        : managers.Manager_FOV()})
+    Rogue.c_managers.update({'events'     : managers.Manager_Events()})
+    Rogue.c_managers.update({'actionQueue': managers.Manager_ActionQueue()})
 
 '''
+
+    # EXPIRED: Environment class
+#/Rogue
+
+
+    #----------------#
+    #   Functions    #
+    #----------------#
+
 
 # world
 def world():    return Rogue.world
@@ -225,9 +240,7 @@ def set_hud_right():    Rogue.window.set_hud_right()
 
 
 
-#------------------------#
-# functions from modules #
-#------------------------#
+    # functions from modules #
 
 # orangio
 
@@ -258,7 +271,7 @@ def makeConBox(w,h,text):
 
 
 
-# printing functions #
+    # printing functions #
 
 #@debug.printr
 def refresh():  # final to root and flush
@@ -266,7 +279,7 @@ def refresh():  # final to root and flush
     libtcod.console_flush()
 #@debug.printr
 def render_gameArea(pc) :
-    con = Ref.Map.render_gameArea(pc, view_x(),view_y(),view_w(),view_h() )
+    con = Rogue.Map.render_gameArea(pc, view_x(),view_y(),view_w(),view_h() )
     #libtcod.console_clear(con_game())
     libtcod.console_clear(con_game())
     libtcod.console_blit(con, view_x(),view_y(),view_w(),view_h(),
@@ -286,10 +299,8 @@ def alert(text=""):    # message that doesn't go into history
 
 
 
+    # "Fun"ctions #
 
-#-------------#
-# "Fun"ctions #
-#-------------#
 
 # tilemap
 def thingat(x,y):       return Rogue.map.thingat(x,y) #Thing object
@@ -328,7 +339,10 @@ def singe(x,y): #burn tile
     if Rogue.map.get_char(x,y) == FUNGUS:
         tile_change(x,y,FLOOR)
 
-# component functions - better to call directly and save the function call overhead
+
+# component functions #
+# NOTE: generally better to call directly and save the function call overhead
+
 def get(ent, component): #return an entity's component
     return Rogue.world.component_for_entity(ent, component)
 def has(ent, component): #return whether entity has component
@@ -342,8 +356,11 @@ def copyflags(toEnt,fromEnt,copyStatusFlags=True): #use this to set an object's 
     for flag in Rogue.world.component_for_entity(fromEnt, set):
         if (copyStatusFlags or not flag in STATUSFLAGS):
             make(toEnt, flag)
+
             
-# entity functions
+# entity functions #
+
+
 def setAP(ent, val):
     actor=world().component_for_entity(ent, cmp.Actor)
     actor.ap = val
@@ -422,52 +439,11 @@ def sap(ent, dmg: int):
     stats.mp -= dmg
     if stats.mp <= 0:
         zombify(ent)
-#deal fire damage
-def burn(ent, dmg, maxTemp=FIRE_MAXTEMP):
-    if on(ent, DEAD): return False
-    if on(ent, WET):
-        clear_status(ent, WET)
-        #steam=create_fluid(ent.x, ent.y, "steam")
-        return False
-    stuff.burn(ent, dmg, maxTemp)
-    return True
-def cooldown(ent, temp=999):
-    if on(ent, DEAD): return False
-    stuff.cooldown(ent, temp)
-#deal bio damage
-def disease(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.disease(ent, dmg)      #sick damage
-def exposure(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.exposure(ent, dmg)    #chem damage
-def corrode(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.corrode(ent, dmg)      #acid damage
-def irradiate(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.irradiate(ent, dmg)  #rad damage
-def intoxicate(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.intoxicate(ent, dmg)#drunk damage
-def cough(ent, dmg): #coughing fit status
-    if on(ent, DEAD): return False
-    stuff.cough(ent, dmg)
-def vomit(ent, dmg): #vomiting fit status
-    if on(ent, DEAD): return False
-    stuff.vomit(ent, dmg)
-#deal electric damage
-def electrify(ent, dmg):
-    if on(ent, DEAD): return False
-    stuff.electrify(ent, dmg)
-#paralyze
-def paralyze(ent, turns):
-    if on(ent, DEAD): return False
-    stuff.paralyze(ent, turns)
-#mutate
-def mutate(ent):
-    if on(ent, DEAD): return False
-    stuff.mutate(ent)
+
+'''
+    TODO: insert status effect fxns here
+'''
+    
 def kill(ent): #remove a thing from the world
     if on(ent, DEAD): return
     world = Rogue.world
@@ -519,35 +495,35 @@ def explosion(name, x, y, radius):
 
 def event_sight(x,y,text):
     if not text: return
-    Ref.c_managers['events'].add_sight(x,y,text)
+    Rogue.c_managers['events'].add_sight(x,y,text)
 def event_sound(x,y,data):
     if (not data): return
     volume,text1,text2=data
-    Ref.c_managers['events'].add_sound(x,y,text1,text2,volume)
-def listen_sights(obj):     return  Ref.c_managers['events'].get_sights(obj)
-def listen_sounds(obj):     return  Ref.c_managers['events'].get_sounds(obj)
-def add_listener_sights(obj):       Ref.c_managers['events'].add_listener_sights(obj)
-def add_listener_sounds(obj):       Ref.c_managers['events'].add_listener_sounds(obj)
-def remove_listener_sights(obj):    Ref.c_managers['events'].remove_listener_sights(obj)
-def remove_listener_sounds(obj):    Ref.c_managers['events'].remove_listener_sounds(obj)
-def clear_listen_events_sights(obj):Ref.c_managers['events'].clear_sights(obj)
-def clear_listen_events_sounds(obj):Ref.c_managers['events'].clear_sounds(obj)
+    Rogue.c_managers['events'].add_sound(x,y,text1,text2,volume)
+def listen_sights(obj):     return  Rogue.c_managers['events'].get_sights(obj)
+def listen_sounds(obj):     return  Rogue.c_managers['events'].get_sounds(obj)
+def add_listener_sights(obj):       Rogue.c_managers['events'].add_listener_sights(obj)
+def add_listener_sounds(obj):       Rogue.c_managers['events'].add_listener_sounds(obj)
+def remove_listener_sights(obj):    Rogue.c_managers['events'].remove_listener_sights(obj)
+def remove_listener_sounds(obj):    Rogue.c_managers['events'].remove_listener_sounds(obj)
+def clear_listen_events_sights(obj):Rogue.c_managers['events'].clear_sights(obj)
+def clear_listen_events_sounds(obj):Rogue.c_managers['events'].clear_sounds(obj)
 
 def pc_listen_sights():
-    pc=Ref.pc
+    pc=Rogue.pc
     lis=listen_sights(pc)
     if lis:
         for ev in lis:
-            Ref.c_managers['sights'].add(ev)
+            Rogue.c_managers['sights'].add(ev)
         manager_sights_run()
 def pc_listen_sounds():
-    pc=Ref.pc
+    pc=Rogue.pc
     lis=listen_sounds(pc)
     if lis:
         for ev in lis:
-            Ref.c_managers['sounds'].add(ev)
+            Rogue.c_managers['sounds'].add(ev)
         manager_sounds_run()
-def clear_listeners():      Ref.c_managers['events'].clear()
+def clear_listeners():      Rogue.c_managers['events'].clear()
 
 
 #------------------------#
@@ -604,7 +580,7 @@ def list_remove_fluid(obj):     Lists.fluids.remove(obj)
 #THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
 def fov_init():  # normal type FOV map init
     fovMap=libtcod.map_new(ROOMW,ROOMH)
-    libtcod.map_copy(Ref.Map.fov_map,fovMap)  # get properties from Map
+    libtcod.map_copy(Rogue.Map.fov_map,fovMap)  # get properties from Map
     return fovMap
 #@debug.printr
 def fov_compute(obj):
@@ -612,8 +588,8 @@ def fov_compute(obj):
         obj.fov_map, obj.x,obj.y, obj.stats.get('sight'),
         light_walls = True, algo=libtcod.FOV_RESTRICTIVE)
 def update_fovmap_property(fovmap, x,y, value): libtcod.map_set_properties( fovmap, x,y,value,True)
-def compute_fovs():     Ref.c_managers['fov'].run()
-def update_fov(obj):    Ref.c_managers['fov'].add(obj)
+def compute_fovs():     Rogue.c_managers['fov'].run()
+def update_fov(obj):    Rogue.c_managers['fov'].add(obj)
 # circular FOV function
 def can_see(obj,x,y):
     if (get_light_value(x,y) == 0 and not on(obj,NVISION)):
@@ -626,7 +602,7 @@ def update_all_fovmaps():
     for creat in list_creatures():
         if has_sight(creat):
             fovMap=creat.fov_map
-            libtcod.map_copy(Ref.Map.fov_map,fovMap)
+            libtcod.map_copy(Rogue.Map.fov_map,fovMap)
             update_fov(tt)
 #******maybe we should overhaul this FOV system!~*************
         #creatures share fov_maps. There are a few fov_maps
@@ -667,10 +643,10 @@ def can_hear(obj, x,y, volume):
 
 def path_init_movement():
     pathData=0
-    return Ref.Map.path_new_movement(pathData)
+    return Rogue.Map.path_new_movement(pathData)
 def path_init_sound():
     pathData=0
-    return Ref.Map.path_new_sound(pathData)
+    return Rogue.Map.path_new_sound(pathData)
 def path_destroy(path):     libtcod.path_delete(path)
 def path_compute(path, xfrom,yfrom, xto,yto):
     libtcod.path_compute(path, xfrom,yfrom, xto,yto)
@@ -686,27 +662,61 @@ def path_step(path):
 #     Things     #
 #----------------#
 
+def register_entity(ent):
+    grid_insert(ent)
+def release_entity(ent):
+    grid_remove(ent)
+def delete_entity(ent):
+    Rogue.world.delete_entity(ent)
+def create_stuff(ID, x,y): # create & register an item from stuff list
+    tt = entities.create_stuff(ID, x,y)
+    register_inanimate(tt)
+    return tt
+def create_entity():
+    return Rogue.world.create_entity()
 def create_thing():
     ent = Rogue.world.create_entity()
     Rogue.world.add_component(ent, set) #flagset
     return ent
-def create_stuff(ID, x,y):
-    tt = stuff.create(x,y, ID)
-    register_inanimate(tt)
-    return tt
-def release_thing(ent):
-    grid_remove(ent)
-    Rogue.world.delete_entity(ent)
-def register_inanimate(ent):
-    name = Rogue.world.component_for_entity(ent, cmp.Name).name
-    pos = Rogue.world.component_for_entity(ent, cmp.Position)
-##    print("registering {} at {},{}".format(name, pos.x, pos.y))
-    grid_insert(ent)
-def release_inanimate(ent):
-    grid_remove(ent)
     
 ##    list_add_inanimate(ent)
 ##    list_remove_inanimate(ent)
+
+
+#  creature/monsters  #
+
+'''
+def register_creature(ent):
+    grid_insert(ent)
+##    make(ent,ONGRID) # shouldn't be needed anymore.
+##    list_add_creature(ent) # do we need a list of creatures still?
+def release_creature(ent):
+    release_thing(ent)
+    remove_listener_sights(ent)
+    remove_listener_sounds(ent)
+##    list_remove_creature(ent)
+##    makenot(ent,ONGRID)
+    '''
+
+def create_monster(typ,x,y,col,mutate=3): #init from entities.py
+    '''
+        call this to create a monster from the bestiary
+    '''
+    if monat(x,y):
+        return None #tile is occupied by a creature already.
+    ent = entities.create_monster(typ,x,y,col,mutate)
+##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
+    givehp(ent)
+    register_entity(ent)
+    return monst 
+def create_corpse(ent):
+    corpse = entities.create_corpse(ent)
+    register_entity(corpse)
+    return corpse
+def create_ashes(ent):
+    ashes = entities.create_ashes(ent)
+    register_entity(ashes)
+    return ashes
 
     
 '''
@@ -799,55 +809,6 @@ def create_gear(name,x,y):
 '''
     
 
-#---------------------#
-#  creature/monsters  #
-#---------------------#
-
-#register and release functions do not perform checks to ensure proper calling
-#must ensure manually that you insert an object of type Thing
-#if a creature already exists in the tile of obj's position,
-#   then this function will produce errors.
-#likewise make sure you do not try to release an entity
-#   that was not first registered.
-#Always call proper release that corresponds with the register function
-#   in order to remove an object from the game.
-def register_creature(ent):
-    grid_insert(ent)
-##    make(ent,ONGRID) # shouldn't be needed anymore.
-##    list_add_creature(ent) # do we need a list of creatures still?
-def release_creature(ent):
-    release_thing(ent)
-    remove_listener_sights(ent)
-    remove_listener_sounds(ent)
-##    list_remove_creature(ent)
-##    makenot(ent,ONGRID)
-#call this to create a monster from the bestiary
-def create_monster(typ,x,y,col,mutate=3): #init from entities.py
-    if monat(x,y):
-        return None #tile is occupied by a creature already.
-    monst = entities.create_monster(typ,x,y,col,mutate)
-##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
-    givehp(monst)
-    register_creature(monst)
-    return monst 
-#call this to build a creature from scratch, not using entities.py
-#call create_monster instead if you want to use a template from the bestiary
-#this function does not initialize all creature parameters
-def create_creature(name, typ, x,y, col): #init basic creature stuff
-    if monat(x,y):
-        return None #tile is occupied by a creature already.
-    creat = thing.create_creature(name,typ,x,y,col)
-    register_creature(creat)
-    return creat
-def create_corpse(ent):
-    corpse = entities.create_corpse(ent)
-    register_inanimate(corpse)
-    return corpse
-def create_ashes(ent):
-    ashes = entities.create_ashes(ent)
-    register_inanimate(ashes)
-    return ashes
-
 
     
 #-------------#
@@ -880,8 +841,8 @@ def occupation_elapse_turn(ent):
     return True     # successfully continued occupation
     
 
-'''
 
+'''
 #----------------#
 #    lights      #
 #----------------#
@@ -904,7 +865,7 @@ def release_light(light):
         light.owner.observer_remove(light)
     grid_lights_remove(light)
     list_remove_light(light)
-
+'''
 
 
 #-------------#
@@ -913,12 +874,12 @@ def release_light(light):
 
 #fire tile flag is independent of the status effect of burning
 def set_fire(x,y):
-    Ref.et_managers['fire'].add(x,y)
+    Rogue.et_managers['fire'].add(x,y)
 def douse(x,y): #put out a fire at a tile and cool down all things there
-    if not Ref.et_managers['fire'].fireat(x,y): return
-    Ref.et_managers['fire'].remove(x,y)
+    if not Rogue.et_managers['fire'].fireat(x,y): return
+    Rogue.et_managers['fire'].remove(x,y)
     for tt in thingsat(x,y):
-        Ref.bt_managers['status'].remove(tt, FIRE)
+        Rogue.bt_managers['status'].remove(tt, FIRE)
         cooldown(tt)
 
 
@@ -929,16 +890,17 @@ def douse(x,y): #put out a fire at a tile and cool down all things there
 
 #Status for being on fire separate from the fire entity and light entity.
 
-#set status effect
-    # obj       = Thing object to set the status for
-    # status    = ID of the status effect
-    # t         = duration (-1 is the default duration for that status)
-def set_status(obj, status, t=-1):
-    Ref.bt_managers['status'].add(obj, status, t)
-def clear_status(obj, status):
-    Ref.bt_managers['status'].remove(obj, status)
-def clear_status_all(obj):
-    Ref.bt_managers['status'].remove_all(obj)
+def set_status(ent, status, t=-1):
+    '''
+        # obj       = Thing object to set the status for
+        # status    = ID of the status effect
+        # t         = duration (-1 is the default duration for that status)
+    '''
+    Rogue.processors['status'].add(ent, status, t)
+def clear_status(ent, status):
+    Rogue.processors['status'].remove(ent, status)
+def clear_status_all(ent):
+    Rogue.processors['status'].remove_all(ent)
 
 
 
@@ -948,7 +910,9 @@ def clear_status_all(obj):
 
 def queue_action(obj, act):
     pass
-    #Ref.c_managers['actionQueue'].add(obj, act)
+    #Rogue.c_managers['actionQueue'].add(obj, act)
+
+
 
 
 
@@ -956,61 +920,55 @@ def queue_action(obj, act):
 # managers #
 #----------#
 
-def managers_beginturn_run():
-    for v in Ref.bt_managers.values():
-        v.run()
-def managers_endturn_run():
-    for v in Ref.et_managers.values():
-        v.run()
-def manager_sights_run():   Ref.c_managers['sights'].run()
-def manager_sounds_run():   Ref.c_managers['sounds'].run()
+def manager_sights_run():   Rogue.c_managers['sights'].run()
+def manager_sounds_run():   Rogue.c_managers['sounds'].run()
 
 # constant managers #
 
-def register_timer(obj):    Ref.bt_managers['timers'].add(obj)
-def release_timer(obj):     Ref.bt_managers['timers'].remove(obj)
+def register_timer(obj):    Rogue.bt_managers['timers'].add(obj)
+def release_timer(obj):     Rogue.bt_managers['timers'].remove(obj)
 
 # game state managers #
 
-def get_active_manager():       return Ref.manager
+def get_active_manager():       return Rogue.manager
 def close_active_manager():
-    if Ref.manager:
-        Ref.manager.close()
-        Ref.manager=None
+    if Rogue.manager:
+        Rogue.manager.close()
+        Rogue.manager=None
 def clear_active_manager():
-    if Ref.manager:
-        Ref.manager.set_result('exit')
+    if Rogue.manager:
+        Rogue.manager.set_result('exit')
         close_active_manager()
 
 def routine_look(xs, ys):
     clear_active_manager()
     game_set_state("look")
-    Ref.manager=managers.Manager_Look(
-        xs, ys, Ref.view, Ref.Map.get_map_state())
+    Rogue.manager=managers.Manager_Look(
+        xs, ys, Rogue.view, Rogue.Map.get_map_state())
     alert("Look where? (<hjklyubn>, mouse; <select> to confirm)")
-    Ref.view.fixed_mode_disable()
+    Rogue.view.fixed_mode_disable()
 
 def routine_move_view():
     clear_active_manager()
     game_set_state("move view")
-    Ref.manager=managers.Manager_MoveView(
-        Ref.view, Ref.Map.get_map_state())
+    Rogue.manager=managers.Manager_MoveView(
+        Rogue.view, Rogue.Map.get_map_state())
     alert("Direction? (<hjklyubn>; <select> to center view)")
-    Ref.view.fixed_mode_disable()
+    Rogue.view.fixed_mode_disable()
 
 def routine_print_msgHistory():
     clear_active_manager()
     game_set_state("message history")
     width   = window_w()
     height  = window_h()
-    strng   = Ref.log.printall_get_wrapped_msgs()
+    strng   = Rogue.log.printall_get_wrapped_msgs()
     nlines  = 1 + strng.count('\n')
     hud1h   = 3
     hud2h   = 3
     scroll  = makeConBox(width,1000,strng)
     top     = makeConBox(width,hud1h,"Message History:")
     bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
-    Ref.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+    Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
 
 def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
     return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
@@ -1062,7 +1020,7 @@ def menu(name, x,y, keysItems, autoItemize=True):
     if result == ' ': return None
     return manager.result
     
-    '''
+    
 
 
 
@@ -1077,6 +1035,22 @@ def menu(name, x,y, keysItems, autoItemize=True):
 
 
 
+
+
+
+        # commented out code below. #
+
+
+
+
+
+
+
+
+
+
+
+        
 
 
 ##def makeEquip(obj, component):
@@ -1162,7 +1136,7 @@ if has(i, cmp.Name):
 def msg_printall():
         # init manager
     width   = window_w()
-    strng   = Ref.log.printall_get_wrapped_msgs()
+    strng   = Rogue.log.printall_get_wrapped_msgs()
     nlines  = 1 +strng.count('\n')
     hud1h   = 3
     hud2h   = 4
@@ -1247,9 +1221,9 @@ STATMODS_CUDGELS    ={'atk':2,'dmg':2,'nrg':-2}
 '''
 
 '''
-    con_box0 = Ref.log.printall_make_box0(width,strng)
-    con_box1 = Ref.log.printall_make_box1(width,box1h)
-    con_box2 = Ref.log.printall_make_box2(width,box2h)
+    con_box0 = Rogue.log.printall_make_box0(width,strng)
+    con_box1 = Rogue.log.printall_make_box1(width,box1h)
+    con_box2 = Rogue.log.printall_make_box2(width,box2h)
     
     manager = managers.PrintScrollManager(con_box0,con_box1,con_box2)
     while True:
@@ -1262,7 +1236,7 @@ STATMODS_CUDGELS    ={'atk':2,'dmg':2,'nrg':-2}
     box1h = 3
     box2h = 4
     box2y = window_h()-box2h
-    strng = Ref.log.printall_get_wrapped_msgs()
+    strng = Rogue.log.printall_get_wrapped_msgs()
     
     scrollspd       = 1
     pagescroll      = height -(box1h+box2h+2)

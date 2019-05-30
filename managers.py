@@ -60,6 +60,35 @@ class GameStateManager(Manager):
 
 
 
+'''
+    TODO: implement this Manager
+'''
+#
+# Stat Modifier Effects
+#
+
+class Manager_Effects(Manager):
+    ID = 0
+    
+    def __init__(self):
+        super(Manager_Effects, self).__init__()
+
+        self._statMods = {}
+        
+    def add(self, ent,mod): # create and add a new effect, return its ID
+        Manager_Effects.ID = Manager_Effects.ID + 1
+        newID = Manager_Effects.ID
+        self._statMods.update( {newID : mod} )
+        return newID
+
+    def remove(self, modID): # remove an effect from the dict
+        del self._statMods[modID]
+
+    def get(self, modID):
+        return self._statMods.get(modID, None)
+        
+
+
 
 #
 # Events
@@ -133,6 +162,7 @@ class Event_Sound():
 #
 
 class Manager_SightsSeen(Manager):
+    # should run at end of turn (right before player turn begins)
     
     def __init__(self):
         super(Manager_SightsSeen,self).__init__()
@@ -194,6 +224,7 @@ class Manager_SightsSeen(Manager):
 #
 
 class Manager_SoundsHeard(Manager):
+    #should run at end of turn (right before player turn begins)
     
     VOLCONST=400
     

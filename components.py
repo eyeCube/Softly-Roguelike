@@ -269,6 +269,25 @@ class StatusDrunk:
         self.timer=t
 
 
+# GLOBAL LISTS OF COMPONENTS #
+
+STATUSES = (
+    StatusFire,
+    StatusAcid,
+    StatusBlind,
+    StatusDeaf,
+    StatusIrritated,
+    StatusParalyzed,
+    StatusVomit,
+    StatusCough,
+    StatusSprint,
+    StatusHaste,
+    StatusSlow,
+    StatusWet,
+    StatusDrunk,
+    )
+
+
 
 
 

@@ -395,7 +395,7 @@ def _grave(tt):
 # creator functions #
 
 #create a thing from STUFF; does not register thing
-def create_stuff(x,y,ID):
+def create_stuff(ID, x, y):
     name,typ,mat,val,fgcol,hp,kg,solid,push,script = STUFF[ID]
     world = rog.world()
     if fgcol == "random":
@@ -420,13 +420,14 @@ def create_stuff(x,y,ID):
     if push:
         rog.add_component(ent, cmp.Pushable())
     script(ent)
+    return ent
 
 
 #create a fluid
 def create_fluid(x,y,ID,volume):
-    fluid = world.create_entity(cmp.Position(x,y),cmp.FluidContainer())
+    ent = world.create_entity(cmp.Position(x,y),cmp.FluidContainer())
 ##    fluid.add(ID, volume)
-    return fluid
+    return ent
 
 
 #non-weapon gear
@@ -564,6 +565,59 @@ def create_weapon(name, x,y):
     if script: script(weap)
     return weap
 
+
+''' TODO: refactor
+def create_creature(name, typ, xs,ys, col):
+    creat=Thing()
+    creat.name          = name
+    creat.type          = typ
+    creat.mask          = typ
+    creat.x             = xs
+    creat.y             = ys
+    creat.color         = col
+    creat.material      = MAT_FLESH
+    creat.isCreature    = True
+    creat.mutations     = 0
+    creat.gender        = dice.roll(2) - 1
+    creat.fov_map       = rog.fov_init()
+    creat.path          = rog.path_init_movement()
+    return creat
+
+def create_corpse(obj):
+    corpse=Thing()
+    corpse.name     = "corpse of {}".format(obj.name)
+    corpse.type     = "%"
+    corpse.mask     = corpse.type
+    corpse.x        = obj.x
+    corpse.y        = obj.y
+    corpse.color    = obj.color
+    corpse.material = obj.material
+    corpse.stats.hpmax = int(obj.mass) + 1
+    corpse.stats.resfire= obj.stats.resfire
+    corpse.stats.resbio = obj.stats.resbio
+    corpse.stats.reselec= obj.stats.reselec
+    corpse.stats.temp   = obj.stats.temp
+    #copy status effects?
+    rog.copyflags(corpse, obj, copyStatusFlags=False)
+    rog.givehp(corpse)
+    return corpse
+
+def create_ashes(obj):
+    if obj.mass < 1: return
+    ashes=Thing()
+    ashes.name      = "ashes"
+    ashes.type      = T_DUST
+    ashes.mask      = ashes.type
+    ashes.x         = obj.x
+    ashes.y         = obj.y
+    ashes.color     = COL['white']
+    ashes.material  = MAT_DUST
+    ashes.mass      = max(0.5, int(obj.mass/20))
+    ashes.stats.resfire = 100
+    ashes.stats.resbio  = 100
+    ashes.stats.reselec = 100
+    return ashes
+'''
 
 
 
@@ -708,45 +762,47 @@ WEAPONS = {
 "stick"             :(MEL, 1,    0.6, 40,  0,  0,  0,  WOOD,(8, 4, 2, 0,  1,  0,  5, -3, PH,),None,(), None,),
 "bone"              :(MEL, 1,    0.25,120, 0,  0,  0,  BONE,(8, 5, 4, 0,  2,  0,  5,  0, PH,),None,(CRUSHES,), None,),
 "wooden plank"      :(MEL, 2,    1.2, 80,  0,  0,  0,  WOOD,(5, 5, 3, 0,  2,  0, -36,-6, PH,),None,(CRUSHES,), None,),
-"fork"              :(MEL, 2,    0.05,65,  0,  0,  0,  METL,(1, 4, 1, 0,  0,  0,  10, 0, PH,),None,(STABS,), None,),
-"war frisbee"       :(MEL, 4,    0.4, 5,   0,  0,  0,  PLAS,(12,6, 4, 0,  0,  0, -33,-3, PH,),None,(STABS,), None,),
-"throwing dart"     :(MEL, 6,    0.2, 10,  0,  0,  0,  METL,(14,8, 2, 0,  0,  0, -10, 0, PH,),None,(STABS,), None,),
+"fork"              :(MEL, 3,    0.05,65,  0,  0,  0,  METL,(3, 4, 1, 0,  0,  0,  10, 0, PH,),None,(STABS,), None,),
+"throwing star"     :(MEL, 5,    0.1, 10,  0,  0,  0,  METL,(12,12,1, 0,  0,  0,  33, 0, PH,),None,(STABS,), None,),
+"throwing dart"     :(MEL, 6,    0.2, 10,  0,  0,  0,  METL,(12,10,2, 0,  0,  0,  0,  0, PH,),None,(STABS,), None,),
+"war frisbee"       :(MEL, 8,    0.4, 5,   0,  0,  0,  PLAS,(14,8, 4, 0,  0,  0, -10,-3, PH,),None,(CUTS,), None,),
 "cudgel"            :(MEL, 3,    1.5, 520, 0,  0,  0,  WOOD,(5, 2, 9, 0,  0,  0, -33,-12,PH,),None,(CRUSHES,), None,),
 "hammer"            :(MEL, 20,   1.15,550, 0,  0,  0,  WOOD,(8, 4, 11,0,  0,  0, -33,-9, PH,),None,(CRUSHES,), None,),
 "flail"             :(MEL, 45,   1.5, 250, 0,  0,  0,  METL,(1, 2, 16,0,  -1, 0, -45,-9, PH,),None,(CRUSHES,), None,),
-"baton"             :(MEL, 50,   0.75,330, 0,  0,  0,  PLAS,(4, 5, 3, 0,  2,  0,  15,-3, PH,),None,(CRUSHES,), None,),
-"crowbar"           :(MEL, 66,   0.8, 750, 0,  0,  0,  METL,(6, 5, 10,0,  0,  0, -33,-3, PH,),None,(CRUSHES,), None,),
-"stone axe"         :(MEL, 5,    1.55,40,  0,  0,  0,  WOOD,(8, 1, 11,0,  0,  0, -25,-9, PH,),None,(CHOPS,), None,),
+"baton"             :(MEL, 50,   0.75,330, 0,  0,  0,  PLAS,(5, 5, 3, 0,  2,  0,  15,-3, PH,),None,(CRUSHES,), None,),
+"crowbar"           :(MEL, 66,   0.8, 750, 0,  0,  0,  METL,(5, 5, 10,0,  0,  0, -33,-3, PH,),None,(CRUSHES,), None,),
+"stone axe"         :(MEL, 5,    1.55,40,  0,  0,  0,  WOOD,(6, 1, 11,0,  0,  0, -25,-9, PH,),None,(CHOPS,), None,),
 "metal axe"         :(MEL, 25,   1.25,420, 0,  0,  0,  WOOD,(8, 3, 13,0,  0,  0, -25,-9, PH,),None,(CHOPS,CUTS,), None,),
-"throwing axe"      :(MEL, 20,   0.8, 50,  0,  0,  0,  METL,(12,9, 9, 0,  0,  0, -20,-6, PH,),None,(CHOPS,CUTS,), None,),
-"shortspear"        :(MEL, 8,    0.75,60,  0,  0,  0,  WOOD,(10,9, 7, 0,  1,  0,  40,-9, PH,),None,(STABS,), None,),
-"javelin"           :(MEL, 10,   0.5, 20,  0,  0,  0,  WOOD,(20,12,6, 0,  2,  0,  33,-9, PH,),None,(REACH,STABS,), None,),
-"staff"             :(MEL, 15,   1.4, 220, 0,  0,  0,  WOOD,(10,6, 6, 0,  3,  0,  33,-18,PH,),None,(REACH,), None,),
-"wooden spear"      :(MEL, 18,   1.25,65,  0,  0,  0,  WOOD,(16,12,7, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"bone spear"        :(MEL, 32,   1.1, 80,  0,  0,  0,  WOOD,(16,12,8, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"metal spear"       :(MEL, 75,   1.3, 100, 0,  0,  0,  WOOD,(16,12,9, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"wooden sword"      :(MEL, 52,   1.0, 60,  0,  0,  0,  WOOD,(8, 9, 3, 0,  4,  0,  20,-6, PH,),None,(), None,),
+"throwing axe"      :(MEL, 20,   0.8, 50,  0,  0,  0,  METL,(10,9, 9, 0,  0,  0, -20,-6, PH,),None,(CHOPS,CUTS,), None,),
+"shortspear"        :(MEL, 8,    0.75,60,  0,  0,  0,  WOOD,(8, 9, 7, 0,  1,  0,  40,-9, PH,),None,(STABS,), None,),
+"javelin"           :(MEL, 10,   0.5, 20,  0,  0,  0,  WOOD,(16,12,6, 0,  2,  0,  33,-9, PH,),None,(REACH,STABS,), None,),
+"staff"             :(MEL, 15,   1.4, 220, 0,  0,  0,  WOOD,(8, 6, 6, 0,  3,  0,  33,-18,PH,),None,(REACH,), None,),
+"wooden spear"      :(MEL, 18,   1.25,65,  0,  0,  0,  WOOD,(12,12,7, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
+"bone spear"        :(MEL, 32,   1.1, 80,  0,  0,  0,  WOOD,(12,12,8, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
+"metal spear"       :(MEL, 75,   1.3, 100, 0,  0,  0,  WOOD,(12,12,9, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
+"wooden sword"      :(MEL, 52,   1.0, 60,  0,  0,  0,  WOOD,(5, 9, 3, 0,  4,  0,  20,-6, PH,),None,(CRUSHES,), None,),
 "metal sword"       :(MEL, 360,  1.25,160, 0,  0,  0,  METL,(8, 15,8, 0,  5,  0,  25,-6, PH,),None,(CUTS,STABS,CHOPS,), None,),
-"bone knife"        :(MEL, 22,   0.2, 30,  0,  0,  0,  BONE,(6, 14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"pocket knife"      :(MEL, 95,   0.2, 75,  0,  0,  0,  METL,(6, 14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"bone knife"        :(MEL, 22,   0.2, 30,  0,  0,  0,  BONE,(10,14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"pocket knife"      :(MEL, 95,   0.2, 75,  0,  0,  0,  METL,(10,14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
 "bayonet"           :(MEL, 175,  0.3, 80,  0,  0,  0,  METL,(10,14,5, 0,  3,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"dagger"            :(MEL, 205,  0.4, 200, 0,  0,  0,  METL,(12,16,5, 0,  4,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
+"dagger"            :(MEL, 205,  0.4, 200, 0,  0,  0,  METL,(10,16,5, 0,  4,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
 "scalpel"           :(MEL, 240,  0.05,10,  0,  0,  0,  METL,(1, 20,6, 0,  0,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
 #chainsaw
 #plasma sword
 
     # shields
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"wooden shield"     :(OFF, 185,  5.3, 520, 0,  0,  0,  WOOD,(4, 0, 1, 0,  5,  3,  0, -18,PH,),None,(CRUSHES,), None,),
+"wooden shield"     :(OFF, 185,  5.3, 520, 0,  0,  0,  WOOD,(3, 0, 1, 0,  5,  3,  0, -18,PH,),None,(CRUSHES,), None,),
 "metal shield"      :(OFF, 340,  7.5, 900, 0,  0,  0,  METL,(1, 0, 1, 0,  3,  5,  0, -24,PH,),None,(CRUSHES,), None,),
 "riot shield"       :(OFF, 2250, 8.2, 450, 0,  0,  0,  PLAS,(1, 0, 0, 0,  2,  7,  0, -27,PH,),None,(CRUSHES,), None,),
 
     # ranged weapons
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"sling"             :(SLNG,3,    0.05,30,  1,  1,  0,  ROPE,(20,10,0, 5,  0,  0, -33, 0,PH,),A_SLING,(), None,),
+"sling"             :(SLNG,3,    0.05,30,  1,  1,  0,  ROPE,(20,10,-3,5,  0,  0, -33, 0,PH,),A_SLING,(), None,),
+"hunting bow"       :(BOW, 30,   0.8, 35,  1,  1,  0,  WOOD,(16,6, -3,0,  0,  0, -10,-3,PH,),A_ARRO,(), None,),
 "short bow"         :(BOW, 110,  1.1, 40,  1,  1,  0,  WOOD,(20,12,-3,2,  0,  0, -25,-6,PH,),A_ARRO,(), None,),
-"longbow"           :(BOW, 160,  1.8, 35,  1,  1,  0,  WOOD,(36,16,-3,6,  0,  0, -33,-12,PH,),A_ARRO,(), None,),
-"composite bow"     :(BOW, 325,  1.2, 50,  1,  1,  0,  BONE,(32,14,-3,4,  0,  0, -25,-6,PH,),A_ARRO,(), None,),
+"longbow"           :(BOW, 160,  1.8, 45,  1,  1,  0,  WOOD,(36,16,-3,6,  0,  0, -33,-12,PH,),A_ARRO,(), None,),
+"composite bow"     :(BOW, 325,  1.2, 50,  1,  1,  0,  BONE,(33,14,-3,4,  0,  0, -25,-6,PH,),A_ARRO,(), None,),
 
     # exposives
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
@@ -754,12 +810,12 @@ WEAPONS = {
 ##"flashbang"         :(EXPL,50,   1.2, 1,   0,  0,  0,  METL,(8, 3, 2, 0,  0,  0,  0, 0, PH,),None,(), _molotov,),
 "molotov"           :(EXPL,50,   1.2, 1,   0,  0,  0,  METL,(8, 3, 2, 0,  0,  0,  0, 0, PH,),None,(), _molotov,),
 "frag grenade"      :(EXPL,165,  0.8, 20,  0,  0,  0,  METL,(10,3, 2, 0,  0,  0,  0, 0, PH,),None,(), _fragBomb,),
-"land mine"         :(EXPL,425,  4.0, 5,   0,  0,  0,  METL,(2, 0, 1, 0,  0,  0,  0, -12,PH,),None,(), _fragMine,),
+"land mine"         :(EXPL,425,  4.0, 5,   0,  0,  0,  METL,(3, 0, 1, 0,  0,  0,  0, -12,PH,),None,(), _fragMine,),
 ##"remote-detonated bomb":(EXPL,75,   2.5, 3,   0,  0,  0,  METL,(8, 3, 1, 1,  -1, 0, -10,-6,PH,),None,(), _ied,),
 
     # heavy weapons
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"spring cannon"     :(HEVY,360,  7.3, 75,  1,  4,  0,  METL,(10,5, 1, 4,  -5, 0, -33,-21,PH,),A_ANY,(CRUSHES,), None,),
+"spring cannon"     :(HEVY,360,  7.3, 75,  1,  4,  0,  METL,(8, 5, 1, 4,  -5, 0, -33,-21,PH,),A_ANY,(CRUSHES,), None,),
 "MK-18 shitstormer" :(HEVY,1290, 2.5, 220, 100,3,  0,  PLAS,(7, 3, 1, 25, -4, 0,  0, -15,BI,),A_HAZM,(CRUSHES,), None,),
 "raingun"           :(HEVY,2290, 2.85,175, 125,3,  0,  PLAS,(7, 5, 1, 40, -4, 0,  0, -18,CH,),A_ACID,(CRUSHES,), None,),
 "supersoaker 9000"  :(HEVY,3750, 3.5, 100, 200,5,  0,  PLAS,(9, 5, 0, 3,  -4, 0,  10,-18,None,),A_FLUID,(CRUSHES,), None,),
@@ -769,20 +825,20 @@ WEAPONS = {
 
     # guns
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"hand cannon"       :(GUN, 145,  8.75,450, 1,  10, 15, METL,(8, 2, 4, 12, -4, 1, -50,-30,PH,),A_BULL,(CRUSHES,), None,),
-"musket"            :(GUN, 975,  2.5, 120, 1,  8,  8,  WOOD,(14,6, 4, 8,  -1, 0, -33,-12,PH,),A_BULL,(CRUSHES,), None,),
-"flintlock pistol"  :(GUN, 1350, 1.3, 150, 1,  8,  12, WOOD,(10,5, 3, 1,   0, 0, -25,-3, PH,),A_BULL,(CRUSHES,), None,),
-"revolver"          :(GUN, 3990, 1.1, 360, 6,  1,  8,  METL,(15,8, 3, 2,   0, 0, -15,-3, PH,),A_CART,(CRUSHES,), None,),
-"rifle"             :(GUN, 4575, 2.2, 280, 1,  1,  8,  WOOD,(32,15,4, 6,  -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
-"repeater"          :(GUN, 13450,2.0, 300, 7,  1,  7,  WOOD,(26,13,4, 5,  -1, 0, -15,-9, PH,),A_CART,(CRUSHES,), None,),
-"'03 Springfield"   :(GUN, 26900,2.5, 350, 5,  1,  6,  WOOD,(40,20,4, 10, -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
+"hand cannon"       :(GUN, 145,  8.75,450, 1,  10, 15, METL,(5, 6, 4, 12, -4, 1, -50,-30,PH,),A_BULL,(CRUSHES,), None,),
+"musket"            :(GUN, 975,  2.5, 120, 1,  8,  8,  WOOD,(8, 6, 4, 8,  -1, 0, -33,-12,PH,),A_BULL,(CRUSHES,), None,),
+"flintlock pistol"  :(GUN, 1350, 1.3, 150, 1,  8,  12, WOOD,(10,6, 3, 1,   0, 0, -25,-3, PH,),A_BULL,(CRUSHES,), None,),
+"revolver"          :(GUN, 3990, 1.1, 360, 6,  1,  8,  METL,(12,8, 3, 2,   0, 0, -15,-3, PH,),A_CART,(CRUSHES,), None,),
+"rifle"             :(GUN, 4575, 2.2, 280, 1,  1,  8,  WOOD,(20,15,4, 6,  -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
+"repeater"          :(GUN, 13450,2.0, 300, 7,  1,  7,  WOOD,(20,13,4, 5,  -1, 0, -15,-9, PH,),A_CART,(CRUSHES,), None,),
+"'03 Springfield"   :(GUN, 26900,2.5, 350, 5,  1,  6,  WOOD,(36,20,4, 10, -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
 "luger"             :(GUN, 55450,0.9, 210, 8,  1,  10, METL,(18,12,3, 4,   0, 0, -6, -3, PH,),A_CART,(CRUSHES,), None,),
-"shotgun"           :(GUN, 2150, 2.0, 325, 1,  1,  8,  WOOD,(12,5, 4, 2,  -1, 0, -33,-9, PH,),A_SHOT,(CRUSHES,), None,),
-"dbl.barrel shotgun":(GUN, 6200, 2.8, 285, 2,  1,  8,  WOOD,(12,5, 4, 2,  -1, 0, -33,-12,PH,),A_SHOT,(CRUSHES,), None,),
+"shotgun"           :(GUN, 2150, 2.0, 325, 1,  1,  8,  WOOD,(8, 8, 4, 4,  -1, 0, -33,-9, PH,),A_SHOT,(CRUSHES,), None,),
+"dbl.barrel shotgun":(GUN, 6200, 2.8, 285, 2,  1,  8,  WOOD,(8, 8, 4, 4,  -1, 0, -33,-12,PH,),A_SHOT,(CRUSHES,), None,),
 
     # energy weapons
 # Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"battery gun"       :(ENER,3250, 4.20,175, 20, 1,  0,  PLAS,(5, 40,2, 70, -4,  0, -60,-24,EL,),A_ELEC,(),),
+"battery gun"       :(ENER,3250, 4.20,175, 20, 1,  0,  PLAS,(2, 40,2, 70, -4,  0, -60,-24,EL,),A_ELEC,(),),
 #"laser pointer"
 #"beam rifle"
 #"taser"
@@ -811,25 +867,22 @@ AMMUNITION={
 "metal ball"            :(A_BULL,2,  0.1, 1, (-2, 0,  4,  0,), None,)
 "Minni ball"            :(A_BULL,3,  0.1, 1, (0,  2,  6,  0,), None,)
 "paper cartridge"       :(A_BULL,4,  0.15,1, (0,  2,  6,  0,), _paperCartridge,)
-"birdshot shell"        :(A_SHOT,4,  0.1, 12,(-4, -9, 0,  0,), None,)
-"shotgun shell"         :(A_SHOT,6,  0.1, 5, (-2, -5, 2,  0,), None,)
-"shotgun slug"          :(A_SHOT,8,  0.1, 1, (0,  0,  12, -10,), None,)
+"shotgun shell"         :(A_SHOT,6,  0.1, 5, (-2, -5, 0,  0,), None,)
+"shotgun slug"          :(A_SHOT,8,  0.1, 1, (0,  0,  15, -10,), None,)
 "pistol cartridge"      :(A_CART,6,  0.02,1, (0,  2,  4,  0,), None,)
-"magnum cartridge"      :(A_CART,16, 0.04,1, (-2, 5,  10, -33,), None,)
-"rifle cartridge"       :(A_CART,15, 0.06,1, (10, 8,  7,  -15,), None,)
-"hollow-point cartridge":(A_CART,12, 0.04,1, (-5, -4, 14, -15,), None,)
-"incendiary cartridge"  :(A_CART,36, 0.08,1, (-2, 12, 12, -33,), _incendiary)
+"magnum cartridge"      :(A_CART,16, 0.03,1, (-2, 5,  10, -33,), None,)
+"rifle cartridge"       :(A_CART,15, 0.04,1, (10, 8,  7,  -15,), None,)
+"hollow-point cartridge":(A_CART,12, 0.03,1, (-5, -4, 12, -15,), None,)
+"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 12, 16, -33,), _incendiary)
     }
 
 
 FOOD = {
-'''
-    Columns:
-    #   $$$         cost
-    #   KG          mass
-    #   Mat         material
-    #   script      script to run to initialize values for the food item
-'''
+# Columns:
+#   $$$         cost
+#   KG          mass
+#   Mat         material
+#   script      script to run to initialize values for the food item
 #--Name-------------------$$$,  KG,   Mat,  script
 "Corpse Button"         :(1,    0.03, FUNG, _food_morsel_bloody_nasty,),
 "Hack Leaf"             :(1,    0.02, VEGG, _food_morsel_bitter,),

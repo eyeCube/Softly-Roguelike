@@ -594,19 +594,22 @@ i=0;
 # gear qualities
 #
 i=0;
-QU_CRUDE        =i; i+=1;
-QU_IMPROV       =i; i+=1;
-QU_MARKET       =i; i+=1;
-QU_POLICE       =i; i+=1;
-QU_MILITARY     =i; i+=1;
+QU_LOW          =i; i+=1;
+QU_MEDLOW       =i; i+=1;
+QU_MED          =i; i+=1;
+QU_MEDHIGH      =i; i+=1;
+QU_HIGH         =i; i+=1;
 
 QUALITIES={
-# ID            :   name        Color,      %
-QU_CRUDE        : ("crude",     "neutral",  -50,), #(-33,-50,-40,-66,-333,42,),),
-QU_IMPROV       : ("improvised","ltgray",   -33,),    #(-16,-25,-20,-33,-150,25,),),
-QU_MARKET       : ("",          "accent",   -15,),   #(0,  0,  0,  0,  0,  0,),),
-QU_POLICE       : ("police",    "trueblue", 0,),  #(16, 25, 20, 25, 150,-16,),),
-QU_MILITARY     : ("military", "truepurple",25,), #(33, 50, 50, 50, 333,33,),),
+    # %%    stats modifier (multiplier)
+    # $$    value modifier (multiplier)
+# ID            :   name        Color,      %%,  $$,
+QU_LOW          : ("crude",     "neutral",  0.5, 0.1,), #(-33,-50,-40,-66,-333,42,),),
+QU_MEDLOW       : ("improvised","ltgray",   0.75,0.33,),    #(-16,-25,-20,-33,-150,25,),),
+QU_MED          : ("",          "accent",   1.0, 1.0),   #(0,  0,  0,  0,  0,  0,),),
+QU_MEDHIGH      : ("military",  "trueblue", 1.25,3.0),  #(16, 25, 20, 25, 150,-16,),),
+QU_HIGH         : ("pre-war",  "truepurple",1.5, 10.0), #(33, 50, 50, 50, 333,33,),),
+##QU_LEGENDARY    : ("legendary","trueyellow",2.0, 100.0), #(33, 50, 50, 50, 333,33,),),
     }
 QUALITIES_STATS={
     cmp.CombatStats : {"range":16,"atk":25,"dfn":20,},

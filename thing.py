@@ -186,7 +186,7 @@ class Stats:  # Stats and attributes of a obj
 
 
 
-
+'''
 # Equip class:
 # holds a reference to a Slot object for each equip slot.
 # Slot default data is an empty slot.
@@ -238,8 +238,8 @@ class Slot:
         self.item = None
         self.modID = None
         return item
-    
-
+    '''
+'''
 class _Event:
     def __init__(self, x,y, textSee, textHear, volume):
         self.x=x
@@ -247,13 +247,13 @@ class _Event:
         self.textSee=textSee
         self.textHear=textHear
         self.volume=volume
-
+'''
 
 
 #-----------#
 # functions #
 #-----------#
-
+'''
     # Slot #
 #relate equipType const to the name of the Slot objects in the Equip __dict__
 def getSlotName(equipType):
@@ -267,7 +267,8 @@ def getSlotName(equipType):
         return "head"
     elif equipType==EQ_BACK:
         return "back"
-
+        '''
+'''
     # stat modifiers effects #
 
 newStatModID = 0
@@ -281,7 +282,7 @@ def effect_add(obj,mod):
 def effect_remove(obj,modID):
     del obj.stats.mods[modID]
 
-
+'''
     # elemental damage #
     # cause status effects
 

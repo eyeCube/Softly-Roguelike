@@ -31,13 +31,10 @@ def play(pc, pcAct):
     
     world = rog.world()
     
-    world.process() # where to put this?
-    
     #timer.reset() #DEBUG TESTING. USED WITH timer.print()
     
 ##    rog.release_souls() #handled by esper now
     
-    rog.compute_fovs() 
 
     #-------------------#
     #   NPC turn        #
@@ -48,18 +45,14 @@ def play(pc, pcAct):
 
         #beginning of turn is considered when the monsters begin their turns
         #   /right after player turn.
-        rog.managers_beginturn_run()
+        rog.Rogue.managers_beginturn_run()
         
-        for ent in rog.list_creatures():
-            if rog.on(ent,DEAD): continue
-            
-            ai.tick(ent) # AI function
-            actor = world.component_for_entity(ent, cmp.Actor)
-            actor.nrg = min(actor.nrg + actor.spd, actor.spd)
+        world.process()      
         
         rog.turn_pass()
         #end of turn is considered to be right before player does his turn
-        rog.managers_endturn_run()            
+        rog.Rogue.managers_endturn_run()
+             
         return
 
     #-------------------#

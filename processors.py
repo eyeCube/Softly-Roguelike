@@ -347,7 +347,7 @@ class StatusProcessor(esper.Processor):
         for ent, component in removals:
             self.status_remove(ent, component)
     
-    def status_add(self, ent, component):
+    def add(self, ent, component):
         if self.world.has_component(ent, component): return False
         #attribute modifiers
         #auxiliary effects
@@ -356,13 +356,22 @@ class StatusProcessor(esper.Processor):
         self.world.add_component(ent, component)
         return True
         
-    def status_remove(self, ent, component):
+    def remove(self, ent, component):
         if not self.world.has_component(ent, component): return False
         #attribute modifiers
         #auxiliary effects
         #message
         self.world.remove_component(ent, component)
         return True
+    
+    def remove_all(self, ent):
+        for status in cmp.STATUS_COMPONENTS:
+            if not self.world.has_component(ent, component):
+                continue
+            #attribute modifiers
+            #auxiliary effects
+            #message
+            self.world.remove_component(ent, component)
         
             
 

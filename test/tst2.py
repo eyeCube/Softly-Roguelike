@@ -1,3 +1,4 @@
-lis = [1]
-##print(lis[1])
-print(lis.find(1))
+for i in []:
+    print('a')
+else:
+    print('hi')
