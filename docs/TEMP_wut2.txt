@@ -1,0 +1,361 @@
+
+Todo:
+	level generation
+	eating + corpse eating
+	flame/bio throwers
+	status effects - fire, bio to start
+	skills
+	implement delayed actions ( immediate actions vs. )
+	town w/ shops
+	saving (use pickle)
+		save everything in game into ONE object, then serialize that object.
+		deserialize to load.
+	implants, robotic limbs
+	
+Done:
+	gear, equipping gear
+	chargen
+	highlight the player's tile background (optionally)	
+	different types of damage
+	
+	
+Hazards (bio, chem, radiation) stick around for a long time.
+Fires are shorter lasting.
+
+	
+TYPES OF DAMAGE:
+
+Physical damage:
+	deals Lo chi damage
+
+FIRE damage:
+	FIRE resist
+	causes TEMP meter to raise.
+	When TEMP meter full, you catch FIRE, and TEMP meter stays maxed out for the duration of the status.
+	FIRE status:
+		damage over time to Lo chi
+		fire spreads to other flammable things
+		can be put out with water
+
+HAZARD damage:
+	Inflicts a HAZARD status.
+	All HAZARD damage types are resisted by HAZARD resist.
+	BIO damage:
+		Causes IMMUNITY meter to raise (depending on your resistance).
+		When IMMUNITY meter full, you become ill, and meter stays maxed out for the duration of the status.
+		ILL status:
+			slow damage over time to Lo and Hi chi
+			chance to vomit
+			no appetite - cannot eat
+	CHEM damage:
+		Causes instantaneous effect if not resisted.
+			effects short-lived compared to bio effects
+		Causes Lo damage over time.
+		causes EXPOSURE meter to raise (depending on your resistance).
+		When EXPOSURE meter full, you die.
+		causes a random one of the following statuses:
+			irritation
+			paralysis (if airborne)
+			blindness (if airborne)
+			uncontrollable coughing (if airborne)
+			uncontrollable vomiting (if airborne)
+	RAD damage:
+		Exposure causes RAD meter to increase (depending on your resistance)
+		When RAD bar is full, causes mutation, then RAD bar is reset.
+			mutation causes a permanent change in the creature
+			also permanently lowers maximum Hi chi by 1
+	
+ELECTRIC damage:
+	ELEC resist
+	instantaneous effect
+	causes instant damage to Hi chi
+	damage Lo chi if damage is high enough
+		(more damage => more Lo damage)
+		LoDamage = int((ELEC damage - resist) / 25)
+	causes paralysis if damage is higher
+	causes knockback if damage is REALLY high
+	causes instant death if (ELECTRIC damage - ELEC resist) >= 100
+	
+Resistances:
+	FIRE
+	HAZARD
+	ELEC
+	
+	
+Meters:
+	FIRE 								(temperature?)
+		FIRE damage raises this meter
+	BIO 								(immunity, sick?)
+		BIO damage raises this meter
+	CHEM 								(exposure?)
+		CHEM damage raises this meter
+	RADS
+		RAD damage raises this meter
+	
+	
+	
+Things to add to the HUD:
+	$ money
+	
+	
+
+Skills:
+	Skills have 3 levels:
+		0 (not skilled, cannot do related actions)
+		1 (skilled, can do any related action)
+		2 (master, can do any related action with extreme proficiency)
+	
+	The Skills are as follows:
+	
+	engineer
+		build computers; repair computers
+	tech
+		use computers to immediately effect the real world around you
+	fighter
+		perform melee combat with blunt force and bladed weapons; hand-to-hand combat
+	guns
+		use and service small guns
+	heavy weapons
+		use and service heavy weapons (2-handed guns: machine guns, launchers, high-caliber rifles, etc.)
+		INCLUDES:
+		chemical weapons
+			use and service chemical weapons (fire and bio weapons)
+	pilot
+		drive vehicles (aircraft, watercraft, landcraft)
+	metalsmith
+		forge metal equipment using scrap metal
+	chemist
+		use labs to mix chemicals and create potions, poisons, bombs, fire, and bio weapons
+	athlete
+		perform athletic feats such as sprinting, climbing, jumping, and crawling through small spaces
+	persuade
+		smooth-talk people to win them over
+	stealth
+		sneak, reducing the amount of noise you make; perform sneak-attacks on unaggroed enemies to deal massive damage that ignores AV and DV.
+
+	
+Chargen:
+	Choose:
+		name
+			up to 20 characters, ASCII values only
+		gender
+			Male, Female, or Nonbinary
+				allow creation of new genders
+		background (starting class) 
+			These classes only influence your starting conditions. Any character can gain any of these abilities and more. However, it may be difficult and costly to acquire them. To learn a new skill takes a lot of time, so it is impractical to learn in the traditional sense; instead you must pay to have the skills implanted in your brain.
+			Note: Not all professions are available to the player at the beginning of the game (i.e. they must be unlocked, first).
+			engineer: e
+				$500
+				Lo +5
+				computer closet access
+				Laptop
+				engineer skill +
+					building machines, repairing
+			technician: T
+				$500
+				Hi +5
+				cell phone
+				tech skill +
+					Magitech skill: ability to use computers
+					some computers require a certain tech level to use
+			thief: t
+				$1000
+				Hi -5
+				DV +2
+				MSp +10
+				melee skill +
+				stealth skill +
+			security officer: O
+				$300
+				Attack +3
+				level 3 security clearance
+			athlete: A
+				$300
+				DV +4
+				MSp +20
+				athlete skill +
+			pilot: p
+				$500
+				pilot license
+				pilot skill +
+			smuggler: u
+				$1000
+				pistol
+				persuade skill +
+				gun skill +
+			chemist: C
+				$500
+				level 6 security clearance
+				chemistry skill +
+			politician: I
+				$1000
+				Lo -5
+				Hi +5
+				level 4 security clearance
+				credit card
+			riot police: P
+				$300
+				Attack +3
+				Damage +1
+				ASp +10
+				level 5 security clearance
+				melee skill +
+			janitor: j
+				$100
+				can access janitor's closets
+			deprived: d
+				$0
+				Attack -5
+				Lo -5
+				Hi -5
+		
+		gift
+			Choose one starting item.
+			Choices:
+				None (no item)
+				Stuffed animal
+				Locket
+				Pocket knife
+				Key chain
+				Credit card
+				Bayball cap
+				Fake license
+				Laser pointer
+				Cell phone
+				Lighter
+				Bandana
+			
+		skills
+			pick 1 extra skills to add to your character's list of skills.
+			"You managed to sneak in a significant amount of training as a young adult, under the guidance of your wise guardian."
+			
+		stats
+			Choose stats to buff or nerf.
+			You have 2 points to spend.
+			Costs 1 point to buff a stat.
+			You gain 1 point if you nerf a stat.
+			Each stat can only be buffed or nerfed twice.
+			Stats to select from:
+				Lo energy
+					Default: 10
+					+/- 5 Lo
+				Hi energy
+					Default: 10
+					+/- 5 Hi
+				Attack
+					Default: 5
+					+/- 2 Attack
+				Damage
+					Default: 2
+					+/- 1 Damage
+				DV
+					Default: 2
+					+/- 1 DV
+				AV
+					Default: 0
+					+/- 1 AV
+				MSp
+					Default: 100
+					+/- 5 MSp
+				ASp
+					Default: 100
+					+/- 5 ASp
+		perks?
+	
+	
+Status Effects:
+	fire
+		Lo drains 1 per turn
+		destroys flammable items you are carrying
+		spreads to other flammable things
+		can be put out by water or rolling
+		lasts a short time
+	bio
+		Lo drains slowly
+		damages equipment you are wearing
+		can be distilled by water
+		lasts a long time
+	fear
+		Character's fight-or-flight mode takes over, and he runs for cover uncontrollably, unless cornered in which case he attacks automatically.
+	poisoned
+		Move Speed -25
+		Lo and Hi energy drain at 125% the normal rate and recover at 75% speed
+		causes you to vomit anything you're digesting
+	tripping
+		Vision -50%
+		50% chance to move randomly
+	hasty
+		Speed +50
+	hasty withdrawal
+		Speed -50
+	full
+		Move Speed -10
+	hungry
+		Speed -10
+	starving
+		Speed -20
+		Attack -2
+		Power -2
+		Lo and Hi energy drain at 125% the normal rate and recover at 75% speed
+	famished
+		Speed -30
+		Attack -4
+		Power -4
+		Lo and Hi energy drain at 150% the normal rate and recover at 50% speed
+	emaciated
+		Speed -40
+		Attack -6
+		Power -6
+		Lo and Hi energy drain 175% faster and recover at 25% speed
+		
+Hunger
+	In the apocolypse, good food is scarce. Survival requires being able to find and secure vital food supplies.
+	Hunger loss rate:
+		1 per turn
+		50 per attack
+		5 per move (25 if sprinting)
+	Hunger stages
+		Hunger: 50,000 maximum
+		full		95%+
+		satiated	90%+
+		nourished	85%+
+		hungry		75%+
+		starving	50%+
+		famished	25%+
+		emaciated	<25%
+		dead		0
+	Multiply Food units Factor: 250
+		(all food items recover hunger units equal to their food units * 250)
+
+
+Stats:
+	Lo qi
+		costs Lo qi to attack with heavy weapons
+		some enemies deal Lo qi damage
+	Hi qi
+		costs Hi qi to attack with tech weapons
+		some enemies deal Hi qi damage
+	AP (Action Points)
+		Potential to perform actions; all actions require Action Points to perform and when you run out, your turn ends.
+	speed
+		how many Action Points you gain per turn
+		only increases in rare cases like if you take moon sugar
+	attack spd	
+		With increased attack speed, attacking becomes more efficient, reducing the number of Action Points required to attack.
+		modified by weapons
+	move spd
+		With increased move speed, moving becomes more efficient, reducing the number of Action Points required to move.
+		modified by equipment
+	attack
+		increases chance to hit foes
+		There is no limit to how much Attack you can have, and your chance to hit continues increasing with each additional point in Attack (with diminishing returns).
+		It is very important to have a decent Attack value in order to ensure you can successfully hit foes, as it is possible to have only a 5% chance to hit if your foe has 19 more DV than you have Attack.
+		It is impossible to have lower than a 5% chance to hit.
+	power
+		increases damage
+	DV
+		Dodge Value
+		Increases chance to dodge foes' attacks. With negative DV, your foes have a greater chance to hit you. However, increasing DV has little effect until you gain a lot of it, at which point it becomes more and more effective. If (your opponent's Attack - your DV) <= 1 then your opponent has only a 5% chance to hit.
+	AV (Armor Value)
+	ResBIO (Resist BIO-type damage)
+	ResFIR (Resist FIRE-type damage)

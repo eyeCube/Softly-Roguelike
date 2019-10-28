@@ -1,0 +1,56 @@
+
+
+switch fire mode is a command: default, auto. In semi mode, you fire only 1 shot, but in auto mode you fire n shots where n is n in the table of ranged weapons. The number of projectiles PER SHOT depends on the AMMO, and is irrespective of firing mode.
+
+
+
+12 gauge (1/12 pound of lead)
+1 gauge (shoots 1 pound of lead)
+
+
+
+
+guns types
+
+Hand cannons?
+No to paper cartridges
+Caplock guns: caplock guns require caps which are one-time use items. Like modern cartridge firearms they are water resistant and can fire in all weather.
+Modern firearms are cheap enough to have replaced almost all guns, maybe no need for anything except modern guns (no hand cannon) and caplock guns
+
+pistol
+	ammo: small bullets
+	stats: +Asp, +ReloadSpeed
+musket
+	ammo: bullets
+	stats: --Asp, -Pen, --ReloadSpeed
+hand cannon
+	ammo: large bullets
+	stats: ++Dmg, --Acc, -Pen, -Asp, -ReloadSpeed
+SMG
+	ammo: small cartridges
+	stats: -Rng, -Dmg, -Pen, ++Asp, 
+carbine
+	ammo: cartridges
+	stats: +Rng, +Acc, +Pen
+rifle
+	ammo: large cartridges
+	stats: ++Rng, +Dmg, ++Acc, ++Pen
+shotgun
+	ammo: shells
+	stats: --Rng, --Pen
+sling
+	ammo: bullets, small to large
+	stats: +Acc, -Asp, -Dmg, -Pen
+slingshot
+	ammo: bullets, small to large
+	stats: +Acc, -Rng, --Dmg
+crossbow
+	ammo: bolts
+	stats: --ReloadSpeed, +Pen, -Rng
+bow
+	ammo: arrows
+	stats: +Asp, +Acc, +Rng
+blowguns
+	ammo: darts
+	stats: -Dmg, --Pen, -Rng
+

@@ -1,7 +1,7 @@
 '''
     orangIO
     (Orange I/O)
-        An input/output extension for libtcod Python
+        An input/output extension for tcod Python
     
     By: Jacob Timothy Wharton
     Copyright 2019.
@@ -10,7 +10,7 @@
         It is usable but not very user-friendly,
         and has a lot of dependencies.
 
-    This extension to libtcod allows you to easily do:
+    This extension to tcod allows you to easily do:
         - key commands with any combination of Shift, Ctrl, and Alt
         - text input with blinking cursor
         - "waiting" for a certain input
@@ -24,7 +24,7 @@
         - To use this function in your game,
             modify COMMANDS and key_bindings.txt defaults.
     Call the get_raw_input wrapper function to
-        wrap the libtcod key and mouse objects in a tuple.
+        wrap the tcod key and mouse objects in a tuple.
     key_bindings.txt
         To edit key bindings, refer to the comments on key_bindings.txt
         To change the directory of key_bindings.txt, change the variable
@@ -50,7 +50,7 @@
 
 
 import os
-import tcod as libtcod
+import tcod
 import time
 import textwrap
 
@@ -62,12 +62,12 @@ import word
 
 
     #colors
-WHITE=libtcod.Color(255,255,255)
-BLACK=libtcod.Color(0,0,0)
+WHITE=tcod.Color(255,255,255)
+BLACK=tcod.Color(0,0,0)
 
     #global key and mouse handlers for all objects in OrangIO
-key = libtcod.Key()
-mouse = libtcod.Mouse()
+key = tcod.Key()
+mouse = tcod.Mouse()
 
 #this value is the number of alternate key codes for each command.
     #the number of key codes for each command in key_bindings.txt
@@ -113,37 +113,47 @@ file_keyBindings=os.path.join(os.path.curdir,"settings","key_bindings.txt")
     #Note: commands are not case-sensitive.
 KEYBINDINGS_TEXT_DEFAULT = '''//file name: {filename}
 
-//  A "comment on comments"...
-//All empty lines, and all lines beginning with "//"
-//(without parentheses), are considered to be comments
-//by the file reader, and are thus ignored.
+//A "comment on comments:"
+//  All empty lines, and all lines beginning with "//"
+//  (without quotations), are considered to be comments
+//  by the file reader, and are thus ignored.
 
-//  Key Bindings Information
+//  --- Key Bindings Information ---
 //In order to remove one binding, set it to: NONE 
 //Bindings may begin with any combination of shift, ctrl,
-//and alt keys, followed by a plus (+) symbol:
-//  Shift+ or Ctrl+ or Alt+
+//  and alt, followed by a plus (+) symbol:
+//  "Shift+" OR "Ctrl+" OR "Alt+"
 //Example key bindings (note bindings are NOT case-sensitive):
 //  CTRL+ALT+DELETE
 //  shift+=
 //  f
 //  Ctrl+A
+//  none
+//  None
 //The action bound to the last combo will function if and
-//only if the a button is pressed WHILE the Ctrl button
-//is being held, and neither Alt nor Shift are also being
-//pressed down; if the Alt button is also being held, for
-//instance, the input will be treated as "Ctrl+Alt+a",
-//which is different from "Ctrl+a".
-//Left and right Ctrl  are treated as the same;
-//Left and right Alt   are treated as the same;
-//Left and right Shift are treated as the same;
+//  only if the a button is pressed WHILE the Ctrl button
+//  is being held, and neither Alt nor Shift are also being
+//  pressed down; if the Alt button is also being held, for
+//  instance, the input will be treated as "Ctrl+Alt+a",
+//  which is different from "Ctrl+a".
 
-//NOTE: NumLock is currently unsupported. The numpad keys only
-//work if you DO NOT have NumLock on. Keep it off during play.
+//Note:
+//  Left and right Ctrl are treated as the same.
+//  Left and right Alt are treated as the same.
+//  Left and right Shift are treated as the same.
+
+//ALERT: NumLock is currently unsupported.
+//  The numpad keys might not work as expected with NumLock on.
+//  Keep NumLock off during play.
 
 //---------\\
 // Bindings |
 //---------//
+
+// Display Help Menu
+Shift+/
+NONE
+NONE
 
 // North
 k
@@ -200,6 +210,11 @@ Shift+.
 NONE
 NONE
 
+// Context-sensitive action
+c
+SPACE
+NONE
+
 // Get
 g
 ,
@@ -217,6 +232,11 @@ NONE
 
 // Throw
 t
+NONE
+NONE
+
+// Fire weapon
+f
 NONE
 NONE
 
@@ -250,15 +270,6 @@ Alt+q
 NONE
 NONE
 
-//---------\\
-//  MENUS   |
-//---------//
-
-// Display Help Menu
-Shift+/
-NONE
-NONE
-
 // Inventory
 i
 NONE
@@ -268,6 +279,10 @@ NONE
 Shift+h
 NONE
 NONE
+
+//---------\\
+//  MENUS   |
+//---------//
 
 // Select
 SPACE
@@ -338,6 +353,7 @@ NONE
 # Order of commands must match order in the key_bindings.txt file. #
 '''
 COMMANDS = {        # translate commands into actions
+    'help'          : {'help': True}, # CHANGED ORDERING, TEST TO MAKE SURE IT STILL WORKS.
     'north'         : {'target': (0, -1,  0,) },
     'west'          : {'target': (-1, 0,  0,) },
     'south'         : {'target': (0,  1,  0,) },
@@ -349,20 +365,21 @@ COMMANDS = {        # translate commands into actions
     'self'          : {'target': (0,  0,  0,) },
     'up'            : {'target': (0,  0, -1,) },
     'down'          : {'target': (0,  0,  1,) },
+    'context'       : {'context': True},
     'get'           : {'get': True},
     'open'          : {'open': True},
     'sprint'        : {'sprint': True},
     'throw'         : {'throw': True},
+    'fire'          : {'fire': True},
     'look'          : {'look': True},
     'rest'          : {'rest': True},
     'move view'     : {'move view': True},
     'fixed view'    : {'fixed view': True},
     'find player'   : {'find player': True},
     'quit'          : {'quit game': True},
-    
-    'help'          : {'help': True},
     'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
+    
     'select'        : {'select': True},
     'exit'          : {'exit': True},
     'pgup'          : {'page up': True},
@@ -379,72 +396,72 @@ COMMANDS = {        # translate commands into actions
 
 #-----------------------------------------------------------#
 TEXT_TO_KEY = {     # translate text into key constants
-    'none'      : -1
-    ,'kp0'      : libtcod.KEY_KP0
-    ,'kp1'      : libtcod.KEY_KP1
-    ,'kp2'      : libtcod.KEY_KP2
-    ,'kp3'      : libtcod.KEY_KP3
-    ,'kp4'      : libtcod.KEY_KP4
-    ,'k5p'      : libtcod.KEY_KP5
-    ,'kp6'      : libtcod.KEY_KP6
-    ,'kp7'      : libtcod.KEY_KP7
-    ,'kp8'      : libtcod.KEY_KP8
-    ,'kp9'      : libtcod.KEY_KP9
-    ,'up'       : libtcod.KEY_UP
-    ,'down'     : libtcod.KEY_DOWN
-    ,'right'    : libtcod.KEY_RIGHT
-    ,'left'     : libtcod.KEY_LEFT
-    ,'space'    : libtcod.KEY_SPACE
-    ,'tab'      : libtcod.KEY_TAB
-    ,'enter'    : libtcod.KEY_ENTER
-    ,'escape'   : libtcod.KEY_ESCAPE
-    ,'backspace': libtcod.KEY_BACKSPACE
-    ,'insert'   : libtcod.KEY_INSERT
-    ,'delete'   : libtcod.KEY_DELETE
-    ,'home'     : libtcod.KEY_HOME
-    ,'end'      : libtcod.KEY_END
-    ,'pagedown' : libtcod.KEY_PAGEDOWN
-    ,'pageup'   : libtcod.KEY_PAGEUP
-    ,'f1'       : libtcod.KEY_F1
-    ,'f2'       : libtcod.KEY_F2
-    ,'f3'       : libtcod.KEY_F3
-    ,'f4'       : libtcod.KEY_F4
-    ,'f5'       : libtcod.KEY_F5
-    ,'f6'       : libtcod.KEY_F6
-    ,'f7'       : libtcod.KEY_F7
-    ,'f8'       : libtcod.KEY_F8
-    ,'f9'       : libtcod.KEY_F9
-    ,'f10'      : libtcod.KEY_F10
-    ,'f11'      : libtcod.KEY_F11
-    ,'f12'      : libtcod.KEY_F12
+    'none'      : -1,
+    'kp0'       : tcod.KEY_KP0,
+    'kp1'       : tcod.KEY_KP1,
+    'kp2'       : tcod.KEY_KP2,
+    'kp3'       : tcod.KEY_KP3,
+    'kp4'       : tcod.KEY_KP4,
+    'k5p'       : tcod.KEY_KP5,
+    'kp6'       : tcod.KEY_KP6,
+    'kp7'       : tcod.KEY_KP7,
+    'kp8'       : tcod.KEY_KP8,
+    'kp9'       : tcod.KEY_KP9,
+    'up'        : tcod.KEY_UP,
+    'down'      : tcod.KEY_DOWN,
+    'right'     : tcod.KEY_RIGHT,
+    'left'      : tcod.KEY_LEFT,
+    'space'     : tcod.KEY_SPACE,
+    'tab'       : tcod.KEY_TAB,
+    'enter'     : tcod.KEY_ENTER,
+    'escape'    : tcod.KEY_ESCAPE,
+    'backspace' : tcod.KEY_BACKSPACE,
+    'insert'    : tcod.KEY_INSERT,
+    'delete'    : tcod.KEY_DELETE,
+    'home'      : tcod.KEY_HOME,
+    'end'       : tcod.KEY_END,
+    'pagedown'  : tcod.KEY_PAGEDOWN,
+    'pageup'    : tcod.KEY_PAGEUP,
+    'f1'        : tcod.KEY_F1,
+    'f2'        : tcod.KEY_F2,
+    'f3'        : tcod.KEY_F3,
+    'f4'        : tcod.KEY_F4,
+    'f5'        : tcod.KEY_F5,
+    'f6'        : tcod.KEY_F6,
+    'f7'        : tcod.KEY_F7,
+    'f8'        : tcod.KEY_F8,
+    'f9'        : tcod.KEY_F9,
+    'f10'       : tcod.KEY_F10,
+    'f11'       : tcod.KEY_F11,
+    'f12'       : tcod.KEY_F12,
 }
 VK_TO_CHAR = {      # translate key consants into a char
-    libtcod.KEY_KP0     : '0',
-    libtcod.KEY_KP1     : '1',
-    libtcod.KEY_KP2     : '2',
-    libtcod.KEY_KP3     : '3',
-    libtcod.KEY_KP4     : '4',
-    libtcod.KEY_KP5     : '5',
-    libtcod.KEY_KP6     : '6',
-    libtcod.KEY_KP7     : '7',
-    libtcod.KEY_KP8     : '8',
-    libtcod.KEY_KP9     : '9',
-    libtcod.KEY_KPDEC   : '.',
+    tcod.KEY_KP0     : '0',
+    tcod.KEY_KP1     : '1',
+    tcod.KEY_KP2     : '2',
+    tcod.KEY_KP3     : '3',
+    tcod.KEY_KP4     : '4',
+    tcod.KEY_KP5     : '5',
+    tcod.KEY_KP6     : '6',
+    tcod.KEY_KP7     : '7',
+    tcod.KEY_KP8     : '8',
+    tcod.KEY_KP9     : '9',
+    tcod.KEY_KPDEC   : '.',
     
-    libtcod.KEY_UP          : chr(K_UP),
-    libtcod.KEY_DOWN        : chr(K_DOWN),
-    libtcod.KEY_RIGHT       : chr(K_RIGHT),
-    libtcod.KEY_LEFT        : chr(K_LEFT),
-    libtcod.KEY_BACKSPACE   : chr(K_BACKSPACE),
-    libtcod.KEY_DELETE      : chr(K_DELETE),
-    libtcod.KEY_INSERT      : chr(K_INSERT),
-    libtcod.KEY_PAGEUP      : chr(K_PAGEUP),
-    libtcod.KEY_PAGEDOWN    : chr(K_PAGEDOWN),
-    libtcod.KEY_HOME        : chr(K_HOME),
-    libtcod.KEY_END         : chr(K_END),
-    libtcod.KEY_ENTER       : chr(K_ENTER),
-    libtcod.KEY_KPENTER     : chr(K_ENTER),
-    libtcod.KEY_ESCAPE      : chr(K_ESCAPE),
+    tcod.KEY_UP          : chr(K_UP),
+    tcod.KEY_DOWN        : chr(K_DOWN),
+    tcod.KEY_RIGHT       : chr(K_RIGHT),
+    tcod.KEY_LEFT        : chr(K_LEFT),
+    tcod.KEY_BACKSPACE   : chr(K_BACKSPACE),
+    tcod.KEY_DELETE      : chr(K_DELETE),
+    tcod.KEY_INSERT      : chr(K_INSERT),
+    tcod.KEY_PAGEUP      : chr(K_PAGEUP),
+    tcod.KEY_PAGEDOWN    : chr(K_PAGEDOWN),
+    tcod.KEY_HOME        : chr(K_HOME),
+    tcod.KEY_END         : chr(K_END),
+    tcod.KEY_ENTER       : chr(K_ENTER),
+    tcod.KEY_KPENTER     : chr(K_ENTER),
+    tcod.KEY_ESCAPE      : chr(K_ESCAPE),
 }
 
 
@@ -513,7 +530,7 @@ class TextInputManager(managers.Manager):
     def __init__(self, x,y, w,h, default,mode,insert):
         
         # init
-        self.console    = libtcod.console_new(w, h)
+        self.console    = tcod.console_new(w, h)
         self.init_time  = time.time()
         
         self.x=x
@@ -549,14 +566,14 @@ class TextInputManager(managers.Manager):
     def run(self):
         super(TextInputManager, self).run()
         
-        libtcod.sys_sleep_milli(5)  #reduce CPU usage
+        tcod.sys_sleep_milli(5)  #reduce CPU usage
         
         self.update()
         
-        libtcod.sys_check_for_event(    # check don't wait.
-            libtcod.EVENT_KEY
-            | libtcod.EVENT_MOUSE_PRESS     # we only want to know mouse press
-            | libtcod.EVENT_MOUSE_RELEASE,  # or release, NOT mouse move event.
+        tcod.sys_check_for_event(    # check don't wait.
+            tcod.EVENT_KEY
+            | tcod.EVENT_MOUSE_PRESS     # we only want to know mouse press
+            | tcod.EVENT_MOUSE_RELEASE,  # or release, NOT mouse move event.
             self.key, self.mouse)
         
         self.get_char()
@@ -565,7 +582,7 @@ class TextInputManager(managers.Manager):
     
     def close(self):
         ##do not inherit
-        libtcod.console_delete(self.console)
+        tcod.console_delete(self.console)
     
     def update(self):
         
@@ -583,7 +600,7 @@ class TextInputManager(managers.Manager):
             self.flush=True
             
         if self.flush:
-            libtcod.console_flush()
+            tcod.console_flush()
 
         #now we've updated, turn all update variables to False
         self.redraw_cursor  =False
@@ -614,7 +631,7 @@ class TextInputManager(managers.Manager):
 
     def input_vk(self):
         
-        if not libtcod.console_is_key_pressed(self.key.vk):
+        if not tcod.console_is_key_pressed(self.key.vk):
             return
 
         cpos=self.cursor_pos
@@ -642,7 +659,7 @@ class TextInputManager(managers.Manager):
 
     def input_text(self):
 
-        if not self.key.vk == libtcod.KEY_TEXT:
+        if not self.key.vk == tcod.KEY_TEXT:
             return
         
         ans=self.keyInput
@@ -667,27 +684,27 @@ class TextInputManager(managers.Manager):
 
 
     def move(self, new):
-        libtcod.console_set_char_foreground(
+        tcod.console_set_char_foreground(
             0, self.x + self.cursor_pos, self.y, WHITE)
-        libtcod.console_set_char_background(
+        tcod.console_set_char_background(
             0, self.x + self.cursor_pos, self.y, BLACK)
         self.flush=True
         self.putCursor(new)
 
     def update_render_text(self):
-        libtcod.console_clear(self.console)
-        libtcod.console_print_ex(
+        tcod.console_clear(self.console)
+        tcod.console_print_ex(
             self.console,0,0,
-            libtcod.BKGND_NONE,libtcod.LEFT,
+            tcod.BKGND_NONE,tcod.LEFT,
             self.text )
         self.blit_console()
     
     def get_char(self):
         reply=''
-        if libtcod.console_is_key_pressed(self.key.vk):
+        if tcod.console_is_key_pressed(self.key.vk):
             reply = VK_TO_CHAR.get(self.key.vk, None)
         
-        elif self.key.vk == libtcod.KEY_TEXT:
+        elif self.key.vk == tcod.KEY_TEXT:
             tx = self.key.text #.decode()
             if (ord(tx) >= 128 or tx == '%'):
                 return ''    # Prevent problem-causing input
@@ -698,12 +715,12 @@ class TextInputManager(managers.Manager):
         self.text=self.text[:self.cursor_pos] + self.text[1+self.cursor_pos:]
         
     def put_next_char(self,new):
-        libtcod.console_put_char_ex(
+        tcod.console_put_char_ex(
             self.console, self.cursor_pos,0, new,
             WHITE,BLACK
         )
     def blit_console(self):
-        libtcod.console_blit(
+        tcod.console_blit(
             self.console,   0,0,self.w,self.h,
             0,      self.x,self.y
         )    
@@ -737,9 +754,9 @@ def key_getchar(k):
     '''
     return k + 256
 def key_get_pressed():      # get both vk and text in one variable
-    k = libtcod.KEY_NONE
-    if libtcod.console_is_key_pressed(key.vk) : k = key.vk 
-    if k == libtcod.KEY_CHAR : k = key_getchar(key.c)
+    k = tcod.KEY_NONE
+    if tcod.console_is_key_pressed(key.vk) : k = key.vk 
+    if k == tcod.KEY_CHAR : k = key_getchar(key.c)
     return k
 def key_get_special_combo(k):   # combine shift,ctrl,alt, and key press
     shift    =  key.shift
@@ -753,15 +770,15 @@ def key_get_special_combo(k):   # combine shift,ctrl,alt, and key press
 def file_is_line_comment(line):
     return ((line[0]=='/' and line[1]=='/') or line[0]=='\n')
 
-# libtcod #
+# tcod #
 
 def color_invert(rgb):
-    return libtcod.Color(255-rgb[0],255-rgb[1],255-rgb[2])
+    return tcod.Color(255-rgb[0],255-rgb[1],255-rgb[2])
 def console_invert_color(con,x,y):
-    col1 = libtcod.console_get_char_foreground(con,x,y)
-    col2 = libtcod.console_get_char_background(con,x,y)
-    libtcod.console_set_char_foreground(con, x,y, color_invert(col1))
-    libtcod.console_set_char_background(con, x,y, color_invert(col2))
+    col1 = tcod.console_get_char_foreground(con,x,y)
+    col2 = tcod.console_get_char_background(con,x,y)
+    tcod.console_set_char_foreground(con, x,y, color_invert(col1))
+    tcod.console_set_char_background(con, x,y, color_invert(col2))
 
 #
 #
@@ -771,14 +788,14 @@ def console_invert_color(con,x,y):
 # returns key and mouse objects in a tuple
 #
 def get_raw_input():
-    libtcod.sys_sleep_milli(1)  # prevent from checking a billion times/second to reduce CPU usage
+    tcod.sys_sleep_milli(1)  # prevent from checking a billion times/second to reduce CPU usage
 
     # we use the check_for_event instead of the wait_for_event function
     # because wait_for_event causes lots of problems
-    libtcod.sys_check_for_event(
-        libtcod.EVENT_KEY
-        | libtcod.EVENT_MOUSE_PRESS     # we only want to know mouse press
-        | libtcod.EVENT_MOUSE_RELEASE,  # or release, NOT mouse move event.
+    tcod.sys_check_for_event(
+        tcod.EVENT_KEY
+        | tcod.EVENT_MOUSE_PRESS     # we only want to know mouse press
+        | tcod.EVENT_MOUSE_RELEASE,  # or release, NOT mouse move event.
         key, mouse)
     return (key,mouse,)
 #

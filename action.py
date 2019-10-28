@@ -12,9 +12,10 @@
 
 from const import *
 import rogue as rog
+import components as cmp
 import dice
 import maths
-import items
+##import entities
 
 
 
@@ -74,7 +75,8 @@ def pickup_pc(pc):
                 if answer == "y" or answer == " " or answer == K_ENTER:
                     rog.alert("You burn your hands!")
                     rog.burn(pc, FIRE_BURN)
-                    rog.hurt(pc, FIRE_HURT)
+                    rog.hurt(pc, FIRE_PAIN)
+                    rog.damage(pc, FIRE_DAMAGE)
                     break
                 elif answer == "n" or answer == K_ESCAPE:
                     return
@@ -88,7 +90,7 @@ def pickup_pc(pc):
 
 
 def inventory_pc(pc):
-    world=Rogue.world()
+    world=rog.world()
 ##    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
     pcInv = world.component_for_entity(pc, cmp.Inventory)
     pcn = world.component_for_entity(pc, cmp.Name)
@@ -164,7 +166,7 @@ def open_pc(pc):
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed
-    if not rog.on(pc, TIRED):
+    if not rog.world().has_component(pc, cmp.StatusTired):
         sprint(pc)
     else:
         rog.alert("You're too tired to sprint.")
@@ -195,42 +197,34 @@ def rest_pc(pc):
     for t in range(turns):
         rog.queue_action(pc, wait)
 
-def towel_pc(pc, item):
-    options={}
-    options.update({"W" : "wrap around"})
-    options.update({"l" : "lie"})
-    options.update({"s" : "sail"})
-    options.update({"w" : "wield"})
-    options.update({"h" : "wear on head"})
-    options.update({"x" : "wave"})
-    options.update({"d" : "dry"})
-    choice=rog.menu("use towel",0,0,options,autoItemize=False)
-    if choice == "wear on head":
-        pass
-    elif choice == "wrap around":
-        dirTo=rog.get_direction()
-        if not args: return
-        dx,dy,dz=args
-        xto = pc.x + dx; yto = pc.y + dy;
+# item use functions
 
-        if (dx==0 and dy==0 and dz==0):
-            pass #wrap around self
-        
-    elif choice == "wield":
-        if rog.on(item, WET):
-            pass #equip it
-        else:
-            rog.alert("You can't wield a towel that isn't wet!")
-            
-    elif choice == "dry":
-        #itSeemsCleanEnough=...
-        if ( itSeemsCleanEnough and not rog.on(item, WET) ):
-            pass #dry self
-        else:
-            if not itSeemsCleanEnough:
-                rog.alert("It doesn't seem clean enough.")
-            elif rog.on(item, WET):
-                rog.alert("It's too wet.")
+##def use_towel_pc(pc, item):
+##    world=rog.world()
+##    options={}
+####    options.update({"W" : "wrap around"}) # THESE SHOULD ALL BE COVERED BY THE EQUIPABLE COMPONENTS.
+####    options.update({"w" : "wield"})
+####    options.update({"h" : "wear on head"})
+##    options.update({"d" : "dry [...]"})
+##    options.update({"l" : "lie on"})
+##    options.update({"x" : "wave"})
+####    options.update({"s" : "sail"})
+##    choice=rog.menu("use towel",0,0,options,autoItemize=False)
+##            
+##    if choice == "dry":
+##        answer=rog.prompt(0,0,rog.window_w(),1,maxw=1,
+##                    q="Dry what?",
+##                    mode='wait',border=None)
+##        # TODO: logic for what you want to dry...
+####        if answer=='self' # how to handle this??????
+##        #itSeemsCleanEnough=...
+##        if ( itSeemsCleanEnough and not rog.on(item, WET) ):
+##            pass #dry self
+##        else:
+##            if not itSeemsCleanEnough:
+##                rog.alert("It doesn't seem clean enough.")
+##            elif world.component_for_entity(item,cmp.Wets).wetness > 0:
+##                rog.alert("It's too wet.")
                 
 
 ################################################
@@ -247,7 +241,18 @@ def cough(ent):
     entn = world.component_for_entity(ent, cmp.Name)
     wait(ent)
     rog.event_sound(pos.x,pos.y, SND_COUGH)
-    rog.event_sight(pos.x,pos.y, "{t}{n} hacks up a lung.".format(
+    rog.event_sight(pos.x,pos.y, "{t}{n} doubles over coughing.".format(
+        t=entn.title,n=entn.name))
+
+def intimidate(ent):
+    world=rog.world()
+    stats=world.component_for_entity(ent, cmp.Stats)
+    pos=world.component_for_entity(ent, cmp.Position)
+    entn=world.component_for_entity(ent, cmp.Name)
+    fear=rog.getms(ent, 'intimidation')
+    world.add_component(ent, cmp.StatusFrightening(10))
+    rog.event_sound(pos.x,pos.y,SND_ROAR)
+    rog.event_sight(pos.x,pos.y,"{t}{n} makes an intimidating display.".format(
         t=entn.title,n=entn.name))
 
 #use
@@ -318,22 +323,25 @@ def quaff(ent, drink):
 #returns True if move was successful, else False
 #do not drain Action Points unless move was successful
 def move(ent,dx,dy):  # locomotion
+        # init
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
-    cstats = world.component_for_entity(ent, cmp.CombatStats)
+    xto = pos.x + dx
+    yto = pos.y + dy
+    terrainCost = rog.cost_move(pos.x, pos.y, xto, yto, None)
+    if terrainCost == 0:
+        return False        # 0 means we can't move there
+    msp=rog.getms(ent,'msp')
     actor = world.component_for_entity(ent, cmp.Actor)
-    xto=pos.x+dx
-    yto=pos.y+dy
-    terrain_cost=rog.cost_move(pos.x,pos.y,xto,yto, None)
-    if terrain_cost == 0:  return False     # 0 means we can't move there
-    mult = 1.41 if (dx + dy) % 2==0 else 1  # diagonal extra cost
-    modf=NRG_MOVE
-    nrg_cost=round(modf*mult*terrain_cost*AVG_SPD/max(1, cstats.msp))
-    actor.ap -= nrg_cost
+    mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
+    nrg_cost = round(NRG_MOVE * mult * terrainCost / max(1, msp))
+        # perform action
+    actor.ap -= max(1, nrg_cost)
     rog.port(ent, xto, yto)
     return True
 
 def openClose(ent, xto, yto):
+    #TODO: containers, test doors
     world = rog.world()
     actor = world.component_for_entity(ent, cmp.Actor)
     entn = world.component_for_entity(ent, cmp.Name)
@@ -354,94 +362,251 @@ def openClose(ent, xto, yto):
     return False
 
 def sprint(ent):
-    entn = rog.world().component_for_entity(ent, cmp.Name)
     #if sprint cooldown elapsed
-    rog.set_status(ent, SPRINT)
+    rog.world().add_component(ent, cmp.Sprint(SPRINT_TIME))
+    entn = rog.world().component_for_entity(ent, cmp.Name)
     rog.msg("{n} begins sprinting.".format(n=entn.name))
 
 
-#
-# fight
-#
-# Arguments:
-# attkr,dfndr:  attacker, defender
-# adv:          advantage attacker has over defender
-# dtyp:         damage type:            
-#                 - 'die' is a die roll,
-#                 - 'crit' does max * extra damage
+def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
+    '''
+        strike the target with your primary weapon or body part
+            this in itself is not an action -- requires no AP
+        (this is a helper function used by combat actions)
+    '''
+    # init
+    hit=killed=crit=ctrd=grazed=False
+    pens=trueDmg=rol=0
+    feelStrings=[]
+    
+        # get the data we need
+    world = rog.world()
 
-def fight(attkr,dfndr,adv=0):
+    # TODO: make aweap a function parameter, pass in the weapon the attacker uses to fight with.
+    if world.has_component(attkr, cmp.EquipHand1): # TEMPORARY!!!
+        aweap = world.component_for_entity(attkr, cmp.EquipHand1).item
+    else:
+        aweap = attkr # how to handle no weapons???
+
+    acc = rog.getms(attkr,'atk')
+    dmg = rog.getms(attkr,'dmg')
+    pen = rog.getms(attkr,'pen')
+    asp = rog.getms(attkr,'asp')
+    dv = rog.getms(dfndr,'dfn')
+    prot = rog.getms(dfndr,'pro')
+    arm = rog.getms(dfndr,'arm')
+    resphys = rog.getms(dfndr,'resphys')
+    ctr = rog.getms(dfndr,'ctr')
+    
+        # roll dice, calculate hit or miss
+    rol = dice.roll(CMB_ROLL_ATK)
+    hitDie = rol + acc + adv - dv
+    if (rog.is_pc(dfndr) and rol==1): # when player is attacked, a roll of 1/20 always results in a miss.
+        hit=False
+    elif (rog.is_pc(attkr) and rol==20): # when player attacks, a roll of 20/20 always results in a hit.
+        hit=True
+    elif (hitDie >= 0): # normal hit roll, D&D "to-hit/AC"-style
+        hit=True
+    else: # miss
+        hit=False
+    
+    # perform the attack
+    if hit:
+        grazed=False
+            # counter-attack
+        if counterable:
+            # TODO: make sure defender is in range to counter-attack
+            dfndr_ready = rog.on(dfndr,CANCOUNTER)
+            if dfndr_ready:
+                if (dice.roll(100) <= ctr):
+##                    if world.has_component(dfndr, cmp.EquipHand1):
+##                        dweap = world.component_for_entity(dfndr, cmp.EquipHand1).item
+##                    else:
+##                        dweap = dfndr
+                    _strike(dfndr, attkr, power=0, counterable=False)
+                    rog.makenot(dfndr,CANCOUNTER)
+                    ctrd=True
+        
+        if hitDie==0:
+            grazed=True
+        
+        if not grazed: # can't penetrate if you only grazed them
+                # penetration (calculate armor effectiveness)
+            while (pen-prot-(6*pens) >= dice.roll(6)):
+                pens += 1   # number of penetrations ++
+            armor = rog.around(arm * (0.5**pens))
+        
+            # calculate physical damage #
+
+        # additional damage from strength
+        #   (TODO!!!!)
+        
+        if grazed:
+            dmg = dmg*0.5
+        resMult = 0.01*(100 - resphys)     # resistance multiplier
+        rmp = 1 #CMB_MDMGMIN + (CMB_MDMG*random.random()) # random multiplier -> variable damage
+        rawDmg = dmg - armor
+        
+        # bonus damage
+##        dfndrArmored = False
+##        if world.has_component(dfndr, cmp.EquipBody):
+##            item=world.component_for_entity(dfndr, cmp.EquipBody).item
+##            if item is not None:
+##                if rog.on(item, ISHEAVYARMOR): # better way to do this?
+##                    dfndrArmored = True
+##        if dfndrArmored: # TODO: implement this and bonus to flesh!!!
+##            if world.has_component(aweap, cmp.BonusDamageToArmor):
+##                compo=world.component_for_entity(aweap, cmp.BonusDamageToArmor)
+##                bonus = compo.dmg
+##                rawDmg += bonus
+        
+        trueDmg = rog.around( max(0,rawDmg*resMult*rmp) ) # apply modifiers
+        
+        # extra critical damage: % based on Attack and Penetration
+        # you need more atk and more pen than usual to score a crit.
+        if (hitDie >= dice.roll(20) and pen-prot >= 12 + dice.roll(12) ):
+            # critical hit!
+            if world.has_component(aweap,cmp.WeaponSkill):
+                skillCompo=world.component_for_entity(aweap,cmp.WeaponSkill)
+                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
+            else:
+                critMult = 0.2
+            # critical hits do a percentage of target's max HP in damage
+            trueDmg += rog.getms(dfndr, 'hpmax')*critMult
+            crit=True
+        
+            # calculate elemental damage
+        # TODO: implement elemental damage!!!!
+        if (world.has_component(aweap,cmp.ElementalDamageMelee)):
+            elements=world.component_for_entity(aweap,cmp.ElementalDamageMelee).elements
+        else:
+            elements={}
+            
+            # deal damage, physical and elemental #
+
+        rog.damage(dfndr, trueDmg//10)
+        for element, elemDmg in elements.items():
+            if grazed: elemDmg = elemDmg*0.5
+            if element == ELEM_FIRE:
+                rog.burn(dfndr, elemDmg)
+                feelStrings.append("burns!")
+            elif element == ELEM_BIO:
+                rog.disease(dfndr, elemDmg)
+            elif element == ELEM_ELEC:
+                rog.electrify(dfndr, elemDmg)
+                feelStrings.append("zaps!")                                                                                                                                                                                                                     # I love you Krishna
+            elif element == ELEM_CHEM:
+                rog.exposure(dfndr, elemDmg)
+                feelStrings.append("stings!")
+            elif element == ELEM_RADS:
+                rog.irradiate(dfndr, elemDmg)
+            elif element == ELEM_IRIT:
+                rog.irritate(dfndr, elemDmg)
+            elif element == ELEM_COLD:
+                rog.cool(dfndr, elemDmg)
+            elif element == ELEM_PAIN:
+                if trueDmg <= 0: continue   # if dmg==0, no pain is felt
+                rog.hurt(dfndr, elemDmg)
+            elif element == ELEM_BLEED:
+                if trueDmg <= 0: continue   # if dmg==0, no bleeding
+                rog.bleed(dfndr, elemDmg)
+            elif element == ELEM_RUST:
+                rog.rust(dfndr, elemDmg)
+            elif element == ELEM_ROT:
+                rog.rot(dfndr, elemDmg)
+            elif element == ELEM_WET:
+                rog.wet(dfndr, elemDmg)
+                
+            # deal damage to the armor
+        # TODO: get damage to armor based on material of armor/weapon
+        # AND based on the TYPE of weapon. Daggers do little dmg to armor
+        # while warhammers and caplock guns do tons of damage to armor.
+            # Rather than storing armor-damage as a variable of weapons,
+            # it is related to what SKILL is needed for the weapon.
+        #
+        # return info for the message log
+        killed = rog.on(dfndr,DEAD) #...did we kill it?
+    return (hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,)
+
+
+def fight(attkr,dfndr,adv=0,power=0):
+    '''
+    Combat function. Engage in combat:
+    # Arguments:
+        # attkr:    attacker (entity initiating combat)
+        # dfndr:    defender (entity being attacked by attacker)
+        # adv:      advantage attacker has over defender (bonus to-hit)
+        # power:    amount of umph to use in the attack
+        
+        TODO: implement this!
+        # power:    how much force putting in the attack?
+            0 == use muscles only in the attacking limb(s)
+            1 == use muscles in whole body (offensive)
+                *leaves those body parts unable to provide defense
+                 until your next turn
+    '''
+    
 ##    TODO: when you attack, look at your weapon entity to get:
         #-material of weapon
-        #-element of weapon
         #-flags of weapon
+        
+    # setting up
     world = rog.world()
-    cstats = world.component_for_entity(attkr, cmp.CombatStats)
+    aactor = world.component_for_entity(attkr, cmp.Actor)
+    apos = world.component_for_entity(attkr, cmp.Position)
     dpos = world.component_for_entity(dfndr, cmp.Position)
-    element = ELEM_PHYS #****TEMPORARY!!!! has_component...
-    nrg_cost = round( NRG_ATTACK*AVG_SPD/max(1, cstats.asp) )
-    cstats.ap -= nrg_cost
-
-    die=COMBATROLL
-    acc=cstats.atk
-    dv=cstats.dfn
-    hit = False
-    rol = dice.roll(die + acc + adv - dv) - dice.roll(die)
-    if (rol >= 0): # HIT!!!
-        hit = True
-        
-        #type of damage dealt depends on the element attacker is using
-        if element == ELEM_PHYS:
-            #high attack values can pierce armor
-##            if rol > ATK_BONUS_DMG_CUTOFF:
-##                pierce = int( (rol - ATK_BONUS_DMG_CUTOFF)/2 )
-##            else:
-##                pierce = 0
-            armor = dfndr.stats.get('arm') #max(0, dfndr.stats.get('arm') - pierce)
-            dmg = max(0, attkr.stats.get('dmg') - armor)
-            rog.hurt(dfndr, dmg)
-        elif element == ELEM_FIRE:
-            rog.burn(dfndr, dmg)
-        elif element == ELEM_BIO:
-            rog.disease(dfndr, dmg)
-        elif element == ELEM_ELEC:
-            rog.electrify(dfndr, dmg)
-        elif element == ELEM_CHEM:
-            rog.exposure(dfndr, dmg)
-        elif element == ELEM_RADS:
-            rog.irradiate(dfndr, dmg)
-        
-        killed = rog.on(dfndr,DEAD) #...did we kill it?
-    #
+    aname=world.component_for_entity(attkr, cmp.Name)
+    dname=world.component_for_entity(dfndr, cmp.Name)
     
-    message = True
-    a=attkr.name; n=dfndr.name; t1=attkr.title; t2=dfndr.title; x='.';
+    # do the action
+    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
     
-    # make a message describing the fight
+    # strike!
+    counterable = True # TODO: this is affected by range/reach!
+    _rd = _strike(attkr, dfndr, adv=adv, power=power, counterable=counterable)
+    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _rd
+    
+    # finishing up
+    message = True # TEMPORARY!!!!
+    a=aname.name; n=dname.name; at=aname.title; dt=dname.title;
+    x='.'; ex="";
+    dr="d{}".format(CMB_ROLL_ATK) #"d20"
+        # make a message describing the fight
     if message:
-        if hit==False: v="misses"
-        elif dmg==0: v="cannot penetrate"; x="'s armor!"
-        elif killed: v="defeats"
-        else: v="hits"
+        # TODO: show messages for grazed, crit, counter, feelStrings
+        if hit==False:
+            v="misses"
+            if rog.is_pc(attkr):
+                ex=" ({dr}:{ro})".format(dr=dr, ro=rol)
+        else: # hit
+            if rog.is_pc(attkr):
+                ex=" ({dr}:{ro}|{dm}x{p})".format(dr=dr, ro=rol, dm=trueDmg, p=pens)
+            if killed:
+                v="kills"
+            else:
+                if grazed:
+                    v="grazes"
+                else:
+                    v="hits"
         rog.event_sight(
-            dfndr.x,dfndr.y,
-            "{t1}{a} {v} {t2}{n}{x}".format(a=a,v=v,n=n,t1=t1,t2=t2,x=x)
+            dpos.x,dpos.y,
+            "{at}{a} {v} {dt}{n}{ex}{x}".format(a=a,v=v,n=n,at=at,dt=dt,ex=ex,x=x)
         )
         rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
-    
-# end def
+#
 
 
-# not necessarily creature actions #
-''' TODO: UPDATE THIS FUNCTION
+# other actions #
+
+#TODO: UPDATE THIS FUNCTION
 def explosion(bomb):
+    rog.msg("{t}{n} explodes! <UNIMPLEMENTED>".format(t=bomb.title, n=bomb.name))
+    '''
     con=libtcod.console_new(ROOMW, ROOMH)
-    rog.msg("{t}{n} explodes!".format(t=bomb.title, n=bomb.name))
     fov=rog.fov_init()
     libtcod.map_compute_fov(
         fov, bomb.x,bomb.y, bomb.r,
         light_walls = True, algo=libtcod.FOV_RESTRICTIVE)
-    
     for x in range(bomb.r*2 + 1):
         for y in range(bomb.r*2 + 1):
             xx=x + bomb.x - bomb.r
@@ -459,7 +624,7 @@ def explosion(bomb):
                 if thing.isCreature:
                     decay=bomb.dmg/bomb.r
                     dmg= bomb.dmg - round(dist*decay) - thing.stats.get('arm')
-                    rog.hurt(thing, dmg)
+                    rog.damage(thing, dmg)
                     if dmg==0: hitName="not damaged"
                     elif rog.on(thing,DEAD): hitName="killed"
                     else: hitName="hit"
@@ -471,7 +636,9 @@ def explosion(bomb):
                             and hasattr(thing,'explode')
                             and dist <= bomb.r/2 ):
                         thing.timer=0
-'''
+                        '''
+    
+
 
 
 

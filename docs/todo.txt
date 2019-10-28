@@ -1,0 +1,36 @@
+
+todo list (what needs to get done before Softly Into the Night is playable?)
+
+	test existing mechanics, finish implementing: - 2 weeks
+		crafting + new items
+		combat
+	AI, enemies and enemy variety - 1 week
+	level design (map gen algo) - 1 week
+	using items - 1 week
+		eating, drinking
+	Inventory w/ weight limits - 24 hours
+	goal / end game - 24 hours
+	story or setting finalized - 24 hours
+	fires - 24 hours
+	throwing, shooting / ammo, etc. - 24 hours
+	
+	total: 6 weeks to get a playable game with a decent amount of content.
+	
+	
+extras:
+	improve UI
+		minimap?
+		side bar instead of bottom/top bar. 
+		show all things that are next to the player (on same tile at least)
+			list?
+	fluid mechanics
+		
+		
+		
+How to fix slow Python:
+	__slots__ - reduces RAM usage on objects
+	Cython or Boost Python to embded C++ code
+		Rust - alternative to Cython, Boost
+	numpy/scipy - for dealing with arrays faster without loops
+
+		

@@ -1,0 +1,38 @@
+Status effects:
+
+
+Special effects:
+	these are TEMPORARY changes. Rust or Rot, for instance, is NOT a status effect here because it is a PERMANENT change.
+
+Creatures:
+
+sprinting
+	affects: creatures
+	stat mods:
+		Msp +100%
+	gained by: sprinting.
+	requires: must not be crouched, supine, prone, sick, or drunk.
+	removed by: timer
+crouched
+	affects: creatures
+	stat mods:
+		Msp -50%
+		Stealth +1
+	gained by: crouching
+	removed by: standing up (context sensitive action)
+supine
+	affects: creatures
+	stat mods:
+		Msp -90%
+		Stealth +1
+	gained by: crouching
+	removed by: rolling over (context sensitive action, makes you prone)
+		or standing up, if you have Ninja skills (can stand up from supine position)
+prone
+	affects: creatures
+	stat mods:
+		Msp -90%
+		Stealth +1
+	gained by: crouching
+	removed by: standing up (context sensitive action)
+	

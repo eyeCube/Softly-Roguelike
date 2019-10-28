@@ -1,0 +1,50 @@
+
+idea to send commands optionally using full text.
+
+Command examples:
+
+(c) First, some simple commands with one or two words.
+>>move nw
+	move northwest, do not move if not possible
+	(do not auto-attack or perform any commands automatically).
+>>nw
+	same as the command "y" or northwest. Move nw and automatically perform any context-sensitive commands like auto-attacking, opening doors, picking up items (if that option is on), etc.
+>>attack n
+	try to attack north of your location.
+	if nothing is there to attack, you still attack the air and waste your AP.
+	(this command can be used to attack things the player knows are there but the character cannot sense i.e. invisible enemies)
+	
+(b) More complex commands:
+>>equip t on head
+	"on" and "head" are keywords
+	all body parts have a keyword: head, back, body, mainhand, offhand, ammo
+		some have multiple keywords:
+			ammo = quiver = ammunition
+			mainhand = main hand
+			offhand = off hand
+			body = torso
+>>equip a in offhand
+	"in" is also acceptable
+
+(c) These commands all do the same thing (assuming the main hand has nothing equipped currently):
+>>equip a in hand
+	defaults to the mainhand if the mainhand is empty.
+>>equip a on mainhand
+	on and in are identical (interchangeable) keywords.
+>>equip a in main hand
+	mainhand and main hand (two words) are identical keywords/phrases.
+
+(d) This command has many arguments:
+>>craft 16 t-shirt with f using auto
+	command = craft, followed by its arguments.
+		craft X item with components using tools
+		with and using are keywords that indicate the next part of the command.
+	name of the result is followed by the quantity.
+	f is an inventory item representing a parcel of cloth (quantity 20).
+		if you wrote "with auto" it would automatically pick components to use.
+	auto selects the tool automatically when you write "using auto".
+		could write "using r t" to use inventory items r and t as tools
+
+
+
+	

@@ -11,27 +11,27 @@ import os
 from const      import *
 from colors     import COLORS as COL
 import rogue    as rog
+import components as cmp
 import action
 import debug
-import jobs
 import dice
-
+import entities
 
 
 
 
 #
-#   init player object. Pass a Thing into the function...
+#   init player object. Pass an entity into the function...
 #
 
 def init(pc):
     
     # register for sense events for the message log
-    rog.add_listener_sights(pc)
-    rog.add_listener_sounds(pc)
+##    rog.add_listener_sights(pc) # TODO: implement this... There is a distinction btn. Events object for regular listening events of sights/sounds, and also two more classes for sights seen and sounds heard by the player. These should probably work differently...
+##    rog.add_listener_sounds(pc)
+    compo=rog.world().component_for_entity(pc, cmp.SenseSight)
+    compo.fov_map=rog.fov_init()
     rog.view_center(pc)
-    rog.givehp(pc)
-    rog.givemp(pc)
 #
 
 
@@ -62,6 +62,10 @@ def commands_pages(pc, pcAct):
 
 directional_command = 'move'
 
+def _Update():
+    rog.update_game()
+##    rog.update_final()
+    rog.update_hud()
 def commands(pc, pcAct):
     world = rog.world()
     
@@ -113,6 +117,7 @@ def commands(pc, pcAct):
             # wait
             if (xto==pos.x and yto==pos.y):
                 actor.ap = 0
+                _Update()
                 return
 
             # out of bounds
@@ -122,11 +127,13 @@ def commands(pc, pcAct):
             # fight if there is a monster present
             mon = rog.monat(xto,yto)
             if (mon and mon is not pc):
+                _Update()
                 action.fight(pc,mon)
             # or move
             elif not rog.solidat(xto,yto):
                 # space is free, so we can move
                 if action.move(pc, dx,dy):
+                    _Update()
                     rog.view_center_player()
 
         if act == "get":
@@ -157,7 +164,6 @@ def commands(pc, pcAct):
             rog.view_center_player()
             rog.update_game()
             rog.update_final()
-            rog.update_base()
             rog.game_update() #call all the updates
             rog.alert('press any key to continue...')
             rog.Input(rog.getx(pos.x), rog.gety(pos.y), mode='wait')
@@ -198,27 +204,23 @@ def chargen(sx, sy):
     world = rog.world()
     # init
     x1 = 0; y1 = 0;
-    xx = 0; yy = 4;
+    xx = 0; yy = 3;
     iy = 0;
     ww = rog.window_w(); hh = 5;
-
-    # _printElement - local function
-    # draw the string to con_game at (x1,y1) then move y vars down
-    def _printElement(elemStr):
-        #global yy,y1,x1
-        rog.dbox(x1,y1+iy,ROOMW,3,text=elemStr,
-            wrap=False,border=None,con=rog.con_game(),disp='mono')
-        rog.blit_to_final(rog.con_game(),0,0)
-        rog.refresh()
     
+    # draw the string to con_game
+    def _printElement(elemStr,iy):
+        rog.dbox(x1,y1+iy,ww,3,text=elemStr,
+            wrap=False,border=None,con=rog.con_game(),disp='mono')
+
+        return iy+1
     # get char data from player
     
     # name
     _name=rog.prompt(x1,y1,ww,hh,maxw=20, q="What is your name?", mode="text")
     _title = ""
-    print("Name chosen: ", _name)
-    _printElement("Name: {}".format(_name))
-    iy+=1
+    print("name chosen: ", _name)
+##    iy+=1
 
     # load saved game
     loadedGame = False
@@ -244,7 +246,7 @@ def chargen(sx, sy):
         #continue chargen...
         
         # gender
-        rog.dbox(x1,y1+iy,ROOMW,3,text="What is your gender?",
+        rog.dbox(x1,y1+iy,ww,3,text="What is your gender?",
             wrap=True,border=None,con=rog.con_final(),disp='mono')
         rog.refresh()
         #get added genders
@@ -296,87 +298,150 @@ def chargen(sx, sy):
                 elif _gender == 'female':
                     _genderName = "female"
                     _pronouns = ('she','her','hers',)
-        print("Gender chosen: ", _genderName)
-        _printElement("Gender: {}".format(_genderName))
-        iy+=1
+        print("gender chosen: ", _genderName)
+##        iy+=1
         
         # class
-        rog.dbox(x1,y1+iy,ROOMW,3,text="What is your profession?",
+        rog.dbox(x1,y1+iy,ww,3,text="What is your profession?",
             wrap=True,border=None,con=rog.con_final(),disp='mono')
         rog.refresh()
         _classList={} #stores {className : (classChar, classID,)} #all classes
         #create menu options
         _menuList={} #stores {classChar : className} #all playable classes
         _randList=[] #for random selection.
-        for k,v in jobs.getJobs().items(): # k=ID v=charType
-            if v not in rog.playableJobs(): continue #can't play as this class yet
+        for k,v in entities.getJobs().items(): # k=ID v=charType
+##            if v not in rog.playableJobs(): continue #can't play as this class yet
             ID=k        # get ID of the class
             typ=v       # get chartype of the class
-            name=jobs.getName(ID)
+            name=entities.getJobName(ID)
             _classList.update({name:(typ,ID,)})
             _menuList.update({typ:name})
             _randList.append(ID)
         _menuList.update({'*':'random'})
         #user selects a class
-        _className = rog.menu("Class Select",xx,yy,_menuList,autoItemize=False)
+        _className = rog.menu("Class Select",xx,yy+iy,_menuList,autoItemize=False)
         #random
         if _className == 'random':
             _classID = random.choice(_randList)
-            _className = jobs.getName(_classID)
+            _className = "__CLASSNAME__"  #jobs.getName(_classID)
         #get the relevant data
         _type = _classList[_className][0] # get the class Char value
         _mask = _type
         _classID = _classList[_className][1]
+        _mass = entities.getJobMass(_classID)
+        _stats = entities.getJobStats(_classID).items()
+        _skills = entities.getJobSkills(_classID)
         
         #grant stats / abilities of your chosen class
         
-        print("Class chosen: ", _className)
-        _printElement("Class: {}".format(_className))
-        iy+=1
+        print("class chosen: ", _className)
+##        iy+=1
 
-        # skill
-        rog.dbox(x1,y1+iy,ROOMW,3,text="In which skill are you learned?",
-            wrap=True,border=None,con=rog.con_final(),disp='mono')
-        #rog.refresh()
-            #get list of all skills
-        _skillName = rog.menu("Skill Select",xx,yy,SKILLS.values())
-        #get the skill ID
-        for skid,name in SKILLS.items():
-            if name == _skillName:
-                _skillID = name
-                break
-        print("Skill chosen: ", _skillName)
-        #should show ALL skills you're skilled in, not just the one you pick
-        #for skill in jobs.getSkills(_skillID):
-        _printElement("Skills: {}".format(_skillName))
-        iy+=1
-
+        # skills
+        _data=(("combat",SKILLS_COMBAT,),
+               ("physical/technical",SKILLS_PHYSTECH,),
+               ("crafting",SKILLS_CRAFTING,), )
+        _skillNames=[]
+        _skillIDs=[]
+        for _str,_st in _data:
+            rog.dbox(x1,y1+iy,ww,3,
+                     text="choose 1 {} skill".format(_str),
+                     wrap=True,border=None, con=rog.con_final(), disp='mono'
+                     )
+            #rog.refresh()
+                #get list of all skills
+            # TODO: remove all skills from this list that you already have from job
+            _skillName = rog.menu(
+                "{} skill select".format(_str), xx,yy+iy, _st.values()
+                )
+            #get the skill ID
+            for skid,name in _st.items():
+                if name == _skillName:
+                    _skillID = skid
+                    break
+            print("{} skill chosen: {}".format(_str, _skillName))
+            #should show ALL skills you're skilled in, not just the one you pick
+            #for skill in jobs.getSkills(_skillID):
+##            iy+=1
+            _skillNames.append(_skillName)
+            _skillIDs.append(_skillID)
+        #
+        
+        # confirmation
+        iy=_printElement("name: {}".format(_name),iy)
+        iy=_printElement("gender: {}".format(_genderName),iy)
+        iy=_printElement("class: {}".format(_className),iy)
+        iy=_printElement("{} skill: {}".format(_data[0][0], _skillNames[0]),iy)
+        iy=_printElement("{} skill: {}".format(_data[1][0], _skillNames[1]),iy)
+        iy=_printElement("{} skill: {}".format(_data[2][0], _skillNames[2]),iy)
+        rog.blit_to_final(rog.con_game(),0,0)
+        rog.refresh()
+        _ans=rog.prompt(x1,y1+7,ww,hh,maxw=20,
+                        q="continue with this character? y/n",
+                        mode="wait"
+                        )
+        if not _ans.lower()=='y':
+            return chargen(sx,sy)
+        #
+            
         #stats?
         _stats = {}
         #gift?
         _gift = 0
-
+        
         #create pc object from the data given in chargen
+        pc = world.create_entity(
+            cmp.Name(_name, title=_title),
+            cmp.Draw('@', COL['white'], COL['deep']),
+            cmp.Position(sx, sy),
+            cmp.Actor(),
+            cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
+            cmp.Creature(job=_className, faction=FACT_ROGUE),
+            cmp.Gender(_genderName,_pronouns),
+            cmp.Stats(
+                hp=BASE_HP, mp=BASE_MP, mass=0,#round(_mass*MULT_MASS), #TODO: mass calculated by body / inventory
+                resfire=BASE_RESFIRE,
+                rescold=BASE_RESCOLD,
+                resbio=BASE_RESBIO,
+                reselec=BASE_RESELEC,
+                resphys=BASE_RESPHYS,
+                reswet=BASE_RESWET,
+                respain=BASE_RESPAIN,
+                resbleed=BASE_RESBLEED,
+                resrust=BASE_RESRUST,
+                resrot=BASE_RESROT,
+                _str=BASE_STR, _con=BASE_CON, _int=BASE_INT,
+                gra=BASE_GRA, bal=BASE_BAL, ctr=BASE_CTR,
+                atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
+                dfn=BASE_DFN, arm=BASE_ARM, pro=BASE_PRO,
+                spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
+                sight=BASE_SIGHT, hearing=BASE_HEARING,
+                courage=BASE_COURAGE, scary=BASE_SCARY
+                ),
+            cmp.Skills(), cmp.Flags(),
+            cmp.SenseSight(), cmp.SenseHearing(),
+            cmp.Mutable(),
+            cmp.Inventory(BASE_CARRY),
+        )
+
+        # create body
+        body = rog.create_humanoid(_mass*MULT_MASS)
+        rog.world().add_component(pc, body)
         
-##        pc = world.create_entity( # USE create_monster function!!!!
-##            cmp.Position(sx,sy),
-##            cmp.Name(_name, title=_title,pronouns=_pronouns),
-##            cmp.Draw('@', COL['white']),
-##            cmp.Form(
-##            )
         
-##        pc = rog.create_monster('@',0,0,COL['white'],mutate=0)
-##        pc.name = _name
-##        pc.title = _title
-##        pc.mask = '@'
-##        pc.job = _className
-##        pc.gender = _genderName
-##        pc.pronouns = _pronouns
-##        pc.faction = FACT_ROGUE
-##        #add additional skill
-##        rog.train(pc,_skillID)
-##        #add specific class stats
-    
+        #add specific class stats
+##        for _var, _value in _stats:
+##            #compo= # get component somehow...
+##            world.component_for_entity(pc, compo).__dict__[_var] += _value
+        #add specific class skills
+        for skid in _skills:
+            rog.train(pc,skid)
+        #add additional skill
+        for skid in _skillIDs:
+            rog.train(pc,skid)
+    # init
+    rog.register_creature(pc)
+    init(pc)
     return pc
 #
 
@@ -465,73 +530,5 @@ def loadFromSaveFile(save):
                     
                     
     
-    '''
-    pc = rog.create_monster('@',0,0,COL['white'],mutate=0)
-    pc.name=save.readline().strip()
-    pc.title=save.readline().strip()
-    pc.pronouns=save.readline().strip()
-    pc.color=save.readline().strip()
-    pc.bgcolor=save.readline().strip()
-    pc.flags=set((save.readline().strip()).split(','))
-    #read in skills
-    #read in equip data
-    #read in stat mods
-    #pc.isSolid=save.readline().strip()
-    pc.x=save.readline().strip()
-    pc.y=save.readline().strip()
-    pc.z=save.readline().strip()
-    pc.type=save.readline().strip()
-    pc.mask=save.readline().strip()
-    pc.mutations=save.readline().strip()
-    pc.gender=save.readline().strip()
-    pc.job=save.readline().strip()
-    pc.faction=save.readline().strip()
-    #read in fov_map
-    #pc.senseEvents=save.readline().strip()
-    pc.purse=save.readline().strip()
-    pc.ai=save.readline().strip()
-    pc.stats.sight=save.readline().strip()
-    pc.stats.hearing=save.readline().strip()
-    pc.stats.nrg=save.readline().strip()
-    pc.stats.spd=save.readline().strip()
-    pc.stats.asp=save.readline().strip()
-    pc.stats.msp=save.readline().strip()
-    pc.stats.carry=save.readline().strip()
-    pc.stats.atk=save.readline().strip()
-    pc.stats.dmg=save.readline().strip()
-    pc.stats.dfn=save.readline().strip()
-    pc.stats.arm=save.readline().strip()
-    pc.stats.hp=save.readline().strip()
-    pc.stats.hpmax=save.readline().strip()
-    pc.stats.mp=save.readline().strip()
-    pc.stats.mpmax=save.readline().strip()
-    pc.stats.element=save.readline().strip()
-    pc.stats.resfire=save.readline().strip()
-    pc.stats.resbio=save.readline().strip()
-    pc.stats.reselec=save.readline().strip()
-    pc.stats.temp=save.readline().strip()
-    pc.stats.rads=save.readline().strip()
-    pc.stats.expo=save.readline().strip()
-    pc.stats.sick=save.readline().strip()
-    '''
-
-'''
-            # TESTING INPUT
-            rog.update_final()
-            text = rog.Input(0,0, 40,1)
-            print("returned '" + text + "'")
-            
-                    ## TESTING TESTING WHY DON'T YOU ARRESTING
-                    rog.Ref.Map.recall_memories(rog.view_x(),rog.view_y(),rog.view_w(),rog.view_h())
-                    action.move(pc,14,14)
-                    rog.Ref.Map.tile_change(pc.x,pc.y,FLOOR)
-                    rog.Ref.Map.tile_change(pc.x,pc.y-1,FLOOR)
-                    rog.Ref.Map.tile_change(pc.x,pc.y-2,FLOOR)
-                    rog.Ref.Map.tile_change(pc.x-1,pc.y-2,FLOOR)
-                    rog.Ref.Map.tile_change(pc.x-1,pc.y-1,FLOOR)
-                    rog.Ref.Map.tile_change(pc.x-1,pc.y,FLOOR)
-                    rog.view_center(pc)
-                    ##
-                    '''
 
 

@@ -31,7 +31,7 @@ class World:
         handles calling the process method on any Processors assigned to it.
         """
         self._processors = [] # type: List[Processor]
-        self._next_entity_id = 0
+        self._next_entity_id = 0 # JAKE'S NOTE: this is actually the previous entity ID, the next one is this ++ so it's ok it starts at 0 bra.
         self._components = {}
         self._entities = {} # type: Dict[int, Any]
         self._dead_entities = set()

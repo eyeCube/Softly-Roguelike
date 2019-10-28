@@ -1,0 +1,46 @@
+combat
+
+
+idea for dual wielding
+
+if you wield two weapons you get a lot of penalties
+	in addition to gaining no attack, dmg, pen from the offhand weapon and getting a penalty to other stats if you aren't wielding a shield/knife in offhand, 
+	by wielding 2 weapons at all you incur a flat penalty of -2 Atk.
+	
+	
+	NO!!!!! Instead you just get the (already implemented) BONUS for wielding a 1-h weapon in 2 hands.
+	
+	
+STANCES
+	stance changes stats
+	
+	idea for shields
+		effectiveness of shields vs. ranged attacks can be improved by changing stance.
+	
+	
+	
+
+Penetration
+	6 higher - cut AV in half
+	12 higher - cut AV to 0
+	18 higher - critical hit*
+	*critical hit: do full damage + 33% of total HP of target.
+		33% is default critical hit damage bonus.
+
+knocking down
+	If you have wrestling skill or strength, you can knock down foe.
+	4 positions - standing, crouching (on knees), prone, supine
+	crouching:
+		Msp -50%
+		AV -1
+		Protection -2
+	supine:
+		Msp -90%
+		AV -2
+		Protection -3
+	prone:
+		Msp -90%
+		AV -4
+		Protection -4
+	
+

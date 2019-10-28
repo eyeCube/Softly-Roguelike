@@ -1,0 +1,23 @@
+
+carcass harvesting:
+	like native Americans, we can harvest many useful parts from almost every part of an animal. It bothers me in games when you harvest a carcass and get one useful piece from the WHOLE animal. In reality you'd get a large array of supplies from a standard size animal:
+		muscle, 4-32 (harvest to get pieces/chunks of flesh and sinew)
+		sinew, 1-6
+		scrap flesh, 8-64
+		parcel of flesh, 2-16
+		animal fat, 4-32
+		heart, 1 (nutritious, high in protein)
+		liver, 1 (nutritious, high in minerals)
+		brain, 1 (nutritious, high in fat)
+		bladder, 1 (waterproof bag)
+		rawhide, 1 (or fur? harvest to get leather hide)
+		bone, 2 (standard sized animals)
+		parcel of bone, 5
+		skull, 1
+		antlers, 1-2 (for deer-like animals)
+	Large animals would drop much more supplies, and some unique supplies:
+		bone, large, 2-4 (large animals only)
+carcass can become a mangled carcass if it gets damaged in a crude way.
+Likewise if you kill a thing in a brutal way, it drops a mangled carcass.
+mangled carcass: provides significantly less materials than a carcass (50%).
+If you further damage a mangled carcass, it turns into the raw materials, but obviously with greatly reduced yield (10%).

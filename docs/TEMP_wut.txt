@@ -1,0 +1,223 @@
+ If you attack with not enough dex, you get -50% Atk.
+ - If you do not meet the strength requirement for a weapon, its maximum damage is 1.
+ - Wielding a melee weapon with two hands: -2 Str Req, +25% Atk, +3 Hit Spd.
+ - If str requirement is higher, weapon scales with str, else it scales with dex. If requirements are equal, weapon scales with whichever stat is higher.
+ - Weapon scales +1 Atk for each str or dex (depending on the weapon scaling) you have.
+ - Some weapons scale with both Dex and Str. Scales with either one depending on which is higher. Fists is an example.
+ - If attacking from an offhand weapon, you get -5 Atk and -25% Dmg, and +1 Str Req.
+ - If attacking with two weapons or more equipped, each weapon other than the main hand weapon has a 50% chance to attack (though with the offhand Atk penalty, the chance is lower).
+
+ - Skills grant bonuses to specific or general cases:
+	- Swords skill: +2 Atk, +2 Dmg, +2 Hit Spd. Defensive: +2 dfn while wielding a sword or dagger. Disarm: chance to disarm opponent when attacking with a sword. Chance is (10*your_dex - 10*their_stat)% where their_stat is whichever stat of opponent is greater, dex or str.
+	- Cudgels skill: +2 Atk, +2 Dmg, +2 Hit Spd with cudgels. Dent Armor: When you hit with a weapon, 3% chance to dent opponent's armor, seriously damaging the armor (if applicable) and causing a bruise and a random status effect that lasts up to 6 turns. Chance is 10% if you hit with a cudgel.
+	- Axes skill: +2 Atk, +2 Dmg, +2 Hit Spd with axes. 10% chance to damage opponent's weapons while wielding an ax.
+	- Knives skill: +2 Atk, +1 Dmg, +3 Hit Spd with knives. Jab: When moving away from an adjacent foe, 20% chance to perform a free attack with a knife versus the foe.
+	- Marksman skill: +3 Atk, +1 Dmg, +3 Hit Spd with marksman weapons and throwing weapons. You gain the target ability which lets you spend 12 NRG to gain +2 Atk vs. one target enemy for 2 turns.
+	- Stealth skill: Assassinate: When you melee attack an opponent while they are stunned or unaware of your presence, you instantly kill them. 
+
+
+
+
+
+ \ arming sword (SWORDS)
+Attack		+2
+Damage 		+5
+Hit Speed 	-1
+Str Req: 	1
+Dex Req: 	4
+Weight:  	1.1 kg
+Value:	 	$ 42
+
+ \ Ken M's sword (arming sword) (SWORDS)
+Attack		+3 	(+1)
+Damage 		+5
+Hit Speed 	-1
+Str Req: 	1
+Dex Req: 	5  	(+1)
+Weight:  	1.1 kg
+Value:	 	$ 420
+
+
+
+		Atk	Dmg	Spd	
+DAGGERS		Med	Low	V. hi
+SWORDS		Low-Hi  Med	Low-high
+AXES		Low	High	Low
+CUDGELS		V. Low	V. Hi	V. low
+MARKSMAN	High	Low-Med	Low-Med
+
+
+
+Strike
+Fire
+Parry
+Evade
+
+
+Door Open	'
+Door Closed	+
+
+Axes		) (
+Cudgels		*
+Swords		/ \
+Daggers		-
+Marksman	} {
+Ammo		: |
+Armors		] [
+Shields		) (
+
+Torch		;
+
+
+
+Equip arming sword
+Atk = 0
+AtkBonus = arming_sword_Atk_mod + stat_scaling + skill_bonus
+
+
+
+'''
+        STR 4
+        AGI 4
+        DEX 4
+        MND 0
+        END 1
+        CHR 0
+        SADMEC
+        ######
+        #.....
+        #.....
+    ####-@kk..
+        #kk%..
+        #.....
+        ######
+        
+        STR 2
+        AGI 2
+        DEX 4
+        VIT 3
+        INT 1
+        CHR 3
+
+        Attributes could be simplified. Normal, excess, or defecit.
+
+            6	       5            4  	   3 ------------ 2       1		   0
+STR     Hulking,      Robust,    Strong,    	Normal,  	Weak,   	Sickly	
+AGI     Ninja,	    Acrobatic,   Nimble,    	Normal, 	Clumsy, 	Blundering
+DEX     Maestro,     Adept,      Deft, 	    	Normal, 	Fumbly, 	Butterfingers
+MND     Wizardly,    Brilliant,  Astute,    	Normal, 	Stupid, 	Feeble-minded
+END     Indestructible,Durable,  Tough,     	Normal, 	Frail, 		Delicate	
+CHR     Ravishing,   Alluring,   Charming,  	Normal, 	Antisocial, 	Outcast
+
+7+ Attributes are called the same thing as 6. Level of 9 is Godlike and is the maximum.
+
+Derived attributes:
+
+Life (stamina + health)
+Mana
+
+
+
+For each point in attributes you get:
+
+STR
+	+1 Atk w/ Str-based weapons
+	+1 Dmg w/ Str-based weapons
+	+1 Carry
+
+AGI
+	+1 Dfn
+	+1 Spd
+DEX	
+	+1 Atk w/ Dex-based weapons
+	+1 Dmg w/ Dex-based weapons
+MND
+	+10 Mana
+END
+	+10 Life
+CHR
+	+1 Speech
+	+1 Attractiveness
+
+
+Bag of Holding
+	This mysterious bag is made of sturdy material. It is enchanted to contain a seemingly infinite capacity of loot.
+	Dur 40
+
+
+Ways to increase damage:
+
+have a weapon proficiency in weapon you are using
+level up ( +1 dmg per lvl )
+Repair and sharpen weapon at blacksmith to restore its full power
+Enchant weapon
+Cast spell of increase damage
+Prayer/blessing to increase damage
+Rested bonus/ Vigor bonus from having sex, relaxing in hot spring, sleeping in a good bed, drinking a potion, etc.
+Increase your stat, dex or str depending on weapon you are using
+Poison the weapon
+Sneak attack critical *6 dmg
+Have blacksmith improve quality of weapon
+
+6
++1
++3
+
+*6
+=60 dmg
+
++2
++5
++0
++3
++4
++1
++1
++5
++1/3 turns
+*6
++3
+
+(16+24)(*6)
+        
+        Strong
+        Agile
+        Stupid
+        Antisocial
+
+        Dextrous
+        Charismatic
+        Weak
+        Clumsy
+
+        Charismatic
+        Fumbly
+
+        Smart
+        Charismatic
+        Frail
+        Weak
+
+
+
+	@	k
+	HP  15	5
+	MP  0	0
+	Atk 4	3
+	Dfn 5	3
+	Dmg 4	2
+	Spd 12	12
+
+        
+
+        Swords
+        Medicine
+
+        STR (3) Strong
+        AGI (3) Agile
+        DEX (2) Normal
+        MND (1) Stupid
+        END (2) Normal
+        CHR (1) Antisocial
+        
+        '''

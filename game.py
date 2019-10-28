@@ -5,18 +5,19 @@
 '''
 
 import os
-import libtcodpy as libtcod
+import tcod as libtcod
 import time
 import textwrap
 
 from const      import *
 import rogue as rog
+import components as cmp
 import ai
 import colors
 import misc
 import player
 import debug
-import jobs
+import entities
 #define
 timer = debug.Timer()
 
@@ -42,17 +43,14 @@ def play(pc, pcAct):
 
     pcActor = world.component_for_entity(pc, cmp.Actor)
     if pcActor.ap <= 0:
-
+        rog.turn_pass()
         #beginning of turn is considered when the monsters begin their turns
         #   /right after player turn.
-        rog.Rogue.managers_beginturn_run()
-        
-        world.process()      
-        
-        rog.turn_pass()
+        rog.Rogue.run_beginTurn_managers(pc)
+        # process processors
+        world.process()              
         #end of turn is considered to be right before player does his turn
-        rog.Rogue.managers_endturn_run()
-             
+        rog.Rogue.run_endTurn_managers(pc)
         return
 
     #-------------------#
@@ -398,16 +396,21 @@ class Update:
     #def pcfov(self):
     #    self.updates.add(Update.U_PCFOV)
     def game(self):
+        print('setting game update to true')
         self.updates.update({Update.U_GAME : True})
         self.updates.update({Update.U_FINAL : True})
     def hud(self):
+        print('setting hud update to true')
         self.updates.update({Update.U_HUD : True})
     def msg(self):
+        print('setting msg update to true')
         self.updates.update({Update.U_MSG : True})
     def final(self):
+        print('setting final update to true')
         self.updates.update({Update.U_FINAL : True})
         self.updates.update({Update.U_BASE : True})
     def base(self):
+        print('setting base update to true')
         self.updates.update({Update.U_BASE : True})
 
     '''def activate_all_necessary_updates(self):
@@ -429,12 +432,24 @@ class Update:
     def update(self):
         clearMsg = False
         #activate_all_necessary_updates()
-        if self.updates[Update.U_HUD]   : rog.render_hud(rog.pc());
-        if self.updates[Update.U_GAME]  : rog.render_gameArea(rog.pc());
-        if self.updates[Update.U_MSG]   : rog.logNewEntry(); clearMsg=True;
-        if self.updates[Update.U_FINAL] : rog.blit_to_final( rog.con_game(),0,0);
-        if self.updates[Update.U_BASE]  : rog.refresh();
-        if clearMsg: rog.msg_clear()
+        if self.updates[Update.U_HUD]:
+            rog.render_hud(rog.pc());
+            print('updating hud')
+        if self.updates[Update.U_GAME]:
+            rog.render_gameArea(rog.pc());
+            print('updating game')
+        if self.updates[Update.U_MSG]:
+            rog.logNewEntry();
+            clearMsg=True;
+            print('updating msg')
+        if self.updates[Update.U_FINAL]:
+            rog.blit_to_final( rog.con_game(),0,0);
+            print('updating final')
+        if self.updates[Update.U_BASE]:
+            rog.refresh();
+            print('updating base')
+        if clearMsg:
+            rog.msg_clear()
         self.set_all_to_false()
     
 
@@ -491,6 +506,71 @@ class GameData:
 
 
 
+class SavedGame:
+    
+    def __init__(self):
+        self.create_defaultData()
+        #global save data is progress shared across savegames
+        def getGlobalSaveFile():
+            fname="globalsavedata.sav"
+            try:
+                self.file=os.path.join(os.path.curdir,"save",fname)
+            except:
+                with open(os.path.join(os.path.curdir,"save",fname), 'w+') as file:
+                    pass
+                self.file=os.path.join(os.path.curdir,"save",fname)
+                self._write_defaults()
+        if os.path.exists(os.path.join(os.path.curdir,"save")):
+            getGlobalSaveFile()
+        else:
+            try:
+                os.mkdir(os.path.join(os.path.curdir,"save"), )
+            except OSError:
+                print("Failed to create directory './save'. Aborting...")
+                rog.end()
+                return
+            print("Successfully created directory './save'.")
+            getGlobalSaveFile()
+        #init empty lists to fill later during loading
+        self.playableJobs=[]
+
+    #make the list containing the data that will be saved into globalsavedata
+        #by default (this is the lowest progress state)
+    def create_defaultData(self):
+        self.DEFAULTS = []
+        #add jobs
+        self.DEFAULTS.append('jobs')
+        for job in entities.getJobs().values(): #job chars
+            self.DEFAULTS.append(job)
+
+    #load the global saved data that's shared between games
+    def loadSavedData(self):
+        mode=''
+        try:
+            with open(self.file, 'r') as file:
+                for line in file:
+                    if 'jobs' in line:
+                        mode='jobs'
+                    elif mode=='jobs':
+                        self.playableJobs.append(line[:-1])
+        except FileNotFoundError:
+            print("ALERT: file '{}' not found.".format(self.file))
+            print("Creating file '{}'...".format(self.file))
+            self._write_defaults()
+            print("Initializing defaults from '{}'...".format(self.file))
+            self.loadSavedData()
+        except:
+            print("ERROR: saved data corrupted. Delete the file '{}' in the game's directory, and restart the game to init saved data to defaults...".format(self.file))
+            raise
+            
+    def write_defaults(self):
+        with open(self.file, 'w+') as file:
+            for item in self.DEFAULTS:
+                file.write("{}\n".format(item))
+
+    #load a game currently in progress
+    def loadGame(self):
+        pass
 
 
 
@@ -516,71 +596,4 @@ class GameData:
 
 
  # TODO: use pickle or other serializer rather than this nonsense.
-##
-##class SavedGame:
-##    
-##    def __init__(self):
-##        self.create_defaultData()
-##        #global save data is progress shared across savegames
-##        def getGlobalSaveFile():
-##            fname="globalsavedata.sav"
-##            try:
-##                self.file=os.path.join(os.path.curdir,"save",fname)
-##            except:
-##                with open(os.path.join(os.path.curdir,"save",fname), 'w+') as file:
-##                    pass
-##                self.file=os.path.join(os.path.curdir,"save",fname)
-##                self._write_defaults()
-##        if os.path.exists(os.path.join(os.path.curdir,"save")):
-##            getGlobalSaveFile()
-##        else:
-##            try:
-##                os.mkdir(os.path.join(os.path.curdir,"save"), )
-##            except OSError:
-##                print("Failed to create directory './save'. Aborting...")
-##                rog.end()
-##                return
-##            print("Successfully created directory './save'.")
-##            getGlobalSaveFile()
-##        #init empty lists to fill later during loading
-##        self.playableJobs=[]
-##
-##    #make the list containing the data that will be saved into globalsavedata
-##        #by default (this is the lowest progress state)
-##    def create_defaultData(self):
-##        self.DEFAULTS = []
-##        #add jobs
-##        self.DEFAULTS.append('jobs')
-##        for job in jobs.getJobs().values(): #job chars
-##            self.DEFAULTS.append(job)
-##
-##    #load the global saved data that's shared between games
-##    def loadSavedData(self):
-##        mode=''
-##        try:
-##            with open(self.file, 'r') as file:
-##                for line in file:
-##                    if 'jobs' in line:
-##                        mode='jobs'
-##                    elif mode=='jobs':
-##                        self.playableJobs.append(line[:-1])
-##        except FileNotFoundError:
-##            print("ALERT: file '{}' not found.".format(self.file))
-##            print("Creating file '{}'...".format(self.file))
-##            self._write_defaults()
-##            print("Initializing defaults from '{}'...".format(self.file))
-##            self.loadSavedData()
-##        except:
-##            print("ERROR: saved data corrupted. Delete the file '{}' in the game's directory, and restart the game to init saved data to defaults...".format(self.file))
-##            raise
-##            
-##    def write_defaults(self):
-##        with open(self.file, 'w+') as file:
-##            for item in self.DEFAULTS:
-##                file.write("{}\n".format(item))
-##
-##    #load a game currently in progress
-##    def loadGame(self):
-##        pass
-##
 

@@ -1,0 +1,94 @@
+ideas for weapon/armor mods
+
+
+greased heavy sharpened ornate metal sword +3
+
+
+
+sharpened/dulled? Mods or status effects?
+
+fitted
+	affects: all equipment
+	item is fitted to the player so it is the right size/shape for their body.
+	stat mods:
+		depends on equip. type. All primary stats +1
+	gained by: 
+		crafting it yourself and fitting it to yourself when you do so (takes a little longer to fit something as you craft it)
+		OR getting it fitted by a fitter, which costs money
+reinforced
+	affects: wood
+	item is reinforced with metal, making it capable of rusting, but increasing its strength/durability.
+heavy
+	affects: all equipment
+	stat mods:
+		mass 125%
+		value 125%
+		durability 90%
+		Dmg +1
+		Acc -2
+		DV -2
+		Asp -12
+		Msp penalty increased 133%
+slim
+	affects: all equipment
+	stat mods:
+		mass 80%
+		value 90%
+		durability 70%
+		Dmg -1
+		Acc +2
+		DV +1
+		Asp +12
+		Msp penalty cut to 90%
+greased
+	affects: all things
+	item is coated with grease, making it water-resistant. Metals don't rust.
+	stat mods:
+		Dur +120%
+	gained by: greasing (using grease object on the item)
+	removed by: scrubbing with soap; burning with fire
+sharpened
+	affects: cutting tools
+	stat mods:
+		accuracy +1, damage +1, penetration +1
+		cutting +1
+	gained by: sharpening tool w/ quality 1 greater than what is needed to sharpen it to a normal degree
+	removed by: striking a material of hardness 3 or greater
+dulled
+	affects: cutting tools
+	stat mods:
+		damage -1, penetration -1
+		cutting -1
+	gained by: striking a material of hardness 3 or greater
+	removed by: sharpening tool w/ sufficient quality for sharpening the material
+dented
+	affects: metal armor
+	stat mods:
+		AV -1
+		DV -4
+		Protection -2
+		Msp -15
+	other effects:
+		takes 150% longer to equip or take off armor that is dented.
+	gained by: armor taking a very powerful blow (damage 16 or greater)
+	removed by: repairing armor
+bent
+	affects: metal tools and weapons
+	stat mods:
+		accuracy -5, penetration -3, all other combat stats -1
+	gained by: striking a hard material. Chance increased the harder the material and further if striking item has REACH flag.
+	removed by: bending it back (context-sensitive action which takes 100 AP)
+ornate
+	affects: all things
+	item is encrusted with gems or diamonds, or gold-trimmed / hemmed, making it highly valuable.
+	stat mods:
+		value 150% + 25
+		durability 90%
+		mass 105%
+		harvestable: yields gem(s) or gold
+engraved
+	affects: all things
+	item is engraved with a rune or name, which may give it special powers or signify its owner.
+	value varies?
+	
+

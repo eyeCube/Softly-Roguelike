@@ -2,7 +2,10 @@
     thing.py
     Author: Jacob Wharton
 
-    TODO : convert this into new ECS system
+
+    OBSELETE
+
+    TODO: CONVERT THESE FUNCTIONS AND PUT IN ENTITIES.PY
 
 '''
 

@@ -8,18 +8,17 @@
 import tcod as libtcod
 
 from const import *
+
 import rogue as rog
 import orangio as IO
 import game
 import player
-##import observer
+##import observer    # TODO: implement observer as a processor
 
 # TESTING
-from thing import Thing
 from colors import COLORS as COL
 import debug
-import time
-import gear
+import entities
 #
 
 #
@@ -43,29 +42,36 @@ def main():
     rog.Rogue.create_world()
     rog.Rogue.create_controller()
     rog.Rogue.create_data()
-    rog.Rogue.create_map()
+    rog.Rogue.create_map(160,80)
     rog.Rogue.create_clock()
     rog.Rogue.create_updater()
     rog.Rogue.create_view()
     rog.Rogue.create_log()
-    rog.Rogue.create_savedGame()
+    rog.Rogue.create_savedGame() # TODO: learn/use Pickle.
     rog.Rogue.create_processors()
     rog.Rogue.create_perturn_managers()
     rog.Rogue.create_const_managers()
-    rog.Rogue.create_player(0,0) # what position should be given?
     
     rog.init_keyBindings()
         
-##    #map generation
+    #map generation
+    rog.map().init_specialGrids()
+    rog.map().init_terrain()
+
+    # init player
+    rog.Rogue.create_player(0,0) # is this the right position?
+
+    #TODO: create light so player can see!!!!!!!!!
+##    log=rog.create_stuff(THG.LOG, 18,18)
+##    rog.burn(log,200)
+
+    # TODO: map_generate function!!    
 ##    rog.map_generate(rog.map(),rog.dlvl())
-##
-##    # init player object
-##    pc=rog.create_player(15,15)
-##    # TODO: observer for player
-####    obs=observer.Observer_playerChange()
-####    pc.observer_add(obs)
-##    rog.view_center(pc)
-##    
+
+    # TODO?: observer for player
+##    obs=observer.Observer_playerChange()
+##    pc.observer_add(obs)
+    
 ##    
 ##    ##TESTING
 ##    rog.gain(pc,"hpmax",100)
@@ -127,6 +133,10 @@ def main():
 #-----------------------------------------------#
 
     rog.game_set_state("normal")
+##    # temporary...
+##    rog.update_base()
+##    rog.update_game()
+##    rog.update_final()
 
 ##    # initialize fov for creatures with sight
 ##    # IS THIS NOT WORKING???? WHAT'S GOING ON?
@@ -135,7 +145,8 @@ def main():
 ##            rog.fov_compute(creat)
     
     while rog.game_is_running():
-
+        pc=rog.pc()
+        
         # manually close game #
         if libtcod.console_is_window_closed():
             rog.end()
@@ -202,35 +213,6 @@ if __name__ == '__main__':
 
 
 
-
-'''
-        ### TESTING GIBBERISH TEXT-----------------
-        new = []
-        for j in range(1+int(random.random()*10)):
-            for i in range(1+int(random.random()*10)):
-                new.append( chr(int(random.random()*24)+97) )
-            new.append(' ')
-        text = ''.join(new)
-        rog.msg(text)
-        ###-----------------------------------------'''
-
-
-
-''' testing stat mods
-
-            print("name",mon.name,"hp",mon.stats.hp)
-            print("name",mon.name,"hpmax mod",mon.stats.get('hpmax'))
-            print("name",mon.name,"hpmax",mon.stats.hpmax)
-            for mod in mon.stats.mods:
-                print("-------------name","statmods",mod)'''
-
-
- 
-'''
-            dbox(25,5,40,10,
-                 "Sup nigga! I'm a straight up gangsta. Original-G. I ddon't play it like Shack, you'll know it was me, cuz the next time you see her she be like AHH!! Cap'n G!!!",
-                 border=3,margin=2)'''
-
     #tt = time.time()
 
 ## TIMING
@@ -238,22 +220,6 @@ if __name__ == '__main__':
 libtcod.console_print(0,0,0,str(tr))
 tt = time.time()'''
 ##
-
-
-'''
-# TESTING
-print(pc.stats.get('atk'))
-print(pc.stats.get('dmg'))
-print(pc.stats.get('asp'))
-wp = Weapon('chef knife')
-wield(pc,wp)
-print(pc.stats.get('atk'))
-print(pc.stats.get('dmg'))
-print(pc.stats.get('asp'))
-#'''
-'''tt = time.time()'''
-
-
 
 '''import cProfile
     import re

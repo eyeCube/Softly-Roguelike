@@ -1,0 +1,239 @@
+
+Chargen
+
+
+TODO: random roll to create char
+
+
+Gender
+	Does not affect stats.
+
+
+
+Job
+
+	
+	
+Skills
+	Talents (bonuses to learning potential for talents)
+	Training (char starts off with certain skill level in these)
+
+
+
+ATTRIBUTES
+	should there be attributes? What would they be if so?
+	
+	ATTRIBUTES THAT ARE SIGNIFICANT OR NEEDED:
+		(having one or more effects that aren't coverable by other stats.
+	Strength
+		Gra+ 	//grappling
+		Dmg+
+		Throwing Range +
+		Carrying capacity +
+		Required to wield equipment
+	Constitution
+		Encumberance from equipment is reduced
+		HP+
+		Sta+
+		Capacity for physical augmentations +
+	Intelligence
+		Identify+
+		Capacity for mental augmentations +
+		
+	OTHERS:
+	Dexterity
+		Atk+
+		Asp+
+		Range+ 	//throwing and ranged weapons
+		Required to wield weapons
+	Agility
+		DV+
+		Asp+
+		Msp+
+	Endurance
+		HP+
+	Willpower
+		bravery+
+		
+	
+
+
+
+PERKS (lul need a different name)
+Choose 1 perk:
+
+Frail
+	Max HP -50%
+	AV -1
+	Mass -15kg
+Overweight
+	Dmg +2
+	Pen +2
+	DV -8
+	Pro +2
+	Msp -50%
+	Mass +60kg
+Anxious
+	Atk -4
+	Bravery -4 (resistance to intimidation)
+Depressed
+	DV -2
+	MP -25%
+Opie Addict
+	Get withdrawals if you don't frequently take opies
+		Light withdrawal: status effect: Spd -10%
+		Withdrawal: status effect: Spd -25%
+		Heavy withdrawal: status effect: Spd -50%
+	Opies have 5% their usual effect
+	Start with 20 opies
+Antisocial
+	Your dice for social interactions is only 1-5 instead of the usual 1-10
+Ravenous
+	You require 3x as much food as usual.
+	You require 2x as much fresh water as usual.
+
+
+BODY TYPES
+Choose your body type:
+
+All different heights incur a penalty for wielding things fit for people of a different height
+Same goes for equipping gear but the penalty is more severe; cannot wear things 2 or more height classes away from your own
+
+Note: there is virtually no difference between the items of various sizes, except the Size value or component (how should it be implemented?)
+	but when you equip it you get a penalty if it's the wrong size or can't equip it.
+	However there is one difference: giant gear is more expensive (150%) and dwarf gear is less expensive (80%). This may be implemented on-the-fly rather than stored as changed data in the object itself (just record the size of the object).
+
+In order that they appear in the menu to choose your body type:
+
+Height:
+
+Available height classes:
+9  - Dwarf
+10 - V. Short
+11 - Short
+12 - Average
+13 - Tall
+14 - V. Tall
+15 - Giant
+
+Dwarf (DO NOT CHANGE HP OF DWARFS OR GIANTS. JUST DON'T DO IT!)
+	Player is dwarf-sized (can only wear dwarf gear, penalty for wielding non-dwarf weapons)
+	Atk -3		Pen -3
+	DV +3		AV -2		Pro +3
+	Msp -18
+	Mass -18kg
+V. Short
+	Atk -2		Pen -2
+	DV +2		AV -1		Pro +2
+	Msp -12
+	Mass -12kg
+Short
+	Atk -1		Pen -1
+	DV +1					Pro +1
+	Msp -6
+	Mass -6kg
+Average
+	No change to stats
+Tall
+	Atk +1		Pen +1
+	DV -1					Pro -1
+	Msp +6
+	Mass +6kg # instead of changing mass, change mass of most body parts
+V. Tall
+	Atk +2		Pen +2
+	DV -2		AV +1		Pro -2
+	Msp +14
+	Mass +14kg
+Giant
+	Player is giant-sized (can only wear giant gear, penalty for wielding non-giant weapons)
+	Atk +3		Pen +3
+	DV -3		AV +2		Pro -3
+	Msp +24
+	Mass +24kg
+
+Girth:
+
+Available Girth classes:
+2 - Gaunt
+3 - V. Slim
+4 - Slim
+5 - Average
+6 - Broad
+7 - V. Broad
+8 - Voluptuous
+
+maybe the AV change is gained only by the increase / decrease in fat? Like no explicit change in AV but indirectly it changes AV by ++fat or --fat
+	Same for Msp change, this is caused by reduction in fat (?)
+		And DV (?)
+	Is this complicating things too far? Nah, it's not that big a deal to just put the logic for fat amount affecting AV in _update_stats()... It works on a logarithmic scale, so every 4 or 5 times bigger/smaller only changes it by +1 or -1.
+		
+		# AV calculation function from fat amount (x)
+		if x > 100:
+			while x / 4 >= 100:
+				x = x / 4
+				av += 1
+		elif x < 100:
+			while x * 4 <= 100:
+				x = x * 4
+				av -= 1
+		# Msp calculation function from fat amount (x)
+		if x > 100:
+			while x / (11/10) >= 100:
+				x = x / (11/10)
+				msp += 1
+		elif x < 100:
+			while x * (11/10) <= 100:
+				x = x * (11/10)
+				msp -= 1
+		
+Regardless these are the values it should have
+
+Gaunt
+	HP -9
+	DV +3		AV -3
+	Msp +18
+	Fat 5% of usual
+V. Slim
+	HP -6
+	DV +2		AV -2
+	Msp +12
+	Fat 20% of usual
+Slim
+	HP -3
+	DV +1 		AV -1
+	Msp +6
+	Fat 50% of usual
+Average
+	No change to stats
+Broad
+	HP +3
+	DV -1		AV +1
+	Msp -6
+	Fat 200% of usual
+V. Broad
+	HP +6
+	DV -2		AV +2
+	Msp -12
+	Fat 500% of usual
+Voluptuous
+	HP +9
+	DV -3		AV +3
+	Msp -18
+	Fat 2000% of usual (values should maybe change!)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -13,6 +13,7 @@ import copy
 import rogue as rog
 from const  import *
 import orangio  as IO
+import components as cmp
 import word
 import colors
 COL = colors.COLORS
@@ -54,18 +55,19 @@ def render_hud(w,h,pc,turn,level):
             self.color=color
 
     # Setup #
-    
-    get = pc.stats.get
+
+    def get(stat):
+        return rog.getms(pc, stat)
     con = libtcod.console_new(w,h)
-    
-    strngStats = "__{name}__|Lo: {hp}|Hi: {mp}|Speed: {spd}/{asp}/{msp}|Hit: {hit}({hitb})|Pow: {dmg}({dmgb})|DV: {dfn}({dfnb})|AV: {arm}({armb})|FIR: {fir}|BIO: {bio}|DLvl: {dlv}|T: {t}".format(
-        name=pc.name,
+    name = rog.world().component_for_entity(pc, cmp.Name)
+    strngStats = "__{name}__|Lo: {hp}|Hi: {mp}|Speed: {spd}/{asp}/{msp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
+        name=name.name,
         hp=get('hp'),mp=get('mp'),
         spd=get('spd'),asp=get('asp'),msp=get('msp'),
         dlv=level,t=turn,
-        hit=get('atk'),hitb=pc.stats.atk,dmg=get('dmg'),dmgb=pc.stats.dmg,
-        dfn=get('dfn'),dfnb=pc.stats.dfn,arm=get('arm'),armb=pc.stats.arm,
-        fir=get('resfire'),bio=get('resbio'),
+        hit=get('atk'),dmg=get('dmg'),pen=get('pen'),
+        dfn=get('dfn'),arm=get('arm'),pro=get('pro'),
+        fir=get('resfire'),bio=get('resbio'),elc=get('reselec'),
     )
     stats=strngStats.split('|')
     statLines=[[]]

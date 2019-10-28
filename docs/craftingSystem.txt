@@ -1,0 +1,50 @@
+Crafting system
+
+"
+ due to the Entity-Component-System, any item can have any components, meaning a bone can be a crafting ingredient but also a crude weapon and a hammer of quality 2. An axe is a chopping tool but can double as a hammer of quality 3, and can be used as a crude chisel in a pinch. If you need to craft something fine like a watch or some shit, obviously you need high quality tools, but for driving a nail into wood, a simple stone will suffice.
+Of course axes and hammers are also effective weapons in combat, but not as effective as actual weapons of war, while weapons of war can be used as tools on the battlefield but they are generally not as effective as the designated tools specifically designed for that purpose
+"
+
+
+Introduction
+
+The crafting system in Softly Into the Night is inspired by the popular Roguelike, Cataclysm: DDA. It does, however, have many unique characteristics.
+
+Like C:DDA, the crafting system in Softly makes use of a comprehensive tool system. Unlike Cataclysm, however, our system is far more realistic. But don't worry, it's still a game, so of course you can craft things at Usain Bolt speeds, and metal conveniently cools off very quickly and doesn't need to be tempered, etc. What you will need, however, is a more realistic set of tools and components to follow the recipes; or, at least, that's the goal.
+
+Tools
+
+Most recipes in Softly require more than the ingredients that make up the end result, but also require tools of certain qualities to perform the job. Tools come in many sizes and shapes; in fact, due to the Entity-Component-System (ECS) pattern that Softly implements (courtesy of esper), any entity in the game might theoretically be useful as a tool somehow.
+
+For instance, a bone is not only a crafting ingredient, but also a weapon in and of itself, and possesses further a level 2 hammer ability. This makes the bone useful for many purposes, including basic crafting jobs requiring a hammer. Knives are weapons, but also effective cutting tools and can be used as chisels in a pinch.
+
+This is true of all items in the game; nothing is limited to just one type of object. A thing can be a piece of armor, and also a crafting ingredient, and also a living, moving creature! This is just a taste of the endless possibilities granted by the ECS pattern.
+
+Raw Materials
+
+Crafting recipes use all kinds of items in the game as components, but the primary ingredients are known as raw materials, and consist of over 100 different items. All items in the game, however, are considered composed of only one of 16 material types.
+
+The 16 materials are as follows:
+	* clay
+	* ceramic
+	* cloth
+	* stone
+	* plastic
+	* wood
+	* bone
+	* metal
+	* leather
+	* boiled leather
+	* flesh
+	* tarp
+	* glass
+	* rubber
+	* carbon
+	* rope
+	
+(There is technically one more material type, dust.)
+
+
+
+
+

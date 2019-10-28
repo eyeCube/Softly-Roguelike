@@ -1,0 +1,889 @@
+
+
+
+
+INVESTIGATE:
+	ashes burning, fire not killing corpses.
+	TRACK: HOW MANY THINGS WITH STATUS EFFECTS ARE THERE?
+		after something burns to death, it should be removed from the game entirely, including being removed from all lists like the status effect list.
+	FIRE REMOVAL HAPPENING TOO OFTEN
+	CORPSES BURNING TO DEATH INDEFINITELY
+		ASHES NOT GETTING CREATED
+	FIRE LIGHTS SHOULD SHINE AT END OF TURN, UNSHINE ONLY IF NECESSARY
+	FIRE SHOULD NOT DIE AND REGEN EVERY GAME TURN, THIS WILL SLOW DOWN THE GAME A LOT.
+	SET_FIRE GETTING CALLED TOO OFTEN
+	GAME_UPDATE GETTING CALLED TOO OFTEN
+	IN_RANGE GETTING CALLED A LOT
+	maybe we shouldn't sleep so much? Or try wait instead of check for input?
+	refresh
+	
+	
+	
+Todo:
+	overhaul status effect meters system
+		fire resistance = how much heat you can take before catching fire.
+		bio res = how infected you can get before getting sick, etc.
+		elemental damage is fixed; flamethrower always deals 50 fire damage or w/e, regardless of resistance
+		meters drop faster if more full? (hotter you are, quicker you cool?)
+			may not be needed and may complicate things.
+		Like Dark Souls.
+	stealth
+		sneak - move slowly and quietly, making no noise and reducing chance to take damage from traps, etc.
+	consolidate item IDs all into one long list
+		weapons, ingredients, ammo, armor, interactables, food, consumables, containers, etc.
+		no item IDs overlap, so this way you can put ingredients for crafting recipes just by putting their ID in there
+	light sources
+		torches
+		candles
+			wick doesn't have to burn with capillary action candle
+			any type of oil can be used
+			oil lamp / cup candle:
+				wick, cup, oil as fuel
+			naked candle:
+				fat or wax, wick
+			candle
+	figure out
+		what to do when you equip something that gives you a flag/component
+			what if you already have that flag/component?
+	writing
+		writing in dust on floor
+		graffiti
+		pen on paper
+		terminal typing
+	alcoholic beverages
+		mead (honey wine) (can produce by throwing honey in a pot with water and passing time)
+			if I do this maybe there should be some way to pass long periods of time like resting for weeks
+				premature mead
+				mead
+				aged mead
+		wine
+		moonshine (can produce it with a still)
+	add minerals
+		flint - can produce sparks from metal striking
+		quartz - can produce sparks from metal striking
+	test speed of ECS system, including:
+		new status effect processor
+	action: aim
+		increases accuracy +5 every time you use it
+		if you perform any action other than aiming or firing, the aim accuracy bonus is lost.
+	shooting
+		if ammo is balls, then you need black powder in inventory to load the gun
+		arrows can disable shields, need to remove arrow to make shield usable
+	hunger and thirst
+		could implement as extensions of Hp and Mp (Lo and Hi points). Similar to Dishonored, except you slowly lose Lo/Hi due to starvation/dehydration, respectively.
+			Pros: simple. Intuitive. Easy to understand, easy to implement. Streamlined. Increases urgency of hunger and thirst intuitively without needing to add artificial penalties for being hungry etc. Reduces HUD clutter. Can implement hunger/thirst in NPCs effectively and easily, allowing them to need to eat to recover, which improves gameplay mechanics. Zelda BOTW did it.
+			Cons: annoying to lose Hp and especially Mp over time, since typically you would gain them slowly over time. Could die of starvation at unopportune times, but that's typical of RLs.
+	item mods change quality, etc.
+		different quality levels have different colors for their text.
+	overhaul hud
+	examine overhaul
+		allows you to look at all items in a tile, not just the one on top (also details terrain)
+	backpack, the magical technology that makes items have no volume
+	replace for loops with numpy iterators to speed up/optimize the game.
+	level generation
+	eating + corpse eating
+	status effects - fire, bio to start IN PROGRESS
+		fire tiles separate from burning status effect
+	skills IN PROGRESS
+	implement delayed actions ( immediate actions vs. ) IN PROGRESS
+	town w/ shops
+	saving (use pickle)
+		save everything in game into ONE object, then serialize that object.
+		deserialize to load.
+		https://www.reddit.com/r/roguelikedev/comments/bd7oh5/memory_usage_for_large_maps/
+	improve speed
+		https://www.reddit.com/r/roguelikedev/comments/bhrmnr/how_to_make_game_less_laggy/
+	implants, robotic limbs
+	improve sounds - enemy hearing, reacting to sense events
+		sound of fire burning should only play when wood is burning
+		sound of fire should also be much quieter
+	aiming - similar to Sea of Green implementation
+	alert: can hear fire through walls
+	body swapping (controlling other entities)
+		change pc pointer to the object you want to control. Should be easy.
+	materials affect properties of objects
+	overhaul fire system: mix tilemap's grid_fires with fire manager
+		- make fires not thing-based but tile-based entities.
+		Status manager handles fire DOT
+		fire spreads when you move
+	checker the tiles in the grid, add random noise to color
+	Things drop their inventory when they die
+	terminals
+	companions
+	different AI for each creature type
+	Brogue-style UI with sidebar showing things in view, things you can hear, etc.
+	things get bloody during combat
+	holes that you can fall through
+	dark areas which are barely lit up are colored blue-ish
+	when in water:
+		vision affected if submerged
+		lose items if high water that is flowing
+		items in inventory get wet / rust if high water
+	weapons types
+	wrestling
+	robotics
+		drone bots, swarm bots, nanobots
+		robots / androids / AI systems
+		cyborg prosthetics, chip implants
+	railguns mounted guns
+	add_listener_sounds for monsters who can hear
+	make game exportable on as many platforms as possible
+		https://benob.itch.io/expelledrl 
+		this game is python tcod and exportable.
+	sounds should be visible as a colored musical note on the map.
+		what you see, hear, feel, smell, taste should only give a message if necessary to express to the player what's happening. Separate senses?
+	only update fov if:
+		thing moved
+		tilemap updated opacity of one or more tiles
+	mutations - have pros and cons
+		chargen allows you to select genetic mutations
+	overencumberance, volume???
+	displacing actors
+Done:
+	gear, equipping gear
+	chargen
+	highlight the player's tile background (optionally)	
+	different types of damage
+	overhauled fire
+	status effects make messages when added or removed
+		only for player?
+		could be for all actors in vision of the player but this could be reserved for if you have superpowers of observation.
+	
+	
+	weapons types
+		fighting
+			knives
+			batons
+			swords
+			staves
+			spears
+			axes
+			cudgels
+			electric saws
+			tasers
+			plasma swords
+			throwing weapons (non-explosive)
+				throwing knives, axes, spears
+				stones
+		ranger
+			bows
+			crossbows
+			slings
+			slingshots
+			blowguns
+			throwing
+		heavy weapons
+			flame/bio throwers
+			nuclear weapons
+			guided missile weapons
+		directed energy weapons
+			stun guns (electricity damage)
+			microwave beams - crowd control
+			laser beams - disorienting / blinding
+				affected by fog, etc.
+			sonic weapons - deafening / lethal
+				causes lo dmg if sound loud enough.
+		bullet weapons
+			hand cannons
+			muskets
+			pistols
+			rifles
+		explosives
+			grenades / bombs
+			molotov cocktails
+			mines
+		nonskilled weapons systems
+			plasma forcefields
+			stealth systems
+			tracking drones (buzzsaw drones, ...)
+			
+Ammo
+	bullets: slings, slingshots, flintlock guns
+	cartridges: guns
+	shells: shotguns
+	stones: slings, 
+	arrows: bows
+	bolts: crossbows (?)
+	fluids of various kinds: heavy (bio) weapons
+	electricity: electrical weapons
+	gunpowder: required for flintlock guns in addition to bullets
+	
+	
+	
+Thing mods:
+	tiny
+		volume /4
+		mass /4
+	small
+		volume /2
+		mass /2
+	big
+		volume x2
+		mass x2
+	giant
+		volume x4
+		mass x4
+	
+HUD:
+	message log on top
+	hud on left or right
+		shows player stats, and all things in view / on player's tile
+		
+		[@] Jake
+		rogue technician
+		Lo: 15 (20)
+		Hi: 16 (20)
+		TEMP cold (-46)
+		BIO  queasy (+63)
+		CHEM inflamed (+10)
+		
+		[r] ravaged
+		[e] garbage borg
+		[P] riot police
+		[R] x2 orctepus
+		
+		Where you stand: 4 of destiny, long spear, crude cudgel, laquered cloak +1, <purple>staircase down</purple>
+		
+	
+	
+Combat:
+	Knowledge
+		while you can see your foe, you gain knowledge about them each turn they are in vision.
+		Knowledge gained affected by distance and the number of foes you can examine
+			foes that can be examined are close enough to examine while also being in sight; of course player cannot be blinded
+		Engaging in combat grants the most knowledge.
+	
+	Reach:
+		if a weapon has reach, then you can perform a free attack by stepping towards a foe
+		foe must be in the direction you move
+		weapons with reach get -25% Atk when fighting in corridors or corners (surrounded by 5 or more adjacent walls)
+
+Portals???	
+
+Worldgen
+	Levelgen
+		spanning tree
+		
+	
+Fire behavior
+	Check for dying conditions:
+		Each turn there's a chance to die depending on the fuel (or lack thereof) available in that tile.
+		If the tile of the fire is shallows or water or deepwater, then the fire goes out. If it's a puddle, the puddle turns into steam and the fire dies.
+	Each turn there's a chance to leap to an adjacent tile, adding a new fire at that spot.
+	When something on fire moves, the tile it moves to catches fire.
+	When something is on fire, everything in its inventory takes burn damage too.
+	
+Electricty status
+	idea: add an electric meter
+		when full, you get paralyzed
+	
+	
+	
+Material of object influences several things about it. Rather than having dozens of describing variables about the object's physics, it just has one variable: material. Examples of how material affects its interactivity:
+	brittleness - likelihood to shatter when killed
+	malleability - tendency to lose its shape when struck
+	bounciness - tendency to bounce when striking a surface
+	reflectiveness - ability to reflect lasers
+	transparency - ability for light/LOS to pass through
+	flammability - brightness / intensity of the flame it produces
+	friction - tendency to slow when sliding across surfaces
+	density - affects settling point when suspended in fluid
+	
+	
+Hazards (bio, chem, radiation) stick around for a long time.
+Fires are shorter lasting.
+Brightness of fires based on the material of the fuel.
+	wood burns bright gold, red, yellow
+	flesh does not burn brightly, burns red
+	cloth burns medium brightness
+	oil burns medium, burns green
+	tar burns bright, burns gold
+	fungus burns dimly blue
+levels.py could contain code for generating floors based on their depth
+	uses proc. gen. functions from TileMap
+
+	
+TYPES OF DAMAGE:
+
+Physical damage:
+	deals Lo chi damage
+
+FIRE damage:
+	FIRE resist
+	causes TEMP meter to raise.
+	When TEMP meter full, you catch FIRE, and TEMP meter stays maxed out for the duration of the status.
+	FIRE status:
+		damage over time to Lo chi
+		fire spreads to other flammable things
+		can be put out with water
+
+HAZARD damage:
+	Inflicts a HAZARD status.
+	All HAZARD damage types are resisted by HAZARD resist.
+	BIO damage:
+		Causes IMMUNITY meter to raise (depending on your resistance).
+		When IMMUNITY meter full, you become ill, and meter stays maxed out for the duration of the status.
+		ILL status:
+			slow damage over time to Lo and Hi chi
+			chance to vomit
+			no appetite - cannot eat
+	CHEM damage:
+		Causes instantaneous effect if not resisted.
+			effects short-lived compared to bio effects
+		Causes Lo damage over time.
+		causes EXPOSURE meter to raise (depending on your resistance).
+		When EXPOSURE meter full, you die.
+		causes a random one of the following statuses:
+			irritation
+			paralysis (if airborne)
+			blindness (if airborne)
+			uncontrollable coughing (if airborne)
+			uncontrollable vomiting (if airborne)
+	RAD damage:
+		Exposure causes RAD meter to increase (depending on your resistance)
+		When RAD bar is full, causes mutation, then RAD bar is reset.
+			mutation causes a permanent change in the creature
+			also permanently lowers maximum Hi chi by 1
+	
+ELECTRIC damage:
+	ELEC resist
+	instantaneous effect
+	causes instant damage to Hi chi
+	damage Lo chi if damage is high enough
+		(more damage => more Lo damage)
+		LoDamage = int((ELEC damage - resist) / 25)
+	causes paralysis if damage is higher
+	causes knockback if damage is REALLY high
+	causes instant death if (ELECTRIC damage - ELEC resist) >= 100
+	
+Resistances:
+	FIRE
+	HAZARD
+	ELEC
+	
+	
+Meters:
+	FIRE 								(temperature?)
+		FIRE damage raises this meter
+	BIO 								(immunity, sick?)
+		BIO damage raises this meter
+	CHEM 								(exposure?)
+		CHEM damage raises this meter
+	RADS
+		RAD damage raises this meter
+	
+	
+	
+Things to add to the HUD:
+	$ money
+	
+	
+
+Skills:
+	Skills have 3 levels:
+		0 (not skilled, cannot do related actions)
+		1 (skilled, can do any related action)
+		2 (master, can do any related action with extreme proficiency)
+	
+	The Skills are as follows:
+	
+	engineer
+		build/repair computers and robots
+		"conjurer"
+	tech
+		use computers to immediately effect the real world around you
+		"enchanter"
+	chemistry
+		use labs to mix chemicals and create potions, poisons, bombs, fire, and bio weapons
+		"alchemy"
+	fighter
+		perform melee combat with blunt force and bladed weapons; hand-to-hand combat
+	guns
+		use and service small guns, shotguns, rifles, snipers, assault weapons, nonlethal kinetic projectile weapons like anti-riot beanbag shotguns, etc.
+	heavy weapons
+		use and service heavy weapons (2-handed guns: machine guns, launchers, guided missile weapons systems, nuclear weapons, chem/bio/flame weapons,)
+	energy weapons
+		use and service directed energy weapons
+			sonic weapons, lasers, masers, tasers, 
+	pilot
+		drive vehicles (aircraft, watercraft, landcraft)
+			aircraft: helicopters (can be implemented in gameplay), planes (fast travel)
+			watercraft: hovercraft, jetski?? NO: submarines, boats (water not deep enough)
+			landcraft: tanks, trucks
+		pilot drones
+	metalsmith
+		forge metal equipment using scrap metal
+	athletics
+		perform athletic feats such as sprinting, climbing, jumping, and crawling through small spaces
+	persuade
+		smooth-talk people to win them over
+	stealth
+		sneak, reducing the amount of noise you make; perform sneak-attacks on unaggroed enemies to deal massive damage that ignores AV and DV.
+
+	
+Chargen:
+	Choose:
+		name
+			up to 20 characters, ASCII values only
+		gender
+			Male, Female, or Nonbinary
+				allow creation of new genders
+		background (starting class) 
+			These classes only influence your starting conditions. Any character can gain any of these abilities and more. However, it may be difficult and costly to acquire them. To learn a new skill takes a lot of time, so it is impractical to learn in the traditional sense; instead you must pay to have the skills implanted in your brain.
+			Note: Not all professions are available to the player at the beginning of the game (i.e. they must be unlocked, first).
+			engineer: e
+				$500
+				Lo +5
+				computer closet access
+				Laptop
+				engineer skill +
+					building machines, repairing
+			technician: T
+				$500
+				Hi +5
+				cell phone
+				tech skill +
+					Magitech skill: ability to use computers
+					some computers require a certain tech level to use
+			thief: t
+				$1000
+				Hi -5
+				DV +2
+				MSp +10
+				melee skill +
+				stealth skill +
+			security officer: O
+				$300
+				Attack +3
+				level 3 security clearance
+			athlete: A
+				$300
+				DV +4
+				MSp +20
+				athlete skill +
+			pilot: p
+				$500
+				pilot license
+				pilot skill +
+			smuggler: u
+				$1000
+				pistol
+				persuade skill +
+				gun skill +
+			chemist: C
+				$500
+				level 6 security clearance
+				chemistry skill +
+			politician: I
+				$1000
+				Lo -5
+				Hi +5
+				level 4 security clearance
+				credit card
+			riot police: P
+				$300
+				Attack +3
+				Damage +1
+				ASp +10
+				level 5 security clearance
+				melee skill +
+			janitor: j
+				$100
+				can access janitor's closets
+			deprived: d
+				$0
+				Attack -5
+				Lo -5
+				Hi -5
+		
+		gift
+			Choose one starting item.
+			Choices:
+				None (no item)
+				Stuffed animal
+				Locket
+				Pocket knife
+				Key chain
+				Credit card
+				Bayball cap
+				Fake license
+				Laser pointer
+				Cell phone
+				Lighter
+				Bandana
+			
+		skills
+			pick 1 extra skills to add to your character's list of skills.
+			"You managed to sneak in a significant amount of training as a young adult, under the guidance of your wise guardian."
+			
+		stats
+			Choose stats to buff or nerf.
+			You have 2 points to spend.
+			Costs 1 point to buff a stat.
+			You gain 1 point if you nerf a stat.
+			Each stat can only be buffed or nerfed twice.
+			Stats to select from:
+				Lo energy
+					Default: 10
+					+/- 5 Lo
+				Hi energy
+					Default: 10
+					+/- 5 Hi
+				Attack
+					Default: 5
+					+/- 2 Attack
+				Damage
+					Default: 2
+					+/- 1 Damage
+				DV
+					Default: 2
+					+/- 1 DV
+				AV
+					Default: 0
+					+/- 1 AV
+				MSp
+					Default: 100
+					+/- 5 MSp
+				ASp
+					Default: 100
+					+/- 5 ASp
+		perks?
+	
+	
+Status Effects:
+	fire
+		Lo drains 1 per turn
+		destroys flammable items you are carrying
+		spreads to other flammable things
+		can be put out by water or rolling
+		lasts a short time
+	bio
+		Lo drains slowly
+		damages equipment you are wearing
+		can be distilled by water
+		lasts a long time
+	fear
+		Character's fight-or-flight mode takes over, and he runs for cover uncontrollably, unless cornered in which case he attacks automatically.
+	poisoned
+		Move Speed -25
+		Lo and Hi energy drain at 125% the normal rate and recover at 75% speed
+		causes you to vomit anything you're digesting
+	tripping
+		Vision -50%
+		50% chance to move randomly
+	hasty
+		Speed +50
+	hasty withdrawal
+		Speed -50
+	full
+		Move Speed -10
+	hungry
+		Speed -10
+	starving
+		Speed -20
+		Attack -2
+		Power -2
+		Lo and Hi energy drain at 125% the normal rate and recover at 75% speed
+	famished
+		Speed -30
+		Attack -4
+		Power -4
+		Lo and Hi energy drain at 150% the normal rate and recover at 50% speed
+	emaciated
+		Speed -40
+		Attack -6
+		Power -6
+		Lo and Hi energy drain 175% faster and recover at 25% speed
+		
+Hunger
+	In the apocolypse, good food is scarce. Survival requires being able to find and secure vital food supplies.
+	Hunger loss rate:
+		1 per turn
+		50 per attack
+		5 per move (25 if sprinting)
+	Hunger stages
+		Hunger: 50,000 maximum
+		full		95%+
+		satiated	90%+
+		nourished	85%+
+		hungry		75%+
+		starving	50%+
+		famished	25%+
+		emaciated	<25%
+		dead		0
+	Multiply Food units Factor: 250
+		(all food items recover hunger units equal to their food units * 250)
+
+
+Stats:
+	Lo qi
+		costs Lo qi to attack with heavy weapons
+		some enemies deal Lo qi damage
+	Hi qi
+		costs Hi qi to attack with tech weapons
+		some enemies deal Hi qi damage
+	AP (Action Points)
+		Potential to perform actions; all actions require Action Points to perform and when you run out, your turn ends.
+	speed
+		how many Action Points you gain per turn
+		only increases in rare cases like if you take moon sugar
+	attack spd	
+		With increased attack speed, attacking becomes more efficient, reducing the number of Action Points required to attack.
+		modified by weapons
+	move spd
+		With increased move speed, moving becomes more efficient, reducing the number of Action Points required to move.
+		modified by equipment
+	attack
+		increases chance to hit foes
+		There is no limit to how much Attack you can have, and your chance to hit continues increasing with each additional point in Attack (with diminishing returns).
+		It is very important to have a decent Attack value in order to ensure you can successfully hit foes, as it is possible to have only a 5% chance to hit if your foe has 19 more DV than you have Attack.
+		It is impossible to have lower than a 5% chance to hit.
+	power
+		increases damage
+	DV
+		Dodge Value
+		Increases chance to dodge foes' attacks. With negative DV, your foes have a greater chance to hit you. However, increasing DV has little effect until you gain a lot of it, at which point it becomes more and more effective. If (your opponent's Attack - your DV) <= 1 then your opponent has only a 5% chance to hit.
+	AV (Armor Value)
+	ResBIO (Resist BIO-type damage)
+	ResFIR (Resist FIRE-type damage)
+	
+	
+	NOTE: reload time:
+	 #reload time is separate from time it takes to refill the mag. pistol for example takes just one turn to replace the mag. Takes longer to actually fill the mag if you don't already have a full mag.
+Guns
+	attachments:
+		bayonet
+		suppressor
+	
+	flintlock musket
+		type: gun
+		hands: 2
+		Ammo: balls
+		attack: 0
+		damage: 5
+		atk spd: -25
+		mov spd: -20
+		range: 8
+		reload time: 5T
+		
+	flintlock pistol
+		
+	justy
+		type: gun
+		hands: 1
+		firing modes: semi
+		1.0kg
+		Ammo: small pistol cartridges
+		magazine type: small mags
+		attack: 15
+		damage: 5
+		atk spd: 10
+		mov spd: 0
+		range: 20
+		reload time: 1T
+	revolver
+		type: gun
+		hands: 1
+		firing modes: semi
+		2.0kg
+		Ammo: revolver cartridges, magnum cartridges
+		magazine type: multi-chamber cylinders
+		attack: 2
+		damage: 15
+		atk spd: -25
+		mov spd: 0
+		range: 15
+		reload time: 2T
+	ratslayer
+		type: gun
+		hands: 2
+		firing modes: semi 		//(what's the gameplay diff. btn. semi and bolt-action?)
+		3.25kg
+		Ammo: LR cartridges
+		magazine type: none 	//direct feed (how to show this?)
+		attack: 5
+		damage: 5
+		atk spd: 10
+		mov spd: -15
+		range: 10
+		reload time: 1T per 2 bullets loaded
+	cancan  (can cannon)
+		type: gun
+		hands: 2
+		5.0
+		Ammo: anything under 100 cubes
+		Powered by compressed air
+		attack: -10
+		damage: 3
+		atk spd: -25
+		mov spd: -30
+		range: 10
+		reload time: 3T
+		
+	
+		
+	
+Cartridges (Ammo)
+	LR cartridge
+		type: small rifle cartridge
+		0.010kg
+		damage: 5
+		attack: 5
+	mushroom rifle cartridge
+		type: medium rifle cartridge
+		0.02kg
+		damage: 15
+		attack: 0
+		damage +10 vs. flesh
+	FMJ rifle cartridge
+		type: medium rifle cartridge
+		0.025kg
+		damage: 10
+		attack: 5
+		change to pierce target: 50%
+		damage +5 vs. metal
+	armor-piercing rifle cartridge
+		type: big rifle cartridge
+		0.05kg
+		damage: 15
+		attack: 5
+		atk spd: -10
+		change to pierce target: 75%
+		damage +15 vs. metal
+	Magnum cartridge
+		type: magnum cartridge
+		0.010kg
+		damage: 25
+		attack: -15
+		atk spd: -50
+	Revolver cartridge
+		type: revolver cartridge
+		0.010kg
+		damage: 15
+		atk spd: -20
+		
+	
+Fluids
+	flow
+	can be picked up into containers
+	can be spilled from containers
+	can be poured into devices like the still
+	
+Ranged attacks
+	Range stat is effective range; range at which you are guaranteed to hit the tile if you aim properly
+	Without aiming, what happens? Should aiming be required?
+		aiming could just give a Range bonus (multiplier x2?)
+	
+	
+	
+
+
+Weapon classes
+	Axes
+		dismember
+	Cudgels
+		cut target AV to 2/3
+	Hammers
+		Destroy armor
+	Swords
+		Parry
+	Knives
+		Critical hit (chance to do 25% of enemy's total life in damage)
+	Spears
+		Deadly when thrown (2x damage)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+melee weapons
+	standing	
+.....
+.xxx.
+.x@x.
+.xxx.
+.....
+	moving
+	rapier-style
+.....	
+.....
+..x2.
+..1x.
+.....
+.....
+	slash-style
+.....	
+.....
+.x2x.
+..1..
+.....
+.....
+	knife-style
+.....	
+.....
+..2..
+.x1x.
+.....
+.....
+
+range (ranged weapons)
+........................
+........................
+...........5............
+.........55455..........
+........5443445.........
+.......543323345........
+.......543212345........
+......54321@12345.......
+.......543212345........
+.......543323345........
+........5443445.........
+.........55455..........
+...........5............
+........................
+
+
+
+
+
+
+sequence 7/100
+	0
+	7
+	14
+	21
+	28
+	35
+	42
+	50
+	57
+	64
+	71
+	78
+	85
+	92
+	100
+	
+	8/100
+	0
+	8
+	16
+	25
+	33
+	42
+	50
+	58
+	66
+	75
+	83
+	92
+	100
+	

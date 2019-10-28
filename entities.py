@@ -19,26 +19,27 @@ import dice
 
 NUMWPNSTATS = 3
 
+
 FLSH = MAT_FLESH
-VEGG = MAT_VEGGIE
-FUNG = MAT_FUNGUS
 LETH = MAT_LEATHER
+BOIL = MAT_BLEATHER
 CLTH = MAT_CLOTH
 WOOD = MAT_WOOD
 BONE = MAT_BONE
 CARB = MAT_CARBON
+TARP = MAT_TARP
 PLAS = MAT_PLASTIC
 METL = MAT_METAL
 STON = MAT_STONE
 DUST = MAT_DUST
-GUNP = MAT_GUNPOWDER
 ROPE = MAT_ROPE
-
-NASTY= TASTE_NASTY
-BITTR= TASTE_BITTER
-SWEET= TASTE_SWEET
-SALTY= TASTE_SALTY
-SAVOR= TASTE_SAVORY
+CLAY = MAT_CLAY
+CERA = MAT_CERAMIC
+GLAS = MAT_GLASS
+RUBB = MAT_RUBBER
+QRTZ = MAT_QUARTZ
+##VEGG = MAT_VEGGIE
+##FUNG = MAT_FUNGUS
 
 PH = ELEM_PHYS
 FI = ELEM_FIRE
@@ -51,22 +52,36 @@ ARMR = T_ARMOR
 HELM = T_HELMET
 BACK = T_CLOAK
 
-TSTO    = T_STONE
-MEL     = T_MELEEWEAPON
-OFF     = T_OFFHANDWEAP
-ENER    = T_ENERGYWEAPON
-HEVY    = T_HEAVYWEAPON
-GUN     = T_GUN
-BOW     = T_BOW
-SLNG    = T_SLING
-EXPL    = T_EXPLOSIVE
-
 A_BULL = AMMO_BULLETS
-A_CART = AMMO_CARTRIDGES
-A_SHOT = AMMO_SHOT
-A_SLING= AMMO_SLING
-A_STONE= AMMO_STONES
+A_BALL = AMMO_CANNONBALLS
+A_PCAP = AMMO_PERCUSSIONCAPS
+A_PC   = AMMO_PAPERCARTRIDGES
+A_SPEAR= AMMO_SPEARS
+A_AIR  = AMMO_AIRGUN
+A_22LR = AMMO_22LR
+A_9MM  = AMMO_9MM
+A_357  = AMMO_357
+A_10MM = AMMO_10MM
+A_45   = AMMO_45ACP
+A_44S  = AMMO_44SPL
+A_44M  = AMMO_44MAG
+A_30   = AMMO_30CARBINE
+A_556  = AMMO_556
+A_762  = AMMO_762
+A_308  = AMMO_308
+A_3006 = AMMO_3006
+A_300  = AMMO_300
+A_50   = AMMO_50BMG
+A_2GA = AMMO_2GA
+A_3GA = AMMO_3GA
+A_4GA = AMMO_4GA
+A_6GA = AMMO_6GA
+A_8GA = AMMO_8GA
+A_10GA = AMMO_10GA
+A_12GA = AMMO_12GA
+A_WARO = AMMO_WARARROWS
 A_ARRO = AMMO_ARROWS
+A_BOLT = AMMO_BOLTS
 A_ELEC = AMMO_ELEC
 A_FLUID= AMMO_FLUIDS
 A_OIL  = AMMO_OIL
@@ -76,8 +91,15 @@ A_CHEM = AMMO_CHEMS
 A_ROCKT= AMMO_ROCKETS
 A_GREN = AMMO_GRENADES
 A_FLAM = AMMO_FLAMMABLE
+A_DART = AMMO_DARTS
 A_ANY  = AMMO_ANYTHING
+A_SLING= AMMO_SLING
 
+# skill data - simplifications
+SKL_ENDOVEREND  = SKL_THROWING
+SKL_PITCHING    = SKL_THROWING
+SKL_SPINNING    = SKL_THROWING
+SKL_TIPFIRST    = SKL_THROWING
 
 
 
@@ -85,75 +107,224 @@ A_ANY  = AMMO_ANYTHING
 
 
 # GEAR #
-    #non-weapon gear
-def get_gear_type(gData):           return gData[0]
-def get_gear_value(gData):          return gData[1]
-def get_gear_mass(gData):           return gData[2]
-def get_gear_hpmax(gData):          return gData[3]
+    #armor/headwear/facewear/eyewear (share most of these)
+#--$$$$$, KG,  Dur, Mat, (DV, AV, Pro,Vis,MSp,FIR,BIO,ELE,PHS),script
+def get_gear_value(gData):          return gData[0]
+def get_gear_mass(gData):           return gData[1]
+def get_gear_hpmax(gData):          return gData[2]
+def get_gear_apCost(gData):         return gData[3] # AP cost to put on/ take off
 def get_gear_mat(gData):            return gData[4]
-def get_gear_dfn(gData):            return gData[5][0]
-def get_gear_arm(gData):            return gData[5][1]
-def get_gear_msp(gData):            return gData[5][2]
+def get_gear_dv(gData):             return gData[5][0]
+def get_gear_av(gData):             return round(MULT_DMG_AV_HP*gData[5][1])
+def get_gear_pro(gData):            return round(MULT_PEN_PRO*gData[5][2])
 def get_gear_sight(gData):          return gData[5][3]
-def get_gear_resbio(gData):         return gData[5][4]
+def get_gear_msp(gData):            return gData[5][4]
 def get_gear_resfire(gData):        return gData[5][5]
-def get_gear_reselec(gData):        return gData[5][6]
-def get_gear_script(gData):         return gData[6]
+def get_gear_rescold(gData):        return gData[5][6]
+def get_gear_resbio(gData):         return gData[5][7]
+def get_gear_reselec(gData):        return gData[5][8]
+def get_gear_resphys(gData):        return gData[5][9]
+def get_gear_resbleed(gData):       return gData[5][10]
+    # armor only
+def get_armor_script(gData):        return gData[6] 
+    # eyewear
+def get_eyewear_script(gData):      return gData[6]
+    # facewear
+def get_facewear_eyes(gData):       return gData[6] # covers eyes?
+def get_facewear_script(gData):     return gData[7]
+    # headwear
+def get_headwear_face(gData):       return gData[6] # covers face?
+def get_headwear_eyes(gData):       return gData[7] # covers eyes?
+def get_headwear_script(gData):     return gData[8]
     #weapons
-def get_weapon_type(gData):         return gData[0]
-def get_weapon_value(gData):        return gData[1]
-def get_weapon_mass(gData):         return gData[2]
-def get_weapon_hpmax(gData):        return gData[3]
-def get_weapon_capacity(gData):     return gData[4]
-def get_weapon_rt(gData):           return gData[5]
-def get_weapon_jam(gData):          return gData[6]
-def get_weapon_mat(gData):          return gData[7]
-def get_weapon_range(gData):        return gData[7][0]
-def get_weapon_atk(gData):          return gData[7][1]
-def get_weapon_dmg(gData):          return gData[7][2]
-def get_weapon_pow(gData):          return gData[7][3]
-def get_weapon_dv(gData):           return gData[7][4]
-def get_weapon_av(gData):           return gData[7][5]
-def get_weapon_asp(gData):          return gData[7][6]
-def get_weapon_msp(gData):          return gData[7][7]
-def get_weapon_elem(gData):         return gData[7][8]
-def get_weapon_ammo(gData):         return gData[8]
-def get_weapon_flags(gData):        return gData[9]
-def get_weapon_script(gData):       return gData[10]
+#    $$$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV, AV, Pro,Asp,Msp),script
+def get_weapon_value(gData):        return gData[0]
+def get_weapon_mass(gData):         return gData[1]
+def get_weapon_hpmax(gData):        return gData[2]
+def get_weapon_mat(gData):          return gData[3]
+def get_weapon_strReq(gData):       return gData[4]
+def get_weapon_atk(gData):          return gData[5][0]
+def get_weapon_dmg(gData):          return round(MULT_DMG_AV_HP*gData[5][1])
+def get_weapon_pen(gData):          return round(MULT_PEN_PRO*gData[5][2])
+def get_weapon_dv(gData):           return gData[5][3]
+def get_weapon_av(gData):           return round(MULT_DMG_AV_HP*gData[5][4])
+def get_weapon_pro(gData):          return round(MULT_PEN_PRO*gData[5][5])
+def get_weapon_asp(gData):          return gData[5][6]
+def get_weapon_msp(gData):          return gData[5][7]
+def get_weapon_gra(gData):          return gData[5][8]
+def get_weapon_ctr(gData):          return gData[5][9]
+def get_weapon_sta(gData):          return gData[5][10]
+def get_weapon_skill(gData):        return gData[6]
+def get_weapon_script(gData):       return gData[7]
 
 # JOBS #
 def getJobs():
     #returns dict of pairs (k,v) where k=ID v=charType
     ll={}
     for k,v in JOBS.items():
-        ll.update({k: getChar(k)})
+        ll.update({k: getJobChar(k)})
     return ll
-def getChar(jobID) -> str:
+def getJobChar(jobID) -> str:
     return JOBS[jobID][0]
-def getName(jobID) -> str:
+def getJobName(jobID) -> str:
     return JOBS[jobID][1]
-def getMass(jobID) -> int:
+def getJobMass(jobID) -> int:
     return JOBS[jobID][2]
-def getMoney(jobID) -> int:
+def getJobMoney(jobID) -> int:
     return JOBS[jobID][3]
-def getClearance(jobID) -> int: #get security clearance level
+def getJobClearance(jobID) -> int: #get security clearance level
     return JOBS[jobID][4]
-def getKey(jobID) -> str:
+def getJobKey(jobID) -> str:
     return JOBS[jobID][5]
-def getStats(jobID) -> dict:
+def getJobStats(jobID) -> dict:
     return JOBS[jobID][6]
-def getSkills(jobID) -> tuple:
+def getJobSkills(jobID) -> tuple:
     return JOBS[jobID][7]
 
-    
-# item scripts #
+# MONSTERS
+def getMonName(_char):      return bestiary[_char][0]
+def getMonLo(_char):        return bestiary[_char][1][0]
+def getMonHi(_char):        return bestiary[_char][1][1]
+def getMonAtk(_char):       return bestiary[_char][1][2]
+def getMonDmg(_char):       return bestiary[_char][1][3]
+def getMonPen(_char):       return bestiary[_char][1][4]
+def getMonDV(_char):        return bestiary[_char][1][5]
+def getMonAV(_char):        return bestiary[_char][1][6]
+def getMonPro(_char):       return bestiary[_char][1][7]
+def getMonSpd(_char):       return bestiary[_char][1][8]
+def getMonMsp(_char):       return bestiary[_char][1][9]
+def getMonAsp(_char):       return bestiary[_char][1][10]
+def getMonFir(_char):       return bestiary[_char][1][11]
+def getMonBio(_char):       return bestiary[_char][1][12]
+def getMonElc(_char):       return bestiary[_char][1][13]
+def getMonSight(_char):     return bestiary[_char][1][14]
+def getMonHear(_char):      return bestiary[_char][1][15]
+def getMonCarry(_char):     return bestiary[_char][1][16]
+def getMonKG(_char):        return bestiary[_char][1][17]
+def getMonMoney(_char):     return bestiary[_char][1][18]
+def getMonFlags(_char):     return bestiary[_char][2]
+def getMonScript(_char):    return bestiary[_char][3]
 
-# gear #
+
+
+
+
+
+
+
+    #-----------------------------------#
+    #           item scripts            #
+    #-----------------------------------#
+
+
+
+
+    # GENERIC FUNCTIONS
+
+def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,msp=0,twoh=False,skill=None):
+    world=rog.world()
+    dmod={'atk':acc,'dmg':dmg,'pen':pen,'dfn':dv,'arm':av,'pro':pro,'asp':asp,'msp':msp}
+    world.add_component(item, cmp.EquipableInHandSlot(NRG_WIELD,mods))
+    if twoh: rog.make(item, TWOHANDS)
+    if skill:
+        world.add_component(item, cmp.WeaponSkill(skill))
+
+def _canThrow(item, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None,elem=None,elemDmg=None):
+    world=rog.world()
+    if rng <= 0: return
+    if skill is None: skill=SKL_THROWING
+    world.add_component(item, cmp.Throwable(
+        rng=rng,atk=acc,dmg=dmg,pen=pen,asp=asp,skill=skill
+        ))
+    if elem: # thrown elemental damage
+        # for now, just overwrite existing elemental damage if applicable
+        if world.has_component(item, cmp.ElementalDamage):
+            world.remove_component(item, cmp.ElementalDamage)
+        world.add_component(item, cmp.ElementalDamage(
+            elem=elem, dmg=elemDmg, isThrown=True
+            ))
+
+def _addRes(item, resfire=0,resbio=0,reselec=0,resphys=0,resrust=0,resrot=0,reswet=0,resdirt=0):
+    stats=rog.world().component_for_entity(item, cmp.Stats)
+    if resfire: stats.resfire = resfire
+    if resbio: stats.resbio = resbio
+    if reselec: stats.reselec = reselec
+    if resphys: stats.resphys = resphys
+    if resrust: stats.resrust = resrust
+    if resrot: stats.resrot = resrot
+    if reswet: stats.reswet = reswet
+    if resdirt: stats.resdirt = resdirt
+    
+
+      
+# effects #
+    
+def _wet(actor, n):
+    pass
+##    if n>=10:
+##        rog.set_status(actor, WET)
+def _oily(actor, n):
+    pass
+##    if n>=10:
+##        rog.make(actor, OILY)
+def _bloody(actor, n):
+    pass
+##    if n>=10:
+##        rog.make(actor, BLOODY)
+def _cough(actor, n):
+    rog.cough(actor, n)
+def _hydrate(actor, n):
+    actor.hydration += n * WATER_HYDRATE
+def _quaffBlood(actor, n):
+    pass
+def _acid(actor, n):
+    rog.corrode(actor, n)
+def _strongAcid(actor, n):
+    rog.corrode(actor, n*3)
+def _quaffAcid(actor, n):
+    rog.corrode(actor, n*5)
+def _quaffStrongAcid(actor, n):
+    rog.corrode(actor, n*15)
+def _sick(actor, n):
+    rog.disease(actor, n)
+def _drunk(actor, n):
+    rog.intoxicate(actor, n)
+
+
+def _bleed(item, bleedDamage):
+    if bleedDamage > 0:
+        _element(item, ELEM_BLEED, bleedDamage)
+def _pain(item, painDamage):
+    _element(item, ELEM_PAIN, painDamage)
+def _element(item, element, elemDamage):
+    world=rog.world()
+    if world.has_component(item, cmp.ElementalDamageMelee):
+        compo=world.component_for_entity(item, cmp.ElementalDamageMelee)
+        compo.elements.update({element : rog.around(elemDamage)})
+    else:
+        world.add_component(item, cmp.ElementalDamageMelee(
+            {element : rog.around(elemDamage)}) )
+def _bonusToFlesh(item, bonus):
+    if bonus > 0:
+        rog.world().add_component(item, cmp.BonusToFlesh(bonus))
+def _bonusToArmor(item, bonus):
+    if bonus > 0:
+        rog.world().add_component(item, cmp.BonusToArmor(bonus))
+def _amputate(item, value):
+    if value > 0:
+        rog.world().add_component(item, cmp.HacksOffLimbs(value))
+
+
+    # /
+
+
+
+    # gear #
 
 def _cloak(tt):
-    if not rog.has(tt, cmp.CanEquipInMainhandSlot):
-        modDict = { cmp.CombatStats : {"atk":3,"dmg":1,"dfn":1,}, }
-        rog.world().add_component(tt, cmp.CanEquipInMainhandSlot(modDict))
+    if not rog.has(tt, cmp.EquipableInHandSlot):
+        modDict = {"atk":3,"dmg":1,"dfn":1,}
+        rog.world().add_component(tt, cmp.EquipableInHandSlot(NRG_WIELD,modDict))
         
 def _fireBlanket(tt):
     pass
@@ -166,6 +337,8 @@ def _nvisionGoggles(tt):
 
 def _earPlugs(tt):
     pass
+
+
 
 # explosives #
 
@@ -193,8 +366,27 @@ def _fragBomb(tt):
 def _fragMine(tt):
     pass
 
+
 # ammo #
 
+def _percussionCap(tt):
+    pass
+def _sCannonBall(tt):
+    _canThrow(tt, acc=-5, rng=6, dmg=-1, skill=SKL_PITCHING)
+def _mCannonBall(tt):
+    _canThrow(tt, acc=-5, rng=6, dmg=-1, skill=SKL_PITCHING)
+def _sBullet(tt):
+    _canThrow(tt, acc=-6, rng=5, dmg=1)
+def _mBullet(tt):
+    _canThrow(tt, acc=-6, rng=3, dmg=1)
+def _minnieBall(tt):
+    _canThrow(tt, acc=-6, rng=3, dmg=1)
+def _mCartridge(tt):
+    _canThrow(tt, acc=-5, rng=5)
+def _mCartridgeLarge(tt):
+    _canThrow(tt, acc=5, rng=9, dmg=2)
+def _shell(tt):
+    _canThrow(tt, acc=0, rng=6, dmg=1)
 def _incendiary(tt):
     def deathFunc(ent):
         entn=rog.world().component_for_entity(ent, cmp.Name)
@@ -204,93 +396,100 @@ def _incendiary(tt):
         rog.explosion("{}{}".format(entn.title,entn.name), pos.x,pos.y, radius)
     rog.world().add_component(tt, cmp.DeathFunction(deathFunc))
 def _paperCartridge(tt):
-    #do not need to load with gunpowder
-    pass
+    _canThrow(tt, acc=0, rng=7, dmg=1, skill=SKL_PITCHING)
 
 
 
 # food #
 
-def _food_poison(ent):  #deceptively sweet but makes you sick
-    rog.world().add_component(ent, cmp.Edible(
-        func=_sick, sat=FOOD_RATION, taste=TASTE_SWEET
-        ))
+##def _food_poison(ent):  #deceptively sweet but makes you sick
+##    rog.world().add_component(ent, cmp.Edible(
+##        func=_sick, sat=FOOD_RATION, taste=TASTE_SWEET, FOOD_RATION_NRG
+##        ))
 def _food_morsel_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=None, sat=FOOD_MORSEL, taste=TASTE_SAVORY
+        func=None, sat=FOOD_MORSEL, taste=TASTE_SAVORY, ap=FOOD_MORSEL_NRG
+        ))
+def _food_morsel_bitter(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MORSEL, taste=TASTE_BITTER, ap=FOOD_MORSEL_NRG
+        ))
+def _food_morsel_sweet(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MORSEL, taste=TASTE_SWEET, ap=FOOD_MORSEL_NRG
         ))
 def _food_morsel_bloody_nasty(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=_bloody, sat=FOOD_MORSEL, taste=TASTE_NASTY
+        func=_bloody, sat=FOOD_MORSEL, taste=TASTE_NASTY, ap=FOOD_MORSEL_NRG
         ))
 def _food_serving_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=None, sat=FOOD_SERVING, taste=TASTE_SAVORY
+        func=None, sat=FOOD_SERVING, taste=TASTE_SAVORY, ap=FOOD_SERVING_NRG
         ))
 def _food_ration_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=None, sat=FOOD_RATION, taste=TASTE_SAVORY
+        func=None, sat=FOOD_RATION, taste=TASTE_SAVORY, ap=FOOD_RATION_NRG
         ))
+def _food_meal_gamble(ent):
+    ran=random.random(10)
+    if ran < 2:
+        rog.world().add_component(ent, cmp.Edible(
+            func=None, sat=FOOD_MEAL, taste=TASTE_SAVORY, ap=FOOD_MEAL_NRG
+            ))
+    elif ran < 4:
+        rog.world().add_component(ent, cmp.Edible(
+            func=None, sat=FOOD_MEAL, taste=TASTE_BITTER, ap=FOOD_MEAL_NRG
+            ))
+    elif ran < 6:
+        rog.world().add_component(ent, cmp.Edible(
+            func=None, sat=FOOD_MEAL, taste=TASTE_SWEET, ap=FOOD_MEAL_NRG
+            ))
+    elif ran < 8:
+        rog.world().add_component(ent, cmp.Edible(
+            func=None, sat=FOOD_MEAL, taste=TASTE_NASTY, ap=FOOD_MEAL_NRG
+            ))
+    else:
+        rog.world().add_component(ent, cmp.Edible(
+            func=None, sat=FOOD_MEAL, taste=TASTE_ACIDIC, ap=FOOD_MEAL_NRG
+            ))
 def _food_meal_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=None, sat=FOOD_MEAL, taste=TASTE_SAVORY
+        func=None, sat=FOOD_MEAL, taste=TASTE_SAVORY, ap=FOOD_MEAL_NRG
         ))
 def _food_bigMeal_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
-        func=None, sat=FOOD_BIGMEAL, taste=TASTE_SAVORY
+        func=None, sat=FOOD_BIGMEAL, taste=TASTE_SAVORY, ap=FOOD_BIGMEAL_NRG
         ))
 def _food_cokenut(ent):
     def func(ent, eater):
         rog.poison(eater)
     rog.world().add_component(ent, cmp.Edible(
-        func=func, sat=FOOD_MORSEL, taste=TASTE_BITTER
+        func=func, sat=FOOD_MORSEL, taste=TASTE_BITTER, ap=FOOD_MORSEL_NRG
         ))
     rog.world().add_component(ent, cmp.Ingredient(ING_COKENUT))
 def _food_sillyfruit(ent):
     def func(ent, eater):
         rog.confuse(eater)
     rog.world().add_component(ent, cmp.Edible(
-        func=func, sat=FOOD_SERVING, taste=TASTE_SWEET
+        func=func, sat=FOOD_SERVING, taste=TASTE_SWEET, ap=FOOD_SERVING_NRG
         ))
-
-      
-# effects #
-    
-def _wet(actor, n):
-    if n>=10:
-        rog.set_status(actor, WET)
-def _oily(actor, n):
-    if n>=10:
-        rog.make(actor, OILY)
-def _bloody(actor, n):
-    if n>=10:
-        rog.make(actor, BLOODY)
-def _cough(actor, n):
-    rog.cough(actor, n)
-def _hydrate(actor, n):
-    actor.hydration += n * WATER_HYDRATE
-def _blood(actor, n):
-    pass
-def _acid(actor, n):
-    rog.corrode(actor, n)
-def _strongAcid(actor, n):
-    rog.corrode(actor, n*3)
-def _quaffAcid(actor, n):
-    rog.corrode(actor, n*5)
-def _quaffStrongAcid(actor, n):
-    rog.corrode(actor, n*15)
-def _sick(actor, n):
-    rog.disease(actor, n)
-def _drunk(actor, n):
-    rog.intoxicate(actor, n)
 
 
 # stuff #
 
-def _wood(ent):
-##    rog.make(ent, CANWET)
+def _solarPanel(ent):
+    rog.make(ent, TWOHANDS)
+    _canThrow(ent, rng=3, acc=-5, dmg=1)
+def _skeleton(ent):
+    rog.world().add_component(ent, cmp.Harvestable(
+        500, {'bone':2, 'bone, small':16, 'skull':1,
+              'piece of bone':1, 'parcel of bone':8, 'scrap bone':16,},
+        {}))
+def _campfire(ent):
     pass
-    
+def _foliage(ent):
+    pass
+
 def _pot(ent): #metal pot
     rog.init_fluidContainer(ent, 200)
 ##    rog.make(tt, CANUSE)
@@ -298,9 +497,18 @@ def _pot(ent): #metal pot
 ##    tt.useFunctionMonster = action.pot
 
 def _clayPot(ent):
+    pass
+def _ceramicPot(ent):
     rog.world().add_component(ent, cmp.FluidContainer(capacity=50))
+    _canThrow(ent, rng=4, acc=5, dmg=4, pen=2)
+def _clayPotLarge(ent):
+    pass
+def _ceramicPotLarge(ent):
+    rog.world().add_component(ent, cmp.FluidContainer(capacity=1000))
     
 def _gunpowder(ent):
+    rog.world().add_component(ent, cmp.DiesInWater(func=None))
+def _blackPowder(ent):
     rog.world().add_component(ent, cmp.DiesInWater(func=None))
 
 def _boxOfItems1(ent):
@@ -350,10 +558,11 @@ def _dosimeter(tt):
         rog.spendAP(ent, NRG_USE)
         pos=world.component_for_entity(ent, cmp.Position)
         rog.event_sight(pos.x,pos.y,"{t}{n} looks at a geiger counter.")
-    statMods={cmp.CombatStats : {"rng":3,"atk":2,"dmg":1,},}
+    #components
+    _canThrow(ent, rng=4)
+    _weapon(ent, atk=1, dmg=1, asp=-6)
     world.add_component(ent, cmp.Usable(funcUsePC,funcUseNPC))
     world.add_component(ent, cmp.ReactsWithWater(diesInWaterFunc))
-    world.add_component(ent, cmp.CanEquipInMainhandSlot(statMods))
     world.add_component(ent, cmp.DeathFunction(funcDeath))
     
 def _towel(ent):
@@ -362,27 +571,32 @@ def _towel(ent):
         pass
     def funcNPC(thing, actor):
         pass
-    statMods={cmp.BasisStats : {"rescold":20,},}
     world.add_component(ent, cmp.GetsWet(capacity=100))
     world.add_component(ent, cmp.Usable(funcPC,funcNPC))
-    world.add_component(ent, cmp.CanEquipInBodySlot(statMods))
+##    statMods={cmp.BasisStats : {"rescold":20,},} # THat's not a resistance stat yet. Dunno if we should add it...
+##    world.add_component(ent, cmp.EquipableInAboutSlot(300,statMods))
+    statMods={"dfn":1,"arm":1,"pro":1,} # if wet, gives double as much stats. How to handle this?
+    world.add_component(ent, cmp.EquipableInHandSlot(NRG_WIELD,statMods))
 def _towel_wield(ent): #prepare a towel for wielding. Transforms it into a wielding item.
-    statMods={cmp.CombatStats : {"atk":3, "dmg":1, "dfn":3,},}
-    world.add_component(ent, cmp.CanEquipInMainhandSlot(statMods))
+    statMods={"atk":3, "dmg":1, "dfn":3,}
+    world.add_component(ent, cmp.EquipableInHandSlot(NRG_WIELD,statMods))
 def _towel_wearOnHead(ent): #prepare a towel for headwear. Transforms it into head gear
-    statMods={cmp.BasisStats : {"resbio":15,},}
-    world.add_component(ent, cmp.CanEquipInHeadSlot(statMods))
+    statMods={"resbio":15,}
+    world.add_component(ent, cmp.EquipableInHeadSlot(300,statMods))
     
 def _torch(tt):
-    rog.make(tt, CANEQUIP)
-    tt.equipType=EQ_OFFHAND
+    pass # TODO: do components!!!!
+##    rog.make(tt, CANEQUIP)
+##    tt.equipType=EQ_OFFHAND
+def _torchLarge(tt):
+    pass # TODO: do components!!!!
 
 def _extinguisher(tt):
-    rog.make(tt, CANUSE)
+    pass
+##    rog.make(tt, CANUSE) # USE COMPONENTS!!
 ##    tt.useFunctionPlayer = action.extinguisher_pc
 ##    tt.useFunctionMonster = action.extinguisher
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods = {"dmg":5, "asp":-33,}
+##    rog.makeEquip(tt, EQ_MAINHAND)
 
 def _lighter(tt):
     pass
@@ -392,56 +606,1781 @@ def _grave(tt):
 
 
 
-# creator functions #
+def _meatFlower(item):
+    rog.world().add_component(item, cmp.Harvestable(
+        300, {'parcel of flesh' : 1}, {cmp.Tool_Chop : 1}
+        ))
+
+
+
+    # raw mats
+def _parcel(item): # TODO: hook up all standard rawmat scripts to these functions to give them the right glyph...
+    rog.world().component_for_entity(item, cmp.Draw).char = T_PARCEL
+def _shard(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_SHARD
+def _piece(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_PIECE
+def _chunk(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_CHUNK
+def _slab(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_SLAB
+def _cuboid(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_CUBOID
+def _cube(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_CUBE
+def _rawMat(item): # TODO: replace w/ more specialized functions except for those that don't fit any others
+    rog.world().component_for_entity(item, cmp.Draw).char = T_RAWMAT
+def _particles(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_RAWMAT
+    _canThrow( item, rng=3, acc=6, dmg=1)
+def _trinket(item):
+    _canThrow(item, rng=5, acc=0, dmg=0)
+    
+    # shards
+def _shard(item, acc=-2, rng=5):
+    _canThrow(item, acc=acc, rng=rng)
+    rog.world().component_for_entity(item, cmp.Draw).char = T_RAWMAT
+def _pShard(item):
+    _bleed(item, 0.25*BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    _weapon(item, acc=1,dmg=1,pen=1,asp=3)
+    _shard(acc=-5, rng=3)
+def _wShard(item):
+    _bleed(item, 0.25*BLEED_WOOD)
+    _weapon(item, acc=1,dmg=2,pen=1,asp=6)
+    _shard(-3, 5)
+def _sShard(item):
+    _bleed(item, 0.25*BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _weapon(item, acc=1,dmg=3,pen=4,asp=0)
+    _shard(1, 10)
+def _bShard(item):
+    _bleed(item, 0.25*BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _weapon(item, acc=1,dmg=2,pen=3,asp=6)
+    _shard(-1, 6)
+def _mShard(item):
+    _bleed(item, 0.25*BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _weapon(item, acc=2,dmg=4,pen=5,asp=9)
+    _shard(0, 6)
+def _gShard(item):
+    _bleed(item, 0.25*BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    _weapon(item, acc=4,dmg=5,pen=2,asp=15)
+    _shard(-2, 2)
+def _cShard(item): #ceramic
+    _bleed(item, 0.25*BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    _weapon(item, acc=3,dmg=4,pen=1,asp=12)
+    _shard(acc=-2, rng=5)
+
+    # parcels
+def _rParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=0, rng=4, skill=SKL_PITCHING)
+def _qParcel(item): # quartz
+    _parcel(item)
+    _weapon(item, acc=1,dmg=1,pen=1,asp=-12)
+    _canThrow(item, acc=2, rng=8, dmg=1, skill=SKL_PITCHING)
+def _pParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=-2, rng=4, skill=SKL_PITCHING)
+def _wParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=2, rng=4, skill=SKL_PITCHING)
+def _sParcel(item):
+    _parcel(item)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=1,dmg=1,pen=1,asp=-15)
+    _canThrow(item, acc=2, rng=8, dmg=1, skill=SKL_PITCHING)
+def _bParcel(item):
+    _parcel(item)
+    _weapon(item, acc=-1,dmg=1,pen=1,asp=-15)
+    _canThrow(item, acc=2, rng=6, skill=SKL_PITCHING)
+def _gParcel(item):
+    _parcel(item)
+    _weapon(item, acc=1,dmg=1,pen=1,asp=-15)
+    _canThrow(item, acc=2, rng=6, skill=SKL_PITCHING)
+def _mParcel(item):
+    _parcel(item)
+    _weapon(item, acc=2,dmg=1,pen=2,asp=-15)
+    _canThrow(item, acc=2, rng=8, skill=SKL_PITCHING)
+def _tParcel(item): # tarp
+    _parcel(item)
+def _fParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=0, rng=6, skill=SKL_PITCHING)
+def _lParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=0, rng=8, skill=SKL_PITCHING)
+def _blParcel(item):
+    _parcel(item)
+    _weapon(item, acc=0,dmg=1,pen=0,asp=-15)
+    _canThrow(item, acc=1, rng=10, skill=SKL_PITCHING)
+def _clothParcel(item):
+    _parcel(item)
+def _clayParcel(item):
+    _parcel(item)
+    _canThrow(item, acc=2, rng=5)
+def _ceramicParcel(item):
+    _parcel(item)
+    _weapon(item, acc=2,dmg=1,pen=1,asp=-21)
+    _canThrow(item, acc=2, rng=10, dmg=2, skill=SKL_PITCHING)
+
+    # pieces
+def _rPiece(item):
+    _piece(item)
+    _canThrow(item, acc=0, rng=6)
+def _qPiece(item): # quartz
+    _piece(item)
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-24)
+    _canThrow(item, acc=0, rng=14, dmg=3, skill=SKL_PITCHING)
+def _pPiece(item):
+    _piece(item)
+    _weapon(item, acc=-2,dmg=1,pen=0,asp=-30)
+    _canThrow(item, acc=0, rng=6)
+def _wPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=1,pen=1,asp=-21)
+    _canThrow(item, acc=0, rng=8)
+def _sPiece(item):
+    _piece(item)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-27)
+    _canThrow(item, acc=0, rng=14, dmg=3, skill=SKL_PITCHING)
+def _bPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=1,pen=2,asp=-21)
+    _canThrow(item, acc=0, rng=10, skill=SKL_PITCHING)
+def _gPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=1,pen=2,asp=-21)
+    _canThrow(item, acc=0, rng=8)
+def _mPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-21)
+    _canThrow(item, acc=0, rng=12, dmg=1, skill=SKL_PITCHING)
+def _tPiece(item): # tarp
+    _piece(item)
+def _fPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=1,pen=0,asp=-39)
+    _canThrow(item, acc=0, rng=6)
+def _lPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=1,pen=1,asp=-33)
+    _canThrow(item, acc=0, rng=5)
+def _blPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=2,pen=1,asp=-27)
+    _canThrow(item, acc=0, rng=12, skill=SKL_PITCHING)
+def _clothPiece(item):
+    _piece(item)
+    _canThrow(item, acc=-6, rng=3)
+def _clayPiece(item):
+    _piece(item)
+    _canThrow(item, acc=0, rng=6)
+def _ceramicPiece(item):
+    _piece(item)
+    _weapon(item, acc=0,dmg=3,pen=2,asp=-21)
+    _canThrow(item, acc=0, rng=10, dmg=2, skill=SKL_PITCHING)
+
+    # chunks
+def _rChunk(item): #rubber
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-6,dmg=1,pen=0,asp=-42)
+    _canThrow(item, acc=-6, rng=8)
+def _lChunk(item): #leather
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=2,pen=1,asp=-33)
+    _canThrow(item, acc=-5, rng=12)
+def _blChunk(item): #boiled leather
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30)
+    _canThrow(item, acc=-5, rng=14)
+def _qChunk(item): #quartz
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36)
+    _canThrow(item, acc=-5, rng=14)
+def _pChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=1,pen=0,asp=-36)
+    _canThrow(item, acc=-5, rng=6)
+def _wChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=1,pen=1,asp=-30)
+    _canThrow(item, acc=-5, rng=8)
+def _sChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36)
+    _canThrow(item, acc=-5, rng=14)
+def _bChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=2,pen=2,asp=-30)
+    _canThrow(item, acc=-5, rng=10)
+def _gChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30)
+    _canThrow(item, acc=-5, rng=8)
+def _mChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30)
+    _canThrow(item, acc=-5, rng=12)
+def _tarp(item):
+    _chunk(item)
+def _fChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=1,pen=0,asp=-48)
+    _canThrow(item, acc=-5, rng=6)
+def _lChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=1,pen=1,asp=-39)
+    _canThrow(item, acc=-5, rng=5)
+def _blChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=2,pen=1,asp=-36)
+    _canThrow(item, acc=-5, rng=8)
+def _clothChunk(item):
+    _chunk(item)
+    _canThrow(item, acc=-15, rng=2)
+def _clayChunk(item):
+    _chunk(item)
+    _canThrow(item, acc=-10, rng=3, dmg=1, pen=-1)
+def _ceramicChunk(item):
+    _chunk(item)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30)
+    _canThrow(item, acc=-5, rng=6)
+    
+    # slabs
+def _pSlab(item):
+    _slab(item)
+def _wSlab(item):
+    _slab(item)
+    rog.world().add_component( item, cmp.Harvestable(
+        4800, {'wooden plank':20}, {cmp.Tool_Saw:4}) )
+def _fSlab(item):
+    _slab(item)
+def _bSlab(item):
+    _slab(item)
+def _sSlab(item):
+    _slab(item)
+def _mSlab(item):
+    _slab(item)
+def _gSlab(item):
+    _slab(item)
+def _ceramicSlab(item):
+    _slab(item)
+def _claySlab(item):
+    _slab(item)
+def _tarpLarge(item):
+    _slab(item)
+    
+    # sticks, poles
+def _pStick(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
+    _weapon(item, acc=2,dmg=2,pen=1,dv=1,asp=-15)
+    _canThrow(item, acc=0, rng=10, skill=SKL_ENDOVEREND)
+def _wStick(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
+    _weapon(item, acc=2,dmg=2,pen=2,dv=1,asp=-21)
+    _canThrow(item, acc=0, rng=12, skill=SKL_ENDOVEREND)
+def _mStick(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
+    _weapon(item, acc=2,dmg=4,pen=4,dv=1,asp=-12)
+    _canThrow(item, acc=0, rng=14, skill=SKL_ENDOVEREND)
+def _pPole(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
+    rog.make(item, REACH)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=5,dmg=4,pen=3,dv=1,av=1,pro=1,asp=6)
+    _canThrow(item, acc=0, rng=10, skill=SKL_TIPFIRST)
+def _wPole(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
+    rog.make(item, REACH)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=5,dmg=5,pen=4,dv=1,av=1,pro=1,asp=12)
+    _canThrow(item, acc=0, rng=11, skill=SKL_TIPFIRST)
+def _mPole(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
+    rog.make(item, REACH)
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=5,dmg=6,pen=6,dv=1,av=1,pro=1,asp=18)
+    _canThrow(item, acc=0, rng=12, skill=SKL_TIPFIRST)
+
+    # other raw mats
+def _spoolString(item):
+    _canThrow(item, acc=-6, rng=6, dmg=1, pen=-1, skill=SKL_PITCHING)
+def _spoolFishingWire(item):
+    _canThrow(item, acc=-6, rng=6, dmg=2, skill=SKL_PITCHING)
+def _pBottle(item):
+    _canThrow(item, acc=-2, rng=8, skill=SKL_ENDOVEREND)
+def _gBottle(item):
+    _canThrow(item, acc=2, rng=12, dmg=2, skill=SKL_ENDOVEREND)
+    _weapon(item, acc=0,dmg=2,pen=1,asp=-12, skill=SKL_BLUDGEONS)
+def _pPipe(item):
+    _canThrow(item, acc=0, rng=8)
+    _weapon(item, acc=0,asp=-15)
+def _dust(item):
+    rog.world().component_for_entity(item, cmp.Draw).char = T_DUST
+    _canThrow( item, rng=2, acc=5, dmg=1, pen=5, asp=-15,
+              elem=ELEM_BIO, elemDmg=10 ) # blow dust in enemy's faces
+##    rog.world().add_component(item, cmp.Usable(funcPC, funcNPC))
+def _log(item):
+    rog.world().add_component( item, cmp.Harvestable(
+        4800, {'slab of wood':3}, {cmp.Tool_Saw:4}) )
+def _plank(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=3,dmg=3,pen=1,av=1,pro=1,asp=-51)
+    _canThrow(item, acc=-5, rng=3, skill=SKL_TIPFIRST)
+def _skull(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=-2,dmg=2,pen=1,asp=-15)
+    _canThrow(item, acc=0, dmg=0, rng=8, skill=SKL_PITCHING)
+def _bone(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(2))
+    _weapon(item, acc=2,dmg=3,pen=3,asp=6)
+    _canThrow(item, acc=2, dmg=1, rng=12, skill=SKL_ENDOVEREND)
+def _bBone(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=3,dmg=3,pen=4,asp=12)
+    _canThrow(item, acc=-3, rng=8, skill=SKL_ENDOVEREND)
+def _boneLarge(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=1,dmg=6,pen=6,asp=-12)
+    _canThrow(item, acc=-5, rng=8)
+def _boneSmall(item):
+    _weapon(item, acc=0,dmg=1,pen=1,asp=-6)
+    _canThrow(item, acc=-1, rng=6)
+def _mPipe(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=2,dmg=6,pen=5,asp=-45,msp=-6)
+    _canThrow(item, acc=-2, rng=6, dmg=-1, skill=SKL_ENDOVEREND)
+def _mPipeBroken(item):
+    _weapon(item, acc=3,dmg=4,pen=6,asp=-33,msp=-3)
+    _canThrow(item, acc=-5, rng=5, dmg=-1, skill=SKL_ENDOVEREND)
+def _mBar(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _weapon(item, acc=-2,dmg=2,pen=2,asp=-60,msp=-6)
+    _canThrow(item, acc=0, dmg=1, rng=6)
+def _razorBlade(item):
+    _bleed(item, 25)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _weapon(item, acc=-1,dmg=3,pen=6,asp=-24)
+def _nail(item):
+    _canThrow(item, acc=-10, dmg=-1, rng=3)
+    _weapon(item, acc=-5,dmg=1,pen=2,asp=-66)
+def _screw(item):
+    _canThrow(item, acc=-10, dmg=-1, rng=3)
+    _weapon(item, acc=-5,dmg=1,pen=1,asp=-66)
+def _mWire(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-10,dmg=4,pen=3,asp=-45)
+def _mCan(item):
+    _canThrow(item, acc=-5, rng=3)
+def _mNeedle(item):
+    _canThrow(item, acc=-10, rng=2)
+    _weapon(item, acc=-5,dmg=1,pen=5,asp=-66)
+def _mTube(item):
+    _canThrow(item, acc=0, rng=4, skill=SKL_ENDOVEREND)
+    _weapon(item, acc=0,dmg=1,pen=0,asp=-51)
+def _bobbyPin(item):
+    _canThrow(item, acc=-5, rng=2, dmg=-2)
+def _key(item):
+    _canThrow(item, acc=-5, rng=4, dmg=1)
+def _magnetWeak(item):
+    _canThrow(item, acc=-2, rng=4)
+def _magnet(item):
+    _canThrow(item, acc=-2, rng=6)
+def _magnetStrong(item):
+    _canThrow(item, acc=-2, rng=8, dmg=1, pen=-1)
+def _cordage(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-2,dmg=2,pen=3,asp=-42)
+    _canThrow(item, acc=0, rng=3)
+def _rope(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-2,dmg=3,pen=3,asp=-48,msp=-6)
+    _canThrow(item, acc=0, rng=2)
+def _cable(item):
+    pass
+def _chainLight(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-2,dmg=4,pen=4,asp=-48,msp=-33)
+def _chain(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-5,dmg=5,pen=3,asp=-60,msp=-51)
+def _chainHeavy(item):
+    None
+def _magnifyingGlass(item):
+    rog.world().add_component(item, cmp.Tool_Lens(2))
+    rog.world().add_component(item, cmp.Tool_Identify(2))
+    
+    
+##def _hammer(item, acc=0, rng=10, hammer=3):
+##    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+##    _canThrow(item, acc=acc, rng=rng)
+def _hammer(item, hammer, acc=0, rng=10):
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+    rog.world().add_component(item, cmp.WeaponSkill(SKL_HAMMERS))
+def _2hammer(item):
+    _hammer(item, 2, acc=-1, rng=12)
+def _3hammer(item):
+    _hammer(item, 3, acc=-1, rng=13)
+def _4hammer(item):
+    _hammer(item, 4, acc=-1, rng=15)
+def _5hammer(item):
+    _hammer(item, 5, acc=-2, rng=12)
+def _axe(item, chop=2, chisel=1, hammer=2, rng=10):
+    rog.world().add_component(item, cmp.Tool_Chop(chop))
+    rog.world().add_component(item, cmp.Tool_Chisel(chisel))
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=-5, rng=rng, skill=SKL_ENDOVEREND)
+    rog.world().add_component(item, cmp.WeaponSkill(SKL_AXES))
+def _pAxe(item):
+    _bleed(item, 0.25*BLEED_PLASTIC)
+    _axe(item, chop=2, chisel=1, rng=10)
+def _wAxe(item):
+    _bleed(item, 0.25*BLEED_WOOD)
+    _axe(item, chop=2, chisel=1, rng=10)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+def _bAxe(item):
+    _bleed(item, 0.25*BLEED_BONE)
+    _axe(item, chop=3, chisel=1, rng=10)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+def _sAxe(item):
+    _bleed(item, 0.25*BLEED_STONE)
+    _axe(item, chop=3, chisel=1, rng=10)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+def _mAxe(item):
+    _bleed(item, 0.25*BLEED_METAL)
+    _axe(item, chop=4, chisel=2, hammer=3, rng=12)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+def _gAxe(item): # no glass tools can be used as chisels.
+    _bleed(item, 0.25*BLEED_GLASS)
+    _axe(item, chop=4, chisel=0, rng=10)
+    rog.world().add_component(item, cmp.Tool_Cut(6)) 
+    # machetes
+def _machete(item, machete, cut=1, acc=-2, rng=5, amputate=5, toFlesh=2):
+    _amputate(item, amputate)
+    _bonusToFlesh(item, toFlesh)
+    rog.world().add_component(item, cmp.Tool_Cut(cut))
+    rog.world().add_component(item, cmp.Tool_Machete(machete))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_TIPFIRST)
+    rog.world().add_component(item, cmp.WeaponSkill(SKL_SWORDS))
+def _pMachete(item):
+    _bleed(item, 1.5*BLEED_PLASTIC)
+    _machete(item, 1, cut=1, acc=-2, rng=5, amputate=1, toFlesh=1)
+def _wMachete(item):
+    _bleed(item, 1.5*BLEED_WOOD)
+    _machete(item, 2, cut=2, acc=-2, rng=6, amputate=2, toFlesh=2)
+def _bMachete(item):
+    _bleed(item, 1.5*BLEED_BONE)
+    _machete(item, 2, cut=3, acc=-2, rng=8, amputate=5, toFlesh=3)
+def _mMachete(item):
+    _bleed(item, 1.5*BLEED_METAL)
+    _machete(item, 3, cut=5, acc=-2, rng=10, amputate=10, toFlesh=4)
+    # chisels
+def _chisel(item, chisel):
+    rog.world().add_component(item, cmp.Tool_Chisel(chisel))
+    _canThrow(item, acc=-5, rng=4)
+def _3chisel(item):
+    _chisel(item, 3)
+def _4chisel(item):
+    _chisel(item, 4)
+
+
+    # weapons #
+
+    # clubs
+def _club(item, toArmor=3, hammer=1, acc=-3, rng=8):
+    _bonusToArmor(item, toArmor)
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+def _pClub(item):
+    _club(item, toArmor=1, hammer=1, acc=-2, rng=8)
+def _wClub(item):
+    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+def _sClub(item):
+    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+def _bClub(item):
+    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+def _gClub(item):
+    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+def _mClub(item):
+    _club(item, toArmor=3, hammer=1, acc=-2, rng=8)
+def _cClub(item):
+    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+    # spiked clubs
+def _spikedClub(item, toArmor=2, bleed=10, pain=10, rng=8):
+    _pain(item, pain)
+    _bleed(item, bleed)
+    _bonusToArmor(item, toArmor)
+    _canThrow(item, acc=-2, rng=rng, skill=SKL_ENDOVEREND)
+def _pSpikedClub(item):
+    _spikedClub(item, toArmor=2, bleed=10, pain=20, rng=8)
+def _wSpikedClub(item):
+    _spikedClub(item, toArmor=3, bleed=20, pain=30, rng=8)
+    # cudgels
+def _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=6):
+    _bonusToArmor(item, toArmor)
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+def _pCudgel(item):
+    _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=6)
+def _wCudgel(item):
+    _cudgel(item, toArmor=3, hammer=2, acc=-3, rng=7)
+def _sCudgel(item):
+    _cudgel(item, toArmor=3, hammer=2, acc=-3, rng=6)
+def _bCudgel(item):
+    _cudgel(item, toArmor=3, hammer=2, acc=-3, rng=8)
+def _gCudgel(item):
+    _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=8)
+def _mCudgel(item):
+    _cudgel(item, toArmor=4, hammer=2, acc=-3, rng=8)
+def _cCudgel(item):
+    _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=8)
+    # warhammers
+def _warhammer(item, acc=-2,rng=8, hammer=3, toArmor=4):
+    _bonusToArmor(item, toArmor)
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+def _pWarhammer(item):
+    _warhammer(item, acc=-4, rng=6, hammer=2, toArmor=4)
+def _wWarhammer(item):
+    _warhammer(item, acc=-3, rng=8, hammer=2, toArmor=6)
+def _bWarhammer(item):
+    _warhammer(item, acc=-3, rng=9, hammer=2, toArmor=8)
+def _sWarhammer(item):
+    _warhammer(item, acc=-3, rng=7, hammer=2, toArmor=10)
+def _mWarhammer(item):
+    _warhammer(item, acc=-2, rng=10, hammer=3, toArmor=12)
+    # morning stars
+def _mMorningStar(item):
+    _pain(item, 40)
+    _bleed(item, 25)
+    _canThrow(item, acc=-3, rng=7, skill=SKL_ENDOVEREND)
+    # maces
+def _mace(item, toArmor=10):
+    _pain(item, 10)
+    _bleed(item, 5)
+    _bonusToArmor(item, toArmor)
+    _canThrow(item, acc=-2, rng=8, skill=SKL_ENDOVEREND)
+def _pMace(item):
+    _mace(item, toArmor=1)
+def _wMace(item):
+    _mace(item, toArmor=2)
+def _sMace(item):
+    _mace(item, toArmor=3)
+def _bMace(item):
+    _mace(item, toArmor=3)
+def _mMace(item):
+    _mace(item, toArmor=4)
+def _gMace(item):
+    _mace(item, toArmor=0)
+def _cMace(item):
+    _mace(item, toArmor=1)
+    # war axes
+def _warAxe(item, chop=1, chisel=0, hammer=1, acc=-5, rng=10, amputate=5, bleed=5):
+    _amputate(item, amputate)
+    _bleed(item, bleed)
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+    rog.world().add_component(item, cmp.Tool_Chop(chop))
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    if chisel:
+        rog.world().add_component(item, cmp.Tool_Chisel(chisel))
+def _pWarAxe(item):
+    _warAxe(item, chop=1, chisel=1, hammer=1, acc=-5, rng=12,
+            bleed=BLEED_PLASTIC, amputate=1)
+def _wWarAxe(item):
+    _warAxe(item, chop=1, chisel=1, hammer=2, acc=-5, rng=14,
+            bleed=BLEED_WOOD, amputate=2)
+def _bWarAxe(item):
+    _warAxe(item, chop=2, chisel=1, hammer=2, acc=-5, rng=14,
+            bleed=BLEED_BONE, amputate=3)
+def _sWarAxe(item):
+    _warAxe(item, chop=2, chisel=2, hammer=2, acc=-5, rng=14,
+            bleed=BLEED_STONE, amputate=4)
+def _mWarAxe(item):
+    _warAxe(item, chop=3, chisel=3, hammer=3, acc=-5, rng=16,
+            bleed=BLEED_METAL, amputate=5)
+def _gWarAxe(item): # glass tools cannot be effective chisels, choppers, hammers, etc.
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, chop=1, chisel=0, acc=-5, rng=12,
+            bleed=BLEED_METAL, amputate=5)
+    # tomahawks (basically a knife on a stick)
+def _tomahawk(item, chop=1, acc=-5, rng=10, bleed=0):
+    _bleed(item, bleed)
+    rog.world().add_component(item, cmp.Tool_Chop(chop))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
+def _pTomahawk(item):
+    _tomahawk(item, chop=0, acc=-2, rng=16, bleed=BLEED_PLASTIC)
+def _wTomahawk(item):
+    _tomahawk(item, chop=0, acc=-2, rng=18, bleed=BLEED_WOOD)
+def _sTomahawk(item):
+    _tomahawk(item, chop=1, acc=-2, rng=18, bleed=BLEED_STONE)
+def _bTomahawk(item):
+    _tomahawk(item, chop=1, acc=-2, rng=18, bleed=BLEED_BONE)
+def _mTomahawk(item):
+    _tomahawk(item, chop=2, acc=-2, rng=20, bleed=BLEED_METAL)
+def _gTomahawk(item):
+    _tomahawk(item, chop=1, acc=-2, rng=20, bleed=BLEED_GLASS)
+def _cTomahawk(item):
+    _tomahawk(item, chop=1, acc=-2, rng=20, bleed=BLEED_CERAMIC)
+    # swords
+def _pSword(item):
+    _bleed(item, BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    _canThrow(item, acc=-6, rng=4, skill=SKL_TIPFIRST)
+def _wSword(item):
+    _bleed(item, BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-6, rng=6, skill=SKL_TIPFIRST)
+def _bSword(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-6, rng=8, skill=SKL_TIPFIRST)
+def _sSword(item):
+    _bleed(item, BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-6, rng=5, skill=SKL_TIPFIRST)
+def _mSword(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(2))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
+def _dSword(item): #diamonite
+    _bleed(item, BLEED_DIAMONITE)
+    _amputate(item, 5)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    rog.world().add_component(item, cmp.Tool_Machete(2))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-4, rng=12, skill=SKL_TIPFIRST)
+def _grSword(item): #graphene
+    _bleed(item, BLEED_GRAPHENE)
+    _amputate(item, 10)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    rog.world().add_component(item, cmp.Tool_Machete(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    rog.world().add_component(item, cmp.Tool_Chop(2))
+    rog.world().add_component(item, cmp.Tool_Saw(2))
+    _canThrow(item, acc=-4, rng=12, skill=SKL_TIPFIRST)
+    # shivs
+def _pShiv(item):
+    _bleed(item, BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=-15, rng=4, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _wShiv(item):
+    _bleed(item, BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-12, rng=6, dmg=-1, pen=-4, skill=SKL_ENDOVEREND)
+def _bShiv(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-12, rng=6, dmg=-1, pen=-4, skill=SKL_ENDOVEREND)
+def _sShiv(item):
+    _bleed(item, BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _canThrow(item, acc=-12, rng=7, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _gShiv(item):
+    _bleed(item, BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    _canThrow(item, acc=-10, rng=7, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _mShiv(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    _canThrow(item, acc=-10, rng=8, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _cShiv(item):
+    _bleed(item, BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-10, rng=7, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _grShiv(item):
+    _bleed(item, BLEED_GRAPHENE)
+    rog.world().add_component(item, cmp.Tool_Cut(8))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    rog.world().add_component(item, cmp.Tool_Saw(2))
+    _canThrow(item, acc=-10, rng=8, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+    # knives
+def _pKnife(item):
+    _bleed(item, BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-10, rng=6, dmg=-1, pen=-4, skill=SKL_ENDOVEREND)
+def _wKnife(item):
+    _bleed(item, BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-6, rng=8, dmg=-1, pen=-4, skill=SKL_ENDOVEREND)
+def _bKnife(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _canThrow(item, acc=-6, rng=10, dmg=-1, pen=-4, skill=SKL_ENDOVEREND)
+def _sKnife(item):
+    _bleed(item, BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-6, rng=10, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _mKnife(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-4, rng=12, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _gKnife(item):
+    _bleed(item, BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-4, rng=10, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _cKnife(item):
+    _bleed(item, BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(8))
+    _canThrow(item, acc=-4, rng=10, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _grKnife(item):
+    _bleed(item, BLEED_GRAPHENE)
+    rog.world().add_component(item, cmp.Tool_Cut(9))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    rog.world().add_component(item, cmp.Tool_Saw(2))
+    _canThrow(item, acc=-5, rng=14, dmg=-4, pen=-6, skill=SKL_ENDOVEREND)
+    # serrated knives
+def _pSerrated(item):
+    _bleed(item, 2*BLEED_PLASTIC)
+    _pain(item, 10)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-10, rng=6, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _wSerrated(item):
+    _bleed(item, 2*BLEED_WOOD)
+    _pain(item, 20)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-6, rng=8, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _bSerrated(item):
+    _bleed(item, 2*BLEED_BONE)
+    _pain(item, 20)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-6, rng=10, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _sSerrated(item):
+    _bleed(item, 2*BLEED_STONE)
+    _pain(item, 20)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Saw(2))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-6, rng=10, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _mSerrated(item):
+    _bleed(item, 2*BLEED_METAL)
+    _pain(item, 30)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Saw(2))
+    _canThrow(item, acc=-4, rng=12, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _gSerrated(item):
+    _bleed(item, 2*BLEED_GLASS)
+    _pain(item, 10)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-4, rng=10, dmg=-5, pen=-4, skill=SKL_ENDOVEREND)
+    # war knives    # TO ADD: Counter ability
+def _pWarKnife(item):
+    _bleed(item, BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-5,  rng=10, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _wWarKnife(item):
+    _bleed(item, BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-5, rng=10, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _bWarKnife(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _canThrow(item, acc=-5, rng=12, dmg=0, pen=-4, skill=SKL_ENDOVEREND)
+def _sWarKnife(item):
+    _bleed(item, BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-5, rng=12, dmg=1, pen=-4, skill=SKL_ENDOVEREND)
+def _mWarKnife(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-2, rng=14, dmg=1, pen=-4, skill=SKL_ENDOVEREND)
+def _gWarKnife(item):
+    _bleed(item, BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-2, rng=12, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+def _cWarKnife(item):
+    _bleed(item, BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(8))
+    _canThrow(item, acc=-2, rng=12, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+    # daggers
+def _bDagger(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _canThrow(item, acc=-2, rng=12, dmg=-2, pen=-16, skill=SKL_ENDOVEREND)
+def _gDagger(item):
+    _bleed(item, BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-2, rng=14, dmg=-6, pen=-16, skill=SKL_ENDOVEREND)
+def _mDagger(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(3))
+    _canThrow(item, acc=-2, rng=15, dmg=-2, pen=-16, skill=SKL_ENDOVEREND)
+def _rondelDagger(item):
+    _bleed(item, BLEED_STEEL)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-5, rng=8, dmg=-4, pen=-24, skill=SKL_ENDOVEREND)
+# javelins and shortspears do NOT have reach
+def _javelin(item, acc=2,rng=32,dmg=2,pen=2,bleed=5):
+    _bleed(item, bleed)
+    _canThrow(item, acc=acc, rng=rng, dmg=dmg, pen=pen, skill=SKL_TIPFIRST)
+def _pJavelin(item):
+    _javelin(item, acc=2, rng=26, dmg=2, pen=1, bleed=0.5*BLEED_PLASTIC)
+def _wJavelin(item):
+    _javelin(item, acc=3, rng=28, dmg=2, pen=2, bleed=0.5*BLEED_WOOD)
+def _mJavelin(item):
+    _javelin(item, acc=4, rng=30, dmg=2, pen=4, bleed=0.5*BLEED_METAL)
+def _shortSpear(item, acc=2, rng=26, dmg=2, pen=1, cut=1, bleed=0):
+    _bleed(item, bleed)
+    rog.world().add_component(item, cmp.Tool_Cut(cut))
+    _canThrow(item, acc=acc, rng=rng, dmg=dmg, pen=pen, skill=SKL_TIPFIRST)
+def _pShortSpear(item):
+    _shortSpear(item, acc=2,rng=24,dmg=2,pen=1,cut=1,bleed=BLEED_PLASTIC)
+def _wShortSpear(item):
+    _shortSpear(item, acc=2,rng=26,dmg=2,pen=1,cut=1,bleed=BLEED_WOOD)
+def _bShortSpear(item):
+    _shortSpear(item, acc=2,rng=26,dmg=2,pen=2,cut=2,bleed=BLEED_BONE)
+def _sShortSpear(item):
+    _shortSpear(item, acc=2,rng=24,dmg=2,pen=2,cut=3,bleed=BLEED_STONE)
+def _gShortSpear(item):
+    _shortSpear(item, acc=2,rng=28,dmg=2,pen=0,cut=5,bleed=BLEED_GLASS)
+def _mShortSpear(item):
+    _shortSpear(item, acc=2,rng=28,dmg=2,pen=3,cut=4,bleed=BLEED_METAL)
+def _cShortSpear(item):
+    _shortSpear(item, acc=2,rng=28,dmg=2,pen=0,cut=5,bleed=BLEED_CERAMIC)
+    # shields
+def _buckler(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=9, skill=SKL_SPINNING)
+def _rotella(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-2, rng=7, skill=SKL_SPINNING)
+def _shield(item):
+    _canThrow(item, acc=-5, rng=5, skill=SKL_SPINNING)
+def _scutum(item):
+    _canThrow(item, acc=-10, rng=3, skill=SKL_THROWING)
+def _towerShield(item):
+    _canThrow(item, acc=-15, rng=2, skill=SKL_THROWING)
+    # boomerangs
+def _pBoomerang(item):
+    _bleed(item, 0.25*BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    _canThrow(item, acc=3, rng=32, dmg=3, pen=2, skill=SKL_SPINNING)
+def _wBoomerang(item):
+    _bleed(item, 0.25*BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=10, rng=50, dmg=3, pen=2, skill=SKL_SPINNING)
+def _bBoomerang(item):
+    _bleed(item, 0.25*BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    _canThrow(item, acc=6, rng=40, dmg=3, pen=2, skill=SKL_SPINNING)
+def _gBoomerang(item):
+    _bleed(item, 0.25*BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    _canThrow(item, acc=6, rng=42, dmg=3, pen=2, skill=SKL_SPINNING)
+def _mBoomerang(item):
+    _bleed(item, 0.25*BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    _canThrow(item, acc=8, rng=46, dmg=3, pen=2, skill=SKL_SPINNING)
+def _cBoomerang(item):
+    _bleed(item, 0.25*BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    _canThrow(item, acc=6, rng=36, dmg=3, pen=2, skill=SKL_SPINNING)
+    # bayonets
+def _pBayonet(item):
+    _bleed(item, BLEED_PLASTIC)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-9, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _wBayonet(item):
+    _bleed(item, BLEED_WOOD)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-8, rng=8, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _bBayonet(item):
+    _bleed(item, BLEED_BONE)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-8, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _sBayonet(item):
+    _bleed(item, BLEED_STONE)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-8, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _mBayonet(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-6, rng=8, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
+def _gBayonet(item):
+    _bleed(item, BLEED_GLASS)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    _canThrow(item, acc=-6, rng=6, dmg=-5, pen=-4, skill=SKL_ENDOVEREND)
+def _cBayonet(item):
+    _bleed(item, BLEED_CERAMIC)
+    rog.world().add_component(item, cmp.Tool_Cut(8))
+    _canThrow(item, acc=-6, rng=6, dmg=-5, pen=-4, skill=SKL_ENDOVEREND)
+    # misc weapons
+def _baton(item):
+    _canThrow(item, acc=0, rng=10, pen=-3, skill=SKL_ENDOVEREND)
+def _butcherKnife(item):
+    _bonusToFlesh(item, 6)
+    _amputate(item, 3)
+    _bleed(item, 2*BLEED_STEEL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    _canThrow(item, acc=-4, rng=12, pen=-5, skill=SKL_ENDOVEREND)
+def _kukri(item):
+    _bonusToFlesh(item, 6)
+    _bleed(item, 1.25*BLEED_STEEL)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    rog.world().add_component(item, cmp.Tool_Chop(3))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-2, rng=14, pen=-4, skill=SKL_ENDOVEREND)
+def _messer(item):
+    _bonusToFlesh(item, 4)
+    _bleed(item, 1.25*BLEED_STEEL)
+    _amputate(item, 10)
+    _addRes(item, resrust=10)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Machete(3))
+    rog.world().add_component(item, cmp.Tool_Chop(2))
+    _canThrow(item, acc=-4, rng=12, pen=-5, skill=SKL_ENDOVEREND)
+def _broadsword(item):
+    _bonusToFlesh(item, 4)
+    _bleed(item, 1.25*BLEED_STEEL)
+    _amputate(item, 15)
+    _addRes(item, resrust=20)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chop(2))
+    rog.world().add_component(item, cmp.Tool_Machete(2))
+    _canThrow(item, acc=-2, rng=12, pen=-4, skill=SKL_ENDOVEREND)
+def _falchion(item):
+    _bonusToFlesh(item, 8)
+    _bleed(item, 2*BLEED_STEEL)
+    _amputate(item, 33)
+    _addRes(item, resrust=25)
+    rog.world().add_component(item, cmp.Tool_Cut(4))
+    rog.world().add_component(item, cmp.Tool_Chop(2))
+    rog.world().add_component(item, cmp.Tool_Machete(3))
+    _canThrow(item, acc=-2, rng=12, pen=-5, skill=SKL_ENDOVEREND)
+def _armingSword(item):
+    _bonusToFlesh(item, 2)
+    _bleed(item, 0.75*BLEED_STEEL)
+    _amputate(item, 5)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-2, rng=15, pen=-4, skill=SKL_TIPFIRST)
+def _sabre(item):
+    _bonusToFlesh(item, 6)
+    _bleed(item, BLEED_STEEL)
+    _amputate(item, 10)
+    _addRes(item, resrust=20)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(2))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    _canThrow(item, acc=-5, rng=10, pen=-4, skill=SKL_ENDOVEREND)
+def _hanger(item):
+    _bonusToFlesh(item, 4)
+    _bleed(item, BLEED_STEEL)
+    _addRes(item, resrust=20)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-5, rng=8, pen=-4, skill=SKL_TIPFIRST)
+def _leafSword(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    rog.world().add_component(item, cmp.Tool_Chop(2))
+    _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
+def _cutlass(item):
+    _bonusToFlesh(item, 4)
+    _bleed(item, 1.25*BLEED_STEEL)
+    _amputate(item, 15)
+    _addRes(item, resrust=20)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-5, rng=8, pen=-4, skill=SKL_TIPFIRST)
+def _curvedSword(item):
+    _bonusToFlesh(item, 6)
+    _bleed(item, 1.5*BLEED_STEEL)
+    _amputate(item, 10)
+    _addRes(item, resrust=20)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-5, rng=8, pen=-4, skill=SKL_TIPFIRST)
+def _rapier(item):
+    _bonusToFlesh(item, 4)
+    _bleed(item, BLEED_STEEL)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-5, rng=12, pen=-5, skill=SKL_TIPFIRST)
+def _basketHiltedSword(item):
+    _bonusToFlesh(item, 3)
+    _bleed(item, BLEED_STEEL)
+    _amputate(item, 5)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+    _canThrow(item, acc=-5, rng=12, pen=-5, skill=SKL_TIPFIRST)
+def _smallSword(item):
+    _bonusToFlesh(item, 3)
+    _bleed(item, 0.5*BLEED_STEEL)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(3))
+    _canThrow(item, acc=-5, rng=8, pen=-6, skill=SKL_TIPFIRST)
+def _whip(item):
+    pass
+def _rubberBandWhip(item):
+    pass
+def _bullWhip(item):
+    _pain(item, 20)
+    rog.make(item, REACH)
+def _heavyWhip(item):
+    pass
+def _pushDagger(item):
+    _bleed(item, 2*BLEED_STEEL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+def _mThrowingKnife(item):
+    _bleed(item, BLEED_METAL)
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Chisel(2))
+    _canThrow(item, acc=2, rng=20, dmg=-1, pen=-1, skill=SKL_TIPFIRST)
+def _knuckles(item):
+    pass
+def _boxingWraps(item):
+    pass
+
+    
+    # 2-handed weapons #
+
+    # longswords
+def _longSword(item):
+    _bleed(item, 1.25*BLEED_STEEL)
+    _bonusToFlesh(item, 2)
+    _amputate(item, 10)
+    _addRes(item, resrust=50)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
+def _katana(item):
+    _bleed(item, 2.5*BLEED_STEEL)
+    _bonusToFlesh(item, 6)
+    _amputate(item, 33)
+    _addRes(item, resrust=50)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
+def _estoc(item):
+    _bleed(item, 0.75*BLEED_STEEL)
+    _addRes(item, resrust=50)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
+def _bastardSword(item): # one or two handed longsword
+    _bleed(item, 1.5*BLEED_STEEL)
+    _amputate(item, 15)
+    _addRes(item, resrust=50)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    _canThrow(item, acc=-2, rng=8, skill=SKL_TIPFIRST)
+def _kriegsmesser(item):
+    _bleed(item, 2*BLEED_STEEL)
+    _bonusToFlesh(item, 5)
+    _amputate(item, 50)
+    _addRes(item, resrust=50)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Cut(2))
+    rog.world().add_component(item, cmp.Tool_Machete(1))
+    _canThrow(item, acc=-5, rng=6, skill=SKL_ENDOVEREND)
+    # greatswords
+def _greatSword(item):
+    _bleed(item, 1.5*BLEED_STEEL)
+    _bonusToFlesh(item, 4)
+    _amputate(item, 50)
+    _addRes(item, resrust=50)
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    _canThrow(item, acc=-5, rng=6, skill=SKL_TIPFIRST)
+def _flamberge(item):
+    _bleed(item, 2.5*BLEED_STEEL)
+    _bonusToFlesh(item, 8)
+    _amputate(item, 66)
+    _addRes(item, resrust=33)
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    rog.world().add_component(item, cmp.Tool_Cut(1))
+    rog.world().add_component(item, cmp.Tool_Saw(1))
+    _canThrow(item, acc=-5, rng=6, skill=SKL_TIPFIRST)
+def _executionerSword(item):
+    _bleed(item, 3*BLEED_STEEL)
+    _amputate(item, 100)
+    _addRes(item, resrust=33)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Striker(1))
+    _canThrow(item, acc=-15, rng=3, skill=SKL_THROWING)
+    # staves
+def _staff(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-6, rng=10, skill=SKL_TIPFIRST)
+def _longstaff(item):
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-5, rng=15, skill=SKL_TIPFIRST)
+    # spears
+def _spear(item, cut=3, hammer=1, chisel=0, acc=0, rng=20, bleed=0):
+    _bleed(item, bleed)
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    rog.world().add_component(item, cmp.Tool_Cut(cut))
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    _canThrow(item, acc=acc, rng=rng, skill=SKL_TIPFIRST)
+def _pSpear(item):
+    _spear(item, cut=0, acc=1, rng=18, bleed=BLEED_PLASTIC)
+def _wSpear(item):
+    _spear(item, cut=1, acc=3, rng=20, bleed=BLEED_WOOD)
+def _bSpear(item):
+    _spear(item, cut=1, acc=3, rng=20, bleed=BLEED_BONE)
+def _sSpear(item):
+    _spear(item, cut=1, acc=2, rng=18, bleed=BLEED_STONE)
+def _mSpear(item):
+    _spear(item, cut=2, acc=4, rng=22, bleed=BLEED_METAL)
+def _gSpear(item):
+    _spear(item, cut=3, acc=4, rng=20, bleed=BLEED_GLASS)
+def _cSpear(item):
+    _spear(item, cut=3, acc=4, rng=22, bleed=BLEED_CERAMIC)
+    # partizans
+def _mPartizan(item):
+    _spear(item, cut=5, acc=2, rng=18, bleed=1.5*BLEED_METAL)
+    _amputate(item, 10)
+    # naginatas
+def _mNaginata(item):
+    _spear(item, cut=6, acc=-2, rng=14, bleed=2*BLEED_METAL)
+    _bonusToFlesh(item, 12)
+    _amputate(item, 66)
+    # polehammers
+def _poleHammer(item, toArmor=10, striker=1, bleed=3):
+    _bonusToArmor(item, toArmor)
+    _bleed(item, bleed)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    rog.world().add_component(item, cmp.Tool_Striker(striker))
+    _canThrow(item, acc=-8, rng=4, pen=-10, skill=SKL_TIPFIRST)
+def _pPoleHammer(item):
+    _poleHammer(item, toArmor=4, bleed=0)
+def _wPoleHammer(item):
+    _poleHammer(item, toArmor=6)
+def _bPoleHammer(item):
+    _poleHammer(item, toArmor=8)
+def _sPoleHammer(item):
+    _poleHammer(item, toArmor=10)
+def _mPoleHammer(item):
+    _poleHammer(item, toArmor=12, striker=2, bleed=6)
+    _addRes(item, resrust=50)
+    # poleaxes
+def _poleAxe(item, bleed=20, toArmor=0, amputate=10):
+    _bleed(item, bleed)
+    _bonusToArmor(item, toArmor)
+    _amputate(item, amputate)
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-10, rng=4, pen=-12, skill=SKL_TIPFIRST)
+def _mPoleAxe(item):
+    _poleAxe(item, bleed=1.5*BLEED_METAL, toArmor=2, amputate=10)
+    _addRes(item, resrust=0)
+    # bills
+def _bill(item, bleed=20, rng=12, pen=-2, toFlesh=2):
+    _bleed(item, bleed)
+    _bonusToFlesh(item, toFlesh)
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    _canThrow(item, acc=-5, rng=rng, pen=pen, skill=SKL_TIPFIRST)
+def _mBill(item):
+    _bill(item, bleed=1.5*BLEED_METAL, rng=12, pen=-2, toFlesh=4)
+    _addRes(item, resrust=0)
+    # halberds
+def _mHalberd(item):
+    _bleed(item, BLEED_METAL)
+    _amputate(item, 10)
+    rog.make(item, TWOHANDS)
+    rog.make(item, REACH)
+    _canThrow(item, acc=-8, rng=8, pen=-4, skill=SKL_TIPFIRST)
+    _addRes(item, resrust=0)
+    # great axes
+def _greatAxe(item, acc=-5,rng=5,dmg=-2,pen=-8,bleed=0, chop=1,hammer=1,striker=0,chisel=0,amputate=5):
+    _bleed(item, bleed)
+    _amputate(item, amputate)
+    rog.make(item, TWOHANDS)
+    if chop: rog.world().add_component(item, cmp.Tool_Chop(chop))
+    if hammer: rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    if striker: rog.world().add_component(item, cmp.Tool_Striker(striker))
+    if chisel: rog.world().add_component(item, cmp.Tool_Chisel(chisel))
+    _canThrow(item, acc=acc, rng=rng, dmg=dmg, pen=pen, skill=SKL_ENDOVEREND)
+def _pGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-12, bleed=2*BLEED_PLASTIC,
+              chop=1,hammer=1,striker=0,chisel=0,amputate=5)
+def _wGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-10, bleed=2*BLEED_WOOD,
+              chop=1,hammer=1,striker=0,chisel=0,amputate=5)
+def _bGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-8, bleed=2*BLEED_BONE,
+              chop=2,hammer=1,striker=0,chisel=0,amputate=10)
+def _sGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-8, bleed=2*BLEED_STONE,
+              chop=3,hammer=1,striker=0,chisel=0,amputate=10)
+def _mGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-8, bleed=2*BLEED_METAL,
+              chop=4,hammer=1,striker=1,chisel=1,amputate=15)
+    _addRes(item, resrust=0)
+def _gGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-12, bleed=2*BLEED_GLASS,
+              chop=1,hammer=1,striker=0,chisel=0,amputate=33)
+def _cGreatAxe(item):
+    _greatAxe(item, acc=-5, rng=5, dmg=-2, pen=-12, bleed=2*BLEED_CERAMIC,
+              chop=1,hammer=1,striker=0,chisel=0,amputate=33)
+    # battleaxes
+def _battleaxe(item, acc=-5, rng=5, dmg=-2, pen=-8, chop=1,chisel=0,hammer=1,striker=0,amputate=5):
+    _bleed(item, bleed)
+    _amputate(item, amputate)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Chop(chop))
+    rog.world().add_component(item, cmp.Tool_Chisel(chisel))
+    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
+    rog.world().add_component(item, cmp.Tool_Striker(striker))
+    _canThrow(item, acc=acc, rng=rng, dmg=dmg, pen=pen, skill=SKL_ENDOVEREND)
+def _mBattleaxe(item):
+    _battleaxe(item, chop=3, chisel=1, hammer=1, striker=1, amputate=25)
+    _addRes(item, resrust=0)
+    # mallets
+def _mallet(item, striker):
+    _bonusToArmor(item, 4)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Striker(striker))
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-5, rng=6, dmg=-2, pen=-8, skill=SKL_ENDOVEREND)
+def _1mallet(item):
+    _mallet(item, 1)
+def _2mallet(item):
+    _mallet(item, 2)
+    # great clubs
+def _heavyClub(item):
+    _bonusToArmor(item, 2)
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-5, rng=5, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
+    # misc 2-h weapons
+def _daneAxe(item): # light-weight battleaxe
+    _bleed(item, 2*BLEED_STEEL)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(2))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
+    _canThrow(item, acc=-5, rng=8, dmg=-2, pen=-8, skill=SKL_ENDOVEREND)
+    _addRes(item, resrust=33)
+    
+    
+
+    # ranged weapons #
+
+# set the msp for weapon equipping as the same as the msp penalty on RANGEDWEAPONS table
+def _handCannon(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-15, rng=3, dmg=-8, pen=-4)
+    _weapon(item, acc=-5, dmg=12, pen=6, asp=-60)
+def _arquebus(item): # heavy weapons must be mounted or set on a rest in order to shoot.
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-15, dmg=15, pen=1, asp=-97)
+def _blowGun(item):
+    _canThrow(item, acc=0, rng=6)
+def _caplockPistol(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-2, rng=8)
+    _weapon(item, acc=1, dmg=8, pen=10, asp=-33)
+    _addRes(item, resrust=0)
+def _musketoon(item): # modable w/ bayonet: dmg +6, pen +6
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-6, rng=6, dmg=-2)
+    _weapon(item, acc=1, dmg=10, pen=10, asp=-42)
+    _addRes(item, resrust=0)
+def _musket(item): # modable w/ bayonet: dmg +6, pen +6 (reach???)
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-10, rng=6, dmg=-4)
+    _weapon(item, acc=1, dmg=12, pen=9, asp=-51)
+    _addRes(item, resrust=0)
+def _12GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-12, rng=6, dmg=-4, pen=-2)
+    _weapon(item, acc=1, dmg=10, pen=8, asp=-42)
+def _10GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-14, rng=4, dmg=-5, pen=-4)
+    _weapon(item, acc=1, dmg=11, pen=7, asp=-54)
+def _8GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-16, rng=3, dmg=-6, pen=-6)
+    _weapon(item, acc=1, dmg=12, pen=6, asp=-63)
+def _6GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-18, rng=2, dmg=-7, pen=-8)
+    _weapon(item, acc=0, dmg=13, pen=4, asp=-72)
+def _4GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-20, rng=2, dmg=-8, pen=-10)
+    _weapon(item, acc=-2, dmg=14, pen=3, asp=-81)
+def _3GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-4, dmg=14, pen=2, asp=-87)
+def _2GAshotgun(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-6, dmg=15, pen=1, asp=-94)
+def _combatShotgun(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-10, rng=6, dmg=-2, pen=-4)
+    _weapon(item, acc=1, dmg=12, pen=9, asp=-30)
+def _smgSmall(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=6)
+    _weapon(item, acc=1, dmg=5, pen=6, asp=-24)
+##    def func(item):
+##        pass # switch to semi auto, n=1, asp=90
+##    rog.world().add_component(item, cmp.Usable(func))
+def _smg(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=6)
+    _weapon(item, acc=1, dmg=6, pen=6, asp=-45)
+def _smgLarge(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=5)
+    _weapon(item, acc=1, dmg=8, pen=6, asp=-36)
+def _pistolSmall(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=10, dmg=-1)
+    _weapon(item, acc=1, dmg=5, pen=6, asp=-12)
+def _pistol(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=12)
+    _weapon(item, acc=2, dmg=7, pen=9, asp=-18)
+def _pistolLarge(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=10, dmg=1)
+    _weapon(item, acc=2, dmg=8, pen=11, asp=-24)
+##def _revolver(item):
+##    _canThrow(item, acc=0, rng=10)
+##    _weapon(item, acc=1, dmg=5, pen=3, asp=-18)
+def _rifleSmall(item):
+    rog.make(item, TWOHANDS)
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=-5, rng=6, dmg=-4)
+    _weapon(item, acc=0, dmg=8, pen=6, asp=-42)
+def _rifle(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-5, rng=4, dmg=-4)
+    _weapon(item, acc=-1, dmg=10, pen=8, asp=-51)
+def _rifleLarge(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-5, rng=4, dmg=-4)
+    _weapon(item, acc=-2, dmg=12, pen=10, asp=-60)
+def _rifleXLarge(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-4, dmg=14, pen=12, asp=-75)
+def _rifle308(item):
+    _rifle(item)
+def _rifle3006(item):
+    _rifle(item)
+    compo=rog.world().component_for_entity(item, cmp.Shootable)
+    compo.ammoTypes.add(AMMO_308)
+def _rifleLarge(item):
+    rog.make(item, TWOHANDS)
+    _canThrow(item, acc=-10, rng=3, dmg=-6)
+    _weapon(item, acc=0, dmg=10, pen=8, asp=-75)
+    # archery bows crossbows etc.
+def _pBow(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-4,dmg=0,pen=0,asp=-21)
+    _canThrow(item, acc=-4, rng=3)
+def _wBow(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-2,dmg=1,pen=0,asp=-21)
+    _canThrow(item, acc=-2, rng=4)
+def _compositeBow(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-2,dmg=1,pen=0,asp=-21)
+    _canThrow(item, acc=-2, rng=4)
+##    rog.world().component_for_entity(item, cmp.Stats).reswet = 20 # composite bow is weaker to water than regular wooden bows (logic for reswet not yet implemented)
+def _longbow(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-4,dmg=2,pen=0,asp=-36)
+    _canThrow(item, acc=-4, rng=3)
+def _crossbow(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=0,dmg=2,pen=0,asp=-36)
+    _canThrow(item, acc=-4, rng=3)
+def _arbalest(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-4,dmg=3,pen=0,asp=-75)
+    # misc ranged
+def _atlatl(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(2))
+    _weapon(item, acc=2,dmg=1,pen=1,asp=-12)
+    _canThrow(item, acc=0, rng=10, skill=SKL_ENDOVEREND)
+
+
+
+    # headwear #
+def _pCap(item):
+    _canThrow(item, acc=0, rng=5, dmg=1, skill=SKL_SPINNING)
+def _fCap(item):
+    _canThrow(item, acc=0, rng=5, skill=SKL_SPINNING)
+def _bCap(item):
+    _canThrow(item, acc=0, rng=5, dmg=2, skill=SKL_SPINNING)
+def _kCap(item):
+    _canThrow(item, acc=0, rng=8, dmg=2, skill=SKL_SPINNING)
+def _lCap(item):
+    _canThrow(item, acc=0, rng=8, dmg=1, skill=SKL_SPINNING)
+def _mCap(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=8, dmg=3, skill=SKL_SPINNING)
+def _cCoif(item):
+    _canThrow(item, acc=0, rng=3, skill=SKL_SPINNING)
+def _mCoif(item):
+    _canThrow(item, acc=0, rng=3, skill=SKL_SPINNING)
+def _pHelm(item):
+    _canThrow(item, acc=0, rng=5, skill=SKL_SPINNING)
+def _bHelm(item):
+    _canThrow(item, acc=0, rng=5, dmg=1, skill=SKL_SPINNING)
+def _mHelm(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=6, dmg=1, skill=SKL_SPINNING)
+def _grHelm(item): # graphene
+    _canThrow(item, acc=0, rng=10, dmg=1, skill=SKL_SPINNING)
+def _motorcycleHelm(item):
+    _canThrow(item, acc=0, rng=8, skill=SKL_SPINNING)
+def _mFullHelm(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=4, dmg=1, skill=SKL_SPINNING)
+def _bioHelm(item):
+    _canThrow(item, acc=0, rng=3, skill=SKL_SPINNING)
+def _mBioHelm(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=3, dmg=1, skill=SKL_SPINNING)
+    # face gear
+def _bandana(item):
+    pass
+def _pMask(item):
+    _canThrow(item, acc=0, rng=6, skill=SKL_SPINNING)
+def _wMask(item):
+    _canThrow(item, acc=0, rng=8, skill=SKL_SPINNING)
+def _fMask(item):
+    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+def _lMask(item):
+    _canThrow(item, acc=0, rng=7, skill=SKL_SPINNING)
+def _blMask(item):
+    _canThrow(item, acc=0, rng=7, skill=SKL_SPINNING)
+def _mMask(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=12, skill=SKL_SPINNING)
+def _kMask(item):
+    _canThrow(item, acc=0, rng=10, skill=SKL_SPINNING)
+def _mRespirator(item):
+    _canThrow(item, acc=0, rng=6, skill=SKL_SPINNING)
+def _respirator(item):
+    _canThrow(item, acc=0, rng=6, skill=SKL_SPINNING)
+def _gasMask(item):
+    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+def _plagueMask(item):
+    _canThrow(item, acc=-5, rng=5, skill=SKL_THROWING)
+    # eye gear
+def _pGoggles(item):
+    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+def _gGoggles(item):
+    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+
+
+
+'''
+    functions for transforming objects into other objects
+'''
+
+def _trans_rust(item): 
+# need logic somewhere to impose penalty to rusted items for equipping, tool use, etc. Or make it just unusable. But this logic should possibly not go here.
+# maybe instead of a transform function, rust should just create a whole new object with the same name + rusted as a prefix, and it has no tool quality or equip ability...
+    name=rog.world().component_for_entity(item, cmp.Name)
+    if "rusted" in name.name: return False
+    name.name="rusted {}".format(name.name)
+    form=rog.world().component_for_entity(item, cmp.Form)
+    form.material=MAT_RUST
+    return True
+def _trans_greased(item):
+    name=rog.world().component_for_entity(item, cmp.Name)
+    if "greased" in name.name: return False
+    name.name="greased {}".format(name.name)
+    if rog.world().has_component(item, cmp.Rusts):
+        rog.world().remove_component(item, cmp.Rusts)
+    return True
+
+
+
+'''    # elemental damage #     '''
+
+
+# TODO: ALL OF THESE FUNCTIONS NEED TO BE UPDATED (working on it...)
+
+# TODO: ADD NEW ELEMENTAL TYPE FUNCTIONS!
+
+#   TEMP METER
+#fire damage (increase temperature)
+#   temperature cannot exceed maxTemp
+def burn(ent, amt, maxTemp):
+    #get obj resistance
+    res = rog.getms(ent, 'resfire')
+##    if rog.on(obj, WET):    
+##        rog.clear_status(obj,WET)    #wet things get dried
+##        #steam=stuff.create("steam", obj.x, obj.y)
+    #increase temperature
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.temp = min( maxTemp, max(0, meters.temp + dmg ) )
+    #set burning status
+    if (not rog.get_status(ent, cmp.StatusFire) and
+        obj.stats.temp >= FIRE_TEMP):           #should depend on material?
+        rog.set_status(obj, cmp.StatusFire)
+def normalizeTemperature(ent, roomTemp=0): # normalize to room temp
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.temp = meters.temp + rog.sign(roomTemp - meters.temp)
+def cooldown(ent, amt, minTemp=0): # cool to room temp
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.temp = max(minTemp, meters.temp - amt )
+def cool(ent, amt, minTemp=-100):
+    res = rog.getms(ent, 'rescold')
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.temp = max(minTemp, meters.temp - dmg)
+    #set cold status
+##    if (not rog.on(obj, COLD) and obj.stats.temp >= FIRE_TEMP): #should depend on material?
+##        rog.set_status(obj, FIRE)
+    
+#   SICK METER
+#bio damage
+def disease(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    #increase sickness meter
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.sick += max(0, dmg )
+    if meters.sick >= 100:
+        meters.sick = 100        #cap out sickness meter
+        rog.set_status(ent, cmp.StatusSick)
+#drunk damage
+def intoxicate(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    #increase sickness meter
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.sick += max(0, dmg )
+    if meters.sick >= 100:
+        meters.sick = 100        #cap out sickness meter
+        rog.set_status(ent, cmp.StatusDrunk)
+        
+#   RADS METER
+#rad damage
+def irradiate(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    #increase rads meter
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.rads += max(0, dmg )
+    if meters.rads >= 100:
+        meters.rads = 0 # reset rads meter after mutation
+        rog.mutate(ent)
+        
+#   EXPOSURE METER
+#chem damage
+def exposure(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    #increase exposure meter
+    dmg = int( amt*(1-(res/100)) )
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.expo += max(0, dmg )
+    if meters.expo >= 100:
+        meters.expo = 0          #reset exposure meter
+        rog.damage(ent, CHEM_DAMAGE)  #instant damage when expo meter fills
+        _random_chemical_effect(ent) #inflict chem status effect
+#acid
+def corrode(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    dmg = int(amt * (1-(res/100)) / 10)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.expo += max(0, dmg)
+    if meters.expo >= 100:
+        meters.expo = 0          #reset exposure meter
+        rog.set_status(ent, cmp.StatusAcid)
+#coughing
+def cough(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    dmg = int(amt * (1-(res/100)) / 10)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.expo += max(0, dmg)
+    if meters.expo >= 100:
+        meters.expo = 0          #reset exposure meter
+        rog.set_status(ent, cmp.StatusCough)
+#vomiting
+def vomit(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    dmg = int(amt * (1-(res/100)) / 10)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.expo += max(0, dmg)
+    if meters.expo >= 100:
+        meters.expo = 0          #reset exposure meter
+        rog.set_status(ent, cmp.StatusVomit)
+#irritating
+def irritate(ent, amt):
+    res = rog.getms(ent, 'resbio')
+    dmg = int(amt * (1-(res/100)) / 10)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.expo += max(0, dmg)
+    if meters.expo >= 100:
+        meters.expo = 50 #leave some exposure
+        rog.set_status(ent, cmp.StatusIrritated)
+        
+#   NON-METER ELEMENTAL DAMAGE
+#elec damage  
+def electrify(ent, amt):
+    res = rog.getms(ent, 'reselec')
+    dmg = int(amt * (1-(res/100)) / 10)
+    if dmg:
+        rog.damage(ent, dmg)
+        rog.sap(ent, dmg*10)
+    if dmg >= 9:
+        rog.paralyze(ent, ELEC_PARALYZETIME) # paralysis from high damage
+
+def mutate(ent):
+    ismutable = rog.world().has_component(ent, cmp.Mutable)
+    if not ismutable: return False
+    mutable = rog.world().component_for_entity(ent, cmp.Mutable)
+    mutable.mutations += 1
+    if mutable.mutations > 3:
+        rog.kill(ent)
+    return True
+def paralyze(ent, dur):
+    iscreature = rog.world().has_component(ent, cmp.Creature)
+    if not iscreature: return False
+    rog.set_status(ent, cmp.StatusParalyzed, dur)
+    return True
+
+
+
+
+'''
+    # creator functions #
+'''
 
 #create a thing from STUFF; does not register thing
-def create_stuff(ID, x, y):
-    name,typ,mat,val,fgcol,hp,kg,solid,push,script = STUFF[ID]
+# name              :(type,material,value,color, HP, kg, solid,push?,script,)
+def create_stuff(name, x, y):
+    typ,mat,val,fgcol,hp,kg,script = STUFF[name]
     world = rog.world()
     if fgcol == "random":
-        fgcol = random.choice(list(COL.keys()))
-##    tt = thing.Thing(x,y, _type=typ,name=name,color=COL[fgcol])
-##    tt.mass = kg
-##    tt.material=mat
-##    if lo: _hp(tt, lo)
-##    tt.isSolid = solid
-##    if push: rog.make(tt, CANPUSH)
-##    #_applyResistancesFromMaterial(tt, mat)
-##    return tt
+        fgcol = random.choice(list(COL.values()))
     ent = world.create_entity(
         cmp.Name(name),
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol),
-        cmp.Form(mass=kg, mat=mat, val=val),
-        cmp.BasicStats(hp=hp,mp=hp),
+        cmp.Form(mass=round(kg*MULT_MASS), mat=mat, val=val*MULT_VALUE),
+        cmp.Stats(hp=hp),
         )
-    if solid:
-        rog.make(ent, ISSOLID)
-    if push:
-        rog.add_component(ent, cmp.Pushable())
+##    (ent, name=name, material=mat)
+##    if solid:
+##        rog.make(ent, ISSOLID)
     script(ent)
     return ent
 
 
 #create a fluid
 def create_fluid(x,y,ID,volume):
-    ent = world.create_entity(cmp.Position(x,y),cmp.FluidContainer())
-##    fluid.add(ID, volume)
+    ent = world.create_entity(cmp.Position(x,y), cmp.Fluid(ID, volume))
     return ent
 
 
 #non-weapon gear
-#pass in the name of a gear item
+#pass in the name of an armor item on ARMOR table
 #   quality = 0 to 1. Determines starting condition of the item
-def create_gear(name,x,y,quality):
+def create_armor(name,x,y,quality):
     world = rog.world()
     ent = world.create_entity()
     
-    gData = GEAR[name]
-    _type = get_gear_type(gData)
+    gData = ARMOR[name]
     value = get_gear_value(gData)
     mass = get_gear_mass(gData)
     hpmax = get_gear_hpmax(gData)
+    apCost = get_gear_apCost(gData)
     material = get_gear_material(gData)
     dfn = get_gear_dfn(gData)
     arm = get_gear_arm(gData)
@@ -451,44 +2390,39 @@ def create_gear(name,x,y,quality):
     resfire = get_gear_resfire(gData)
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
-    script = get_gear_script(gData)
-
+    script = get_armor_script(gData)
+    
     fgcol = COL['accent']
     bgcol = COL['deep']
     
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol) )
-    world.add_component(ent, cmp.Form(mass=mass, material=material, value=value))
-    world.add_component(ent, cmp.BasicStats(
+    world.add_component(ent, cmp.Form(
+        mass=round(mass*MULT_MASS),
+        material=material,
+        value=value*MULT_VALUE
+        ))
+    world.add_component(ent, cmp.Stats(
         hp=hpmax,mp=hpmax,
         resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
-        ) )
-
+        ))
+    _setGenericData(ent, name=name, material=material)
+    
     #stat mod dictionaries
-    #{component : {var : modf}}
-    basicStatsDict = {}
-    combatDict = {}
-    sightDict = {}
-    if resbio: basicStatsDict.update({"resbio":resbio})
-    if resfire: basicStatsDict.update({"resfire":resfire})
-    if reselec: basicStatsDict.update({"reselec":reselec})
-    if resphys: basicStatsDict.update({"resphys":resphys})
-    if dfn: combatDict.update({"dfn":dfn})
-    if arm: combatDict.update({"arm":arm})
-    if msp: combatDict.update({"msp":msp})
-    if sight: sightDict.update({"sight":sight})
-    modDict = {}
-    if not basicStatsDict == {}: modDict.update({cmp.BasicStats : basicStatsDict})
-    if not combatDict == {}: modDict.update({cmp.CombatStats : combatDict})
-    if not sightDict == {}: modDict.update({cmp.SenseSight : sightDict})
-        
-    if _type == ARMR:
-        world.add_component(ent, cmp.CanEquipInBodySlot(modDict))
-    elif _type == HELM:
-        world.add_component(ent, cmp.CanEquipInHeadSlot(modDict))
-    elif _type == BACK:
-        world.add_component(ent, cmp.CanEquipInBackSlot(modDict))
+    #{var : modf}
+    statsDict = {}
+    if resbio: statsDict.update({"resbio":resbio})
+    if resfire: statsDict.update({"resfire":resfire})
+    if reselec: statsDict.update({"reselec":reselec})
+    if resphys: statsDict.update({"resphys":resphys})
+    if dfn: statsDict.update({"dfn":dfn})
+    if arm: statsDict.update({"arm":arm})
+    if msp: statsDict.update({"msp":msp})
+    if sight: statsDict.update({"sight":sight})
+    world.add_component(ent, cmp.EquipableInBodySlot(apCost, statsDict))
+##    elif _type == BACK:
+##        world.add_component(ent, cmp.EquipableInBackSlot(apCost, modDict))
     
     #item resistances based on material??? How to do this?
 
@@ -497,127 +2431,281 @@ def create_gear(name,x,y,quality):
 #
 
 
-def create_weapon(name, x,y):
+def create_weapon(name, x,y, quality=0):
     world = rog.world()
     ent = world.create_entity()
-    
+    # get weapon data from table
     data = WEAPONS[name]
-    _type       = get_weapon_type(data)
+    _type       = T_MELEEWEAPON
     value       = get_weapon_value(data)
     mass        = get_weapon_mass(data)
     hpmax       = get_weapon_hpmax(data)
-    capacity    = get_weapon_capacity(data)
-    reloadTime  = get_weapon_rt(data)
-    jamChance   = get_weapon_jam(data)
     material    = get_weapon_mat(data)
-    rng         = get_weapon_range(data)
     atk         = get_weapon_atk(data)
     dmg         = get_weapon_dmg(data)
-    _pow        = get_weapon_pow(data)
+    pen         = get_weapon_pen(data)
     dfn         = get_weapon_dfn(data)
     arm         = get_weapon_arm(data)
+    pro         = get_weapon_pro(data)
     asp         = get_weapon_asp(data)
     msp         = get_weapon_msp(data)
-    elem        = get_weapon_elem(data)
-    ammo        = get_weapon_ammo(data)
-    flags       = get_weapon_flags(data)
+    skill       = get_weapon_skill(data)
     script      = get_weapon_script(data)
-    physDmg = dmg if elem == ELEM_PHYS else 0
-    
-    fgcol = COL['accent']
+    #
+    # color
+    fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
     bgcol = COL['deep']
-    
+    # build entity
+    resfire=0
+    resbio=0
+    reseles=0
+    resphys=0
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw( char=_type, fgcol=fgcol, bgcol=bgcol ))
-    world.add_component(ent, cmp.Form( mass=mass, material=material, value=value ))
-    world.add_component(ent, cmp.BasicStats(
-        hp=hpmax,mp=hpmax,
-        #resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
+    world.add_component(ent, cmp.Form(
+        mass=round(mass*MULT_MASS),
+        material=material,
+        value=value*MULT_VALUE
         ))
-
-    ammoDict={}
-    mainhandDict={}
-    elementalDict={}
-    if ammoType: ammoDict.update({'ammoType':ammoType})
-    if capacity: ammoDict.update({'capacity':capacity})
-    if reloadTime: ammoDict.update({'reloadTime':reloadTime})
-    if jamChance: ammoDict.update({'jamChance':jamChance})
-    if rng: mainhandDict.update({'rng':rng})
-    if atk: mainhandDict.update({'atk':atk})
-    if dmg: mainhandDict.update({'dmg':dmg})
-    if _pow: mainhandDict.update({'pow':_pow})
-    if dfn: mainhandDict.update({'dfn':dfn})
-    if arm: mainhandDict.update({'arm':arm})
-    if asp: mainhandDict.update({'asp':asp})
-    if msp: mainhandDict.update({'msp':msp})
-    if elem: elementalDict.update({'element':elem})
-
+    world.add_component(ent, cmp.Stats(
+        hp=hpmax,mp=hpmax,
+        resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
+        ))
+    _setGenericData(ent, name=name, material=material)
+    # equipable
     modDict={}
-    if not ammoDict == {}: modDict.update({cmp.Ammo : ammoDict})
-    if not mainhandDict == {}: modDict.update({cmp.CombatStats : mainhandDict})
-    world.add_component(ent, cmp.CanEquipInMainhand(modDict))
-    if not elementalDict == {}: world.add_component(ent, cmp.ElementalDamage(elementalDict))
-    
-    for flag in flags:
-        rog.make(ent, flag)
-
+    if not atk==0: modDict.update({'atk':atk})
+    if not dmg==0: modDict.update({'dmg':dmg})
+    if not pen==0: modDict.update({'pen':pen})
+    if not dfn==0: modDict.update({'dfn':dfn})
+    if not arm==0: modDict.update({'arm':arm})
+    if not pro==0: modDict.update({'pro':pro})
+    if not asp==0: modDict.update({'asp':asp})
+    if not msp==0: modDict.update({'msp':msp})
+    world.add_component(ent,cmp.EquipableInHandSlot(NRG_WIELD,modDict))
+    if skill:
+        world.add_component(ent,cmp.WeaponSkill(skill))
+    # quality
+    minGrind=-2
+    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    world.add_component(ent,cmp.Quality(quality, minGrind, maxGrind))
+    # script
     if script: script(weap)
     return weap
+#
 
+def create_monster(_type, x, y, col=None, mutate=0):
+    if not col:
+        col = COL['red']
+    monData = bestiary[_type]
+    name = getMonName(_type)
+    hp = getMonLo(_type)
+    mp = getMonHi(_type)
+    atk = getMonAtk(_type)
+    dmg = getMonDmg(_type)
+    pen = getMonPen(_type)
+    pro = getMonPro(_type)
+    dv = getMonDV(_type)
+    av = getMonAV(_type)
+    spd = getMonSpd(_type)
+    asp = getMonAsp(_type)
+    msp = getMonMsp(_type)
+    resfire = getMonFir(_type)
+    reselec = getMonElc(_type)
+    resbio = getMonBio(_type)
+    sight = getMonSight(_type)
+    hear = getMonHear(_type)
+    carry = getMonCarry(_type)
+    kg = getMonKG(_type)
+    money = getMonMoney(_type)
+    flags = getMonFlags(_type)
+    script = getMonScript(_type)
+    
+    ent = rog.world().create_entity(
+        cmp.Draw(_type, col, COL['deep']),
+        cmp.Position(x, y),
+        cmp.Actor(),
+        cmp.Form(MAT_FLESH, 0),
+        cmp.Name(name),
+        cmp.Creature(faction=FACT_MONSTERS),
+        cmp.Stats(
+            mass=round(kg*MULT_MASS),
+            hp=hp,mp=mp,resfire=resfire,resbio=resbio,reselec=reselec,
+            atk=atk,dmg=dmg,pen=pen,pro=pro,dfn=dv,arm=av,
+            spd=spd,asp=asp,msp=msp
+            ),
+        cmp.Inventory(carry, money=money),
+        cmp.Skills(), cmp.Flags(),
+        cmp.EquipHand1(), cmp.EquipHand2(),
+        cmp.Mutable(),
+        )
+    if sight:
+        rog.world().add_component(ent, cmp.SenseSight(sight))
+    if hear:
+        rog.world().add_component(ent, cmp.SenseHearing(hear))
+    for flag in flags:
+        rog.make(ent, flag)
+    if script: script(ent)
+    rog.fov_init(ent) # TODO: update fov code... is this the right place to put this???
+    return ent
 
-''' TODO: refactor
-def create_creature(name, typ, xs,ys, col):
-    creat=Thing()
-    creat.name          = name
-    creat.type          = typ
-    creat.mask          = typ
-    creat.x             = xs
-    creat.y             = ys
-    creat.color         = col
-    creat.material      = MAT_FLESH
-    creat.isCreature    = True
-    creat.mutations     = 0
-    creat.gender        = dice.roll(2) - 1
-    creat.fov_map       = rog.fov_init()
-    creat.path          = rog.path_init_movement()
-    return creat
-
-def create_corpse(obj):
-    corpse=Thing()
-    corpse.name     = "corpse of {}".format(obj.name)
-    corpse.type     = "%"
-    corpse.mask     = corpse.type
-    corpse.x        = obj.x
-    corpse.y        = obj.y
-    corpse.color    = obj.color
-    corpse.material = obj.material
-    corpse.stats.hpmax = int(obj.mass) + 1
-    corpse.stats.resfire= obj.stats.resfire
-    corpse.stats.resbio = obj.stats.resbio
-    corpse.stats.reselec= obj.stats.reselec
-    corpse.stats.temp   = obj.stats.temp
-    #copy status effects?
-    rog.copyflags(corpse, obj, copyStatusFlags=False)
-    rog.givehp(corpse)
+def convertTo_corpse(ent):
+    '''
+        TODO: change it so you don't delete the entity when you kill a creature,
+        instead just call this to convert it to a corpse
+    '''
+    world = rog.world()
+    name = world.component_for_entity(ent, cmp.Name)
+    draw = world.component_for_entity(ent, cmp.Draw)
+##    form = world.component_for_entity(ent, cmp.Form)
+    bstats = world.component_for_entity(ent, cmp.Stats)
+    name.name = "corpse of {}".format(name.name)
+    draw.char = "%"
+    bstats.hpmax = max(1, bstats.mass)
+    bstats.hp = bstats.hpmax
+    rog.make(ent, DIRTY_STATS)
     return corpse
 
-def create_ashes(obj):
-    if obj.mass < 1: return
-    ashes=Thing()
-    ashes.name      = "ashes"
-    ashes.type      = T_DUST
-    ashes.mask      = ashes.type
-    ashes.x         = obj.x
-    ashes.y         = obj.y
-    ashes.color     = COL['white']
-    ashes.material  = MAT_DUST
-    ashes.mass      = max(0.5, int(obj.mass/20))
-    ashes.stats.resfire = 100
-    ashes.stats.resbio  = 100
-    ashes.stats.reselec = 100
+def create_ashes(ent):
+    '''
+        attempt to create ashes from the remains of an entity
+        does not delete the entity
+    '''
+    world = rog.world()
+    stats = world.component_for_entity(ent, cmp.Stats)
+    if stats.mass < 10: return -1
+    mass = round(stats.mass * 0.1) # mass must always be an integer for actual entities (only displayed as a float in-game and in-data for ease)
+    name = world.component_for_entity(ent, cmp.Name)
+    pos = world.component_for_entity(ent, cmp.Position)
+    ashes=world.create_entity(
+        cmp.Name("ashes of {}".format(name.name)),
+        cmp.Draw(T_DUST, COL['ltgray'],COL['deep']),
+        cmp.Position(pos.x, pos.y),
+        cmp.Form(mass, MAT_DUST, 0),
+        cmp.BasisStats(resfire=100,resbio=100,reselec=100)
+        )
     return ashes
-'''
+
+
+def create_steel_weapon(itemName, x, y):
+    '''
+        create a metal weapon and modify its values/name
+        to resemble a higher quality metal
+    '''
+    world=rog.world()
+    # create the weapon
+    weap=create_weapon(itemName, x, y)
+    # name
+    compo=world.component_for_entity(weap, cmp.Name)
+    if "metal " in compo.name:
+        compo.name = "steel {}".format(compo.name[6:])
+    else:
+        compo.name = "steel {}".format(compo.name)
+    # value and mass
+    stats=world.component_for_entity(weap, cmp.Stats)
+    form=world.component_for_entity(weap, cmp.Form)
+    if form.material==MAT_METAL:
+        form.value = 1 + round(form.value * 5.1)
+        stats.mass = round(stats.mass * 0.95)
+    else:
+        form.value = 1 + round(form.value * 2.5)
+    # equipable stats
+    compo=world.component_for_entity(weap, cmp.EquipableInHandSlot)
+    pen=compo.mods['pen']
+    compo.mods['dmg'] = round(compo.mods['dmg'] * 1.25)
+    compo.mods['pen'] = max(pen + 1, round(pen * 1.2))
+    # stats
+    compo=world.component_for_entity(weap, cmp.Stats)
+    compo.hpmax=compo.hpmax*1.5
+    compo.hp=compo.hpmax
+    compo.resrust=round(compo.resrust + (100 - compo.resrust) * 0.5)
+    return weap
+#
+
+# generic components that can be applied depending on entity's name/material
+def _setGenericData(ent, name="", material=0):
+    stats=world.component_for_entity(ent, cmp.Stats)
+    # rusting
+    if (material==MAT_METAL or "metal" in name):
+        stats.resrust=0
+    # rotting
+    if material==MAT_WOOD:
+        stats.resrot=0
+    return ent
+
+
+##def create_humanoid(name, x, y, char, col, speed=100):
+##    '''
+##        create a humanoid creature with everything a basic creature needs
+##            humanoid: can equip in all the slots a human can
+##        *does not add senses or an AI
+##        *does not add any values to most components / inits default vals
+##    '''
+##    ent = rog.world().create_entity(
+##        cmp.Draw(char, col, COL['deep']),
+##        cmp.Position(x, y),
+##        cmp.Actor(speed),
+##        cmp.Form(75*MULT_MASS, MAT_FLESH, VAL_HUMAN*MULT_VALUE),
+##        cmp.Name(name), #title, pronouns...
+##        cmp.Creature(), # gender, job, factions...
+##        cmp.Stats(),
+##        cmp.Inventory(),
+##        cmp.Skills(), cmp.Flags(),
+##        cmp.EquipBody(), cmp.EquipBack(), cmp.EquipAbout(),
+##        cmp.EquipHead(), cmp.EquipFace(), cmp.EquipEyes(),
+##        cmp.EquipAmmo(), cmp.EquipHand1(), cmp.EquipHand2(),
+##        cmp.Mutable(),
+##        )
+##    return ent
+            
+
+
+
+# FLUIDS #
+
+    #TODO: implement fluids. These are the old functions.
+
+##def getData(self, stat):    #get a particular stat about the fluid
+##    return FLUIDS[self.name].__dict__[stat]
+##
+##def clear(self):            #completely remove all fluids from the tile
+##    self.dic={}
+##    self.size=0
+##
+##def add(self, name, quantity=1):
+##    newQuant = self.dic.get(name, 0) + quantity
+##    self.dic.update({name : newQuant})
+##    self.size += quantity
+##    
+##    '''floodFill = False
+##    if self.size + quantity > MAX_FLUID_IN_TILE:
+##        quantity = MAX_FLUID_IN_TILE - self.size
+##        floodFill = True #partial floodfill / mixing
+##        #how should the fluids behave when you "inject" a new fluid into a full lake of water, etc.?
+##        #regular floodfill will not cut it
+##        #maybe just replace the current fluid with the new fluid to keep it simple.
+##        '''
+##
+##    '''if floodFill:
+##        #do flood fill algo.
+##        #this is going to also have to run a cellular automata to distribute different types of fluids
+##        return'''
+##
+##def removeType(self, name, quantity=1):
+##    if self.size > 0:
+##        curQuant = self.dic.get(name, 0)
+##        newQuant = max(0, curQuant - quantity)
+##        diff = curQuant - newQuant
+##        if not diff:     #no fluid of that type to remove
+##            return
+##        self.size -= diff
+##        if newQuant != 0:
+##            self.dic.update({name : newQuant})
+##        else:
+##            #we've run out of this type of fluid
+##            self.dic.remove(name)
+
 
 
 
@@ -627,7 +2715,6 @@ def create_ashes(obj):
 
 
 # MONSTERS #
-
 
 diplomacy={
     #Factions:
@@ -644,21 +2731,21 @@ bestiary={
     # Column names in more detail:
     # Lo qi, Hi qi, Attack, Damage, Dodge, Armor, Speed, Move Speed, Attack Speed, Carrying Capacity, Mass, Gold.
     
-#Type,  Name,                   (Lo\ Hi\ At\Dm\DV\AV\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\CARRY\KG\$$\),   FLAGS,
+#Type,  Name,                   (Lo\ Hi\ At\Dm\Pen\DV\AV\Pro\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\CARRY\KG\$$\),FLAGS,script,
 
-'@' : ('human',                 (20, 20, 5, 2, 2, 0, 100,100,100, 25, 25, 25, 20, 100, 60,  65, 500, ),(CANEAT,),),
-'a' : ('abomination',           (16, 8,  0, 4, -8,2, 100,90, 110, 50, 50, 25, 6,  0,   30,  80, 0,  ),(),),
-'b' : ('bug-eyed business guy', (20, 30, 5, 2, 2, 0, 150,120,100, 50, 50, 20, 30, 100, 90,  60, 500, ),(CANEAT,),),
-'B' : ('butcher',               (50, 20, 5, 6, -4,0, 100,100,100, 60, 50, 50, 10, 100, 90,  130,300, ),(CANEAT,),),
-'L' : ('raving lunatic',        (12, 25, 3, 2, 2, 0, 100,100,100, 25, 15, 30, 10, 0,   60,  50, 0, ),(),), #BABBLES,
-'r' : ('ravaged',               (4,  1,  1, 2, -8,-1,100,80, 70,   0,  0, 0,  10, 0,   15,  35, 0,  ),(RAVAGED,),),
-'R' : ('orctepus',              (15, 5,  6, 2,-12,0, 100,80, 145,  0, 80, 0,  8,  0,   120, 100,0,  ),(CANEAT,),),
-'s' : ('slithera',              (6,  15, 10,4, -4,0, 100,33, 150,  0, 50, 5,  5,  0,   35,  30, 0, ),(CANEAT,),),
-'U' : ('obese scrupula',        (20, 2,  4, 8,-16,3, 100,50, 90,  20, 65, 60, 10, 0,   85,  140,100,  ),(),),
-'V' : ('ash vampire',           (50, 80, 8, 5, 8, 0, 100,120,100, 10, 75, 5,  5,  200, 60,  30, 1000,  ),(MEAN,NVISION,),),
-'w' : ('dire wolf',             (12, 3,  12,5, 8, 0, 100,225,115, 15, 15, 15, 15, 0,   20,  50, 0,  ),(RAVAGED,),),
-'W' : ('whipmaster',            (24, 10, 5, 5, 4, 2, 100,80, 100, 25, 60, 10, 15, 0,   75,  75, 1000, ),(MEAN,NVISION,),),
-'z' : ('zombie',                (8,  1,  0, 3,-12,-1,50, 40, 100, 10, 25, 55, 5,  0,   30,  45, 0,  ),(MEAN,),),
+'@' : ('human',                 (20, 20, 2, 2, 2,  2, 0, 0,  100,100,100, 25, 25, 25, 20, 100, 60,  65, 500, ),(),None,),
+'a' : ('abomination',           (16, 8,  -2,4, 0,  -8,2, 2,  100,90, 110, 50, 50, 25, 6,  0,   30,  80, 0,  ),(),None,),
+'b' : ('bug-eyed business guy', (20, 30, 2, 2, 3,  2, 0, 0,  150,120,100, 50, 50, 20, 30, 100, 90,  60, 500, ),(),None,),
+'B' : ('butcher',               (40, 20, 2, 5, 2,  -4,1, 2,  100,100,100, 60, 50, 50, 10, 100, 90,  130,300, ),(),None,),
+'L' : ('raving lunatic',        (12, 25, 2, 3, 2,  2, 0, 0,  100,100,100, 25, 15, 30, 10, 0,   60,  50, 0, ),(),None,), #BABBLES,
+'r' : ('ravaged',               (4,  1,  -4,1, 0,  -8,-1,0,  100,80, 70,   0,  0, 0,  10, 0,   15,  35, 0,  ),(),None,),
+'R' : ('orctepus',              (15, 5,  4, 2, 8, -12,0, 0,  100,80, 145,  0, 80, 0,  8,  0,   120, 100,0,  ),(),None,),
+'s' : ('slithera',              (6,  15, 6, 3, 1,  -4,0, 0,  100,33, 150,  0, 50, 5,  5,  0,   35,  30, 0, ),(),None,),
+'U' : ('obese scrupula',        (20, 2,  0, 6, 2, -16,3, 6,  100,50, 90,  20, 65, 60, 10, 0,   85,  140,100,  ),(),None,),
+'V' : ('ash vampire',           (30, 80, 2, 3, 2,  8, 0, 0,  100,120,100, 10, 75, 5,  5,  200, 60,  30, 1000,  ),(),None,),
+'w' : ('dire wolf',             (12, 3,  12,5, 0,  8, 0, 1,  100,225,115, 15, 15, 15, 15, 0,   20,  50, 0,  ),(),None,),
+'W' : ('whipmaster',            (50, 10, 6, 5, 4,  4, 2, 4,  100,80, 100, 25, 60, 10, 15, 0,   75,  75, 1000, ),(),None,),
+'z' : ('zombie',                (8,  1,  -6,4, 0, -12,-1,0,  50, 40, 100, 10, 25, 55, 5,  0,   30,  45, 0,  ),(),None,),
 
 
 }
@@ -690,192 +2777,6 @@ corpse_recurrence_percent={
 }
 
 
-# GEAR #
-
-''' #Columns:
-    #   $$$$$   cost
-    #   KG      mass
-    #   Dur     durability
-    #   Mat     material
-    #   DV      Dodge Value
-    #   AV      Armor Value
-    #   Msp     Move Speed
-    #   Vis     Vision
-    #   FIR     Fire Resist
-    #   BIO     Bio Resist
-'''
-GEAR = {
-#--Name-------------------Type,$$$$$, KG,   Dur, Mat, (DV, AV, MSp, Vis,FIR,BIO,ELE,PHS), script
-    #Back
-"cloak"                 :(BACK,420,   6.0,  150, CLTH,( 4,  1, -3,  0,  10, 10, 0,  0,), _cloak,),
-"fire blanket"          :(BACK,600,   12.4, 175, CLTH,(-4,  1, -9,  0,  150,33, 9,  0,), _fireBlanket,),
-    #Armor
-"t-shirt"               :(ARMR,40,    0.12, 50,  CLTH,( 1,  0,  0,  0,  -10,15, 0,  0,), None,),
-"skin suit"             :(ARMR,450,   14.7, 90,  FLSH,( 2,  1, -6,  0,  0,  15, 3,  0,), None,),
-"bone armor"            :(ARMR,790,   27.8, 475, BONE,(-4,  4, -18, 0,  15, 25, 0,  0,), None,),
-"carb garb"             :(ARMR,860,   22.5, 600, CARB,(-2,  3, -12, 0,  10, 15, 6,  0,), None,),
-"textile armor"         :(ARMR,950,   15.6, 125, CLTH,( 1,  2, -3,  0,  5,  40, 3,  0,), None,),
-"boiled leather plate"  :(ARMR,2075,  12.5, 180, LETH,( 2,  3, -3,  0,  10, 25, 15, 0,), None,),
-"riot gear"             :(ARMR,3490,  20.5, 500, CARB,(-1,  4, -12, 0,  25, 25, 25, 0,), None,),
-"metal gear"            :(ARMR,9950,  27.5, 740, METL,(-3,  5, -18, 0,  -10,15, -25,0,), None,),
-"full metal suit"       :(ARMR,12000, 35.1, 850, METL,(-4,  6, -21, 0,  -15,15, -50,0,), None,),
-"graphene armor"        :(ARMR,58250, 16.5, 900, CARB,(-2,  5, -9,  0,  30, 50, 30, 0,), None,),
-"bullet-proof armor"    :(ARMR,135000,12.8, 1000,CARB,( 0,  8, -3,  0,  5,  10, 0,  0,), None,),
-"hazard suit"           :(ARMR,2445,  14.5, 75,  PLAS,(-8,  1, -24, 0,  15, 200,12, 0,), None,),
-"disposable PPE"        :(ARMR,110,   9.25, 25,  PLAS,(-6,  0, -15, 0,  -25,100,3,  0,), None,),
-"wetsuit"               :(ARMR,1600,  8.2,  50,  PLAS,(-1,  0, -6,  0,  50, 20, 21, 0,), None,),
-"burn jacket"           :(ARMR,1965,  19.5, 150, CLTH,(-5,  2, -12, 0,  200 33, 15, 0,), None,),
-"space suit"            :(ARMR,35490, 40.0, 50,  CARB,(-8,  2, -33, 0,  10, 100,6,  0,), None,),
-    #Helmets
-"bandana"               :(HELM,40,    0.1,  20,  CLTH,( 2,  0,  0,  0,  5,  10, 3,  0,), None,),
-"skin mask"             :(HELM,180,   1.25, 10,  FLSH,( 1,  0,  0,  -1, 0,  5,  0,  0,), None,),
-"wood mask"             :(HELM,10,    1.0,  30,  WOOD,( 0,  1,  0,  -5, -5, 5,  3,  0,), None,),
-"skull helm"            :(HELM,750,   2.8,  115, BONE,(-2,  2, -6,  -3, 5,  5,  6,  0,), None,),
-"motorcycle helmet"     :(HELM,1500,  0.75, 145, PLAS,( 0,  2,  0,  -3, 0,  5,  6,  0,), None,),
-"metal helm"            :(HELM,8500,  3.0,  300, METL,(-3,  3, -6,  -10,0,  5,  -12,0,), None,),
-"graphene mask"         :(HELM,21850, 0.8,  285, CARB,( 0,  2,  0,  -7, 5,  8,  9,  0,), None,),
-"graphene helmet"       :(HELM,25450, 1.2,  310, CARB,(-1,  3, -3,  -7, 6,  10, 9,  0,), None,),
-"kevlar hat"            :(HELM,89500, 1.5,  350, CARB,( 0,  4,  0,  0,  0,  0,  0,  0,), None,),
-"respirator"            :(HELM,2490,  1.7,  25,  PLAS,(-1,  0, -3,  0,  13, 27, 3,  0,), None,),
-"gas mask"              :(HELM,19450, 2.5,  30,  PLAS,(-1,  0, -6,  -1, 8,  36, 6,  0,), None,),
-"space helmet"          :(HELM,21950, 3.5,  40,  CARB,(-3,  1, -12, -5, 10, 22, 6,  0,), None,),
-#"night vision goggles"
-#"ear plugs"
-    }
-
-
-WEAPONS = {
-# Type              Weapon type
-# $$$, KG, Dur      Value, mass, durability
-# Cap               Ammo Capacity (for ranged weapons)
-# Mat               Material
-# Rn                Range/Accuracy (for ranged weapons or for throwing weapons),
-# At,Dm,Pw          Attack, Damage (melee/throwing), Power (ranged weapon damage),
-# DV,AV,            Dodge Value, Armor Value,
-# Asp,Msp           Attack Speed, Move Speed,
-# EL                Element (damage type)
-# Ammo              Ammunition / Fuel required to use weapon
-    
-    # melee weapons / throwing weapons. Organized roughly by category of weapon
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"stone"             :(TSTO,1,    0.25,50,  0,  0,  0,  STON,(10,2, 5, 0,  0,  0, -40, 0, PH,),None,(CRUSHES,), None,),
-"stick"             :(MEL, 1,    0.6, 40,  0,  0,  0,  WOOD,(8, 4, 2, 0,  1,  0,  5, -3, PH,),None,(), None,),
-"bone"              :(MEL, 1,    0.25,120, 0,  0,  0,  BONE,(8, 5, 4, 0,  2,  0,  5,  0, PH,),None,(CRUSHES,), None,),
-"wooden plank"      :(MEL, 2,    1.2, 80,  0,  0,  0,  WOOD,(5, 5, 3, 0,  2,  0, -36,-6, PH,),None,(CRUSHES,), None,),
-"fork"              :(MEL, 3,    0.05,65,  0,  0,  0,  METL,(3, 4, 1, 0,  0,  0,  10, 0, PH,),None,(STABS,), None,),
-"throwing star"     :(MEL, 5,    0.1, 10,  0,  0,  0,  METL,(12,12,1, 0,  0,  0,  33, 0, PH,),None,(STABS,), None,),
-"throwing dart"     :(MEL, 6,    0.2, 10,  0,  0,  0,  METL,(12,10,2, 0,  0,  0,  0,  0, PH,),None,(STABS,), None,),
-"war frisbee"       :(MEL, 8,    0.4, 5,   0,  0,  0,  PLAS,(14,8, 4, 0,  0,  0, -10,-3, PH,),None,(CUTS,), None,),
-"cudgel"            :(MEL, 3,    1.5, 520, 0,  0,  0,  WOOD,(5, 2, 9, 0,  0,  0, -33,-12,PH,),None,(CRUSHES,), None,),
-"hammer"            :(MEL, 20,   1.15,550, 0,  0,  0,  WOOD,(8, 4, 11,0,  0,  0, -33,-9, PH,),None,(CRUSHES,), None,),
-"flail"             :(MEL, 45,   1.5, 250, 0,  0,  0,  METL,(1, 2, 16,0,  -1, 0, -45,-9, PH,),None,(CRUSHES,), None,),
-"baton"             :(MEL, 50,   0.75,330, 0,  0,  0,  PLAS,(5, 5, 3, 0,  2,  0,  15,-3, PH,),None,(CRUSHES,), None,),
-"crowbar"           :(MEL, 66,   0.8, 750, 0,  0,  0,  METL,(5, 5, 10,0,  0,  0, -33,-3, PH,),None,(CRUSHES,), None,),
-"stone axe"         :(MEL, 5,    1.55,40,  0,  0,  0,  WOOD,(6, 1, 11,0,  0,  0, -25,-9, PH,),None,(CHOPS,), None,),
-"metal axe"         :(MEL, 25,   1.25,420, 0,  0,  0,  WOOD,(8, 3, 13,0,  0,  0, -25,-9, PH,),None,(CHOPS,CUTS,), None,),
-"throwing axe"      :(MEL, 20,   0.8, 50,  0,  0,  0,  METL,(10,9, 9, 0,  0,  0, -20,-6, PH,),None,(CHOPS,CUTS,), None,),
-"shortspear"        :(MEL, 8,    0.75,60,  0,  0,  0,  WOOD,(8, 9, 7, 0,  1,  0,  40,-9, PH,),None,(STABS,), None,),
-"javelin"           :(MEL, 10,   0.5, 20,  0,  0,  0,  WOOD,(16,12,6, 0,  2,  0,  33,-9, PH,),None,(REACH,STABS,), None,),
-"staff"             :(MEL, 15,   1.4, 220, 0,  0,  0,  WOOD,(8, 6, 6, 0,  3,  0,  33,-18,PH,),None,(REACH,), None,),
-"wooden spear"      :(MEL, 18,   1.25,65,  0,  0,  0,  WOOD,(12,12,7, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"bone spear"        :(MEL, 32,   1.1, 80,  0,  0,  0,  WOOD,(12,12,8, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"metal spear"       :(MEL, 75,   1.3, 100, 0,  0,  0,  WOOD,(12,12,9, 0,  3,  0,  33,-18,PH,),None,(REACH,STABS,CUTS,), None,),
-"wooden sword"      :(MEL, 52,   1.0, 60,  0,  0,  0,  WOOD,(5, 9, 3, 0,  4,  0,  20,-6, PH,),None,(CRUSHES,), None,),
-"metal sword"       :(MEL, 360,  1.25,160, 0,  0,  0,  METL,(8, 15,8, 0,  5,  0,  25,-6, PH,),None,(CUTS,STABS,CHOPS,), None,),
-"bone knife"        :(MEL, 22,   0.2, 30,  0,  0,  0,  BONE,(10,14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"pocket knife"      :(MEL, 95,   0.2, 75,  0,  0,  0,  METL,(10,14,5, 0,  1,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"bayonet"           :(MEL, 175,  0.3, 80,  0,  0,  0,  METL,(10,14,5, 0,  3,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"dagger"            :(MEL, 205,  0.4, 200, 0,  0,  0,  METL,(10,16,5, 0,  4,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-"scalpel"           :(MEL, 240,  0.05,10,  0,  0,  0,  METL,(1, 20,6, 0,  0,  0,  40, 0, PH,),None,(CUTS,STABS,), None,),
-#chainsaw
-#plasma sword
-
-    # shields
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"wooden shield"     :(OFF, 185,  5.3, 520, 0,  0,  0,  WOOD,(3, 0, 1, 0,  5,  3,  0, -18,PH,),None,(CRUSHES,), None,),
-"metal shield"      :(OFF, 340,  7.5, 900, 0,  0,  0,  METL,(1, 0, 1, 0,  3,  5,  0, -24,PH,),None,(CRUSHES,), None,),
-"riot shield"       :(OFF, 2250, 8.2, 450, 0,  0,  0,  PLAS,(1, 0, 0, 0,  2,  7,  0, -27,PH,),None,(CRUSHES,), None,),
-
-    # ranged weapons
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"sling"             :(SLNG,3,    0.05,30,  1,  1,  0,  ROPE,(20,10,-3,5,  0,  0, -33, 0,PH,),A_SLING,(), None,),
-"hunting bow"       :(BOW, 30,   0.8, 35,  1,  1,  0,  WOOD,(16,6, -3,0,  0,  0, -10,-3,PH,),A_ARRO,(), None,),
-"short bow"         :(BOW, 110,  1.1, 40,  1,  1,  0,  WOOD,(20,12,-3,2,  0,  0, -25,-6,PH,),A_ARRO,(), None,),
-"longbow"           :(BOW, 160,  1.8, 45,  1,  1,  0,  WOOD,(36,16,-3,6,  0,  0, -33,-12,PH,),A_ARRO,(), None,),
-"composite bow"     :(BOW, 325,  1.2, 50,  1,  1,  0,  BONE,(33,14,-3,4,  0,  0, -25,-6,PH,),A_ARRO,(), None,),
-
-    # exposives
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-##"smoke bomb"        :(EXPL,50,   1.2, 1,   0,  0,  0,  METL,(8, 3, 2, 0,  0,  0,  0, 0, PH,),None,(), _molotov,),
-##"flashbang"         :(EXPL,50,   1.2, 1,   0,  0,  0,  METL,(8, 3, 2, 0,  0,  0,  0, 0, PH,),None,(), _molotov,),
-"molotov"           :(EXPL,50,   1.2, 1,   0,  0,  0,  METL,(8, 3, 2, 0,  0,  0,  0, 0, PH,),None,(), _molotov,),
-"frag grenade"      :(EXPL,165,  0.8, 20,  0,  0,  0,  METL,(10,3, 2, 0,  0,  0,  0, 0, PH,),None,(), _fragBomb,),
-"land mine"         :(EXPL,425,  4.0, 5,   0,  0,  0,  METL,(3, 0, 1, 0,  0,  0,  0, -12,PH,),None,(), _fragMine,),
-##"remote-detonated bomb":(EXPL,75,   2.5, 3,   0,  0,  0,  METL,(8, 3, 1, 1,  -1, 0, -10,-6,PH,),None,(), _ied,),
-
-    # heavy weapons
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"spring cannon"     :(HEVY,360,  7.3, 75,  1,  4,  0,  METL,(8, 5, 1, 4,  -5, 0, -33,-21,PH,),A_ANY,(CRUSHES,), None,),
-"MK-18 shitstormer" :(HEVY,1290, 2.5, 220, 100,3,  0,  PLAS,(7, 3, 1, 25, -4, 0,  0, -15,BI,),A_HAZM,(CRUSHES,), None,),
-"raingun"           :(HEVY,2290, 2.85,175, 125,3,  0,  PLAS,(7, 5, 1, 40, -4, 0,  0, -18,CH,),A_ACID,(CRUSHES,), None,),
-"supersoaker 9000"  :(HEVY,3750, 3.5, 100, 200,5,  0,  PLAS,(9, 5, 0, 3,  -4, 0,  10,-18,None,),A_FLUID,(CRUSHES,), None,),
-"flamethrower"      :(HEVY,4800, 12.7,100, 300,8,  0,  METL,(5, 5, 1, 100,-4, 0,  33,-40,FI,),A_FLAM,(CRUSHES,), None,), #_flamethrower
-#"napalm thrower"      :(HEVY,5800, 12.7,100, 300,8,  0,  METL,(5, 15,2, 100,-15,0,  33,-40,FI,),A_FLAM,(),), #_flamethrower
-#"compressed air gun":(HEVY,215, 5.5,50, 1, 6,  0,  PLAS,(5, 15,2, 8,-15,0,  33,-40,PH,),A_FLAM,(),), #_flamethrower
-
-    # guns
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"hand cannon"       :(GUN, 145,  8.75,450, 1,  10, 15, METL,(5, 6, 4, 12, -4, 1, -50,-30,PH,),A_BULL,(CRUSHES,), None,),
-"musket"            :(GUN, 975,  2.5, 120, 1,  8,  8,  WOOD,(8, 6, 4, 8,  -1, 0, -33,-12,PH,),A_BULL,(CRUSHES,), None,),
-"flintlock pistol"  :(GUN, 1350, 1.3, 150, 1,  8,  12, WOOD,(10,6, 3, 1,   0, 0, -25,-3, PH,),A_BULL,(CRUSHES,), None,),
-"revolver"          :(GUN, 3990, 1.1, 360, 6,  1,  8,  METL,(12,8, 3, 2,   0, 0, -15,-3, PH,),A_CART,(CRUSHES,), None,),
-"rifle"             :(GUN, 4575, 2.2, 280, 1,  1,  8,  WOOD,(20,15,4, 6,  -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
-"repeater"          :(GUN, 13450,2.0, 300, 7,  1,  7,  WOOD,(20,13,4, 5,  -1, 0, -15,-9, PH,),A_CART,(CRUSHES,), None,),
-"'03 Springfield"   :(GUN, 26900,2.5, 350, 5,  1,  6,  WOOD,(36,20,4, 10, -1, 0, -33,-12,PH,),A_CART,(CRUSHES,), None,),
-"luger"             :(GUN, 55450,0.9, 210, 8,  1,  10, METL,(18,12,3, 4,   0, 0, -6, -3, PH,),A_CART,(CRUSHES,), None,),
-"shotgun"           :(GUN, 2150, 2.0, 325, 1,  1,  8,  WOOD,(8, 8, 4, 4,  -1, 0, -33,-9, PH,),A_SHOT,(CRUSHES,), None,),
-"dbl.barrel shotgun":(GUN, 6200, 2.8, 285, 2,  1,  8,  WOOD,(8, 8, 4, 4,  -1, 0, -33,-12,PH,),A_SHOT,(CRUSHES,), None,),
-
-    # energy weapons
-# Name     ##------- Type, $$$$, KG,  Dur, Cap,RT, Jam,Mat, (Rn,At,Dm,Pw, DV, AV, Asp,Msp,EL),Ammo,Flags,script
-"battery gun"       :(ENER,3250, 4.20,175, 20, 1,  0,  PLAS,(2, 40,2, 70, -4,  0, -60,-24,EL,),A_ELEC,(),),
-#"laser pointer"
-#"beam rifle"
-#"taser"
-#"megaphone"
-#"paralysis ray"
-
-#"grenade launcher"  :(HEVY,45910,8.2, 200, 1,  3,  0,  METL,(12,5, 0, 4,  -15,0, -33,-30,PH,),A_GREN,(),),
-}
-#add extra weapons (variations)
-##BAYONETS=("musket","rifle","shotgun","'03 Springfield",)
-##for wpn in BAYONETS:
-####    _stats = WEAPONS[wpn]
-####    bayonetDmg = 4
-####    _stats.update( {set_weapon_dmg() : get_weapon_dmg(WEAPONS[wpn]) + bayonetDmg} )
-##    WEAPONS.update( {"{} with bayonet".format(wpn) : _stats} ))
-
-
-AMMUNITION={
-# Attributes:
-#   type        ammo type
-#   $$$, KG     value, mass
-#   n           number shots
-#   Acc, Atk, Dmg, Asp      Range, Attack, Damage, Attack Speed
-# name                  : type,  $$$, KG, n, (Acc,Atk,Dmg,Asp,),script
-##hollow arrows
-"metal ball"            :(A_BULL,2,  0.1, 1, (-2, 0,  4,  0,), None,)
-"Minni ball"            :(A_BULL,3,  0.1, 1, (0,  2,  6,  0,), None,)
-"paper cartridge"       :(A_BULL,4,  0.15,1, (0,  2,  6,  0,), _paperCartridge,)
-"shotgun shell"         :(A_SHOT,6,  0.1, 5, (-2, -5, 0,  0,), None,)
-"shotgun slug"          :(A_SHOT,8,  0.1, 1, (0,  0,  15, -10,), None,)
-"pistol cartridge"      :(A_CART,6,  0.02,1, (0,  2,  4,  0,), None,)
-"magnum cartridge"      :(A_CART,16, 0.03,1, (-2, 5,  10, -33,), None,)
-"rifle cartridge"       :(A_CART,15, 0.04,1, (10, 8,  7,  -15,), None,)
-"hollow-point cartridge":(A_CART,12, 0.03,1, (-5, -4, 12, -15,), None,)
-"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 12, 16, -33,), _incendiary)
-    }
-
 
 FOOD = {
 # Columns:
@@ -884,44 +2785,68 @@ FOOD = {
 #   Mat         material
 #   script      script to run to initialize values for the food item
 #--Name-------------------$$$,  KG,   Mat,  script
-"Corpse Button"         :(1,    0.03, FUNG, _food_morsel_bloody_nasty,),
-"Hack Leaf"             :(1,    0.02, VEGG, _food_morsel_bitter,),
-"Juniper Berry"         :(3,    0.01, VEGG, _food_morsel_sweet,),
+"Corpse Button"         :(1,    0.03, FLSH, _food_morsel_bloody_nasty,),
+"Hack Leaf"             :(1,    0.02, WOOD, _food_morsel_bitter,),
+"Juniper Berry"         :(3,    0.01, FLSH, _food_morsel_sweet,),
 "Coke Nut"              :(12,   0.02, WOOD, _food_cokenut,),
-"Silly Fruit"           :(8,    0.04, VEGG, _food_sillyfruit,),
+"Silly Fruit"           :(8,    0.04, FLSH, _food_sillyfruit,),
 "Mole Rat Meat"         :(10,   0.15, FLSH, _food_ration_savory,),
-"Dwarf Giant Cap"       :(25,   0.05, FUNG, _food_ration_savory,),
+"Dwarf Giant Cap"       :(25,   0.05, FLSH, _food_ration_savory,),
 "Eel Meat"              :(20,   0.50, FLSH, _food_meal_savory,),
 "Human Meat"            :(40,   1.00, FLSH, _food_meal_savory,),
 "Infant Meat"           :(80,   0.50, FLSH, _food_meal_savory,),
-"Giant Cap"             :(100,  0.35, FUNG, _food_meal_savory,),
-"MRE"                   :(60,   1.0,  FUNG, _food_meal_gamble,),
+"Giant Cap"             :(100,  0.35, FLSH, _food_meal_savory,),
+"MRE"                   :(60,   1.0,  FLSH, _food_meal_gamble,),
     }
 
 STUFF={
-#flag           : name                  type,material,value,color, HP, kg, solid,push?,script,
+    # REMOVED: solid, pushable / push : this is now handled by scripts
+    # misc mats / mixes of materials / complex objects / variable material objects
+# name              :(type,material,value,color, HP, kg, script,)
+"tinder"            :(T_MISC,WOOD,  0,   'accent',1,0.01,None,),
+"solar panel"       :(T_DEVICE,GLAS,500, 'trueblue',40,2.0,_solarPanel,),
+"skeleton"          :(T_CORPSE,BONE,100, 'bone',1,8.0,_skeleton,),
+    # plastic
+"plastic campfire"  :(T_FIREPIT,PLAS,10,'accent',800,6.5,_campfire,),
+"lighter"           :(T_DEVICE,PLAS,60,  'random',2, 0.1,_lighter,),
+"geiger counter"    :(T_DEVICE,PLAS,450, 'yellow',5,0.5, _dosimeter,),
+    # wood
+"foliage"           :(T_FOLIAGE,WOOD,1, 'green', 50,0.75,_foliage,),
+"wooden campfire"   :(T_FIREPIT,WOOD,50,'brown', 1600,7.5,_campfire,),
+"wooden crate"      :(T_BOX,  WOOD, 10,  'brown',200,50,  _boxOfItems1,),
+"torch"             :(T_LIGHT,WOOD, 1,  'brown',20,1.1, _torch,),#torches need a component that makes them be able to burn taking damage on some separate health pool until that runs out at which point the thing actually catches "fire" and cannot be held any longer. Thus torches have low HP.
+"torch, large"      :(T_LIGHT,WOOD, 5,  'brown',200,1.5,_torchLarge,),# torches are much heavier when you craft them yourself (unless you use a bone and oil instead of resin)
+    # stone
+"stone grave, large":(T_GRAVE,STON, 15, 'gray',300,300,_grave,),
+    # metal
+"fire extinguisher" :(T_DEVICE,METL,680, 'red',  8,8, _extinguisher,),
+"metal safe, large" :(T_BOX,  METL, 1500,'metal', 2000,420,_safe,),
+"metal still, large":(T_STILL,METL, 200,'metal', 5, 100,_still,),
+"metal pot, large"  :(T_POT,  METL, 120,'metal', 800,100,_pot,),
+    # flesh
+"moss clump"        :(T_FOLIAGE,FLSH,1,'graygreen',10,0.35,None,),
+"meat flower"       :(T_FOOD, FLSH, 3,   'pink', 10,2.5, _meatFlower,),
+    # clay
+"clay pot"          :(T_MISC, CLAY, 20, 'scarlet',1, 5, _clayPot,),
+"clay pot, large"   :(T_POT,  CLAY, 250,'scarlet',1, 100, _clayPotLarge,),
+    # ceramic
+"ceramic pot"       :(T_MISC, CERA, 1,  'accent',1, 3, _ceramicPot,),
+"ceramic pot, large":(T_POT,  CERA, 30, 'accent',10,75, _ceramicPotLarge,),
+    # cloth
+"towel"             :(T_TOWEL,CLTH, 50, 'accent',50,0.8,_towel,),
+    # dust
+"black powder"      :(T_DUST, DUST, 1,  'dkgray', 1, 0.02,_blackPowder,),
+"gunpowder bag"     :(T_DUST, DUST, 5,  'silver', 1, 0.01,_gunpowder,),
+"gunpowder grain"   :(T_DUST, DUST, 0,  'silver', 1, 0,   None,),#150 in one gunpowder bag
 #THG.CLOAK
 #THG.GENERATOR
-#THG.TINDER
-THG.LIGHTER     :("disposable lighter", T_DEVICE,PLAS,650, 'random',2, 0.1,False,False, _lighter,),
-THG.SAFE        :("safe",               T_BOX,  METL, 1500,'metal', 2000,420,True,False,  _safe,),
 ##THG.TURRET      :("turret",           T_TURRET,METL,300, 'gray', 80, 55, False,False,_turret,),
-THG.GUNPOWDER   :("pinch of gunpowder", T_DUST, GUNP, 1,    'gray', 1, 0.01,False,False,_gunpowder,),
-THG.GORE        :("hunk of flesh",      T_MEAL, FLSH, 0,    'red',  1, 1,   False,False,_food_meal_savory,),
-THG.LOG         :("log",                T_LOG,  WOOD, 5,   'brown',1000,100,False,False,_wood,),
-THG.WOOD        :("wood",               T_WOOD, WOOD, 1,   'brown',200,5,   False,False,_wood,),
-THG.BOX         :("crate",              T_BOX,  WOOD, 10,  'brown',200,50,  True,True,  _boxOfItems1,),
-THG.GRAVE       :("grave",              T_GRAVE,STON, 15, 'silver',300,300,True,False, _grave,),
-THG.POT         :("metal pot",          T_POT,  METL, 120,'metal', 800,100,True,True, _pot,),
-THG.CLAYPOT     :("clay pot",           T_MISC, STON, 20, 'scarlet',10,5, False,False, _clayPot,),
-THG.STILL       :("still",              T_STILL,METL, 200,'metal', 5, 100,True,False, _still,),
-THG.TORCH       :("torch",              T_TORCH,WOOD, 10, 'brown',350,1.1, False,False,_torch,),
-THG.DOSIMETER   :("geiger counter",     T_DEVICE,METL,1350,'yellow',5,0.5, False,False,_dosimeter,),
-THG.EXTINGUISHER:("fire extinguisher",  T_DEVICE,METL,680, 'red',  8,8, False,False,_extinguisher,),
-THG.TOWEL       :("towel",              T_TOWEL,CLTH, 50, 'accent',10,0.8,False,False,_towel,),
+##"foliage, dead"     :(T_FOLIAGE,WOOD,1, 'brown', 1, 0.05,False,_foliageDead,),
     }
 
-JOBS = {
+JOBS={
+# I feel like these should be consolidated with the bestiary.
+
     # KG, $$$: mass, money
     #Access keys:
     #S  level of security clearance
@@ -933,20 +2858,25 @@ JOBS = {
         #L  lab access
     #stats: additional stat bonuses or nerfs
     #skills: starting skills
+
+    # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
+    
 #ID                Char,Name         KG, $$$$,S|Key--------stats---------------skills
-CLS_ATHLETE     : ("A", "athlete",   70, 300, 0,'', {'msp':20,'dfn':4,'carry':15,},(SKL_ATHLET,),),
-CLS_CHEMIST     : ("C", "chemist",   60, 500, 2,'L',{'hpmax':-5,'mpmax':5,},(SKL_CHEMIS,),),
-CLS_DEPRIVED    : ("d", "deprived",  40, 0,   0,'', {'hpmax':-5,'mpmax':-5,'atk':-5,},(),),
-CLS_ENGINEER    : ("E", "engineer",  60, 500, 0,'C',{'hpmax':5,'carry':10,},(SKL_ROBOTS,),),
-CLS_JANITOR     : ("j", "janitor",   60, 100, 0,'J',{},(),),
-CLS_SECURITY    : ("O", "security",  75, 300, 4,'', {'atk':3,},(SKL_ENERGY,),),
-CLS_PILOT       : ("p", "pilot",     60, 500, 0,'P',{'sight':10,},(SKL_PILOT,),),
-CLS_POLITICIAN  : ("I", "politician",60, 1000,3,'K',{'hpmax':-5,'mpmax':-5,},(SKL_PERSUA),),
-CLS_RIOTPOLICE  : ("P", "police",    75, 300, 3,'', {'hpmax':5,'mpmax':-5,'atk':3,'asp':10,},(SKL_FIGHT,SKL_ENERGY,),),
-CLS_SMUGGLER    : ("u", "smuggler",  60, 1000,0,'', {'hpmax':5,'carry':10,},(SKL_PERSUA,SKL_GUNS,),),
-CLS_SOLDIER     : ("S", "soldier",   90, 300, 1,'', {'hpmax':10,'mpmax':-5,'atk':5,'asp':15,'msp':10,'carry':20,},(SKL_HEAVY,SKL_GUNS,),),
-CLS_TECHNICIAN  : ("T", "technician",60, 500, 1,'', {'mpmax':5,},(SKL_COMPUT,),),
-CLS_THIEF       : ("t", "thief",     60, 1000,0,'', {'mpmax':-5,'dfn':2,'msp':10,'carry':15,},(SKL_SNEAK,),),
+CLS_ATHLETE     : ("A", "athlete",   80, 300, 0,'', {'str':2,'con':2,'int':-1,'bal':5,'msp':50,'dfn':3,'carry':5,},(SKL_ATHLETE,),),
+CLS_ACROBAT     : ("a", "acrobat",   60, 100, 0,'', {'str':4,'bal':10,'msp':25,'dfn':6,'gra':2,},(SKL_ATHLETE,),),
+CLS_CHEMIST     : ("C", "chemist",   65, 1000,2,'L',{'int':6,'hpmax':-5,'mpmax':5,},(SKL_CHEMISTRY,),),
+CLS_DEPRIVED    : ("d", "deprived",  50, 0,   0,'', {'str':-2,'con':-2,'int':-1,'hpmax':-5,'mpmax':-20,'atk':-5,},(),),
+##CLS_ENGINEER    : ("E", "engineer",  60, 500, 0,'C',{'hpmax':5,'carry':10,},(SKL_ROBOTS,),),
+CLS_JANITOR     : ("j", "janitor",   80, 100, 0,'J',{},(),),
+CLS_SECURITY    : ("O", "security",  80, 100, 5,'', {'str':2,'atk':4,'dfn':2,},(SKL_ENERGY,SKL_BLUDGEONS,),),
+CLS_PILOT       : ("p", "pilot",     70, 300, 0,'P',{'sight':40,},(SKL_PILOT,),),
+CLS_POLITICIAN  : ("I", "politician",70, 2000,4,'K',{'con':-1,'int':2,'hpmax':-5,'mpmax':-5,},(SKL_PERSUASION,),),
+CLS_RIOTPOLICE  : ("P", "police",    80, 300, 2,'', {'str':2,'con':2,'int':-1,'hpmax':5,'mpmax':-5,'atk':4,'asp':10,'dfn':2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
+CLS_SMUGGLER    : ("u", "smuggler",  70, 1000,0,'', {'con':2,'int':1,'hpmax':5,'carry':20,'dfn':2,},(SKL_PERSUASION,SKL_PISTOLS,),),
+CLS_SOLDIER     : ("S", "marine",    90, 500, 3,'', {'str':4,'con':4,'int':3,'hpmax':10,'mpmax':100,'atk':6,'dfn':4,'asp':25,'msp':25,'gra':6,'carry':20,},(SKL_RIFLES,),),
+CLS_TECHNICIAN  : ("T", "technician",60, 500, 1,'', {'int':3,'mpmax':-20,},(SKL_COMPUTERS,),),
+CLS_THIEF       : ("t", "thief",     65, 2000,0,'', {'con':1,'int':1,'mpmax':50,'dfn':6,'msp':10,'gra':4,'carry':15,},(SKL_STEALTH,),),
+CLS_WRESTLER    : ("w", "wrestler",  85, 100, 0,'', {'str':6,'bal':5,'gra':12,},(SKL_ATHLETE,),),
     }
 
 FLUIDS = {
@@ -956,14 +2886,14 @@ FLUIDS = {
 #   kg      : mass
 #   flamm   : flammable?
 #   snuff   : snuffs out fires?
-#  ID       : (    type,   name,      color,          d,    v,    kg,  flamm,snuff,touch,quaff,
-FL_SMOKE    : Data(T_GAS,  "smoke",   COL['white'],   0.05, 0.01, 0.01,False,False,None, _cough,),
-FL_WATER    : Data(T_FLUID,"water",   COL['blue'],    1,    1,    0.1, False,True, _wet, _hydrate,),
-FL_BLOOD    : Data(T_FLUID,"blood",   COL['red'],     1.1,  2,    0.12,False,True, _bloody,_blood,),
-FL_ACID     : Data(T_FLUID,"acid",    COL['green'],   1.21, 0.6,  0.2, False,False,_acid,_quaffAcid,),
-FL_STRONGACID:Data(T_FLUID,"strong acid",COL['bio'],  1.3,  0.9,  0.2, False,False,_strongAcid,_quaffStrongAcid,),
-FL_OIL      : Data(T_FLUID,"oil",  COL['truepurple'], 0.9,  3,    0.3, True,False, _oily, _sick,),
-FL_ALCOHOL  : Data(T_FLUID,"moonshine",COL['gold'],   1.2,  0.8,  0.15,True,False, _wet, _drunk,),
+#  ID       : (type,   name,      color,          d,    v,    kg,  flamm,snuff,touch,quaff,
+FL_SMOKE    : (T_GAS,  "smoke",   COL['white'],   0.05, 0.01, 0.01,False,False,None, _cough,),
+FL_WATER    : (T_FLUID,"water",   COL['blue'],    1,    1,    0.1, False,True, _wet, _hydrate,),
+FL_BLOOD    : (T_FLUID,"blood",   COL['red'],     1.1,  2,    0.12,False,True, _bloody,_quaffBlood,),
+FL_ACID     : (T_FLUID,"acid",    COL['green'],   1.21, 0.6,  0.2, False,False,_acid,_quaffAcid,),
+FL_STRONGACID:(T_FLUID,"strong acid",COL['bio'],  1.3,  0.9,  0.2, False,False,_strongAcid,_quaffStrongAcid,),
+FL_OIL      : (T_FLUID,"oil",  COL['truepurple'], 0.9,  3,    0.3, True,False, _oily, _sick,),
+FL_ALCOHOL  : (T_FLUID,"moonshine",COL['gold'],   1.2,  0.8,  0.15,True,False, _wet, _drunk,),
 #FL_LAVA
 #FL_HEALING
 #FL_CONFU
@@ -978,327 +2908,1097 @@ FL_SMOKE    : "smokey",
 FL_WATER    : "watery",
 FL_BLOOD    : "bloody",
 FL_ACID     : "acidic",
-FL_STRONGACID: "acidic",
+FL_STRONGACID:"acidic",
 FL_OIL      : "oily",
 FL_ALCOHOL  : "alcoholic",
     }
 
 
 
+    # weapons #
 
 
+AMMUNITION={
+# Attributes:
+#   type        ammo type
+#   $$$, KG     value, mass
+#   n           number shots
+#   Acc, Atk, Dmg, Asp      Range, Attack, Damage, Attack Speed
+    
+     # arrows
+# name                  : type,  $$$, KG, n, (Acc,Atk,Dmg,Asp,),script
+##"hollow arrow"          :(A_ARRO,1,  0.02,1, (-8, 2,  0,  10,), None,),
+##"wooden arrow"          :(A_ARRO,1,  0.03,1, (-4, 4,  1,  0,), None,),
+##"fletched arrow"        :(A_ARRO,2,  0.03,1, (4,  8,  1,  0,), None,),
+##"poisoned arrow"        :(A_ARRO,5,  0.03,1, (0,  6,  2,  0,), _poisonArrow,),
+##"metal arrow"           :(A_ARRO,3,  0.04,1, (0,  6,  3,  0,), None,),
+##"flight arrow"          :(A_ARRO,4,  0.05,1, (15, 5,  1,  0,), None,),
+##"war arrow"             :(A_ARRO,6,  0.06,1, (10, 10, 5,  0,), None,),
+##"obsidian arrow"        :(A_ARRO,8,  0.03,1, (2,  12, 6,  0,), None,),
 
+    #TODO: add ceramic bullets, plastic, rubber bullets, etc.
 
+    # TODO: convert all KG measurements to g (multiply by 1000)
+        # Just do this when you create the objects.
 
+    # TODO: when you create ammo, set its HP based on what type of ammo it is.
 
+    # Do not have negative range values on any ammunition.
+        # instead, give guns very low range values by default.
+        # JUST Kidding, this is a bad idea, because the stats should
+        # matter more for the guns than the ammo.
+        # Ammo stats can just be hidden from player.
+        # Could make default Ammo have 0 stats, but special ammo has varying stats that influence the base stats of the weapons.
+    
+    # stone
+# name                  : type,  $$$, KG,  n,(Rng,Acc,Dmg,Pen,Asp,),script
+"percussion cap"        :(A_PCAP,1,  0.005,1,(-99,-99,-99,-99,30,),_percussionCap,),# required to shoot caplock guns. Can be fired by itself to make a loud noise/ frighten foes. NOTE: Should this be not in AMMO?
+"stone cannonball"      :(A_BALL,3,  0.4,  1,(-1, -5, -6, -6, 0,),_sCannonBall,),
+"metal cannonball"      :(A_BALL,11, 0.2,  1,(0,  0,  0,  0,  0,),_mCannonBall,),
+"stone bullet"          :(A_BULL,1,  0.2,  1,(-3, -3, -2, -4, 0,),_sBullet,),
+"metal bullet"          :(A_BULL,6,  0.1,  1,(0,  0,  0,  0,  0,),_mBullet,),
+"Minni ball"            :(A_BULL,7,  0.1,  1,(4,  5,  2,  2,  0,),_minnieBall,),
+"cartridge, metal bullet":(A_PC, 4,  0.11, 1,(0,  0,  0,  0,  0,),_paperCartridge,),
+".22LR cartridge"       :(A_22LR,1,  0.003,1,(0,  0,  0,  0,  0,),_mCartridge,),# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.
+"9mm cartridge"         :(A_9MM, 1,  0.008,1,(0,  0,  0,  0,  0,),_mCartridge,),#.38 Spl 
+".357 magnum cartridge" :(A_357, 3,  0.01, 1,(12, 4,  5,  5,  -15,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
+"10mm cartridge"        :(A_10MM,2,  0.017,1,(0,  0,  0,  0,  0,),_mCartridge,),
+".45 ACP cartridge"     :(A_45,  2,  0.015,1,(0,  0,  0,  0,  0,),_mCartridge,),
+".44 Spl cartridge"     :(A_44S, 5,  0.022,1,(0,  0,  0,  0,  0,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
+".44 magnum cartridge"  :(A_44M, 7,  0.025,1,(24, 6,  3,  6,  -36,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
+"5.56mm cartridge"      :(A_556, 2,  0.012,1,(0,  0,  0,  0,  0,),_mCartridge,),#.223 AKA. bullet itself is only 4g
+".30 carbine cartridge" :(A_30,  2,  0.013,1,(0,  0,  0,  0,  0,),_mCartridge,),#7.62x33mm; M1 carbine
+"7.62x39mm cartridge"   :(A_762, 3,  0.017,1,(0,  0,  0,  0,  0,),_mCartridge,),#7.62x39mm
+".308 cartridge"        :(A_308, 4,  0.027,1,(0,  0,  0,  0,  0,),_mCartridge,),#7.62x51mm
+".30-06 cartridge"      :(A_3006,5,  0.026,1,(24, 4,  2,  4,  -9,),_mCartridge,),#7.62x63mm
+".300 magnum cartridge" :(A_300, 9,  0.031,1,(36, 6,  6,  8,  -24,),_mCartridge,),#7.62x67mm
+".50 BMG cartridge"     :(A_50,  25, 0.115,1,(0,  0,  0,  0,  0,),_mCartridgeLarge,),
+"12ga plastic shell"    :(A_12GA,1,  0.15, 5,(-12,-8, -8, -6, -9,),_shell,),
+"12ga plastic slug"     :(A_12GA,1,  0.15, 1,(-10,-6, -12,-4, -9,),_shell,),
+"12ga metal shell"      :(A_12GA,3,  0.08, 5,(-6, -6, 7,  -3, 0,),_shell,),
+"12ga metal slug"       :(A_12GA,3,  0.1,  1,(0,  0,  0,  0,  0,),_shell,),#slugs do less OVERALL damage, but the damage is spread out over 5 or so shots for the shells, meaning each individual shot does very little damage. Slugs also have better penetration.
 
+##"small stone bullet"    :(A_SB,  2,  0.1, 1, (2,  -8, 1,  3,  0,),_sBulletSmall,),# stone bullets are difficult to manufacture, especially small ones.
+##"small metal bullet"    :(A_SB,  3,  0.05,1, (6,  -5, 3,  6,  0,),_mBulletSmall,),
+     # cartridges
+# name                  : type,  $$$, KG, n, (Rng,Acc,Dmg,Pen,Asp,),script
+##"pistol cartridge"      :(A_CART,6,  0.02,1, (0,  2,  4,  0,), None,),
+##"magnum cartridge"      :(A_CART,12, 0.03,1, (-2, 5,  7,  -33,), None,),
+##"rifle cartridge"       :(A_CART,16, 0.04,1, (8,  8,  10, -15,), None,),
+##"hollow-point cartridge":(A_CART,15, 0.03,1, (-5, -4, 12, -15,), None,),
+##"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 8,  16, -33,), _incendiary),
+    }
 
+RANGEDWEAPONS={
+    # NOTE: Reload Time is based on the ammo type; reloading the magazine is handled differently (must eject the magazine and reload it, then put the magazine in the gun)
+    # ARGUMENTS:
+    #   Cp : ammo capacity
+    #   Rt : reload time (TODO: ADD!!!)
+    #   n : number of projectiles per shot
+    #   ja : jam chance in 1/100ths of a percent (100 == 1%, 10000 == 100%)
+    #   min, max : minimum / maximum range you can shoot without penalties
+    #   accuracy, damage, penetration, Defense, Attack Spd, Move Spd,
 
+# caplock guns      :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"caplock pistol"    :(A_BULL,90,   1.4, 60, METL,(1, 1,900,2,  6,  1, 6, 3, 0,  -18,-6,),SKL_CANNONS,_caplockPistol),
+"caplock musketoon" :(A_BULL,235,  3.8, 120,WOOD,(1, 1,750,3,  14, 2, 11,4, -2, -39,-27,),SKL_CANNONS,_musketoon),
+"caplock musket"    :(A_BULL,325,  5.15,180,WOOD,(1, 1,600,4,  25, 4, 16,5, -4, -60,-39,),SKL_CANNONS,_musket),
+"caplock arquebus"  :(A_BULL,450,  6.5, 240,WOOD,(1, 1,500,5,  36, 5, 22,6, -6, -75,-51,),SKL_CANNONS,_musket),
+# shotguns          :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"12ga shotgun"      :(A_12GA,450,  3.25,275,WOOD,(1, 1,50, 3,  16, 8, 18,6, -2, -24,-21,),SKL_SHOTGUNS,_12GAshotgun),# double-barrel is a mod (for all single-capcity shotguns), adds +12% mass and +1 Capacity
+"10ga shotgun"      :(A_10GA,520,  4.2, 350,WOOD,(1, 1,25, 3,  14, 7, 22,5, -3, -36,-30,),SKL_SHOTGUNS,_10GAshotgun),
+"8ga shotgun"       :(A_8GA, 640,  5.5, 420,WOOD,(1, 1,12, 4,  12, 6, 26,4, -4, -48,-42,),SKL_SHOTGUNS,_8GAshotgun),
+"6ga shotgun"       :(A_6GA, 745,  7.1, 500,WOOD,(1, 1,6,  4,  10, 5, 30,3, -6, -60,-51,),SKL_SHOTGUNS,_6GAshotgun),
+"4ga shotgun"       :(A_4GA, 850,  8.6, 420,WOOD,(1, 1,3,  5,  8,  4, 35,2, -8, -72,-60,),SKL_SHOTGUNS,_4GAshotgun),
+"3ga shotgun"       :(A_3GA, 980,  10.1,420,WOOD,(1, 1,2,  6,  7,  3, 40,1, -10,-84,-69,),SKL_SHOTGUNS,_3GAshotgun),
+"2ga shotgun"       :(A_2GA, 1100, 12.0,420,WOOD,(1, 1,1,  7,  16, 2, 50,0, -12,-96,-78,),SKL_SHOTGUNS,_2GAshotgun),
+"12ga combat shotgun":(A_12GA,6500,3.45,750,METL,(7, 1,1,  2,  30, 10,24,9, -2, -15,-18,),SKL_SHOTGUNS,_combatShotgun),
+    # pistols, SMGs (9mm, 45ACP, 10mm, .357 magnum, 22LR)
+# name              :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"pea shooter"       :(A_22LR,90,   0.9, 60, METL,(7, 1,950,1,  8,  4, 1, 3, 0,  -30,0,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"derringer"         :(A_22LR,65,   0.8, 120,METL,(1, 1,300,1,  12, 6, 2, 6, 0,  0,  0,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"9mm revolver"      :(A_9MM, 740,  1.15,630,METL,(6, 1,200,1,  24, 6, 3, 12,0,  15, -3,),SKL_PISTOLS,_pistol),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
+"9mm handgun"       :(A_9MM, 3750, 0.9, 520,METL,(13,1,50, 1,  46, 10,4, 14,0,  90, 0,),SKL_PISTOLS,_pistolSmall),
+"machine pistol"    :(A_9MM, 11200,0.95,360,METL,(16,3,50, 1,  16, 8, 3, 10,0,  24, 0,),SKL_PISTOLS,_pistolSmall),#beretta
+"UMP"               :(A_9MM, 12960,2.3, 450,METL,(31,3,10, 2,  36, 12,4, 13,-1, 0,  -6,),SKL_SMGS,_smgSmall),
+".357 magnum revolver":(A_357,2075,1.25,700,METL,(6, 1,100,1,  24, 4, 3, 11,0,  9,  -3,),SKL_PISTOLS,_pistol),
+"10mm handgun"      :(A_10MM,4475, 1.2, 560,METL,(10,1,20, 1,  42, 12,5, 13,0,  75, 0,),SKL_PISTOLS,_pistol),
+"10mm SMG"          :(A_10MM,18850,2.5, 520,METL,(31,3,20, 2,  30, 7, 5, 12,-1, 0,  -9,),SKL_SMGS,_smgSmall),
+"autogun"           :(A_45,  3100, 1.1, 300,METL,(13,1,150,1,  24, 4, 5, 10,0,  15, 0,),SKL_PISTOLS,_pistol),
+"grease gun"        :(A_45,  890,  3.7, 180,METL,(31,3,300,2,  16, 4, 3, 5, -2, -3, -15,),SKL_SMGS,_smg),#MODABLE TO SHOOT 9MM
+"tommy gun"         :(A_45,  1150, 4.5, 240,METL,(51,5,150,2,  20, 6, 4, 7, -3, -9, -21,),SKL_SMGS,_smgLarge),
+"cig sawyer"        :(A_45,  8750, 1.0, 620,METL,(8, 1,10, 1,  35, 8, 6, 12,0,  66, 0,),SKL_PISTOLS,_pistolSmall),
+"uzi"               :(A_45,  13650,2.2, 440,METL,(33,3,20, 1,  26, 8, 6, 9, -1, 0,  -3,),SKL_PISTOLS,_smgSmall),
+    # rifles, carbines, and muskets (22LR, 5.56x39mm, .30 carbine, .308, .30-06)
+# name              :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"pidgeon plinker"   :(A_22LR,240,  2.5, 180,WOOD,(17,1,50, 3,  50, 10,3, 8, -1, -15,-18,),SKL_RIFLES,_rifleSmall),
+"assault rifle"     :(A_556, 1480, 3.0, 625,METL,(21,3,100,3,  40, 12,7, 16,-2, -12,-27,),SKL_MACHINEGUNS,_rifle),
+"Remington rifle"   :(A_556, 1320, 3.9, 900,WOOD,(5, 1,10, 5,  140,14,10,22,-3, -18,-33,),SKL_RIFLES,_rifleLarge),
+"bullpup rifle"     :(A_556, 3650, 3.6, 440,METL,(36,3,10, 2,  60, 16,9, 20,-2, 6,  -24,),SKL_MACHINEGUNS,_rifleSmall),#modable with a stock, scope, 
+"service rifle"     :(A_556, 4300, 3.2, 760,METL,(21,1,1,  3,  120,14,12,24,-2, -6, -24,),SKL_RIFLES,_rifle),
+"battle rifle"      :(A_556, 7450, 3.4, 550,METL,(36,4,10, 3,  75, 12,12,23,-2, 0,  -30,),SKL_MACHINEGUNS,_rifle),#m16
+"garand"            :(A_30,  880,  2.8, 930,WOOD,(16,1,10, 2,  66, 10,8, 16,-2, -21,-21,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
+"tactical carbine"  :(A_30,  6620, 2.9, 990,METL,(31,1,2,  2,  90, 12,10,24,-2, 24, -21,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
+"skirmisher rifle"  :(A_762, 1050, 2.4, 830,METL,(25,1,50, 2,  50, 15,12,18,-2, 15, -24,),SKL_RIFLES,_rifleSmall),#ak47 (semi, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"avtomat"           :(A_762, 1580, 2.7, 960,METL,(31,2,30, 2,  30, 12,10,16,-2, 15, -27,),SKL_MACHINEGUNS,_rifleSmall),#ak47 (auto, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"modular rifle system":(A_762,27500,3.0,950,METL,(31,3,2,  2,  200,18,14,20,-2, 0,  -27,),SKL_MACHINEGUNS,_rifleSmall),#modable with anything you can think of, including grenade launcher, laser sight, scope, longer barrel, silencer, bipod, larger magazine (box of 100), flashlight, bayonet, etc. 
+"big game rifle"    :(A_308, 4600, 3.3, 550,WOOD,(11,1,10, 4,  160,18,15,22,-2, -30,-30,),SKL_RIFLES,_rifle308),#TODO: add Rusts component to these scripts and ALL items that can rust...
+"field rifle"       :(A_3006,6800, 4.2, 710,WOOD,(6, 1,10, 5,  250,22,18,26,-3, -36,-36,),SKL_RIFLES,_rifle3006),
+"sniper rifle"      :(A_50,  65500,12.2,990,METL,(5, 1,1,  6,  400,30,36,32,-9, -51,-75,),SKL_RIFLES,_rifleXLarge),
+# bows              :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,(1, 1,0,  3,  20, 2, 0, 0, 0,  -18,-9,),SKL_BOWS,_pBow),
+"hunting bow"       :(A_ARRO,8,    0.8, 75, WOOD,(1, 1,0,  2,  30, 4, 2, 2, 0,  0,  -6,),SKL_BOWS,_wBow),
+"wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,(1, 1,0,  3,  40, 6, 4, 3, 0,  -12,-9,),SKL_BOWS,_wBow),
+"laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,(1, 1,0,  3,  50, 8, 6, 4, 0,  -12,-9,),SKL_BOWS,_wBow),
+"composite bow"     :(A_ARRO,85,   1.5, 320,BONE,(1, 1,0,  3,  60, 10,8, 6, 0,  -12,-6,),SKL_BOWS,_compositeBow),
+"wooden longbow"    :(A_ARRO,34,   1.8, 150,WOOD,(1, 1,0,  5,  80, 6, 8, 8, 0,  -36,-15,),SKL_BOWS,_longbow),
+# HUGE variety in weight of bows (power) -- add a lot more types of bows. Also huge variety of arrows. Just like guns or any other weapons.
+# crossbows         :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"wooden crossbow"   :(A_BOLT,40,   3.0, 180,WOOD,(1, 1,0,  2,  10, 10,6, 4, -3, 30, -24,),SKL_CROSSBOWS,_crossbow),
+"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,(1, 1,0,  5,  20, 12,24,16,-8, -30,-66,),SKL_CROSSBOWS,_arbalest),
+# chu ko nu / magazine fed crossbows!
+# screw crossbow! Loaded by turning a screw. Small, light, weak cbows. Maybe stronger than hand span but takes a lot longer to reload. Fire small bolts (smaller than usual). Takes 30 secs to reload
+# BELLY BOW! Crossbow that needs nothing but your own weight to load and can be loaded at varying strengths (draw lengths). Fires regular sized arrows but is a crossbow.
+# hand span crossbow - can be cocked by hand with sufficient strength (all crossbow technically CAN but this requires more reasonable levels of strength)
+#   latchet crossbow - can also be cocked by hand, requires less strength, but is weaker. Rapid to reload (5-10 secs).
+# goat's foot lever - easiest besides hand span
+#   take ~7-8 secs to reload (faster than musket reloading for SURE but not as long range as muskets)
+# foot stirrup, belt hooks, stand up to cock
+# crank / winch / windlass - most powerful crossbows, takes longest.
+#   requires superhuman strength to cock by hand (not even Arnold Schwarzzenegger could do it)
+# crossbows made of: steel or bone/horn/wood
+#   bows and crossbows CAN shoot arrows larger than their arrow size but not smaller. Larger results in reduced accuracy.
+# crossbow bolts vs arrows: bolts have heavier arrowheads, much shorter, do not have feathers usually but wood fletching (though they can have feathers just it's harder to do), may be thicker than standard war arrows.
+# crossbows resistant to rust by having linen on the bow.
+#   linen string (basically a rope, just use rope. Yes linen is better than cotton but let's imagine in this world all cloth is made of linen or some similar strong fiber.)
+#       covered in wax to protect from water.
+# misc              :(AMMO,  $$$$, KG,  Dur,MAT, (Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Msp),TYPE,script
+"hand cannon"       :(A_BALL,480,  8.75,900,METL,(1, 1,100,4,  8,  2, 24,2, -6, -60,-60,),SKL_CANNONS,_handCannon),#grants +AV, Protection.
+"arquebus"          :(A_BALL,1060,12.25,800,METL,(1, 1,20, 6,  20, 2, 30,9, -12, -96,-87,),SKL_HEAVY,_arquebus),
+"blowgun"           :(A_DART,2,    0.15,20, WOOD,(1, 1,0,  2,  16, 2, 2, 2, 0,  -30,-60,),None,_blowGun),
+"atlatl"            :(A_SPEAR,6,   0.5, 60, WOOD,(1, 1,0,  4,  20, 4, 4, 4, 0,  -30,-60,),SKL_TIPFIRST,_atlatl),
 
+# TODO: make weapons moddable with magazine upgrade, then set their
+#   DEFAULT ammo capacity to 1, but give them a magazine mod to give
+#   them +12 or however much ammo can fit in the mag.
+# *Weapons are sold with or without mods in the shop
+#   so these mods should just be added on in REAL-TIME
+#   thus the stats on weapons in the RANGEDWEAPONS TABLE will NOT
+#   reflect the actual values of the weapons as they will appear in-game!
+# TODO: add switch firing mode command, to swap between shooting
+#   either 1 or n shots per attack.
 
+# .44 magnum too similar to .45 ACP, and not as common so let's just drop it
+##".44 magnum revolver":(A_44M,4345, 1.27,700,METL,(6, 1,30, 1,  20, 8, 6, 9, 0,  9,  0,),SKL_PISTOLS,_pistol),
+##"compressed air gun":(A_AIR, 6,    0.15,20, WOOD,(1, 1,100, 16,2, 2, 2, 0,  -30,-60,),_blowGun),
 
-
-                    # commented out code below.
-
-
-
-
-
-
-
+    }
 
 '''
-"spring-blade"      :(MEL, 9660, 2.8, 150, CARB,(0, 0,  8, 22, -2,  0, -60,-15,PH,),A_ELEC,),
-"buzz saw"          :(MEL, 7500, 3.5, 480, METL,(0, 0,  15,5,  -5,  0,  66,-18,PH,),A_ELEC,),
-"plasma sword"      :(MEL, 84490,2.0, 250, METL,(0, 0,  11,100,-2,  0, -40,-12,FI,),A_OIL,),
+    TODO: add ranged weapons + implement
+
+    bows
+    crossbows
+    blowguns
+    guns
+    slingshots
+    slings
+    
+
 '''
-#"bayonet"   :(MEL, 150,  0.3, 180, 0,  0,  METL,(4, 9, 4, 0,  2,  0,  40, 0, PH,),None,(),),
-
-#--Name-----------------------Type,Dlv,$$$$$, KG,   Dur, Mat, (DV, AV, MSp, Vis,FIR,BIO,ELE)
-    #Back
-#"cloak"                     :(BACK,1,  420,   6.0,  150, CLTH,( 4,  1, -3,  0,  10, 10, 0,), ),
 
 '''
-    Example weapon display:
- #stats nerfed because it's crude
+    .45 ACP vs. 9mm: .45 ACP more damage, less penetration
+    .308 vs. .30-06: basically the same. .30-06 has more pen, less dmg
+        (slightly.) Also .308 is slightly more accurate/longer ranged.
+    
+'''
+
+'''
+materials
+    wood     - low cost; medium weight, high acc, low damage and penetration
+    stone    - low cost; heavy, low acc, med damage, low penetration
+    bone     - med-low cost; medium weight, high acc, med damage and penetration. Low dur.
+    glass    - high cost; light, high acc, highest damage. Lowest dur and penetration.
+    metal    - highest cost; heavy, med acc, high damage, highest pen. Highest dur.
+    flesh    - low cost; med-light, low stats. High protection.
+    leather  - med-high cost; light, low dur. Med-low stats. Boiled leather is better but more expensive.
+    carbon   - variable cost; very high resistances, variable stats.
+    plastic  - variable cost; light, Weak to fire and bio, strong to elec, variable stats. Generally low dur and high cost.
+Material tiers
+    top tier:
+        metal - very high dur and pen, high damage. Heavy.
+        glass - very low dur and pen, highest damage. Light.
+    middle tier:
+        wood - light, low damage.
+        stone - heavy, high damage.
+        bone - middle ground. Medium weight, medium damage.
+    bottom tier:
+        plastic - very low dur, lowest pen, lowest damage. Lightest.
+1-h weapon types
+    bludgeons      - low cost; med-low acc, high dmg, lowest pen, slow. Also grants AV and protection.
+    hammers        - med-low cost; low acc, med-high dmg and pen.
+    axes           - med cost; very low acc, highest dmg, med speed
+    knives         - med-low cost; fastest, highest pen. Lowest Msp penalty.
+    swords         - med-high cost; highest DV, high pen. and acc. 
+    javelins       - 
+    shortspears    - 
+    shields        - high cost; grants DV and/or AV and protection. Heaviest Msp penalty. Quite ineffective as a weapon.
+    raw materials  - can be used as weapons in a pinch. Ineffectual compared to real weapons.
+2-h weapons
+    2-handed weapons have higher stats than 1-h, and often grant AV/DV/prot.
+    Obviously they are heavier/more encumbering, but quicker, more accurate and powerful than 1-handed weapons.
+    *longswords, battleaxes, and spears are like
+    swords, axes, and javelins/shortspears, respectively, except 2-handed only.
+'''
+
+'''
+    idea: weapon "grind" (PSO) SEE QUALITIES IN RECIPES...
+        grinding gives +1 to dmg and pen, and +2 to acc
+        to grind a weapon, you must have special grinding tools.
+        maximum grind different depending on weapon type
+            Grind maximum is higher for swords than clubs, for example.
+'''
 
 
-          ,
-         /|
-       ./ |
-       |` |
-      ./  |
-      |`  |
-      /   |
-      \`  |
-      /   |
-      \`  |
-      /   |
-      \`  |
-      /   |
-      \`  |
-      |   |
-      |...|
-  o___|___|___o
-  "---|   |---"
-       bb#
-       #bb
-       ###
-       bb#
-       #bb
-       \#/
- 
-    [/] crude bayonet
-    0.3kg     $28
-    wield in main hand:                  
-        Lo        50 (90)        
-        Hi        1 (1)
-        Atk       4
-        Dmg       2  (physical)
-        DV        2
-        Atk Spd   40
+LIMBWEAPONS={
+# name          :(At,Dm,Pe,Gr,DV,AV,Pr,Asp,Sta)
+"flesh hand"    :(0, 0, 0, 0, 0, 0, 0, 0,  20,),
+"bone claw"     :(2, 2, 2, -4,0, 0, 0, 12, 16,),
+"cyborg hand"   :(2, 2, 2, 0, 1, 0, 1, 12, 12,),
+"tentacle"      :(4, 0, 0, 4, 0, 0, 1, -30,24,),
+"pseudopod"     :(-2,0, 0, 4, 0, 0, 0, -60,12,),
+    }
 
+WEAPONS={ #melee weapons, 1H, 2H and 1/2H
+
+    # TODO:
+        # give all weapons more defensive capability
+        # skill in varying levels - how do?
+        #   IDEA: when you have level 10 skill, you gain stats equal to those in the table.
+        #       every 10 levels you gain is worth that same linear growth value for those stats.
         
+    # IDEA: weapon class (skill type) affects various things in combat
+        # bludgeons do increased damage to armored foes
+        # swords do increased damage to unarmored foes
+
+    # 1-handed weapons #
+
+    # cudgels             $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic cudgel"        :(2,    1.4, 220, PLAS,9, (2,  2,  5,  0,  1,  1,  -15,-9, -5, 1,  18,),SKL_BLUDGEONS,_pCudgel,),
+"wooden cudgel"         :(13,   1.35,375, WOOD,8, (3,  4,  5,  0,  1,  1,  -9, -9, -5, 1,  17,),SKL_BLUDGEONS,_wCudgel,),
+"stone cudgel"          :(10,   1.2, 340, WOOD,7, (3,  6,  6,  0,  1,  1,  -9, -9, -5, 1,  15,),SKL_BLUDGEONS,_sCudgel,),
+"bone cudgel"           :(16,   1.3, 300, WOOD,7, (3,  5,  5,  0,  1,  1,  -9, -9, -5, 1,  16,),SKL_BLUDGEONS,_bCudgel,),
+"glass cudgel"          :(18,   1.3, 5,   WOOD,6, (3,  9,  4,  0,  0,  0,  -6, -9, -5, 1,  16,),SKL_BLUDGEONS,_gCudgel,),
+"metal cudgel"          :(32,   1.2, 600, WOOD,8, (3,  7,  7,  0,  1,  1,  -6, -9, -5, 1,  15,),SKL_BLUDGEONS,_mCudgel,),
+    # clubs               $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic club"          :(2,    1.55,275, PLAS,10,(2,  3,  4,  0,  2,  1,  -21,-9, -5, 1,  20,),SKL_BLUDGEONS,_pClub,),
+"wooden club"           :(10,   1.45,420, WOOD,9, (3,  6,  5,  0,  2,  1,  -15,-9, -5, 1,  18,),SKL_BLUDGEONS,_wClub,),
+"stone club"            :(12,   1.3, 500, STON,8, (3,  7,  6,  0,  2,  1,  -12,-9, -5, 1,  18,),SKL_BLUDGEONS,_sClub,),
+"bone club"             :(22,   1.4, 365, BONE,8, (4,  7,  7,  0,  2,  1,  -12,-9, -5, 1,  18,),SKL_BLUDGEONS,_bClub,),
+"glass club"            :(32,   1.2, 1,   GLAS,7, (3,  10, 5,  0,  0,  0,  -9, -9, -5, 1,  16,),SKL_BLUDGEONS,_gClub,),
+"metal club"            :(59,   1.15,800, METL,9, (3,  8,  8,  0,  1,  1,  -12,-9, -5, 1,  16,),SKL_BLUDGEONS,_mClub,),
+    # spiked clubs        $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic spiked club"   :(2,    1.6, 50,  PLAS,9, (1,  6,  5,  0,  2,  1,  -36,-15,-8, 1,  22,),SKL_BLUDGEONS,_pSpikedClub,),
+"wooden spiked club"    :(10,   1.5, 120, WOOD,9, (2,  9,  6,  0,  2,  1,  -33,-15,-8, 1,  20,),SKL_BLUDGEONS,_wSpikedClub,),
+    # maces               $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic mace"          :(2,    1.45,75,  PLAS,8, (2,  6,  5,  0,  1,  1,  -33,-12,-6, 1,  18,),SKL_BLUDGEONS,_pMace,),
+"wooden mace"           :(20,   1.35,160, WOOD,7, (3,  9,  7,  0,  1,  1,  -27,-12,-6, 1,  16,),SKL_BLUDGEONS,_wMace,),
+"stone mace"            :(24,   1.3, 220, WOOD,7, (3,  12, 8,  0,  1,  1,  -24,-12,-6, 1,  16,),SKL_BLUDGEONS,_sMace,),
+"bone mace"             :(27,   1.3, 100, WOOD,7, (4,  10, 9,  0,  1,  1,  -24,-12,-6, 1,  16,),SKL_BLUDGEONS,_bMace,),
+"glass mace"            :(65,   1.4, 3,   WOOD,7, (3,  24, 7,  0,  0,  0,  -30,-12,-6, 1,  14,),SKL_BLUDGEONS,_gMace,),
+"metal mace"            :(72,   1.35,325, WOOD,7, (4,  14, 10, 0,  1,  1,  -27,-12,-6, 1,  16,),SKL_BLUDGEONS,_mMace,),
+    # morning stars       $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal morning star"    :(75,   1.25,240, METL,7, (4,  16, 12, 0,  1,  1,  -39,-12,-7, 1,  20,),SKL_BLUDGEONS,_mMace,),
+    # warhammers          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic warhammer"     :(2,    1.4, 190, PLAS,8, (1,  4,  10, 0,  0,  0,  -24,-6, -5, 1,  18,),SKL_HAMMERS,_pWarhammer,),
+"wooden warhammer"      :(24,   1.35,280, WOOD,8, (2,  5,  13, 0,  0,  0,  -21,-6, -5, 1,  16,),SKL_HAMMERS,_wWarhammer,),
+"stone warhammer"       :(18,   1.3, 200, WOOD,7, (2,  7,  15, 0,  0,  0,  -21,-6, -5, 1,  18,),SKL_HAMMERS,_sWarhammer,),
+"bone warhammer"        :(28,   1.15,260, WOOD,7, (2,  6,  14, 0,  0,  0,  -15,-6, -5, 1,  16,),SKL_HAMMERS,_bWarhammer,),
+"metal warhammer"       :(51,   1.25,500, WOOD,7, (2,  8,  16, 0,  0,  0,  -18,-6, -5, 1,  16,),SKL_HAMMERS,_mWarhammer,),
+    # war axes            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic war axe"       :(2,    1.25,60,  PLAS,6, (1,  8,  4,  1,  0,  0,  -12,-9, -2, 2,  18,),SKL_AXES,_pWarAxe,),
+"wooden war axe"        :(26,   1.1, 90,  WOOD,5, (2,  10, 7,  1,  0,  0,  -9, -9, -2, 2,  16,),SKL_AXES,_wWarAxe,),
+"stone war axe"         :(22,   1.3, 120, WOOD,6, (2,  12, 8,  1,  0,  0,  -15,-9, -2, 2,  18,),SKL_AXES,_sWarAxe,),
+"bone war axe"          :(32,   1.15,180, WOOD,5, (2,  11, 9,  1,  0,  0,  -6, -9, -2, 2,  16,),SKL_AXES,_bWarAxe,),
+"metal war axe"         :(62,   1.2, 260, WOOD,5, (3,  14, 10, 1,  0,  0,  -12,-9, -2, 2,  15,),SKL_AXES,_mWarAxe,),
+    # tomahawks           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic tomahawk"      :(2,    1.1, 20,  PLAS,5, (1,  6,  7,  1,  0,  0,  -21,-6, -2, 3,  16,),SKL_AXES,_pTomahawk,),
+"wooden tomahawk"       :(12,   0.9, 40,  WOOD,4, (2,  7,  9,  1,  0,  0,  -18,-6, -2, 3,  15,),SKL_AXES,_wTomahawk,),
+"stone tomahawk"        :(16,   1.1, 80,  WOOD,5, (2,  9,  10, 1,  0,  0,  -24,-6, -2, 3,  16,),SKL_AXES,_sTomahawk,),
+"bone tomahawk"         :(23,   0.95,60,  WOOD,4, (2,  8,  11, 1,  0,  0,  -18,-6, -2, 3,  15,),SKL_AXES,_bTomahawk,),
+"metal tomahawk"        :(40,   1.0, 120, WOOD,4, (2,  10, 12, 1,  0,  0,  -21,-6, -2, 3,  14,),SKL_AXES,_mTomahawk,),
+    # Shivs               $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic shiv"          :(0,    0.3, 15,  PLAS,1, (2,  2,  7,  0,  0,  0,  42, 0,  -5, 1,  5,),SKL_KNIVES,_pShiv,),
+"wooden shiv"           :(0,    0.3, 20,  WOOD,1, (2,  3,  8,  0,  0,  0,  48, 0,  -5, 1,  4,),SKL_KNIVES,_wShiv,),
+"stone shiv"            :(0,    0.25,40,  STON,1, (3,  4,  9,  0,  0,  0,  45, 0,  -5, 1,  5,),SKL_KNIVES,_sShiv,),
+"bone shiv"             :(0,    0.2, 35,  BONE,1, (3,  4,  10, 0,  0,  0,  51, 0,  -5, 1,  4,),SKL_KNIVES,_bShiv,),
+"glass shiv"            :(1,    0.15,1,   GLAS,1, (5,  6,  8,  0,  0,  0,  63, 0,  -5, 1,  2,),SKL_KNIVES,_gShiv,),
+"metal shiv"            :(6,    0.2, 50,  METL,1, (4,  4,  12, 0,  0,  0,  54, 0,  -5, 1,  3,),SKL_KNIVES,_mShiv,),
+"ceramic shiv"          :(2,    0.22,10,  CERA,1, (5,  8,  9,  0,  0,  0,  60, 0,  -5, 1,  2,),SKL_KNIVES,_cShiv,),#"a ceramic knife will shatter if dropped on the ground."
+    # knives              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic knife"         :(0,    0.2, 35,  PLAS,1, (3,  2,  10, 0,  0,  0,  48, 0,  -3, 2,  7,),SKL_KNIVES,_pKnife,),
+"wooden knife"          :(2,    0.15,60,  WOOD,1, (3,  3,  14, 0,  0,  0,  54, 0,  -3, 2,  5,),SKL_KNIVES,_wKnife,),
+"stone knife"           :(6,    0.15,110, STON,1, (4,  5,  16, 0,  0,  0,  51, 0,  -3, 2,  6,),SKL_KNIVES,_sKnife,),
+"bone knife"            :(5,    0.12,90,  BONE,1, (4,  5,  18, 0,  0,  0,  57, 0,  -3, 2,  5,),SKL_KNIVES,_bKnife,),
+"glass knife"           :(12,   0.08,1,   GLAS,1, (6,  8,  12, 0,  0,  0,  66, 0,  -3, 2,  3,),SKL_KNIVES,_gKnife,),
+"metal knife"           :(14,   0.15,200, METL,1, (5,  5,  20, 0,  0,  0,  60, 0,  -3, 3,  4,),SKL_KNIVES,_mKnife,),
+"ceramic knife"         :(20,   0.12,15,  CERA,1, (6,  10, 14, 0,  0,  0,  66, 0,  -3, 2,  3,),SKL_KNIVES,_cKnife,),#"a ceramic knife will shatter if dropped on the ground."
+    # serrated knives     $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic serrated knife":(0,    0.18,15,  PLAS,1, (2,  3,  8,  0,  0,  0,  24, 0,  -4, 2,  8,),SKL_KNIVES,_pSerrated,),
+"wooden serrated knife" :(4,    0.13,35,  WOOD,1, (2,  4,  11, 0,  0,  0,  30, 0,  -4, 2,  6,),SKL_KNIVES,_wSerrated,),
+"stone serrated knife"  :(8,    0.13,60,  STON,1, (3,  6,  12, 0,  0,  0,  27, 0,  -4, 2,  7,),SKL_KNIVES,_sSerrated,),
+"bone serrated knife"   :(7,    0.1, 45,  BONE,1, (3,  6,  13, 0,  0,  0,  33, 0,  -4, 2,  6,),SKL_KNIVES,_bSerrated,),
+"metal serrated knife"  :(18,   0.13,100, METL,1, (4,  7,  15, 0,  0,  0,  30, 0,  -4, 3,  5,),SKL_KNIVES,_mSerrated,),
+    # war knives          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic war knife"     :(1,    0.55,50,  PLAS,3, (3,  3,  12, 1,  0,  0,  51, 0,  -2, 3,  6,),SKL_KNIVES,_pWarKnife,),
+"wooden war knife"      :(5,    0.45,80,  WOOD,2, (4,  4,  16, 1,  0,  0,  57, 0,  -2, 3,  5,),SKL_KNIVES,_wWarKnife,),
+"bone war knife"        :(10,   0.5, 125, BONE,3, (5,  6,  18, 1,  0,  0,  54, 0,  -2, 3,  5,),SKL_KNIVES,_bWarKnife,),
+"glass war knife"       :(28,   0.32,10,  GLAS,2, (7,  10, 16, 1,  0,  0,  78, 0,  -2, 4,  4,),SKL_KNIVES,_gWarKnife,),
+"metal war knife"       :(26,   0.42,250, METL,2, (6,  7,  20, 2,  0,  0,  69, 0,  -2, 5,  4,),SKL_KNIVES,_mWarKnife,),
+"ceramic war knife"     :(35,   0.35,20,  CERA,2, (7,  10, 16, 1,  0,  0,  78, 0,  -2, 4,  4,),SKL_KNIVES,_cWarKnife,),
+    # daggers             $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"bone dagger"           :(10,   0.35,115, BONE,2, (4,  6,  21, 1,  0,  0,  69, 0,  -2, 3,  5,),SKL_KNIVES,_bDagger,),
+"glass dagger"          :(28,   0.22,5,   GLAS,2, (6,  12, 18, 1,  0,  0,  90, 0,  -2, 3,  4,),SKL_KNIVES,_gDagger,),
+"metal dagger"          :(30,   0.3, 190, METL,2, (5,  7,  24, 2,  0,  0,  75, 0,  -2, 4,  4,),SKL_KNIVES,_mDagger,),
+"rondel dagger"         :(70,   0.4, 320, METL,3, (4,  8,  28, 2,  0,  0,  54, 0,  -2, 3,  5,),SKL_KNIVES,_rondelDagger,),#STEEL
+    # bayonets            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic bayonet"       :(0,    0.45,40,  PLAS,3, (2,  2,  10, 0,  0,  0,  36, 0,  -3, 2,  7,),SKL_KNIVES,_pBayonet,),
+"wooden bayonet"        :(5,    0.4, 70,  WOOD,3, (3,  3,  14, 0,  0,  0,  33, 0,  -3, 2,  6,),SKL_KNIVES,_wBayonet,),
+"bone bayonet"          :(8,    0.3, 100, BONE,3, (3,  5,  16, 0,  0,  0,  39, 0,  -3, 2,  5,),SKL_KNIVES,_bBayonet,),
+"metal bayonet"         :(22,   0.35,225, METL,3, (4,  5,  18, 0,  0,  0,  36, 0,  -3, 3,  6,),SKL_KNIVES,_mBayonet,),
+    # javelins            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic javelin"       :(1,    0.85,35,  PLAS,7, (6,  4,  7,  0,  0,  0,  -24,-9, -6, 3,  12,),SKL_JAVELINS,_pJavelin,),
+"wooden javelin"        :(8,    0.9, 50,  WOOD,7, (8,  6,  10, 0,  0,  0,  -27,-9, -6, 3,  10,),SKL_JAVELINS,_wJavelin,),
+"metal javelin"         :(32,   0.5, 200, METL,5, (9,  8,  12, 0,  0,  0,  -18,-9, -6, 3,  8,),SKL_JAVELINS,_mJavelin,),
+    # shortspears         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic shortspear"    :(1,    1.0, 15,  PLAS,5, (6,  5,  6,  0,  0,  0,  -12,-9, -8, 5,  8,),SKL_JAVELINS,_pShortSpear,),
+"wooden shortspear"     :(5,    1.05,30,  WOOD,5, (7,  7,  8,  0,  0,  0,  -12,-9, -8, 5,  8,),SKL_JAVELINS,_wShortSpear,),
+"stone shortspear"      :(5,    1.1, 65,  WOOD,5, (7,  9,  10, 0,  0,  0,  -15,-9, -8, 5,  9,),SKL_JAVELINS,_sShortSpear,),
+"bone shortspear"       :(15,   1.05,100, WOOD,5, (7,  8,  9,  0,  0,  0,  -12,-9, -8, 5,  8,),SKL_JAVELINS,_bShortSpear,),
+"glass shortspear"      :(25,   0.9, 5,   WOOD,4, (9,  12, 7,  0,  0,  0,  -9, -9, -8, 5,  7,),SKL_JAVELINS,_gShortSpear,),
+"metal shortspear"      :(22,   1.0, 135, WOOD,5, (8,  10, 12, 0,  0,  0,  -12,-9, -8, 5,  8,),SKL_JAVELINS,_mShortSpear,),
+"ceramic shortspear"    :(28,   0.95,10,  CERA,4, (9,  14, 9,  0,  0,  0,  -9, -9, -8, 5,  7,),SKL_JAVELINS,_cShortSpear,),
+    # boomerangs          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic boomerang"     :(1,    0.7, 20,  PLAS,11,(2,  2,  3,  0,  0,  0,  -15,-6, -6, 1,  16,),SKL_BLUDGEONS,_pBoomerang,),
+"wooden boomerang"      :(4,    0.5, 30,  WOOD,9, (3,  4,  5,  0,  0,  0,  -12,-6, -4, 1,  16,),SKL_BLUDGEONS,_wBoomerang,),
+"bone boomerang"        :(5,    0.45,25,  BONE,7, (3,  4,  5,  0,  0,  0,  -9, -3, -4, 1,  16,),SKL_BLUDGEONS,_bBoomerang,),
+"glass boomerang"       :(22,   0.5, 1,   GLAS,6, (5,  7,  4,  0,  0,  0,  -9, -3, -4, 1,  10,),SKL_BLUDGEONS,_gBoomerang,),
+"metal boomerang"       :(25,   0.4, 90,  METL,5, (4,  5,  6,  0,  0,  0,  -6, -3, -4, 2,  12,),SKL_BLUDGEONS,_mBoomerang,),
+"ceramic boomerang"     :(38,   0.4, 1,   CERA,5, (5,  8,  4,  0,  0,  0,  -9, -3, -3, 1,  10,),SKL_BLUDGEONS,_cBoomerang,),
+    # bucklers            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic buckler"       :(2,    1.7, 30,  PLAS,8, (1,  1,  1,  5,  1,  1,  -9, -3, -3, 3,  12,),SKL_SHIELDS,_buckler,),
+"wooden buckler"        :(12,   1.65,75,  WOOD,8, (1,  2,  3,  6,  1,  1,  -6, -3, -3, 4,  12,),SKL_SHIELDS,_buckler,),
+"bone buckler"          :(24,   0.8, 40,  BONE,5, (2,  3,  4,  6,  1,  1,  -3, -3, -2, 5,  9,),SKL_SHIELDS,_buckler,),#made of one large bone sculpted into shape + some leather
+"metal buckler"         :(90,   1.5, 150, METL,7, (2,  5,  5,  7,  2,  1,  -6, -3, -3, 6,  10,),SKL_SHIELDS,_buckler,),
+    # rotellas            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic rotella"       :(4,    4.0, 50,  PLAS,13,(2,  2,  1,  5,  2,  2,  -33,-12,-6, 4,  24,),SKL_SHIELDS,_rotella,),
+"wooden rotella"        :(24,   3.6, 115, WOOD,12,(3,  3,  2,  6,  2,  2,  -27,-9, -5, 6,  24,),SKL_SHIELDS,_rotella,),
+"bone rotella"          :(49,   3.4, 75,  BONE,12,(3,  5,  3,  5,  2,  2,  -24,-9, -4, 6,  22,),SKL_SHIELDS,_rotella,),#made of one, two or three big pieces of bone glued together. The pieces of bone (esp. for 1 or 2-piece rotellas) are difficult to acquire and manufacture for shield use so this is a relatively expensive item.
+"metal rotella"         :(175,  3.0, 240, METL,11,(3,  7,  4,  6,  3,  2,  -18,-9, -4, 7,  22,),SKL_SHIELDS,_rotella,),
+    # shields             $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"wicker shield"         :(20,   4.2, 35,  WOOD,13,(1,  2,  0,  4,  2,  2,  -36,-15,-10,4,  30,),SKL_SHIELDS,_shield,),
+"plastic shield"        :(7,    6.5, 80,  PLAS,18,(1,  3,  0,  3,  2,  3,  -54,-21,-12,5,  38,),SKL_SHIELDS,_shield,),
+"wooden shield"         :(75,   5.25,180, WOOD,16,(3,  5,  1,  4,  3,  3,  -45,-18,-10,7,  32,),SKL_SHIELDS,_shield,),
+"bone shield"           :(145,  6.2, 100, BONE,17,(2,  7,  2,  4,  4,  2,  -48,-21,-8, 7,  36,),SKL_SHIELDS,_shield,),
+"boiled leather shield" :(190,  5.05,120, BOIL,14,(3,  4,  1,  5,  4,  3,  -42,-15,-12,6,  32,),SKL_SHIELDS,_shield,),
+"metal shield"          :(380,  6.0, 360, METL,16,(2,  9,  3,  4,  5,  3,  -51,-18,-6, 8,  36,),SKL_SHIELDS,_shield,),
+    # scutums             $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic scutum"        :(10,   9.8, 80,  PLAS,23,(-1, 2,  -6, 2,  3,  3,  -69,-21,-12,6,  44,),SKL_SHIELDS,_scutum,),
+"wooden scutum"         :(120,  8.7, 180, WOOD,21,(1,  4,  -5, 3,  4,  3,  -57,-18,-10,7,  44,),SKL_SHIELDS,_scutum,),
+"bone scutum"           :(255,  9.3, 100, BONE,22,(0,  5,  -2, 3,  5,  2,  -60,-21,-8, 8,  48,),SKL_SHIELDS,_scutum,),
+"boiled leather scutum" :(305,  7.7, 120, BOIL,19,(1,  4,  -3, 4,  5,  3,  -54,-15,-12,8,  44,),SKL_SHIELDS,_scutum,),
+"metal scutum"          :(495,  8.1, 360, METL,20,(0,  6,  -1, 3,  6,  3,  -63,-18,-6, 8,  48,),SKL_SHIELDS,_scutum,),
+    # tower shields       $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic tower shield"  :(15,   13.5,140, PLAS,30,(-3, 2,  -12,-6, 4,  5,  -81,-66,-32,7,  72,),SKL_SHIELDS,_towerShield,),
+"wooden tower shield"   :(165,  12.0,400, WOOD,28,(-2, 2,  -12,-5, 5,  6,  -72,-57,-30,8,  66,),SKL_SHIELDS,_towerShield,),
+"bone tower shield"     :(360,  12.7,320, BONE,29,(-2, 3,  -6, -6, 6,  4,  -81,-63,-28,9,  72,),SKL_SHIELDS,_towerShield,),
+"metal tower shield"    :(620,  10.8,800, METL,26,(-1, 4,  -6, -4, 8,  6,  -75,-51,-24,9,  62,),SKL_SHIELDS,_towerShield,),
+"riot shield"           :(1060, 8.2, 250, PLAS,18,(0,  2,  -9, -3, 7,  6,  -69,-45,-20,10, 52,),SKL_SHIELDS,_towerShield,),
+    # whips / bullwhips   $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"rubber flail"          :(2,    0.1, 3,   RUBB,1, (-8, 3,  2,  0,  0,  0,  -51,0,  -1, 0,  1,),None,_rubberBandWhip,),#2h only. This is a heavy metal ball attached to a rubber band like a primitive flail.
+"rubber whip"           :(6,    0.3, 30,  RUBB,2, (4,  1,  0,  0,  0,  0,  -15,0,  -10,1,  7,),SKL_BLUDGEONS,_whip,),
+"plastic duel whip"     :(2,    1.6, 90,  PLAS,9, (2,  2,  2,  0,  0,  0,  -30,-3, -6, 1,  16,),SKL_BLUDGEONS,_heavyWhip,),
+"leather duel whip"     :(75,   1.45,150, LETH,7, (2,  3,  4,  0,  0,  0,  -24,-3, -10,1,  20,),SKL_BLUDGEONS,_heavyWhip,),
+"leather bullwhip"      :(40,   0.6, 60,  LETH,5, (-5, 4,  2,  0,  0,  0,  -51,0,  -5, 0,  5,),SKL_BULLWHIPS,_bullWhip,),
+"graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, (-2, 5,  5,  0,  0,  0,  -42,0,  -5, 0,  4,),SKL_BULLWHIPS,_bullWhip,),
+    # swords              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic sword"         :(2,    1.2, 30,  PLAS,8, (4,  3,  6,  1,  0,  0,  15, -6, -7, 3,  12,),SKL_SWORDS,_pSword,),
+"wooden sword"          :(38,   1.1, 50,  WOOD,7, (6,  4,  9,  2,  0,  0,  24, -6, -6, 4,  10,),SKL_SWORDS,_wSword,),
+"bone sword"            :(45,   0.75,40,  BONE,4, (5,  5,  12, 1,  0,  0,  21, -6, -5, 4,  8,),SKL_SWORDS,_bSword,),
+"metal sword"           :(70,   1.0, 160, METL,5, (7,  6,  14, 2,  0,  0,  45, -6, -4, 5,  8,),SKL_SWORDS,_mSword,),
+"diamonite sword"       :(2650, 0.9, 400, METL,4, (8,  9,  18, 3,  0,  0,  51, -6, -4, 7,  7,),SKL_SWORDS,_dSword,),
+"graphene sword"        :(11500,0.8, 1200,CARB,3, (9,  12, 22, 3,  0,  0,  60, -6, -3, 9,  6,),SKL_SWORDS,_grSword,),
+    # other swords        $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"leaf blade"            :(45,   0.7, 180, METL,3, (6,  6,  13, 2,  0,  0,  42, -3, -3, 2,  8,),SKL_SWORDS,_leafSword,),
+"hanger"                :(60,   0.8, 100, METL,3, (10, 4,  11, 4,  0,  0,  51, -6, -3, 4,  8,),SKL_SWORDS,_hanger,),#POOR STEEL
+"messer"                :(90,   1.4, 320, METL,6, (5,  6,  10, 3,  1,  1,  33, -9, -3, 3,  16,),SKL_SWORDS,_messer,),#POOR STEEL
+"smallsword"            :(105,  0.4, 60,  METL,1, (8,  3,  15, 4,  0,  0,  66, -3, -6, 8,  4,),SKL_SWORDS,_smallSword,),#STEEL
+"broadsword"            :(130,  1.3, 240, METL,7, (5,  8,  12, 2,  0,  0,  30, -12,-5, 2,  16,),SKL_SWORDS,_broadsword,),#POOR STEEL
+"curved sword"          :(120,  1.1, 90,  METL,4, (7,  5,  7,  3,  0,  0,  54, -9, -2, 6,  8,),SKL_SWORDS,_curvedSword,),#POOR STEEL
+"falchion"              :(160,  1.4, 360, METL,8, (5,  8,  9,  1,  1,  0,  24, -12,-5, 3,  16,),SKL_SWORDS,_falchion,),#POOR STEEL
+"sabre"                 :(135,  1.25,240, METL,8, (8,  6,  10, 4,  0,  0,  48, -9, -4, 5,  12,),SKL_SWORDS,_sabre,),#POOR STEEL
+"cutlass"               :(130,  1.35,520, METL,7, (6,  6,  11, 3,  0,  1,  39, -12,-2, 6,  12,),SKL_SWORDS,_cutlass,),#POOR STEEL, made entirely of metal (no wood)
+"arming sword"          :(235,  1.35,300, METL,9, (8,  7,  18, 2,  0,  0,  45, -9, -4, 5,  8,),SKL_SWORDS,_armingSword,),#STEEL
+"basket-hilted sword"   :(295,  1.45,250, METL,10,(9,  6,  12, 3,  1,  2,  45, -9, -6, 7,  8,),SKL_SWORDS,_basketHiltedSword,),#STEEL
+"rapier"                :(345,  1.5, 150, METL,11,(11, 4,  16, 5,  0,  1,  60, -12,-7, 8,  16,),SKL_SWORDS,_rapier,),#STEEL
+    # other misc weapons  $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+    # knives
+"kukri"                 :(70,   0.5, 90,  METL,3, (4,  6,  10, 1,  0,  0,  51, -3, -3, 5,  8,),SKL_KNIVES,_kukri,),#POOR STEEL
+"metal throwing knife"  :(8,    0.1, 20,  METL,1, (5,  3,  18, 0,  0,  0,  54, 0,  -8, 1,  4,),SKL_KNIVES,_mThrowingKnife,),
+"butcher knife"         :(19,   0.3, 120, METL,3, (2,  5,  3,  0,  0,  0,  12, 0,  -10,1,  8,),SKL_KNIVES,_butcherKnife,),
+    # boxing weapons
+"metal knuckles"        :(6,    0.1, 380, METL,2, (2,  5,  5,  0,  0,  0,  18, 0,  -5, 0,  4,),SKL_BOXING,_knuckles,),
+"metal spiked knuckles" :(14,   0.2, 220, METL,2, (2,  7,  7,  0,  0,  0,  -6, 0,  -6, 0,  8,),SKL_BOXING,_knuckles,),
+"boxing wrap"           :(4,    0.25,20,  CLTH,2, (2,  2,  1,  1,  0,  0,  33, 0,  -8, 2,  3,),SKL_BOXING,_boxingWraps,),
+    # bludgeons
+"metal baton"           :(31,   0.5, 250, METL,2, (6,  3,  5,  1,  0,  0,  9,  -3, -2, 3,  4,),SKL_BLUDGEONS,_baton,),
+"metal bat"             :(38,   0.7, 350, METL,4, (2,  7,  7,  0,  1,  0,  -6, -6, -8, 1,  8,),SKL_BLUDGEONS,_baton,),
+"wooden truncheon"      :(5,    0.85,325, WOOD,4, (4,  6,  7,  1,  0,  0,  -3, -3, -6, 2,  12,),SKL_BLUDGEONS,_club,),
+"metal truncheon"       :(46,   0.75,450, METL,4, (4,  8,  9,  1,  0,  0,  3,  -3, -4, 2,  10,),SKL_BLUDGEONS,_club,),
+    # misc
+"metal push dagger"     :(25,   0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),SKL_PUSHDAGGERS,_pushDagger,), 
+
+    # 2-handed weapons #
+
+# Some weapons can only be built with steel, like longswords, greatswords.
+#   So these are expensive, and have no material designation.
+    # longswords          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"bastard sword"         :(245,  1.55,400, METL,16,(4,  9,  12, 1,  1,  1,  15, -12,-10,6,  20,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game)
+"longsword"             :(260,  1.6, 310, METL,7, (11, 12, 18, 4,  3,  3,  51, -15,-8, 12, 12,),SKL_LONGSWORDS,_longSword,),#STEEL
+"kriegsmesser"          :(265,  1.8, 500, METL,11,(8,  14, 12, 2,  3,  3,  36, -21,-12,9,  18,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
+"katana"                :(285,  1.45,120, METL,5, (10, 10, 16, 2,  2,  2,  45, -12,-8, 14, 9,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
+"estoc"                 :(305,  1.65,175, METL,6, (12, 10, 20, 3,  1,  2,  60, -15,-8, 16, 14,),SKL_LONGSWORDS,_estoc,),#STEEL
+    # greatswords         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"greatsword"            :(540,  3.5, 480, METL,22,(9,  18, 15, 3,  3,  3,  -15, -48,-10,10, 22,),SKL_GREATSWORDS,_greatSword,),
+"flamberge"             :(595,  3.3, 275, METL,21,(10, 16, 12, 2,  3,  3,  -12,-51,-13,10, 21,),SKL_GREATSWORDS,_flamberge,),
+    # short staves        $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic staff"         :(1,    1.3, 100, PLAS,8, (6,  5,  4,  4,  2,  3,  69, -21,-5, 13, 9,),SKL_STAVES,_staff,),
+"wooden staff"          :(10,   1.2, 300, WOOD,8, (7,  7,  6,  4,  4,  3,  75, -21,-4, 15, 8,),SKL_STAVES,_staff,),
+"metal staff"           :(62,   1.0, 500, METL,8, (8,  9,  8,  4,  3,  3,  81, -21,-3, 16, 8,),SKL_STAVES,_staff,),
+    # longstaves          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic longstaff"     :(2,    2.45,120, PLAS,14,(8,  8,  6,  3,  2,  3,  54, -42,-24,5,  13,),SKL_POLEARMS,_longstaff,),
+"wooden longstaff"      :(16,   2.25,350, WOOD,13,(9,  10, 8,  3,  4,  3,  57, -42,-21,6,  12,),SKL_POLEARMS,_longstaff,),
+"metal longstaff"       :(88,   2.05,500, METL,12,(10, 12, 10, 3,  3,  3,  60, -42,-18,7,  11,),SKL_POLEARMS,_longstaff,),
+    # spears              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic spear"         :(2,    2.1, 30,  PLAS,8, (7,  10, 10, 3,  2,  3,  51, -42,-17,8,  16,),SKL_SPEARS,_pSpear,),
+"wooden spear"          :(20,   2.05,60,  WOOD,8, (9,  11, 12, 3,  3,  3,  48, -45,-15,9,  15,),SKL_SPEARS,_wSpear,),
+"stone spear"           :(22,   2.15,100, WOOD,9, (8,  13, 13, 3,  3,  3,  42, -45,-15,9,  16,),SKL_SPEARS,_bSpear,),
+"bone spear"            :(25,   2.05,150, WOOD,8, (9,  12, 14, 3,  3,  3,  45, -45,-16,10, 16,),SKL_SPEARS,_sSpear,),
+"glass spear"           :(34,   1.9, 5,   WOOD,7, (11, 22, 10, 3,  3,  3,  51, -45,-16,14, 14,),SKL_SPEARS,_gSpear,),
+"metal spear"           :(32,   2.1, 200, WOOD,9, (10, 14, 16, 3,  3,  3,  45, -45,-14,12, 16,),SKL_SPEARS,_mSpear,),
+"metal winged spear"    :(40,   2.0, 300, WOOD,12,(9,  16, 15, 3,  3,  3,  36, -48,-8, 12, 20,),SKL_SPEARS,_mSpear,),
+"ceramic spear"         :(36,   1.95,10,  WOOD,7, (11, 24, 12, 3,  3,  3,  48, -45,-16,14, 14,),SKL_SPEARS,_cSpear,),
+    # partizans           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal partizan"        :(57,   2.2, 240, WOOD,14,(8,  18, 14, 2,  3,  3,  24, -51,-14,10, 22,),SKL_SPEARS,_mPartizan,),
+    # naginatas           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal naginata"        :(72,   2.6, 140, WOOD,15,(9,  12, 13, 2,  3,  2,  15, -51,-14,10, 22,),SKL_SPEARS,_mNaginata,),
+    # bills               $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal bill"            :(84,   2.2, 160, WOOD,13,(12, 14, 18, 2,  3,  2,  24, -54,-10,10, 18,),SKL_POLEARMS,_mBill,),#requires some steel
+    # halberds            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal halberd"         :(75,   2.25,180, WOOD,15,(8,  18, 20, 2,  3,  2,  9,  -54,-6, 6,  22,),SKL_POLEARMS,_mHalberd,),#all polearms have REACH
+    # poleaxes            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"metal poleaxe"         :(58,   2.35,300, WOOD,14,(7,  22, 20, 2,  3,  2,  -15,-42,-6, 7,  24,),SKL_POLEARMS,_mPoleAxe,),
+    # polehammers         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic polehammer"    :(3,    2.7, 110, PLAS,16,(4,  11, 16, 1,  2,  2,  -27,-51,-14,3,  30,),SKL_POLEARMS,_pPoleHammer,),
+"wooden polehammer"     :(18,   2.6, 200, WOOD,15,(5,  13, 16, 1,  2,  2,  -24,-48,-12,4,  28,),SKL_POLEARMS,_wPoleHammer,),
+"metal polehammer"      :(45,   2.4, 475, WOOD,14,(6,  16, 24, 1,  3,  2,  -21,-45,-9, 5,  26,),SKL_POLEARMS,_mPoleHammer,),
+    # war mallets         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic war mallet"    :(3,    2.4, 320, PLAS,12,(3,  11, 12, -1, 2,  2,  -45,-42,-20,3,  28,),SKL_MALLETS,_1mallet,),
+"wooden war mallet"     :(19,   2.3, 600, WOOD,11,(4,  13, 13, -1, 3,  2,  -42,-42,-20,4,  25,),SKL_MALLETS,_1mallet,),
+"stone war mallet"      :(22,   2.1, 400, WOOD,10,(5,  17, 14, 0,  3,  2,  -36,-39,-16,4,  25,),SKL_MALLETS,_1mallet,),
+"bone war mallet"       :(25,   2.2, 500, WOOD,10,(4,  15, 15, 0,  3,  2,  -39,-39,-18,5,  25,),SKL_MALLETS,_1mallet,),
+"metal war mallet"      :(72,   2.0, 800, WOOD,9, (5,  19, 16, 0,  3,  2,  -39,-36,-14,6,  22,),SKL_MALLETS,_2mallet,),
+    # great clubs         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic great club"    :(3,    2.7, 450, PLAS,18,(5,  11, 7,  -1, 2,  2,  -33,-51,-32,2,  32,),SKL_BLUDGEONS,_heavyClub,),
+"wooden great club"     :(18,   2.6, 1000,WOOD,17,(6,  15, 9,  -1, 3,  2,  -27,-48,-28,3,  29,),SKL_BLUDGEONS,_heavyClub,),
+"stone great club"      :(22,   2.5, 280, STON,17,(7,  19, 10, -1, 3,  2,  -24,-45,-28,4,  29,),SKL_BLUDGEONS,_heavyClub,),
+"bone great club"       :(13,   1.75,360, BONE,15,(8,  14, 9,  0,  3,  2,  -15,-42,-26,5,  26,),SKL_BLUDGEONS,_heavyClub,),
+"metal great club"      :(95,   1.8, 1800,METL,15,(8,  21, 12, 0,  3,  2,  -18,-39,-24,6,  26,),SKL_BLUDGEONS,_heavyClub,),
+    # great axes          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"plastic great axe"     :(3,    2.2, 110, PLAS,11,(2,  14, 9,  1,  2,  2,  -27,-45,-16,3,  24,),SKL_GREATAXES,_pGreatAxe,),
+"wooden great axe"      :(22,   1.9, 210, WOOD,10,(3,  18, 10, 2,  3,  2,  -21,-39,-18,4,  23,),SKL_GREATAXES,_wGreatAxe,),
+"stone great axe"       :(15,   2.0, 230, WOOD,10,(3,  24, 12, 1,  3,  2,  -27,-42,-18,5,  23,),SKL_GREATAXES,_sGreatAxe,),
+"bone great axe"        :(34,   1.85,290, WOOD,9, (3,  22, 11, 2,  3,  2,  -21,-36,-14,6,  22,),SKL_GREATAXES,_bGreatAxe,),
+"glass great axe"       :(75,   1.65,10,  WOOD,7, (5,  32, 10, 2,  3,  2,  -12,-33,-18,7,  18,),SKL_GREATAXES,_gGreatAxe,),
+"metal great axe"       :(92,   1.8, 420, WOOD,9, (4,  28, 14, 2,  3,  2,  -24,-33,-9, 8,  20,),SKL_GREATAXES,_mGreatAxe,),
+    # battleaxes          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+    # misc 2-h weapons    $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
+"dane axe"              :(175,  1.6, 300, WOOD,6, (6,  22, 12, 3,  3,  3,  6,  -24,-5, 12, 16,),SKL_GREATAXES,_daneAxe,),#STEEL and IRON
+"executioner sword"     :(1180, 4.7, 665, METL,44,(2,  32, 8,  -4, 4,  1,  -75,-66,-40,1,  96,),SKL_GREATSWORDS,_executionerSword,),#POOR STEEL
+}
     
-    Armor display:
+
+# armor #
+
+
+##NECKWEAR={
+###--Name-------------------$$$$$, KG,  Dur, Mat, (DV, AV, Pro,Vis,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+##"scarf"                 :(9,     0.5, 80,  CLTH,(0,  0,  0,  0,  0,  -12,12, 3,  0,  0,  0,),_scarf,),
+##}
+
+EYEWEAR={
+#--Name-------------------$$$$$,KG,  Dur,AP,  Mat, (DV, AV, Pro,Per,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"plastic goggles"       :(15,   0.1, 8,  100, PLAS,(0,  0,  0.1,0,  0,  -3, 0,  15, 3,  0,  0,),_pGoggles,),
+"glass goggles"         :(35,   0.15,1,  100, GLAS,(0,  0,  0.2,0,  0,  -1, 0,  15, 0,  0,  0,),_pGoggles,),
+}
+
+FACEWEAR={
+# Per : perception (vision AND hearing) (percentage modifier)
+# E: covers eyes? bool (0 or 1)
     
-    [{] lacquered police cloak
-    5.7kg     $1460
-    wear on back:
-        Lo        180 (200)
-        Hi        1 (1)
-        AV        1
-        DV        4
-        Move Spd  -3
-        Fire Res  10
-        Bio Res   10
-    
+#--Name-------------------$$$$$, KG,  Dur, AP,  Mat, (DV, AV, Pro,Per,MSp,FIR,ICE,BIO,ELE,PHS,BLD)E,script
+"flesh mask"            :(25,    0.9, 15,  200, FLSH,(0,  0.1,0.8,-10,0,  0,  1,  3,  0,  0,  6,),1,_fMask,),# grants intimidation when you wear any armor but esp. if you wear flesh armor and the flesh face is the scariest of all
+"bandana"               :(2,     0.05,10,  300, CLTH,(0,  0.0,0.1,0,  0,  -6, 0,  12, 0,  0,  0,),0,_bandana,),
+"leather mask"          :(40,    0.8, 90,  200, LETH,(0,  0.6,1.2,-25,0,  3,  1,  3,  6,  0,  3,),1,_lMask,),
+"boiled leather mask"   :(62,    0.7, 150, 200, BOIL,(1,  1.0,1.6,-25,0,  6,  1,  3,  9,  0,  3,),1,_blMask,),
+"plastic mask"          :(1,     1.5, 30,  200, PLAS,(-1, 0.8,0.6,-50,0,  -33,0,  3,  3,  0,  0,),1,_pMask,),#"made of a translucent plastic, this mask allows the wearer to see through it while providing some protection.
+"respirator"            :(14,    1.4, 20,  400, PLAS,(-2, 0.8,0.7,-50,-6, -15,0,  30, 3,  0,  0,),1,_respirator,),#mask with added breathing filter for added bio resistance.
+"bio mask"              :(25,    1.5, 15,  400, PLAS,(-2, 0.8,0.8,-40,-6, -12,1,  42, 3,  0,  0,),1,_respirator,),#respirator with a plastic or glass eye-covering for added bio resistance.
+"plague mask"           :(95,    1.7, 60,  800, LETH,(-4, 0.8,1.0,-75,-12,3,  3,  21, 9,  0,  3,),1,_plagueMask,),
+"gas mask"              :(1200,  2.5, 80,  400, PLAS,(-2, 0.5,1.8,-33,-3, 15, 3,  60, 6,  1,  0,),1,_gasMask,),#an ancient bio mask made of fire resistant material.
+"kevlar mask"           :(2750,  0.5, 200, 200, PLAS,(2,  1.4,2.4,-25,0,  3,  0,  0,  3,  3,  3,),1,_kMask,),
+"wooden mask"           :(20,    0.8, 50,  200, WOOD,(0,  0.5,1.0,-50,0,  -6, 0,  3,  0,  0,  0,),1,_wMask,),
+"metal mask"            :(130,   0.7, 320, 300, METL,(0,  1.7,2.0,-50,0,  -6, -1, 3,  -9, 0,  0,),1,_mMask,),
+"metal respirator"      :(160,   1.7, 120, 400, METL,(-2, 1.7,2.0,-50,-6, 9,  -1, 30, 0,  1,  0,),1,_mRespirator,),
+"metal bio mask"        :(175,   1.8, 100, 400, METL,(-2, 1.7,2.0,-40,-6, 9,  2,  42, 0,  1,  0,),1,_mRespirator,),#bio masks are respirators with a visor for eye protection
+}
+
+HEADWEAR={
+##    cap covers top of head only; low protection.
+##    helmet covers up to: top and sides of head and neck
+##    helm covers the whole head and face
+##    globe helm is a full helm but it has a plastic face which
+##      has a low vision penalty, at cost of reduced protection.
+##    bio helm is like a globe helm with a respirator attached.
+
+# Per : perception (vision AND hearing) (percentage modifier)
+# F: covers face? bool (0 or 1)
+# E: covers eyes? bool (0 or 1)
+#--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV, Pro,Per,MSp,FIR,ICE,BIO,ELE,PHS,BLD)F,E,script
+"flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5,0.9,0,  0,  -6, 5,  0,  0,  0,  3,),0,0,_fCap,),
+"padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1,1.9,0,  0,  -3, 3,  3,  0,  0,  3,),0,0,_cCoif,),
+"thick padded coif"     :(40,   3.0, 180, 200, CLTH,(1,  2.2,2.2,0,  0,  -9, 6,  3,  3,  3,  3,),0,0,_cCoif,),
+"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9,1.1,0,  0,  -18,0,  -3, 6,  0,  0,),0,0,_pCap,),
+"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0,2.0,-10,-6, -24,2,  -3, 9,  0,  0,),0,0,_pHelm,),
+"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2,3.0,-50,-9, -36,3,  0,  12, 0,  0,),1,1,_pHelm,),
+"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6,2.5,-30,-12,-45,5,  12, 18, 0,  0,),1,1,_pHelm,),
+"bio helm"              :(30,   4.0, 30,  500, PLAS,(-4, 1.5,2.5,-30,-15,-21,6,  24, 18, 0,  0,),1,1,_bioHelm,),
+"kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0,2.2,0,  0,  3,  0,  0,  3,  5,  1,),0,0,_kCap,),
+"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6,1.0,0,  0,  -6, 2,  3,  6,  0,  1,),0,0,_lCap,),
+"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8,1.2,0,  0,  -3, 2,  3,  9,  0,  1,),0,0,_lCap,),
+"skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2,1.2,0,  -3, 0,  1,  0,  6,  0,  0,),0,0,_bCap,),
+"bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2,2.0,-10,-6, 3,  2,  3,  9,  0,  0,),0,0,_bHelm,),
+"pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5,2.2,0,  0,  -3, 0,  3,  -6, 1,  3,),0,0,_mCoif,),
+"metal mail coif"       :(220,  2.9, 245, 200, METL,(1,  4.1,2.4,0,  0,  -3, 0,  3,  -6, 1,  3,),0,0,_mCoif,),
+"metal cap"             :(145,  2.4, 750, 100, METL,(0,  5.0,1.4,0,  0,  -6, -2, 0,  -6, 0,  1,),0,0,_mCap,),
+"metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10, 2.0,-10,-12,-9, -15,0,  -9, 0,  1,),0,0,_mCap,),
+"metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2,3.2,-10,-6, -12,-2, 3,  -12,0,  2,),0,0,_mHelm,),
+"metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5,4.0,-50,-12,-24,-4, 6,  -15,3,  2,),1,1,_mHelm,),#can lower the visor for -2 protection, +2 DV, +12 FIR, Perception penalty cut to 1/4; (BAD?) IDEA: No need for visors. Just take off your mask! Full helms are enclosing to grant greatest protection though
+"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5,2.8,-30,-15,-36,0,  18, -9, 0,  2,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
+"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3,2.6,-30,-15,-21,2,  30, -6, 0,  2,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
+"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8,5.2,-80,-18,-36,-6, 12, -18,3,  3,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +2 DV, +12 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
+"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(2,  2.4,3.5,-12,-3, 0,  3,  9,  9,  3,  1,),0,1,_motorcycleHelm,),
+"graphene helm"         :(18000,1.3, 560, 500, CARB,(3,  8.0,6.0,-20,0,  18, 15, 15, 15, 3,  6,),1,1,_grHelm,),
+}
+     
+'''
+armor type:
+    shirt : typical thin clothing
+        - basically not even armor, the worst protection
+    coat : expensive high-coverage (protection) clothing
+        - little step up from shirt, but very expensive for the armor value.
+    vest : typical thick (high AV) clothing or low-coverage armor
+        - little step up from shirt, or a light armor type
+    gear : lamellar / scaled armor
+        - low protection and resistances; low cost (medium Msp and DV penalty)
+    armor : plated armor
+        - medium protection and resistances; medium cost (heaviest Msp and DV penalty)
+    mail shirt : ringmail
+        - lightest, lowest dur, med-low AV, med-high prot.; med-low cost.  Also gives Phys res. (Like armor but weaker and lighter.)
+    jacket : typical full-cover clothing or light armor
+        - high protection and resistances; high cost (med Msp and DV penalty)
+    suit : full body armor, highest coverage
+        - highest protection and resistances; highest cost (lowest Msp and DV penalty). +Phys res.
+'''
+'''
+    idea: function for creating mail-reinforced armor
+        adds protection and armor
+        adds mass, value
+'''
+ARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+    # ceramics (ceramic armor is DIFFICULT to make)
+"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  -6, -6, 0,  3,  3,  3,  9,),None,),
+"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  -3, -6, 0,  6,  3,  3,  9,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
+    # cloth
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  0,  -30,1,  3,  0,  0,  1,),None,),
+"hoody"                 :(23,    0.8,  30,  200,  CLTH,(0,  0,  1,  0,  -36,4,  6,  0,  0,  2,),None,),
+"cloth vest"            :(19,    0.6,  40,  200,  CLTH,(0,  0,  1,  0,  -12,2,  3,  0,  0,  3,),None,),
+"thick cloth vest"      :(98,    3.6,  120, 250,  CLTH,(1,  1,  2,  0,  -6, 3,  3,  0,  0,  6,),None,),
+"padded jacket"         :(150,   4.7,  150, 600,  CLTH,(1,  2,  5,  0,  -12,6,  6,  3,  0,  12,),None,),
+"padded jack"           :(310,   9.5,  275, 700,  CLTH,(2,  3,  6,  -1, -21,10, 9,  6,  3,  15,),None,),
+"gambeson"              :(460,   15.1, 400, 800,  CLTH,(4,  4,  8,  -2, -30,15, 9,  12, 5,  18,),None,),
+    # flesh and fur
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  -3, -6, 3,  6,  3,  0,  9,),None,),
+"flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  -3, -12,6,  9,  3,  3,  15,),None,),
+"fur cuirass"           :(265,   15.85,125, 600,  FLSH,(0,  3,  5,  -3, -33,12, 9,  9,  0,  9,),None,),
+"fur suit"              :(475,   25.5, 150, 4000, FLSH,(1,  3,  7,  -15,-48,36, 12, 15, 0,  15,),None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
+    # leather and boiled leather
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"leather jacket"        :(100,   4.0,  60,  200,  LETH,(1,  1,  10, -1, -12,12, 12, 15, 5,  8,),None,),
+"leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, -3, -21,18, 12, 18, 10, 14,),None,),
+"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  -6, -6, 3,  9,  24, 3,  5,),None,),
+"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  5,  -3, -9, 3,  9,  21, 3,  5,),None,),
+"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  -27,-36,24, 15, -6, 3,  15,),None,),
+    # plastic
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"plastic cuirass"       :(42,    20.2, 80,  1200, PLAS,(-1, 4,  3,  -12,-36,0,  -6, 21, 0,  3,),None,),
+"plastic gear"          :(35,    13.5, 60,  2200, PLAS,(0,  3,  4,  -9, -51,0,  -9, 21, 0,  3,),None,),
+"disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  -36,-60,9,  30, 9,  0,  0,),None,),
+"hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-6, 1,  2,  -51,-75,18, 45, 12, 3,  0,),None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
+"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 0,  6,  2,  6,  6,  20, 5,),None,),
+    # wood
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"wicker armor"          :(60,    12.3, 40,  1000, WOOD,(0,  2,  3,  -6, -45,0,  3,  0,  0,  0,),None,),
+"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  -3, -30,0,  6,  0,  0,  3,),None,),
+    # bone
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"bone cuirass"          :(380,   25.3, 80,  1200, BONE,(0,  6,  3,  -18,12, 3,  15, 15, 0,  5,),None,),
+"bone gear"             :(100,   16.8, 160, 1500, BONE,(2,  4,  4,  -6, 9,  3,  12, 12, 0,  5,),None,),
+    # metal
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"pop tab mail vest"     :(525,   12.3, 175, 800,  METL,(2,  6,  5,  -3, -3, 0,  9,  0,  3,  15,),None,),
+"pop tab mail shirt"    :(650,   14.7, 225, 800,  METL,(2,  6,  7,  -3, -3, 0,  9,  -3, 3,  15,),None,),
+"metal mail vest"       :(1080,  16.2, 320, 800,  METL,(2,  7,  6,  -3, -12,0,  9,  -3, 3,  15,),None,),
+"metal mail shirt"      :(1530,  19.6, 360, 800,  METL,(3,  7,  8,  -3, -21,0,  9,  -6, 5,  15,),None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
+"metal gear"            :(880,   14.4, 460, 2400, METL,(0,  8,  4,  -6, -30,-12,12, -12,3,  12,),None,),
+"brigandine"            :(1925,  13.5, 550, 2400, METL,(1,  9,  5,  -6, -27,-21,9,  -6, 3,  8,),None,),
+"metal cuirass"         :(2100,  22.9, 600, 1500, METL,(-2, 12, 6,  -12,-30,-30,9,  -21,3,  12,),None,),
+"metal blast plate"     :(2950,  34.0, 990, 2000, METL,(-6, 20, 4,  -36,-42,-45,9,  -33,5,  12,),None,),
+    # carbon
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 0,  24, 24, 12, 30, 3,  20,),None,),
+}
+'''
+"metal half suit"       :(2620,  30.8, 650, 4000, METL,(-4, 10, 10, -30,-42,15, -27,6,),None,),#"despite being lighter, the half suit is actually more encumbering than a full metal suit, because the imbalanced weight distribution throws you off-balance. However, a skilled wearer can distribute the armor to the appropriate places at the right times to provide almost as effective protection as a full suit of metal armor.
+"metal suit"            :(3100,  34.25,750, 5000, METL,(-2, 10, 12, -30,-45,18, -30,10,),None,),
+"graphene suit"         :(123000,8.2,  1000,3000, CARB,(6,  20, 15, 0,  45, 36, 24, 51, 6,)None,),
+'''
+
+ARMARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"wooden vambrace"       :(8,     0.8,  20,  200,  WOOD,(1,  0.1,0.2,-2, -9, 0,  0,  0,  0,  0,),None,),
+"leather vambrace"      :(40,    0.7,  50,  200,  LETH,(1,  0.2,0.2,-1, -3, 0,  0,  1,  0,  0,),None,),
+"metal vambrace"        :(75,    1.0,  80,  200,  METL,(1,  0.4,0.8,-3, -6, 0,  0,  -6, 0,  0,),None,),
+}
+
+LEGARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"wooden greave"         :(10,    1.0,  30,  200,  WOOD,(0,  0.1,0.4,-5, -9, 0,  0,  0,  0,  0,),None,),
+"leather greave"        :(55,    1.1,  65,  200,  LETH,(0,  0.2,0.5,-3, -3, 0,  0,  1,  0,  0,),None,),
+"metal greave"          :(95,    1.5,  120, 200,  METL,(-1, 0.5,0.8,-6, -6, -3, 0,  -6, 0,  0,),None,),
+"padded legging"        :(40,    0.8,  75,  300,  CLTH,(1,  0.3,1.0,-3, -9, 0,  0,  3,  0,  0,),None,),
+"metal mail legging"    :(155,   1.0,  100, 300,  METL,(1,  0.4,1.3,-3, -9, 0,  0,  -3, 0,  0,),None,),
+}
+
+HANDARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"leather glove"         :(3,     0.1,  10,  100,  LETH,(0,  0,  0.1,0,  -2, 2,  2,  1,  1,  0,),None,),
+"plastic gauntlet"      :(1,     0.45, 20,  200,  PLAS,(0,  0.1,0.2,0,  -5, 0,  2,  1,  2,  0,),None,),
+"metal gauntlet"        :(26,    0.4,  100, 200,  METL,(0,  0.2,0.4,0,  -3, 0,  2,  -1, 2,  0,),None,),
+}
+
+FOOTARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  -6, -2, 0,  0,  0,  0,  0,),None,),
+"leather shoe"          :(3,     0.15, 25,  300,  LETH,(0,  0,  0.1,0,  -3, 2,  0,  1,  0,  0,),None,),
+"leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,0,  -5, 3,  0,  2,  0,  0,),None,),
+"metal boot"            :(20,    0.45, 125, 500,  LETH,(0,  0.1,0.5,0,  -6, 3,  0,  2,  0,  0,),None,),
+}
+
+ABOUTARMOR={
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
+"fur coat"              :(95,    3.85, 25,  300,  FLSH,(-3, 0.6,2.0,-18,-39,60, 9,  9,  0,  0,),None,),
+"cloak"                 :(160,   2.5,  90,  200,  CLTH,(-1, 1.0,1.6,-12,-15,45, 0,  9,  6,  0,),_cloak,),#gives water resistance; can be wielded as a weapon;
+}
+
+
+
+'''
+    weapon mods
+        ornate : cost ++, dur -
+        war : cost+, dur+, Dmg+, Pen+
+        crude : cost-, dur-, Dmg-, Pen-
+        
 '''
 
 
+def _scissors(item):
+    rog.world().add_component(item, cmp.Tool_Cut(7))
+    rog.world().add_component(item, cmp.Tool_Chisel(1))
+def _pliers(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(2))
+    rog.world().add_component(item, cmp.Tool_Pliers(1))
+    rog.world().add_component(item, cmp.Tool_Tongs(1))
+def _needleNosePliers(item):
+    rog.world().add_component(item, cmp.Tool_Cut(8))
+    rog.world().add_component(item, cmp.Tool_Pliers(2))
+    rog.world().add_component(item, cmp.Tool_Tongs(1))
+def _wireCutter(item):
+    rog.world().add_component(item, cmp.Tool_Cut(8))
 
+TOOLS={
+# misc                $$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV,AV,Pr,Asp,Msp),script
+'scissors'          :(10,  0.12,140, METL,(0,  4,  5,  0, 0, 0, 9,  0, ),_scissors),
+'pliers'            :(20,  0.16,650, METL,(-2, 2,  4,  0, 0, 0, -18,0, ),_pliers),
+'needle-nose pliers':(50,  0.2, 500, METL,(-2, 1,  3,  0, 0, 0, -9, 0, ),_needleNosePliers),
+"metal anvil, small":(36,  10.0,900, METL,(-10,8,  0,  0, 0, 0, -99,-75,),None,),
+"metal anvil"       :(36,  50.0,3000,METL,(-15,12, 0,  0, 0, 0, -99,-93,),None,),
+"metal anvil, large":(36,  200, 6000,METL,(-20,16, 0,  0, 0, 0, -99,-99,),None,),
+# hammers             $$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV,AV,Pr,Asp,Msp,script
+"plastic hammer"    :(1,   1.8, 200, PLAS,(1,  3,  6,  0, 0, 0, -15,-9,),_2hammer,),
+"wooden hammer"     :(12,  1.7, 260, WOOD,(1,  4,  7,  0, 0, 0, -12,-6,),_3hammer,),
+"stone hammer"      :(8,   1.5, 300, WOOD,(1,  5,  8,  0, 0, 0, -12,-6,),_3hammer,),
+"bone hammer"       :(16,  1.6, 350, WOOD,(1,  4,  9,  0, 0, 0, -9, -6,),_3hammer,),
+"metal hammer"      :(36,  1.4, 600, WOOD,(2,  7,  11, 0, 0, 0, -9, -3,),_4hammer,),
+"fine hammer"       :(77,  2.0, 550, METL,(2,  8,  12, 0, 0, 0, -51,-12,),_5hammer,),
+# axes                $$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV,AV,Pr,Asp,Msp,script
+"plastic axe"       :(4,   1.9, 80,  PLAS,(0,  6,  0,  0, 0, 0, -51,-15,),_pAxe,),
+"wooden axe"        :(22,  1.8, 120, WOOD,(0,  8,  0,  0, 0, 0, -48,-15,),_wAxe,),
+"stone axe"         :(18,  1.75,200, WOOD,(0,  10, 0,  0, 0, 0, -42,-15,),_sAxe,),
+"bone axe"          :(26,  1.85,160, WOOD,(0,  9,  0,  0, 0, 0, -45,-15,),_bAxe,),
+"metal axe"         :(42,  1.7, 420, WOOD,(1,  12, 1,  0, 0, 0, -36,-12,),_mAxe,),
+# machetes            $$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV,AV,Pr,Asp,Msp,script
+"plastic machete"   :(5,   1.8, 70,  PLAS,(2,  3,  3,  0, 0, 0, 3,  -9,),_pMachete,),
+"wooden machete"    :(13,  1.7, 90,  WOOD,(3,  4,  5,  0, 0, 0, 6,  -9,),_wMachete,),
+"bone machete"      :(16,  1.6, 60,  BONE,(3,  5,  7,  0, 0, 0, 9,  -12,),_bMachete,),
+"metal machete"     :(20,  1.5, 260, METL,(4,  6,  9,  1, 0, 0, 15, -12,),_mMachete,),
+     # sharpening
+        # TODO: change equipable stat mods for these
+"sharpening stone"  :(10,  2.5, 200, STON,(1,  3,  4,  0, 0, 0, -36,-15,),_sPiece,),
+"grinding stone"    :(500, 95.0,500, STON,(-20,5,  0,  -51,0,0, -90,-93,),None,),
 
-
-'''
-
-#scripts for making interactive stuff in the game
-# convert things into specific types of things by giving them certain data
-def _edible(tt, nutrition, taste):
-    rog.make(tt,EDIBLE)
-    rog.taste=taste
-    tt.nutrition=nutrition
-    
-def _food_poison(tt):
-    _edible(tt, RATIONFOOD, TASTE_SWEET) #deceptively sweet
-    rog.make(tt,SICK) #makes you sick when you eat it
-def _food_ration_savory(tt):
-    _edible(tt, FOOD_MORSEL, TASTE_SAVORY)
-def _food_ration_savory(tt):
-    _edible(tt, FOOD_RATION, TASTE_SAVORY)
-def _food_serving_savory(tt):
-    _edible(tt, FOOD_RATION*3, TASTE_SAVORY)
-def _food_meal_savory(tt):
-    _edible(tt, FOOD_RATION*9, TASTE_SAVORY)
-def _food_bigMeal_savory(tt):
-    _edible(tt, FOOD_RATION*18, TASTE_SAVORY)
-    
-def _wood(tt):
-    rog.make(tt, CANWET)
-
-def _stone(eid):
-    def func(self):
-        for i in range(dice.roll(6)):
-            rog.create_thing("dust", self.x, self.y)
-    rog.world.component_add(eid, cmp.DeathFunction(func))
-    
-def _pot(tt): #metal pot
-    rog.init_fluidContainer(tt, 200)
-##    rog.make(tt, CANUSE)
-##    tt.useFunctionPlayer = action.pot_pc
-##    tt.useFunctionMonster = action.pot
-
-def _clayPot(tt):
-    rog.make(tt, HOLDSFLUID)
-    tt.capacity = 20
-    
-def _gunpowder(tt):
-    rog.make(tt, WATERKILLS)
-
-def _boxOfItems1(tt):
-    rog.init_inventory(tt, 200)
-    #newt=
-    #rog.give(tt, newt)
-
-def _safe(tt):
-    rog.init_inventory(tt, 200)
-    rog.make(tt, CANOPEN)
-    rog.make(tt, INTERACT) #interact to lock or unlock
-    
-def _still(tt):
-    rog.make(tt, HOLDSFLUID)
-    rog.make(tt, INTERACT)
-    #...
-    
-def _dosimeter(tt):
-    #use function two options: 1) toggles on/off. 2) displays a reading only when you use it.
-    rog.make(tt, WATERKILLS)
-    rog.make(tt, CANUSE)
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods={"range":3, "atk":2, "dmg":1,}
-    def funcPlayer(self, obj): 
-        xx=obj.x
-        yy=obj.y
-        reading = rog.radsat(xx,yy)
-        rog.msg("The geiger counter reads '{} RADS'".format(reading))
-        #could do, instead:
-        # use turns it on, activates an observer.
-        # updates when rad damage received by player. Adds rad value to dosimeter
-        # when you use again, you can either read it or turn it off.
-        rog.drain(obj, 'nrg', NRG_USE)
-    def funcMonster(self, obj):
-        rog.drain(obj, 'nrg', NRG_USE)
-        rog.event_sight(obj.x,obj.y,"{t}{n} looks at a geiger counter.")
-    def funcDeath(self):
-        rog.explosion(self.name, self.x,self.y, 1)
-    tt.useFunctionPlayer = funcPlayer
-    tt.useFunctionMonster = funcMonster
-    tt.deathFunction = funcDeath
-    
-def _towel(tt):
-    rog.make(tt, CANWET)
-    rog.make(tt, CANUSE)
-    rog.makeEquip(tt, EQ_BODY)
-    tt.statMods={"rescold":20,}
-    tt.useFunctionPlayer = action.towel_pc
-    tt.useFunctionMonster = action.towel
-def _towel_wield(tt): #prepare a towel for wielding. Transforms it into a wielding item.
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods={"atk":3, "dmg":2,}
-def _towel_wield(tt): #prepare a towel for headwear. Transforms it into head gear
-    rog.makeEquip(tt, EQ_HEAD)
-    tt.statMods={"resbio":15,}
-    
-def _torch(tt):
-    rog.make(tt, CANEQUIP)
-    tt.equipType=EQ_OFFHAND
-
-def _extinguisher(tt):
-    rog.make(tt, CANUSE)
-##    tt.useFunctionPlayer = action.extinguisher_pc
-##    tt.useFunctionMonster = action.extinguisher
-    rog.makeEquip(tt, EQ_MAINHAND)
-    tt.statMods = {"dmg":5, "asp":-33,}
-    
-def _cloak(tt):
-    rog.make(tt, CANEQUIP)
-##    tt.equipType=EQ_OFFHAND
-##    rog.make(tt, CANUSE)
-##    tt.useFunctionPlayer = action.cloak_pc
-##    tt.useFunctionMonster = action.cloak
-
-
-
-STUFF={
-#flag           : name                  type    material,color, HP,kg, solid,push?, script,
-#THG.CLOAK
-#THG.GENERATOR
-THG.SAFE        :("safe",               T_BOX,  METL, 'metal', 2000,420,True,False,  _safe,),
-THG.CHAINGUN    :("chaingun",           T_MGUN, METL,  'gray', 80, 55, False,False,_gunpowder,),
-THG.GUNPOWDER   :("gunpowder",          T_DUST, DUST,  'gray', 1, 0.1, False,False,_gunpowder,),
-THG.GORE        :("hunk of flesh",      T_MEAL, FLSH, 'red',  1, 1,   False,False,_food_meal_savory,),
-THG.LOG         :("log",                T_LOG,  WOOD, 'brown',800,100, False,False,_wood,),
-THG.WOOD        :("wood",               T_WOOD, WOOD, 'brown',200,2,   False,False,_wood,),
-THG.BOX         :("crate",              T_BOX,  WOOD, 'brown',200,50,  True,True,  _boxOfItems1,),
-THG.GRAVE       :("grave",              T_GRAVE,STON,'silver',300,300,True,False, _stone,),
-THG.POT         :("pot",                T_POT,  METL,'metal', 800,100,True,True, _pot,),
-THG.CLAYPOT     :("clay pot",           T_MISC, STON,'scarlet',10,5, False,False, _clayPot,),
-THG.STILL       :("still",              T_STILL,METL,'metal', 20, 100,True,False, _still,),
-THG.TORCH       :("torch",              T_TORCH,WOOD, 'brown',500,1.1, False,False,_torch,),
-THG.DOSIMETER   :("geiger counter",     T_DEVICE,METL,'yellow',1,0.5, False,False,_dosimeter,),
-THG.EXTINGUISHER:("fire extinguisher",  T_DEVICE,METL,'red',  8,8, False,False,_extinguisher,),
-THG.TOWEL       :("towel",              T_TOWEL,CLTH,'accent', 10,0.8,False,False,_towel,),
     }
 
 
-#create a thing from STUFF; does not register thing
-def create(x,y,ID):
-    name,typ,mat,fgcol,lo,kg,solid,push,script = STUFF[ID]
-    tt = thing.Thing(x,y, _type=typ,name=name,color=COL[fgcol])
-    tt.mass = kg
-    tt.material=mat
-    if lo: hp(tt, lo)
-    tt.isSolid = solid
-    if push: rog.make(tt, CANPUSH)
-    #_applyResistancesFromMaterial(tt, mat)
-    return tt
 
+# raw materials
 
+# colors of materials
+C_CLAY = 'silver'
+C_CERA = 'accent'
+C_CLTH = 'white'
+C_STON = 'gray'
+C_PLAS = 'offwhite'
+C_WOOD = 'brown'
+C_BONE = 'bone'
+C_METL = 'metal'
+C_STEL = 'puremetal'
+C_LETH = 'tan'
+C_FLSH = 'red'
+C_TARP = 'blue'
+C_BOIL = 'dkbrown'
+C_GLAS = 'truegreen'
+C_RUBB = 'magenta'
+C_DUST = 'ltgray'
+C_SAND = 'ltbrown'
+C_DIRT = 'brown'
+C_CARB = 'graypurple'
+C_ROPE = 'tan'
+C_ELEC = 'lime' # electronics
+C_QRTZ = 'crystal'
 
-#quick functions for multiple types of objects:
-def hp(tt, value): #give a Thing a specified amount of HP and fully heal them
-    tt.stats.hpmax=value; rog.givehp(tt);
-#give a random number of items to the inventory of Thing tt
-    #func is a function to build the items
-    #_min is minimum number of items possible to give
-    #_max is maximum "
-def giveRandom(tt, func, _min, _max):
-    for ii in range((_min - 1) + dice.roll(_max - (_min - 1))):
-        item = func()
-        rog.give(tt, item)
+RAWMATERIALS={
+'''
+progression of material mass (exponential growth):
+    scrap -> parcel -> piece -> chunk -> slab -> cuboid -> cube
+    strands come before scrap, walls come after cubes.
+    Shards are also on the progression, between scrap and parcels.
+    Generally each is 5 times more massive than the previous, except:
+        - cuboids are 9 times more massive than slabs
+        - cubes are 27 times more massive than cuboids
+        - strands are 9 times smaller than scrap.
+        - walls are 1m x 1m solid blocks, mass varies
+    Cuboids and cubes and walls are increasingly very rare.
+        the larger they are, the more rare.
+        Some sizes of materials are very rare. Slabs of bone for instance.
 
+Raw Mats are very common in crafting
+    Cost of materials is based on whether it's fully recyclable
+        Metal and glass can be melted down and reforged. 100% cost.
+        Plastic, stone, bone, and wood, once cut to pieces, cannot be reformed.
+            It is cheaper to buy small pieces since they have less functions.
+        cloth and leather are more useful in large form but still useful small.
+            Worth very slightly more when in large form.
+        Flesh is cheaper to buy in bulk.
+            Cutting flesh to pieces is a job that is rewarded.
 
-
-
-
-
-
-#
-# Create monster based on current dungeon level
-# plugging in values from the table of monsters (bestiary)
-# this monster has no special attributes; has generic name
-#
-def create_monster(typ, pos):
-    
-    mon=rog.world().create_entity()
-    
-    # get generic monster attributes #
-    
-    monData = bestiary[typ]
-    
-    namestr = monData[0]
-    hp,mp,atk,dmg,dfn,arm,spd,msp,asp,fir,bio,elc,vis,aud,inv,kg,val = monData[1]
-    _pow=0
-    
-    job = namestr
-    world.add_component(mon, cmp.Name(namestr))
-    world.add_component(mon, cmp.Creature(gender=None, job=job, faction=None))
-    stats = cmp.CombatStats(atk,dfn,dmg,_pow,)
-    stats.hpmax=hp
-    stats.mpmax=mp
-    stats.atk=atk
-    stats.dmg=dmg
-    stats.dfn=dfn
-    stats.arm=arm
-    stats.spd=spd
-    stats.msp=msp
-    stats.asp=asp
-    stats.resfire=fir
-    stats.resbio=bio
-    stats.reselec=elc
-    world.add_component(mon, stats)
-    #for flag in monData[i]:     rog.make(monst,flag) #flags
-    #i+=1
-    #for item in monData[i]:     rog.give(monst,item) #items
-    
-    #ai, mutations, color? should be handled elsewhere
-    
-    return monst
-    
-# end def
-
-
+Idea: make the minimum price of items $1 regardless of if its value is 0
 '''
 
+# TODO: functions for creating these automatically
+##"parcel of copper"      :(x3/5,   0.1, x0.5,  METL,C_METL,_mParcel,),
+##"parcel of steel"       :(x5,  0.1, x2, METL,C_STEL,_mParcel,),
+##"parcel of teal"        :(x20, 0.1, x4, METL,'teal',_mParcel,),
+##"scrap steel"           :(3,   0.02,18,  METL,C_STEL,_particles,),
+
+    # individual strands of material (tinyest pieces of material)
+# name                    $$$$,KG,  Dur, Mat, Color,  script
+"string"                :(0,   0.001,1,  CLTH,C_CLTH,None,),# string distinct from scrap cloth, it's a long 1m string whereas scrap cloth is a little patch of cloth.
+
+    # Scrap, particles (tiny pieces of material)
+# name                    $$$$,KG,  Dur, Mat, Color,  script
+"dust"                  :(0,   0.04,1,   DUST,C_DUST,_dust,),# dust of non-specific kind
+"sand"                  :(0,   0.04,1,   DUST,C_SAND,_dust,),# quartz dust
+"dirt"                  :(0,   0.04,1,   DUST,C_DIRT,_dust,),
+"quartz"                :(0,   0.04,5,   QRTZ,C_QRTZ,_rawMat,),
+"gravel"                :(0,   0.04,15,  STON,C_STON,_particles,), # particles can be thrown to cause blindness
+"scrap clay"            :(0,   0.06,10,  CLAY,C_CLAY,_rawMat,),
+"scrap ceramic"         :(0,   0.02,1,   CERA,C_CERA,_particles,),
+"scrap cloth"           :(0.1, 0.008,1,  CLTH,C_CLTH,None,),
+"scrap plastic"         :(0,   0.01,1,   PLAS,C_PLAS,_particles,),
+"scrap wood"            :(0,   0.01,1,   WOOD,C_WOOD,_particles,),
+"scrap bone"            :(0.08,0.01,4,   BONE,C_BONE,_particles,),
+"scrap metal"           :(1,   0.02,6,   METL,C_METL,_particles,),
+"scrap leather"         :(0.4, 0.02,4,   LETH,C_LETH,_rawMat,),
+"scrap boiled leather"  :(0.6, 0.02,12,  LETH,C_LETH,_rawMat,),
+"scrap flesh"           :(0.2, 0.04,2,   FLSH,C_FLSH,_rawMat,),
+"scrap RAM"             :(1,   0.02,4,   QRTZ,C_ELEC,_rawMat,),
+
+    # Parcels (small pieces of material, used as currency and for making fine tools)
+    # DO NOT CHANGE THE NAMES OF THESE.
+# name                    $$$$,KG,  Dur, Mat, Color, script
+"parcel of quartz"      :(1,   0.2, 15,  QRTZ,C_QRTZ,_qParcel,),
+"parcel of tarp"        :(0.6, 0.06,15,  TARP,C_TARP,_tParcel,),
+"parcel of clay"        :(0.2, 0.3, 15,  CLAY,C_CLAY,_clayParcel,),
+"parcel of ceramic"     :(0.2, 0.1, 1,   CERA,C_CERA,_ceramicParcel,),
+"parcel of cloth"       :(0.8, 0.04,10,  CLTH,C_CLTH,_clothParcel,),
+"parcel of leather"     :(2,   0.1, 20,  LETH,C_LETH,_lParcel,),
+"parcel of b.leather"   :(3,   0.1, 40,  BOIL,C_BOIL,_blParcel,),
+"parcel of flesh"       :(1,   0.2, 15,  FLSH,C_FLSH,_fParcel,),
+"parcel of stone"       :(0.2, 0.2, 50,  STON,C_STON,_sParcel,),
+"parcel of plastic"     :(0.2, 0.2, 30,  PLAS,C_PLAS,_pParcel,),
+"parcel of wood"        :(1,   0.2, 40,  WOOD,C_WOOD,_wParcel,),
+"parcel of bone"        :(0.4, 0.1, 45,  BONE,C_BONE,_bParcel,),
+"parcel of glass"       :(1,   0.04,2,   GLAS,C_GLAS,_gParcel,),
+"parcel of metal"       :(5,   0.1, 80,  METL,C_METL,_mParcel,),
+"parcel of rubber"      :(2,   0.1, 10,  RUBB,C_RUBB,_rParcel,),
+
+    # Pieces (medium size pieces of material, used for making tools, armor)
+# name                    $$$$,KG,  Dur, Mat, Color, script
+"piece of quartz"       :(5,   1.0, 60,  QRTZ,C_QRTZ,_qPiece,),
+"piece of tarp"         :(3,   0.3, 20,  TARP,C_TARP,_tPiece,),
+"piece of clay"         :(1,   1.5, 30,  CLAY,C_CLAY,_clayPiece,),
+"piece of ceramic"      :(1,   0.5, 5,   CERA,C_CERA,_ceramicPiece,),
+"piece of cloth"        :(3,   0.2, 40,  CLTH,C_CLTH,_clothPiece,),
+"piece of leather"      :(10,  0.5, 60,  LETH,C_LETH,_lPiece,),
+"piece of b.leather"    :(15,  0.5, 120, BOIL,C_BOIL,_blPiece,),
+"piece of flesh"        :(3,   1.0, 30,  FLSH,C_FLSH,_fPiece,),
+"piece of stone"        :(1,   1.0, 200, STON,C_STON,_sPiece,),
+"piece of plastic"      :(1,   1.0, 80,  PLAS,C_PLAS,_pPiece,),
+"piece of wood"         :(5,   1.0, 150, WOOD,C_WOOD,_wPiece,),
+"piece of bone"         :(2,   0.5, 180, BONE,C_BONE,_bPiece,),
+"piece of glass"        :(5,   0.2, 20,  GLAS,C_GLAS,_gPiece,),
+"piece of metal"        :(25,  0.5, 300, METL,C_METL,_mPiece,),
+"piece of rubber"       :(10,  0.5, 200, RUBB,C_RUBB,_rPiece,),
+
+    # Chunks (large pieces of material, used for making weapons, armor)
+# name                    $$$$,KG,  Dur, Mat, Color, script
+##"towel"                 :(20,  1.0, 120, CLTH,_towel,), # in STUFF, MOVE HERE
+"tarp"                  :(18,  1.5, 20,  TARP,C_TARP,_tarp,),
+"chunk of quartz"       :(25,  5.0, 150, QRTZ,C_QRTZ,_qChunk,),
+"chunk of clay"         :(4,   7.5, 350, CLAY,C_CLAY,_clayChunk,),
+"chunk of ceramic"      :(3,   2.5, 10,  CERA,C_CERA,_ceramicChunk,),
+"chunk of cloth"        :(15,  1.0, 160, CLTH,C_CLTH,_clothChunk,),
+"leather hide"          :(60,  2.5, 120, LETH,C_LETH,_lChunk,),
+"boiled leather hide"   :(75,  2.5, 240, BOIL,C_BOIL,_blChunk,),
+"chunk of flesh"        :(12,  5.0, 100, FLSH,C_FLSH,_fChunk,),
+"chunk of stone"        :(6,   5.0, 400, STON,C_STON,_sChunk,),
+"chunk of plastic"      :(5,   5.0, 250, PLAS,C_PLAS,_pChunk,),
+"chunk of wood"         :(30,  5.0, 300, WOOD,C_WOOD,_wChunk,),
+"chunk of bone"         :(10,  2.5, 350, BONE,C_BONE,_bChunk,),
+"chunk of glass"        :(25,  1.0, 50,  GLAS,C_GLAS,_gChunk,),
+"chunk of metal"        :(125, 2.5, 900, METL,C_METL,_mChunk,),
+"chunk of rubber"       :(50,  2.5, 500, RUBB,C_RUBB,_rChunk,),
+
+    # Slabs (bricks of material, used for making large tools/weapons)
+# name                    $$$$,KG,  Dur, Mat, Color, script
+##"slab of cloth"         :(100, 5.0, 120, CLTH,_rawMat,), #certain types of slabs are difficult to achieve
+##"slab of leather"       :(400, 12.5,400, LETH,_rawMat,),
+"tarp, large"           :(95,  7.5, 20,  TARP,C_TARP,_tarpLarge,),
+"slab of clay"          :(16,  37.5,2000,CLAY,C_CLAY,_claySlab,),
+"slab of ceramic"       :(15,  12.5,500, CERA,C_TARP,_ceramicSlab,),
+"slab of flesh"         :(100, 25.0,400, FLSH,C_FLSH,_fSlab,),
+"slab of stone"         :(40,  25.0,1200,STON,C_STON,_sSlab,),
+"slab of plastic"       :(25,  25.0,800, PLAS,C_PLAS,_pSlab,),
+"slab of wood"          :(180, 25.0,950, WOOD,C_WOOD,_wSlab,),
+"slab of bone"          :(100, 12.5,1050,BONE,C_BONE,_bSlab,),
+"slab of glass"         :(125, 5.0, 200, GLAS,C_GLAS,_gSlab,),
+"slab of metal"         :(600, 12.5,3000,METL,C_METL,_mSlab,),
+
+    # Cuboids (solid 3D blocks, 9 times the mass of slabs)
+# name                    $$$$,KG,  Dur, Mat, Color, script
+"cuboid of clay"        :(100, 337, 5000,CLAY,C_CLAY,_cuboid,),
+"cuboid of flesh"       :(800, 225, 3000,FLSH,C_FLSH,_cuboid,),
+"cuboid of stone"       :(300, 225, 5000,STON,C_STON,_cuboid,),
+"cuboid of plastic"     :(170, 225, 2000,PLAS,C_PLAS,_cuboid,),
+"cuboid of wood"        :(950, 225, 5000,WOOD,C_WOOD,_cuboid,),
+"cuboid of bone"        :(990, 112, 5000,BONE,C_BONE,_cuboid,),
+"cuboid of glass"       :(850, 45,  2000,GLAS,C_GLAS,_cuboid,),
+"cuboid of metal"       :(5000,112, 9000,METL,C_METL,_cuboid,),
+
+    # Cubes (27 times the mass of cuboids)
+# name                    $$$$$$,KG,  Dur, Mat, script
+"cube of clay"          :(2250,  9112,5000,CLAY,C_CLAY,_cube,),
+"cube of flesh"         :(20000, 6075,3000,FLSH,C_FLSH,_cube,),
+"cube of stone"         :(7500,  6075,5000,STON,C_STON,_cube,),
+"cube of plastic"       :(5500,  6075,2000,PLAS,C_PLAS,_cube,),
+"cube of wood"          :(20000, 6075,5000,WOOD,C_WOOD,_cube,),
+"cube of bone"          :(20000, 3037,5000,BONE,C_BONE,_cube,),
+"cube of glass"         :(10000, 1215,2000,GLAS,C_GLAS,_cube,),
+"cube of metal"         :(120000,3037,9000,METL,C_METL,_cube,),
+
+    # Walls (1m x 1m x 3m massive solid blocks of material)
+# name                    $$$$$$,KG,   Dur,  Mat, script
+"wall of clay"          :(9999,  99999,99999,CLAY,C_CLAY,None,),
+"wall of flesh"         :(99999, 99999,99999,FLSH,C_FLSH,None,),
+"wall of stone"         :(9999,  99999,99999,STON,C_STON,None,),
+"wall of plastic"       :(9999,  99999,99999,PLAS,C_PLAS,None,),
+"wall of wood"          :(99999, 99999,99999,WOOD,C_WOOD,None,),
+"wall of bone"          :(99999, 99999,99999,BONE,C_BONE,None,),
+"wall of glass"         :(99999, 99999,99999,GLAS,C_GLAS,None,),
+"wall of metal"         :(999999,99999,99999,METL,C_METL,None,),
+
+    # Shards (small and sharp pieces of material)
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+"shard of plastic"      :(0,    0.18,3,   PLAS,C_PLAS,_pShard,),
+"shard of ceramic"      :(1,    0.12,1,   CERA,C_CERA,_cShard,),
+"shard of wood"         :(0.2,  0.18,10,  WOOD,C_WOOD,_wShard,),
+"shard of stone"        :(0.2,  0.18,15,  STON,C_STON,_sShard,),
+"shard of bone"         :(0.4,  0.08,20,  BONE,C_BONE,_bShard,),
+"shard of glass"        :(1,    0.05,2,   GLAS,C_GLAS,_gShard,),
+"shard of metal"        :(1,    0.1, 30,  METL,C_METL,_mShard,),
+
+    # Sticks
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+"stick of plastic"      :(1,    1.0, 75,  PLAS,C_PLAS,_pStick,),
+"stick of wood"         :(5,    1.0, 150, WOOD,C_WOOD,_wStick,), # wood is greenwood when you need it to be, and deadwood when you need it to be. Simplifies things.
+"stick of metal"        :(50,   0.5, 500, METL,C_METL,_mStick,),
+
+    # Poles (long sticks, 2x the mass of sticks)
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+"pole of plastic"       :(2,    2.0, 150, PLAS,C_PLAS,_pPole,),
+"pole of wood"          :(10,   2.0, 225, WOOD,C_WOOD,_wPole,),
+"pole of metal"         :(100,  1.0, 600, METL,C_METL,_mPole,),
+
+    # Rings
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+"plastic ring"          :(0,    0.01,10,  PLAS,C_PLAS,_rawMat,),
+"wooden ring"           :(1,    0.02,40,  WOOD,C_WOOD,_rawMat,),
+"bone ring"             :(1,    0.02,80,  BONE,C_BONE,_rawMat,),
+"stone ring"            :(1,    0.03,120, STON,C_STON,_rawMat,),
+"glass ring"            :(1,    0.01,10,  GLAS,C_GLAS,_rawMat,),
+"metal ring"            :(5,    0.02,300, METL,C_METL,_rawMat,),
+
+
+    # Others
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+"glue"                  :(0,    0.001,1,  PLAS,'yellow',None,),
+"gluestick"             :(10,   0.1,  10, PLAS,'yellow',_trinket,),
+"duct tape"             :(0,    0.01, 8,  PLAS,'gray',None,),
+"roll of duct tape"     :(20,   1.0,  200,PLAS,'gray',_trinket,),
+"battery, small"        :(2,    0.05, 15, PLAS,'blue',_trinket,),
+"battery"               :(5,    0.2,  25, PLAS,'blue',_trinket,),
+
+
+# name                    $$$$, Kg,  Dur, Mat, Color, script
+        # cloth
+"spool of string"       :(5,    0.3, 50,  CLTH,C_CLTH,_spoolString,),# can unwind into hundreds of strings
+        # carbon
+"charcoal"              :(1,    0.1, 5,   CARB,C_CARB,_rawMat,),# obtained by putting wood in a charcoal mound and cooking it for a long ass time (< 24 hours)
+"coke"                  :(1,    0.05,3,   CARB,C_CARB,_rawMat,),# used to smelt metal; can smelt rust back into metal, and create a weak steel that is stronger than normal metal. Obtained by cooking charcoal in airless environment for a long time (12-18 hours).
+"powdered charcoal"     :(1,    0.1, 1,   CARB,C_CARB,_dust,),
+"activated carbon"      :(3,    0.05,1,   CARB,C_CARB,_dust,),# filtration systems, antitoxin, antibiotic, odor absorbent. Needs powdered coal, calcium chloride and baking at 300C.
+        # rubber
+"rubber hose"           :(3,    0.1, 15,  RUBB,C_RUBB,_rawMat,),
+"rubber band"           :(1,    0.02,10,  RUBB,C_RUBB,_rawMat,),
+        # plastic
+"plastic bottle"        :(1,    0.1, 5,   PLAS,C_PLAS,_pBottle,),
+"plastic cup"           :(1,    0.07,5,   PLAS,C_PLAS,_rawMat,),
+"plastic pipe"          :(1,    1.0, 100, PLAS,C_PLAS,_pPipe,),
+"plastic tube"          :(1,    0.1, 20,  PLAS,C_PLAS,_rawMat,),
+"insulated wire"        :(6,    0.05,30,  PLAS,C_PLAS,_rawMat,),
+"fishing wire"          :(0,    0.003,5,  METL,C_PLAS,_rawMat,),
+"spool of fishing wire" :(150,  1.0, 100, METL,C_PLAS,_spoolFishingWire,),# can unwind into hundreds of fishing wire
+        # wood
+"wooden plank"          :(4,    1.25,80,  WOOD,C_WOOD,_plank,),#2H only
+"twig"                  :(0,    0.1, 4,   WOOD,C_WOOD,_rawMat,),
+"fibrous leaf"          :(0,    0.2, 30,  WOOD,C_WOOD,_rawMat,),
+"foliage"               :(0,    0.3, 20,  WOOD,C_WOOD,_rawMat,),
+"root"                  :(1,    1.0, 100, WOOD,C_WOOD,_rawMat,),
+"branch"                :(1,    6.0, 800, WOOD,C_WOOD,_rawMat,),# becomes sticks of wood, sticks of wood, long, and foliage...
+"log"                   :(92,   100, 1000,WOOD,C_WOOD,_log,),
+        # bone
+"skull"                 :(5,    1.0, 80,  BONE,C_BONE,_skull,),
+"bone"                  :(2,    0.25,120, BONE,C_BONE,_bone,),
+"bone, broken"          :(1,    0.2, 30,  BONE,C_BONE,_bBone,),
+"bone, large"           :(10,   2.0, 300, BONE,C_BONE,_boneLarge,),#2H only
+"bone, small"           :(1,    0.1, 40,  BONE,C_BONE,_boneSmall,),
+        # glass
+"magnifying glass"      :(54,   0.1, 5,   GLAS,C_GLAS,_magnifyingGlass,),
+"glass bottle"          :(5,    0.5, 1,   GLAS,C_GLAS,_gBottle,),
+"glass tube"            :(1,    0.01,1,   GLAS,C_GLAS,_rawMat,),
+        # metal
+    # springs
+"spring, small"         :(3,    0.02,2,   METL,C_METL,_rawMat,),
+"spring"                :(8,    0.1, 10,  METL,C_METL,_rawMat,),
+"spring, large"         :(55,   0.5, 50,  METL,C_METL,_rawMat,),
+"spring, giant"         :(275,  2.5, 250, METL,C_METL,_rawMat,),
+"torsion spring, small" :(6,    0.05,10,  METL,C_METL,_rawMat,),
+"torsion spring"        :(18,   0.2, 50,  METL,C_METL,_rawMat,),
+"torsion spring, large" :(160,  1.0, 250, METL,C_METL,_rawMat,),
+    # chains
+"chain link, small"     :(0,    0.003,60, METL,C_METL,None,),
+"chain, small"          :(25,   0.5, 75,  METL,C_METL,_chainLight,),
+"chain link"            :(1,    0.01,125, METL,C_METL,None,),
+"chain"                 :(50,   1.0, 150, METL,C_METL,_chain,),
+"chain link, large"     :(2,    0.04,300, METL,C_METL,None,),
+"chain, large"          :(100,  2.0, 350, METL,C_METL,_chainHeavy,),
+    # magnets
+"magnet, weak"          :(6,    0.05,115, METL,C_METL,_magnetWeak,),
+"magnet"                :(26,   0.15,225, METL,C_METL,_magnet,),
+"magnet, strong"        :(166,  0.3, 335, METL,C_METL,_magnetStrong,),
+    # other metals
+"brass rivet"           :(0,    0.005,10, METL,C_METL,_rawMat,),
+"pop tab"               :(0,    0.005,50, METL,C_METL,_rawMat,),
+"pop tab mail ring"     :(0,    0.005,40, METL,C_METL,_rawMat,),
+"mail ring, riveted"    :(1,    0.01,150, METL,C_METL,_rawMat,),
+"mail ring, welded"     :(1,    0.01,150, METL,C_METL,_rawMat,),
+"paperclip"             :(0,    0.001,8,  METL,C_METL,_rawMat,),
+"bobby pin"             :(1,    0.01,25,  METL,C_METL,_bobbyPin,),
+"needle"                :(0,    0.001,15, METL,C_METL,_mNeedle,),
+"nail"                  :(0,    0.02,60,  METL,C_METL,_nail,),
+"screw"                 :(0,    0.02,120, METL,C_METL,_screw,),
+"razor blade"           :(8,    0.02,2,   METL,C_METL,_razorBlade,),
+"metal screen"          :(1,    0.05,5,   METL,C_METL,_rawMat,),
+"metal foil"            :(1,    0.01,3,   METL,C_METL,_rawMat,),
+"metal can"             :(5,    0.1, 25,  METL,C_METL,_mCan,),
+"metal wire"            :(3,    0.04,15,  METL,C_METL,_mWire,),
+"metal key"             :(6,    0.1, 350, METL,C_METL,_key,),
+"metal tube"            :(6,    0.25,40,  METL,C_METL,_mTube,),
+"metal pipe"            :(50,   1.0, 500, METL,C_METL,_mPipe,),
+"metal pipe, broken"    :(30,   0.6, 250, METL,C_METL,_mPipeBroken,),
+"metal bar"             :(50,   1.0, 1500,METL,C_METL,_mBar,),# flat inch-thick brick of metal
+"metal sheet"           :(136,  2.5, 50,  METL,C_METL,_mChunk,),
+        # ropes
+"cordage"               :(0,    0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
+"rope"                  :(1,    0.05,30,  ROPE,C_ROPE,_rope,),#2H only; length of rope is simply how many items of rope you possess -- this is the simplest way to do this.
+"cable"                 :(3,    0.15,100, ROPE,C_ROPE,_cable,),#2H only
+
+}
 
 
 
@@ -1307,8 +4007,21 @@ def create_monster(typ, pos):
 
 
 
-'''# level up #
-    levels = 1
-    for i in range(levels): rog.level(monst)
-    '''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,0 +1,12 @@
+speech:
+
+
+about self:
+	boast
+	self-deprecate
+
+about other:
+	intimidate
+	compliment
+	insult
+

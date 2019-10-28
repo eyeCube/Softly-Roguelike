@@ -1,0 +1,5 @@
+Perks
+
+Physique
+	MSp penalty for all gear cut in half
+

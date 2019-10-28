@@ -1,0 +1,84 @@
+	
+Softly Into the Night
+	
+This week I spent some time conceptually expanding a mechanic in my game which is still, like everything in this project, in its very early stages. Namely, elemental damage and resistances. Currently now there are 11 different types of damage planned, each with its own resistance, and these are the following:
+
+	* Physical (G-forces, impact trauma, etc.)
+		* Has no associated meter - damage is instantaneous
+	* Bleed (resistance to being cut)
+	* Pain (and stress, encompasses all negative emotion)
+	* Fire (heat)
+	* Cold (uses same temperature meter as fire damage)
+	* Exposure (Bio-hazardous, chemical exposure, radiation, etc.)
+		* This one is unique in that there are many meters for different types of exposure:
+			Radiation (rads meter)
+			Exposure (chemical / irritant exposure meter)
+			Sickness (bio-hazard / toxin exposure meter)
+	* Electricity
+		* Has no associated meter - damage is instantaneous
+	* Rust (for metals that can rust)
+	* Rot (for wood, etc. that can rot)
+	* Water (mainly for electronics, etc.)
+	* Intimidation (fear damage)
+	
+
+The table and the ro-sham-bo diagrams are below; first, here is a text description of my thought processes.
+
+Desiring a system in which "elements" relate to each other in some interesting ways, I decided to apply a cycle of relative strengths and weakness like an elemental ro sham bo (but not all damage types are included in the cycle). The most basic version of the cycle is:
+
+fire -> electricity -> chemicals -> fire. (The relevance of this cycle is explained in more detail later.)
+
+In addition I considered a table to balance them further such that each has its own inherent strengths and weaknesses irrespective of the other elements. For example, chemicals have the longest duration (they stick around on the battlefield a very long time, and exposure meter reduces slowly) but they deal damage at a slow rate; electricity is the opposite, dealing damage extremely rapidly but having a very short or nonexistant duration; finally, fire is in the middle, lasting a good time and dealing decent damage over time.
+		
+			
+The 3 primary elements related to one another:
+._______________________________________________,
+| Name 	| Duration  |   A.O.E.	|	Damage 		|
++-------+-----------+-----------+---------------+
+| Fire	|	Med		|	Med		|	Med 		|
+| Chem	|	High	|	High	|	Low 		| 
+| Elec	|	Low		|	Low		|	High 		|
++-------+-----------+-----------+---------------+
+
+	 Elemental ro sham bo**:
+	
+			  Fire
+		    ^	   \
+		   / 	    v
+		Chems. <--  Elec.
+	
+The cycle is summarized as follows:
+	Fire controls* electricity.
+	Electricity controls* chemicals.
+	Chemicals control* fire.
+
+* "Controls" == the element is superior to the element it controls, meaning it can suppress that element, but also may enhance the power of that element. Electricity is inferior to fire and so its power is dominated by fire's presence; the power of fire is dominated by chemicals' presence; and the power of chemicals is dominated by electricity's presence.
+
+** A note on other elements and their place in the cycle:
+	Cold and Fire cancel each other out and never support one another.
+	Water can stand in the place of chems (superior to fire, inferior to electricity).
+	Rust and rot can stand in the place of fire (superior to electricity, inferior to chemicals / water). Fire also enhances rust and suppresses rot. Rust and rot both only suppress electricity.
+	
+	
+Detailed explanation of controlling natures:
+	
+Fire may cause electric circuits to short; electricity may denature chemicals; chemicals may extinguish fire. But, likewise, aimed at the electricity rather than the source, fire may enhance electricity and fuse to form plasma; in the right application, electricity may mutate chemicals to more deadly forms; and, specific flammable types of chemicals may feed fire better than anything else.
+
+Loop bomb: a special elemental weapon that takes advantage of the enhancing nature of the 3 elements. Very difficult to achieve because the ratios must be perfect at every moment in order for the loop to continue enhancing in power, yet each step that it changes, the ratios are naturally thrown out of whack. Left alone, the elements generally have a tendency to want to cancel each other out instead of enhance one another, so this type of controlled explosion must be strictly manipulated by technology that is highly advanced in all three relevant areas (fire, chemicals and electricity).
+
+
+Battle scenario: you face a foe who wields a stun gun (electric type weapon) so you pull out a flamethrower and with it you target him, or specifically, his electrical weapon. You take some electric damage in the firefight but you catch the foe on fire and heat up his electrical machine to the point where it short-circuits and becomes unusable, so in response your foe pulls out a chemical weapon.
+
+Since the foe is now on fire, a chemical attack performed by him will likely cause a superheated ball of fire to come back your way and burn you alive as the chemicals shot from his weapon ignite in contact with the flames. If that's not the case and he's using nonflammable chemicals, then his chemical weapon may be capable of trivially extinguishing the heat and flames, rendering your weapon useless; either way, you now stand at an elemental disadvantage.
+
+Further, you probably don't have enough time to pull out an electric weapon and disable his chemical weapon before he gets a chance to use it, so in a move of desperation you hurl your flamethrower at the foe, hoping that the fire and the impact will cause your weapon to explode when it hits its target, engulfing them in flames while knocking the wind out of them and greatly hindering their ability to accurately counter-attack.
+
+This gives you enough time for a chance to switch tactics; you might escape behind cover and live to fight another day (risky against the high AOE of chemical weapons); take advantage of your electric weapon to disarm them again; or otherwise perhaps risk going into close-quarters combat now that the foe is disoriented and weakened from the fire (of course, this may also be a dangerous move as fire indiscriminately consumes all it touches...); finally, you might choose to switch to standard firearms and finish him off with a couple of well-aimed shots, but this may be a big waste of ammo for a foe who is already almost defeated.
+
+
+Elemental weapons take advantage of readily abundant elements in the world, so they are generally cheaper than guns. However, they are still not really cheap, and refilling fuel or power or chemical tanks can still be very expensive. Melee weapon combat is the cheapest, but also perhaps the most risky, as it puts your body in intimate contact with immediate danger. 
+
+Elemental damage is also unique in that you cannot resist it without specific resistances to that element (or type of element in the case of chem/bio/rads/etc.); regular AV / Protection doesn't help you at all against elemental attacks. So this means that if a foe cannot be harmed by the physical firepower you have, you may just have to find an elemental weakness.
+
+
+

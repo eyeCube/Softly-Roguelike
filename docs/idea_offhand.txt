@@ -1,0 +1,16 @@
+
+    IDEA: Offhand equipping / attacking, and how to handle it.
+        When you equip weapon in offhand, you get DV, AV, protection, Msp, Asp,
+            but you do NOT get Acc, Dam, or Pen stat mods.
+        When you attack with offhand weapon, what we do in code is:
+            * automatically unequip the mainhand weapon
+                (storing it in temporary variable)
+            * unequip the offhand weapon
+            * equip the offhand weapon in your mainhand
+				* with a -25% penalty to combat effectiveness (Atk,Pen,Dmg)
+            * attack normally
+            * unequip the mainhand weapon
+				* remove the penalty to combat effectiveness
+            * equip that back into your offhand
+            * re-equip your original mainhand weapon (temp var)
+			

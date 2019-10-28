@@ -1,0 +1,4 @@
+actions
+
+jump
+	jump over a tile, avoiding the ground there (Avoid pits, traps, small obstacles, etc.)

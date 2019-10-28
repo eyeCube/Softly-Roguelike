@@ -1,0 +1,7 @@
+
+#38 Spl can be used in .357 magnum guns, but not the other way around.
+	# 38 Spl == 9mm 
+
+#308 is AKA 7.62x51mm (7.62mm in the game is 7.62x39mm)
+
+# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.

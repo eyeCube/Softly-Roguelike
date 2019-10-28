@@ -1,0 +1,150 @@
+
+CERAMIC VS STONEWARE VS EARTHENWARE:
+***TODO: make ceramic harder to make. Regular clay by itself just turns into brick when you fire it, which is brittle and has low tensile strength but high compressive strength. Proper ceramics are made of clay + a special ingredient like quartz, which strengthens it.
+	make ceramic heavier than glass... Ceramic too OP also it's unrealistic
+	Weapons, armor of ceramic require quartz.
+	Pottery only requires clay.
+Difference in material:
+	clay + firing -> earthenware (stone) (requires only furnace level 1)
+	clay + hot firing -> stoneware (stone) (requires furnace level 3)
+	clay + quartz + hot firing -> ceramic (ceramic) (furnace level 3)
+	bone china is too complex, not worth it
+NOTE: CERAMIC MAKING IS TEDIOUS. INCREASE AP COSTS FOR ALL CERAMICS.
+	should take longer to make than any other material type except in some cases glass or metal.
+	
+
+Properties of materials
+	These are consistent across all objects that are of the given material type. To simplify things, an object has only one primary material type.
+	** NOTE TO CLARIFY: this info is not stored on a per-object basis, but
+		once, globally, each material properties are initialized.
+
+resistances based on material properties, on scale of 0-10:
+	Hardness: resistance to penetration (cutting)
+	Flexibility: resistance to crushing (hammering)
+Other properties (integers)
+	Melting point: temperature at which it melts and becomes a new material
+	Flash point: temperature at which it catches fire
+
+Damage dealt to a material when it contacts another material is determined by the method of contact (material A cuts material B, hammers mat B, chops mat B, etc.) as well as the types of materials themselves. A harder material takes less damage when cutting a softer material, while a softer material holds up better when used as a blunt instrument.
+When a material is used as a cutting implement, it only uses its hardness vs the target hardness to determine its resistance to durability loss. But if that same tool is used as a weapon for combat, it must check against both its material's hardness vs. the other hardness as well as its flexibility vs. the other's hardness. If the weapon is not flexible and strikes a hard object (maybe a hardness of 3 or greater), it may shatter*, while if the weapon is soft and strikes a hard object, it will dull**. A ceramic knife should shatter, not dull, even though it's a cutting tool, because it's not flexible.
+*Shattering is a death-type in which the object breaks into several pieces.
+**Dulled is a status effect that must be restored using a sharpening tool.
+
+Summary:
+Really hard + really inflexible == super brittle.
+	if this material strikes another hard surface, it will shatter.
+Cutting tool strikes a harder surface: dulls
+This way, tools like ceramic and glass do not need to have 1 durability, they have high durability but just instantly die if struck by something hard.
+	OR, and hear me out here, they still have like 1 hp etc. but when you attack something, if the material resists the material you strike with you can deal no damage. Uhhhhhh but this might be a terrible idea.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+material types, properties:
+
+clay
+	hardness: 		0
+	flexibility: 	10
+	melting point: 	N/A
+	flash point:    N/A
+tarp
+	hardness:		0
+	flexibility:	9
+	melting point: 	N/A
+	flash point:    100
+cloth
+	hardness:		0
+	flexibility:	10
+	melting point: 	N/A
+	flash point:    100
+flesh
+	hardness:		0
+	flexibility:	9
+	melting point: 	N/A
+	flash point:    100
+rubber
+	hardness:		0.5
+	flexibility:	10
+	melting point: 	N/A
+	flash point:    100
+plastic
+	hardness:		1
+	flexibility:	8
+	melting point: 	50 		(makes molten plastic)
+	flash point:    150
+leather
+	hardness:		1
+	flexibility:	8
+	melting point: 	N/A
+	flash point:    100
+wood
+	hardness:		2
+	flexibility: 	6
+	melting point: 	N/A
+	flash point:    100
+	rots in contact with fungus (fungus attacks the wood and when wood dies from fungus attack it turns into rotted wood)
+boiled leather
+	hardness:		2.5
+	flexibility:	3
+	melting point: 	N/A
+	flash point:    100
+bone
+	hardness:		3
+	flexibility:	5
+	melting point: 	N/A
+	flash point:    500
+metal
+	hardness:		4
+	flexibility:	7
+	melting point: 	1000 	(makes molten metal)
+	flash point:    N/A
+	rusts in water
+glass
+	hardness:		5
+	flexibility:	0
+	melting point: 	1000 	(makes molten glass)
+	flash point:    N/A
+stone, crystal
+	hardness:		7
+	flexibility:	2
+	melting point: 	500 	(makes lava)
+	flash point:    N/A
+ceramic
+	hardness:		9.5
+	flexibility:	0
+	melting point: 	500 	(makes lava)
+	flash point:    1000
+diamond
+	hardness:		10
+	flexibility:	1
+	melting point: 	N/A
+	flash point:    N/A
+graphene
+	hardness:		11
+	flexibility:	10
+	melting point: 	N/A
+	flash point:    N/A
+rust
+	hardness:		3
+	flexibility:	2
+	melting point: 	N/A
+	flash point:    N/A
+rot
+	hardness:		0
+	flexibility:	9
+	melting point: 	N/A
+	flash point:    N/A
+
+	
+	
+These effects are permanent changes that destroy the original object and create a similar duplicate with changed properties:
+Rust
+	
+	item value drops to 50%
+	item HP drops to 25%
+	item loses equipable/tool functionality
+	item material type is RUST
+Rot
+	item value drops to 0%
+	item HP drops to 5%
+	item loses equipable/tool functionality
+	item material type is ROT

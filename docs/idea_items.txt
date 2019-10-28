@@ -1,0 +1,32 @@
+
+IDENTIFYING
+
+Identifying is unique in that it's something ONLY THE PLAYER CAN DO. 
+	There is no reason to have such a complex system of identification for monster AIs, it wouldn't even be noticed by the player and would be difficult to implement and slow down CPU/use up a lot of memory.
+	Besides: Monsters could be said to assume when they see you that you are a threat by default, as they should. And if they seem to automatically ID something the first time they see it, well, how do you know it was the first time he saw it??? Maybe when something of interest comes into vision a monster doesn't always necessarily do anything about it right away (just literally ignores it). This may be a bad mechanic though.
+
+when you see a new entity for the first time it is always unidentified.
+You can identify things in various ways:
+	1) by seeing it
+		every turn it is in vision you have a chance to identify it based on your vision, distance to the item, identifying ability, and the difficulty of identifying the item.
+	2) by identifying it
+		With or without an identifying tool
+		Item must be in your inventory to identify it
+		Chance to succeed based on identifying ability, and the difficulty of identifying the item.
+	
+Identification of things in stages
+	Stages are:
+		1 - identify class of entity (creature, item, plant (inc. fungus), etc.)
+		2 - identify its type from its basic shape (shotgun->firearm, eyeglasses->trinket, guitar->musical instrument, desmodium fascia->mushroom, apple tree->tree)
+		3 - identify the name (species/type of item etc.)
+			takes longer to ID, may have to be pretty close to the thing to ID
+			monsters are easier to ID than items (quicker and farther away)
+				some monsters are easier to ID than others -- how to simulate?
+		4 - identify unique properties of the item
+			Gain access to all stats, flags, etc.
+			To achieve this level of ID:
+				for items, you may have to "test" the item
+				for creatures, you just have to observe them for a while
+					or engage in combat with them for a brief time.
+	You may revert to a previous stage of ID for an item if it goes out of your sight for a while or if you get hit hard in the head (memory loss should be a (somewhat uncommon) effect of bludgeoning implements -- also makes you lose memory of random areas of the map on various floors)
+		

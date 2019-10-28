@@ -1,0 +1,15 @@
+inventory is one thing
+capacity for carrying items, liquids, molten metal, etc. is determined by how many bags, bottles, pots, etc.
+basically abstract away inventory management of so many different container types
+
+IDEA:
+Capacity for carrying an item in general depends on its carrying type
+This is only for carrying, not for wielding
+	swords require scabbards to carry
+	
+
+
+wielding vs. equipping (this may be too complex...)
+	certain weapons/ammo require certain types of containers to equip (scabbards for swords, quivers for bows, ammo pouches for cartridges, etc.)
+	wielding does not require any special container
+	advantage of equipping: it takes much less time to wield an equipped weapon than to rummage through your inventory and then wield it.

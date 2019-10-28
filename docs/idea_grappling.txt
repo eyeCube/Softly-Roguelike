@@ -1,0 +1,51 @@
+
+grappling stat
+
+grappling stat influenced by:
+	strength
+	mass
+	gear
+
+when you attack someone you have a chance to grapple them which may put them in a bind. 
+	Target's resistance to grappling is based on his own grappling stat
+	d10 + your grapple stat >= d20 + target grapple stat
+		results in a bind which disables a limb and applies penalty to their Atk, Pen, DV, Pro.
+		When you have your opponent in a bind it opens up lots of options for you while restricting their options.
+		
+To get out of a bind is harder than resisting the bind in the first place.
+	This is an action which takes 200 AP.
+	d10 + their grapple stat >= d12 + your grapple stat
+		results in them getting free from the bind
+	
+Once opponent is in a bind (but still standing), you can:
+	disarm them
+	take them down
+	
+When opponent is on the ground, your binds are more potent:
+	can get foe in a limb lock
+	can mount foe
+	*Beind on the ground in general applies penalties to defensive and offensive stats
+	
+When mounted on a foe, you are in a hugely advantageous position:
+	Their Atk, Dmg and Pen are GREATLY penalized
+	Your Atk, Dmg, and Pen are GREATLY enhanced vs. that target
+	You can choke them out or get them in a mounted limb lock
+	However, the opponent can still get you in a limb lock or unmount you
+		d10 + their grapple vs. d20 + your grapple
+
+When you have a foe in a limb lock, you have almost guaranteed victory:
+	Press into the lock to cause pain or to break their limb
+	Choke them out to knock them out or kill them
+	However, the opponent can still get out of the limb lock
+		d10 + their grapple vs. d30 + your grapple
+		
+Grappling can be used as a counter-attack (defend against an attack an get them in a bind in the same step)
+
+You may skip phases like get them straight into an armbar without a bind or without even taking them down.
+
+You can also tackle a foe with your attack, taking them down to the ground immediately (if successful, obviously).
+
+IDEA: whether you use lethal force or not depends on your combat intentions; you can choose to use nonlethal force and then you will only cause pain instead of breaking limbs with limb locks, KO them instead of kill them with chokes, etc. By default you use lethal force until you switch it to nonlethal. Nonlethal force, when you use weapons, makes you target noncritical areas and makes your crit chance lower. It also reduces damage and penetration and increases your chance to KO them. This is an ability only available to the player. AIs control their lethality on the fly.
+		
+
+		

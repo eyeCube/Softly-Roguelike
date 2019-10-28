@@ -1,0 +1,4 @@
+
+Fires
+	Fire is simple in <i>Softly Into the Night</i>. On a given grid, the presence of fire is a boolean value. If True, then each turn, anything in that tile receives burn damage (which raises temperature of the object).
+	The status effect of being on fire, which is caused by the temperature meter reaching 

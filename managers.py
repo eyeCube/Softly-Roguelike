@@ -9,6 +9,9 @@ import math
 from const import *
 import rogue as rog
 import components as cmp
+import orangio as IO
+import ai
+import misc
 
 
 '''
@@ -60,33 +63,30 @@ class GameStateManager(Manager):
 
 
 
-'''
-    TODO: implement this Manager
-'''
 #
 # Stat Modifier Effects
 #
 
-class Manager_Effects(Manager):
-    ID = 0
-    
-    def __init__(self):
-        super(Manager_Effects, self).__init__()
-
-        self._statMods = {}
-        
-    def add(self, ent,mod): # create and add a new effect, return its ID
-        Manager_Effects.ID = Manager_Effects.ID + 1
-        newID = Manager_Effects.ID
-        self._statMods.update( {newID : mod} )
-        return newID
-
-    def remove(self, modID): # remove an effect from the dict
-        del self._statMods[modID]
-
-    def get(self, modID):
-        return self._statMods.get(modID, None)
-        
+##class Manager_Effects(Manager):
+##    ID = 0
+##    
+##    def __init__(self):
+##        super(Manager_Effects, self).__init__()
+##
+##        self._statMods = {}
+##        
+##    def add(self, ent,mod): # create and add a new effect, return its ID
+##        Manager_Effects.ID = Manager_Effects.ID + 1
+##        newID = Manager_Effects.ID
+##        self._statMods.update( {newID : mod} )
+##        return newID
+##
+##    def remove(self, modID): # remove an effect from the dict
+##        del self._statMods[modID]
+##
+##    def get(self, modID):
+##        return self._statMods.get(modID, None)
+##        
 
 
 
@@ -122,7 +122,8 @@ class Manager_Events(Manager):
                     dx=dy=0
             #   each entity gets its own Event object,
             #   specific to its own perception.
-                text=text1 if obj.stats.get("hearing") >= SUPER_HEARING else text2
+##                text=text1 if obj.stats.get("hearing") >= SUPER_HEARING else text2
+                text=text1 #todo: superhearing / perception makes a difference ^^
                 lis=self.get_sounds(obj)
                 lis.append(Event_Sound(dx,dy, text, volHeard))
                 self._sounds.update({obj : lis})
@@ -169,7 +170,7 @@ class Manager_SightsSeen(Manager):
         
         self.init_sights()
     
-    def run(self):
+    def run(self, pc):
         super(Manager_SightsSeen,self).run()
         
         atLeastOneMsg=False
@@ -178,7 +179,7 @@ class Manager_SightsSeen(Manager):
             if not v: continue
             atLeastOneMsg=True
             lis=v
-            pc=rog.Ref.pc
+            pc=rog.pc()
             
             dirStr=DIRECTIONS_TERSE[k]
             if not dirStr == "self":
@@ -206,8 +207,11 @@ class Manager_SightsSeen(Manager):
         }
     
     def add(self, ev):
-        k=self.get_direction(rog.Ref.pc, (ev.x,ev.y,))
+        k=self.get_direction(rog.pc(), (ev.x,ev.y,))
         self.sights[k].append(ev.text)
+
+    def clear(self):
+        self.init_sights()
 
     def get_direction(self, pc, coords):
         xf,yf=coords
@@ -233,18 +237,19 @@ class Manager_SoundsHeard(Manager):
         
         self.init_sounds()
     
-    def run(self):
+    def run(self, pc):
         super(Manager_SoundsHeard,self).run()
         
         atLeastOneMsg=False
         text="You hear "
+        skills=rog.world().component_for_entity(pc, cmp.Skills)
         for k,v in self.sounds.items():
             vol,lis=v
             if not vol: continue
             if vol > VOLUME_DEAFEN:
                 rog.set_status(rog.pc(), DEAF)
             #super hearing
-            if rog.pc().stats.get("hearing") >= SUPER_HEARING:
+            if SKL_SUPERHEARING in skills.skills:
                 volTxt=self.get_volume_name(vol)
                 dirStr=DIRECTIONS_TERSE[k]
                 if not dirStr == "self":
@@ -285,6 +290,9 @@ class Manager_SoundsHeard(Manager):
             lis.append(ev.text)
         maxVol=max(ev.volume, cVol)
         self.sounds.update({k : (maxVol, lis,)})
+
+    def clear(self):
+        self.init_sounds()
             
     def get_volume_name(self, perceivedVolume):
         pv=perceivedVolume
@@ -297,6 +305,24 @@ class Manager_SoundsHeard(Manager):
         if pv >= vc/32: return "p"
         if pv >= vc/64: return "pp"
         else:           return "ppp"
+
+
+class Manager_Actors(Manager):
+
+    def __init__(self):
+        super(Manager_Actors,self).__init__()
+
+    def run(self, pc):
+        super(Manager_Actors,self).run()
+
+        world=rog.world()
+        for ent,compo in world.get_component(cmp.Actor):
+            if rog.on(ent,DEAD): continue
+            ai.tick(ent)
+            spd=rog.getms(ent, 'spd')
+            compo.ap = min(compo.ap + spd, spd)
+        
+        
 
 
 

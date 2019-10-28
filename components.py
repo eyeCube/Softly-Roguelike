@@ -5,267 +5,1171 @@
 '''
 
 class Observable:
+    __slots__=['observers']
     def __init__(self):
         self.observers=[]
 
 class DeathFunction:
+    __slots__=['func'] # idea: add "circumstances of death" variable which is passed into func, so the function knows under what circumstances the thing was killed (crushed, cut, stabbed, etc.)
     def __init__(self, func):
         self.func=func
 
 class Draw:
+    __slots__=['char','fgcol','bgcol']
     def __init__(self, char, fgcol, bgcol):
         self.char=char
         self.fgcol=fgcol
         self.bgcol=bgcol
-        
+       
 class Name:
-    def __init__(self, name: str, title="the ", pronouns=("it","it","its",)):
+    __slots__=['name','title']
+    def __init__(self, name: str, title=0):
         self.name = name
         self.title = title
-        self.pronouns = pronouns
 
 class Form: #physical makeup of the object
-    def __init__(self, mass=0, mat=0, val=0): #, volume, shape
-        self.mass=mass
-        self.material=mat
+    __slots__=['material','value','length','phase']
+    def __init__(self, mat=0, val=0, length=0, phase=0): #, volume, shape
+        self.material=mat   # fluid types are materials
         self.value=val
+        self.length=length
+        self.phase=phase    # phase of matter, solid, liquid, etc.
+        # TODO: fluids are implemented by:
+        # phase, material, mass.
+        #   phase-PHASE_FLUID
+        #   material is a FL_ constant
+        #   mass indicates volume depending on density
+        # TODO: length could be a value for weapons to indicate reach in small degrees, like a sword can reach to hit foes on the ground easily but a dagger cannot unless you're on top of them, etc.
+       
 
 class Position:
+    __slots__=['x','y']
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-class Creature:
-    def __init__(self, gender=None, job=None, faction=None):
-        self.gender=gender
-        self.job=job
-        self.faction=faction
-
 class AI:
-    def __init__(self, ai=None):
+    __slots__=['func']
+    def __init__(self, func=None):
         self.func=func
 
+class Creature:
+    __slots__=['job','faction']
+    def __init__(self, job=None, faction=None):
+        self.job=job
+        self.faction=faction
+       
+class Actor:
+    __slots__=['ap']
+    def __init__(self, ap=0):
+        self.ap=ap      #action points (energy/potential to act)
+
+class Player: # the player has some unique stats that only apply to them
+    __slots__=['identify']
+    def __init__(self, identify):
+        self.identify=identify
+       
+       
+class Meters:
+    __slots__=[
+        'temp','rads','sick','expo','pain','bleed',
+        'rust','rot','wetness','fear',
+        ]
+    def __init__(self):
+        self.temp=0 # temperature
+        self.rads=0 # radiation
+        self.sick=0 # illness / infection
+        self.expo=0 # exposure to harmful chemicals
+        self.pain=0 # respain increases the thresholds for pain tolerance
+        self.fear=0 # 100 fear == fully overcome by fear
+        self.bleed=0 # greater bleed -> take damage more frequently
+        self.rust=0 # amount of rustedness
+        self.rot=0 # amount of rot
+        self.wet=0 # amount of water it's taken on
+class Stats: #base stats
+    def __init__(self, hp=1,mp=1, _str=0,_con=0,_int=0, mass=1,
+                 resfire=100,rescold=100,resbio=100,reselec=100,resphys=100,
+                 resrust=100,resrot=100,reswet=100,respain=100,resbleed=100,
+                 atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
+                 spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
+                 sight=0,hearing=0,courage=0,scary=0,beauty=0,
+                 ):
+        self.str=_str           # attributes
+        self.con=_con
+        self.int=_int
+##        self.agi=_agi # balance, mobility penalty reduction, Atk/DV, mobility
+##        self.wil=_wil # willpower: courage, respain, stamina, affects response to stress (if your pain meter fills up, but you have high willpower, you have a chance to cut the pain down to half or to 0 in a second-wind of determination, etc.)
+        self.mass=mass
+        self.hpmax=hp           # life
+        self.hp=hp
+        self.mpmax=mp           # stamina
+        self.mp=mp
+        self.resfire=resfire    #resistances - FIR
+        self.rescold=rescold    # ICE
+        self.resbio=resbio      # BIO
+        self.reselec=reselec    # ELC
+        self.resphys=resphys    # PHS - resist physical damage excepting falls / G forces.
+        self.respain=respain    # PAI
+        self.resrust=resrust    # RUS
+        self.resrot=resrot      # ROT
+        self.reswet=reswet      # WET
+        self.resbleed=resbleed  # BLD
+        self.atk=atk    #Attack -- accuracy
+        self.dmg=dmg    #Damage, physical (melee)
+        self.pen=pen    #Penetration
+        self.dfn=dfn    #Defense -- DV (dodge value)
+        self.arm=arm    #Armor -- AV (armor value)
+        self.pro=pro    #Protection
+        self.spd=spd    #Speed -- AP gained per turn
+        self.asp=asp    #Attack speed (affects AP cost of attacking)
+        self.msp=msp    #Move speed (affects AP cost of moving)
+        self.gra=gra    #Grappling (wrestling)
+        self.ctr=ctr    #Counter-attack chance
+        self.bal=bal    #Balance
+        self.sight=sight        # senses
+        self.hearing=hearing
+        self.courage=courage    # resfear
+        self.intimidation=scary
+        self.beauty=beauty
+
+
+class ModdedStats: # stores the modified stat values for an entity
+    def __init__(self):
+        pass
+
+class SenseSight:
+    __slots__=['fov_map','events']
+    def __init__(self):
+        self.fov_map = None #rog.init_fov_map(FOV_NORMAL)
+        self.events = []
+class SenseHearing:
+    __slots__=['events']
+    def __init__(self):
+        self.events = []
+
+class Gender:
+    __slots__=['gender','pronouns']
+    def __init__(self, gender: str, pronouns: tuple): #("he", "him", "his",)
+        self.gender=gender
+        self.pronouns=pronouns
+
 class Mutable:
+    __slots__=['mutations']
     def __init__(self):
         self.mutations=0
 
-class Purse: #Money Container
-    def __init__(self, purse=0): #, capacity=99999999
-        self.purse=purse
-
-class SenseSight:
-    def __init__(self, sight=20):
-        self.sight = sight
-        self.fov_map = rog.init_fov_map(FOV_NORMAL)
-        self.events = []
-class SenseSound:
-    def __init__(self, hearing=100):
-        self.hearing = hearing
-        self.events = []
-
-class Skills:
+class Skills: # TODO: update this to store varying levels of skill instead of binary flags
+    __slots__=['skills']
     def __init__(self, *args):
         self.skills=set()
         for arg in args:
             self.skills.add(arg)
+class Flags:
+    __slots__=['flags']
+    def __init__(self, *args):
+        self.flags=set()
+        for arg in args:
+            self.flags.add(arg)
 
-##class Ammo:
-##    def __init__(self, ammoType=0):
-##        self.ammoType=ammoType
-class UsesAmmo:
-    def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
+class CountersRemaining:
+    __slots__=['quantity']
+    def __init__(self, q=None):
+        self.quantity=q
+
+##class Breathes:
+##    __slots__=[]
+##    def __init__(self):
+##        self.
+
+class Slot:
+    __slots__=['item','covers']
+    def __init__(self, item=None, covers=()):
+        self.item=item
+        self.covers=covers
+
+
+class Body:
+    '''
+        contains information about the physical geometrical makeup
+            of a multi-part body/entity
+    slot        the "About" slot which is for wearing things over your body
+    core        the BPC sub-component of the core (where the hearts are)
+    parts       list of all other BPC sub-components
+    position    int refers to an int const corresponding to predefined position
+    bodyfat     int, total mass of fat in the whole body
+    blood       int, total mass of blood in the whole body / bloodMax=maximum
+    hydration   int, total mass of water in the whole body / maximum
+    satiation   int, units of hunger satisfaction / maximum
+    '''
+    __slots__=[
+        'slot','core','parts','position',
+        'blood','bloodMax','bodyfat',
+        'hydration','hydrationMax','satiation','satiationMax'
+        ]
+    def __init__(self, core, blood=0, hydration=0, satiation=0, fat=0):
+##        self.plan=plan      # int constant
+        self.slot=Slot()    # 'about' slot
+        self.core=core
+        self.parts={}       # dict of BPC objects other than the core
+        self.position=0     # body pos.: standing, crouched, prone, etc.
+        self.bodyfat=fat        # total mass of body fat
+        self.blood=blood                # mass of blood in the body
+        self.bloodMax=blood             # 7% of total mass of the body
+        self.satiation=satiation        # hunger satisfaction
+        self.satiationMax=satiation  
+        self.hydration=hydration        # thirst satisfaction
+        self.hydrationMax=hydration
+'''
+    Body Part Containers (BPC)*
+    contain only BP_ / BPM_ objects or lists of BP_ / BPM_ objects
+    * this is the high-level objects that are sub-components of
+        the Body component
+'''
+# cores
+class BPC_SingleCore: # core=BP_Ameboid()
+    __slots__=['core']
+    def __init__(self, core):
+        self.core=core
+class BPC_Torso:
+    __slots__=['core','front','back','hips','hearts','lungs','guts']
+    def __init__(self):
+        self.core=BP_TorsoCore()
+        self.front=BP_TorsoFront()
+        self.back=BP_TorsoBack()
+        self.hips=BP_Hips()
+        self.hearts=BPM_Hearts()
+        self.lungs=BPM_Lungs()
+# others
+class BPC_Heads:
+    __slots__=['heads']
+    def __init__(self, *args):
+        self.heads=[]
+        for arg in args:
+            self.heads.append(arg)
+class BPC_Arms:
+    __slots__=['arms']
+    def __init__(self, *args):
+        self.arms=[]
+        for arg in args:
+            self.arms.append(arg)
+class BPC_Legs:
+    __slots__=['legs']
+    def __init__(self, *args):
+        self.legs=[]
+        for arg in args:
+            self.legs.append(arg)
+class BPC_Pseudopods:
+    __slots__=['pseudopods']
+    def __init__(self, *args):
+        self.pseudopods=[]
+        for arg in args:
+            self.pseudopods.append(arg)
+class BPC_Wings:
+    __slots__=['wings']
+    def __init__(self, *args):
+        self.wings=[]
+        for arg in args:
+            self.wings.append(arg)
+class BPC_Tails:
+    __slots__=['tails']
+    def __init__(self, *args):
+        self.tails=[]
+        for arg in args:
+            self.tails.append(arg)
+class BPC_Genitals:
+    __slots__=['genitals']
+    def __init__(self):
+        self.genitals=BP_Genitals()
+
+'''
+    Body Parts Meta (BPM)
+    contain BP sub-components
+    * This is the intermediate level of abstraction which are
+        contained in lists in BPC components
+'''
+class BPM_Head:
+    __slots__=['head','neck','face','eyes','ears','nose','mouth']
+    def __init__(self):
+        self.head=BP_Head()
+        self.face=BP_Face()
+        self.eyes=BP_Eyes()
+        self.ears=BP_Ears()
+        self.nose=BP_Nose()
+        self.neck=BP_Neck()
+        self.mouth=BP_Mouth()
+class BPM_Arm:
+    __slots__=['hand','arm']
+    def __init__(self):
+        self.arm=BP_Arm()
+        self.hand=BP_Hand()
+class BPM_Leg:
+    __slots__=['leg','foot']
+    def __init__(self):
+        self.leg=BP_Leg()
+        self.foot=BP_Foot()
+class BPM_Lungs:
+    __slots__=['lungs']
+    def __init__(self):
+        self.lungs=[]
+class BPM_Hearts:
+    __slots__=['hearts']
+    def __init__(self):
+        self.hearts=[]
+       
+'''
+    Body Parts (BP)
+    usually contain a slot, and optional BPP sub-components
+    DO NOT have a STATUS
+'''
+class BP_TorsoCore:
+    __slots__=['slot','artery','muscle','skin','guts']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.muscle=BPP_Muscle() # abs
+        self.skin=BPP_Skin()
+        self.guts=BPP_Guts()
+class BP_TorsoFront:
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone() # ribs
+        self.muscle=BPP_Muscle() # pecs
+        self.skin=BPP_Skin()
+class BP_TorsoBack:
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone() # spine
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Hips:
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone() # pelvis
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Cell:
+    __slots__=['slot']
+    def __init__(self):
+        self.slot=Slot()
+class BP_Head:
+    __slots__=['slot','bone','brain','skin','hair']
+    def __init__(self):
+        self.slot=Slot()
+        self.bone=BPP_Bone() # skull
+        self.brain=BPP_Brain()
+        self.skin=BPP_Skin()
+        self.hair=BPP_Hair()
+class BP_Neck:
+    __slots__=['slot','bone','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Face:
+    __slots__=['slot','features','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.features=BPP_FacialFeatures()
+        self.skin=BPP_Skin()
+class BP_Mouth:
+    __slots__=['bone','muscle','teeth','gustatorySystem']
+    def __init__(self, taste=20): # quality of taste system
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.teeth=BPP_Teeth()
+        self.gustatorySystem=BPP_GustatorySystem(quality=taste)
+class BP_Eyes:
+    __slots__=['slot','visualSystem']
+    def __init__(self, quantity=2, quality=20): #numEyes; vision;
+        self.slot=Slot()        # eyewear for protecting eyes
+        self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
+class BP_Ears:
+    __slots__=['slot','auditorySystem']
+    def __init__(self, quantity=2, quality=60):
+        self.slot=Slot()        # earplugs, for protecting ears
+        self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
+class BP_Nose:
+    __slots__=['bone','olfactorySystem']
+    def __init__(self, quality=10):
+        self.bone=BPP_Bone()
+        self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
+class BP_Arm: # upper / middle arm and shoulder
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Hand: # hand and lower forearm
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Leg: # thigh and knee
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Foot: # foot, ankle and lower leg
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
+    __slots__=['slot','artery','muscle','skin','stickies']
+    def __init__(self, stickies=0):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+        self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
+class BP_Pseudopod:
+    __slots__=['slot']
+    def __init__(self):
+        self.slot=Slot()
+class BP_Ameboid:
+    __slots__=['slot','nucleus']
+    def __init__(self):
+        self.slot=Slot()
+        self.nucleus=BPP_Nucleus()
+class BP_Wing:
+    __slots__=['slot','bone','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Tail:
+    __slots__=['slot','bone','artery','muscle','skin']
+    def __init__(self):
+        self.slot=Slot()
+        self.artery=BPP_Artery()
+        self.bone=BPP_Bone()
+        self.muscle=BPP_Muscle()
+        self.skin=BPP_Skin()
+class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
+    __slots__=['kind']
+    def __init__(self, kind):
+        self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
+
+'''
+    Body Parts Piece (BPP)
+    piece of body parts, sub-components of BP_ objects
+    do NOT contain slots
+    contain a STATUS
+'''
+class BPP_Skin: # 16% of total body mass
+    __slots__=['status','material']
+    def __init__(self, mat=-1):
+        self.material=mat
+        self.status=0
+class BPP_Hair:
+    __slots__=['status','length']#,'color']
+    def __init__(self, length=1):
+        self.status=0
+        self.length=length
+##        self.color=col
+##        self.style=style
+class BPP_Artery:
+    __slots__=['status']
+    def __init__(self):
+        self.status=0
+class BPP_Bone:
+    __slots__=['material','status']
+    def __init__(self, mat=-1):
+        self.material=mat # determines Strength of the bone
+        self.status=0
+class BPP_Muscle:
+    __slots__=['status','str','fatigue','fatigueMax']
+    def __init__(self, _str=1):
+        self.str=_str
+        self.status=0
+        self.fatigue=0
+        self.fatigueMax=0
+class BPP_Brain:
+    __slots__=['status','quality']
+    def __init__(self, quality=1):
+        self.status=0
+        self.quality=quality
+class BPP_VisualSystem:
+    __slots__=['quantity','quality']
+    def __init__(self, quantity=2, quality=20):
+        self.quantity=quantity
+        self.quality=quality    # combined quality of all eyes
+class BPP_AuditorySystem:
+    __slots__=['quantity','quality']
+    def __init__(self, quantity=2, quality=60):
+        self.quantity=quantity
+        self.quality=quality    # combined quality of all ears
+class BPP_OlfactorySystem:
+    __slots__=['quality']
+    def __init__(self, quality=20):
+        self.quality=quality
+class BPP_GustatorySystem:
+    __slots__=['quality']
+    def __init__(self, quality=20):
+        self.quality=quality
+class BPP_FacialFeatures:
+    __slots__=['beauty','scariness']
+    def __init__(self, beauty=6, scariness=6):
+        self.beauty=beauty
+        self.scariness=scariness
+class BPP_Teeth:
+    __slots__=['quantity','quality','material']
+    def __init__(self, quantity=26, quality=2, mat=-1):
+        self.quantity=quantity
+        self.quality=quality
+        self.material=mat
+class BPP_Heart:
+    __slots__=['status','str']
+    def __init__(self, _str=1):
+        self.str=_str
+        self.status=0
+class BPP_Lung:
+    __slots__=['status','capacity']
+    def __init__(self, cap=1):
+        self.capacity=cap
+        self.status=0
+class BPP_Guts:
+    __slots__=['status']
+    def __init__(self):
+        self.status=0
+class BPP_Nucleus:
+    __slots__=['status']
+    def __init__(self):
+        self.status=0
+##        self.dna=(2,1,3, 2,3,1, 0,0,2, 0,0,2, 0,1,1,)
+##class BPP_Fat:
+##    __slots__=['mass','status']
+##    def __init__(self, mass=1):
+##        self.mass=mass
+##        self.status=0
+       
+##class Equipped: # entity has been equipped by someone # NOT NEEDED ANYMORE RIGHT?
+##    __slots__=['owner','slot']
+##    def __init__(self, owner, slot):
+##        self.owner=owner # entity that has equipped this item
+##        self.slot=slot   # slot the item is equipped in
+class EquipableInAmmoSlot:
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+class EquipableInBodySlot: # can be equipped in the body slot
+    __slots__=['ap','mods'] # ap = AP (Energy) cost to equip / take off
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cloaks, capes, etc.)
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+class EquipableInHeadSlot:
+    __slots__=['ap','mods','coversFace','coversEyes']
+    def __init__(self, ap, mods, coversFace=False, coversEyes=False): #{component : {var : modf,}}
+        self.ap=ap
+        self.mods=mods        
+        self.coversFace=coversFace
+        self.coversEyes=coversEyes
+class EquipableInFaceSlot:
+    __slots__=['ap','mods','coversEyes']
+    def __init__(self, ap, mods, coversEyes=False): #{component : {var : modf,}}
+        self.ap=ap
+        self.mods=mods
+        self.coversEyes=coversEyes
+class EquipableInEyesSlot:
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+##class EquipableInJewelrySlot: # slot that has infinite room for more shit
+##    __slots__=['ap','mods']
+##    def __init__(self, ap, mods): #{var : modf,}
+##        self.ap=ap
+##        self.mods=mods
+       
+        # NOTE: these variables should probably be just flags
+##        self.twoh=twoh # two-handed? 0 = no, 1 = allowed, 2 = required
+##        self.prim=prim # primary hand: mainhand or offhand (penalty for equipping in the wrong hand).
+        # IDEA: when you equip in offhand, you still get the full DV bonus, but don't do as much damage/have as much penetration
+##class EquipableInNeckSlot:
+##    __slots__=['mods']
+##    def __init__(self, mods): #{component : {var : modf,}}
+##        self.mods=mods
+
+
+class Ammo: # can be used as ammo
+    __slots__=['quantity','ammoType']
+    def __init__(self, ammoType,quantity=1):
         self.ammoType=ammoType
-        self.capacity=capacity
-        self.reloadTime=reloadTime
-        self.jamChance=jamChance
-        
-class EquipBody: # can equip things in the body slot
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class EquipHead:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class EquipBack:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class EquipAmmo:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class EquipMainhand:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-class EquipOffhand:
-    def __init__(self, item=None, modID=None):
-        self.item=item
-        self.modID=modID
-        
-class CanEquipInBodySlot: # can be equipped in the body slot
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-class CanEquipInBackSlot:
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-class CanEquipInHeadSlot:
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-class CanEquipInMainhandSlot:
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-class CanEquipInOffhandSlot:
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-class CanEquipInAmmoSlot:
-    def __init__(self, mods): #{component : {var : modf,}}
-        self.mods=mods
-
-class Usable: #usable from within actor's inventory
-    def __init__(self, funcPC=None, funcNPC=None):
+        self.quantity=quantity
+class Usable:
+    __slots__=['funcPC','funcNPC','usableFromWorld']
+    def __init__(self, funcPC=None, funcNPC=None, usableFromWorld=False):
         self.funcPC=funcPC
         self.funcNPC=funcNPC
-class Interactable: #usable while on the game grid
-    def __init__(self, funcPC=None, funcNPC=None):
-        self.funcPC=funcPC
-        self.funcNPC=funcNPC
+        self.usableFromWorld=usableFromWorld    #usable from world or only within actor's inventory?
 class Pushable:
-    def __init__(self, slides=False):
-        self.slides=slides
+    __slots__=['slides','rolls']
+    def __init__(self, slides=0, rolls=0):
+        self.slides=slides  # how well it slides
+        self.rolls=rolls    # how well it rolls
 class Edible:
-    def __init__(self, func=None, sat=0, taste=0, time=1):
+    __slots__=['func','satiation','taste','apCost']
+    def __init__(self, func=None, sat=0, taste=0, ap=1):
         self.func=func
-        self.satiation=satiation
+        self.satiation=sat
         self.taste=taste
-        self.timeToConsume=time
+        self.apCost=ap
 class Quaffable:
-    def __init__(self, func=None, hydration=0, taste=0, time=1):
+    __slots__=['func','hydration','taste','apCost']
+    def __init__(self, func=None, hyd=0, taste=0, ap=1):
         self.func=func
-        self.hydration=hydration
+        self.hydration=hyd
         self.taste=taste
-        self.timeToConsume=time
+        self.apCost=ap
 class Openable:
+    __slots__=['isOpen','isLocked']
     def __init__(self, isOpen=False, isLocked=False):
         self.isOpen=isOpen
         self.isLocked=isLocked
-class Ingredient: #can be used in crafting, cooking, etc.
-    def __init__(self, data):
-        self.data=data
-        
-class ReactsWithWater:
-    def __init__(self, func=None):
-        self.func=func
-class ReactsWithFire: # fire makes it boil, explode, etc.
-    # IS this the best way to handle this? ...
-    def __init__(self, func=None):
-        self.func=func
+##class Ingredient: #can be used in crafting, cooking, etc. IS THIS NECESSARY?
+##    __slots__=['data']
+##    def __init__(self, data):
+##        self.data=data
+
+class Moddable: # for weapons, etc. that can be temporarily upgraded using parts like silencers, bayonets, flashlights, magazines, scopes, straps, etc.
+    __slots__=['allowed','mods']
+    def __init__(self, possible): # {MOD_BAYONET : {cmp.CombatStats : {'atk':2,'dmg':6,'pen':6,'asp':30,},},}
+        self.possible=possible # dict of MODTYPE constants and the respective stat changes
+        self.mods=[] # current modifications (list of entities that are modded on)
+class Quality:
+    __slots__=['quality','minimum','maximum']
+    def __init__(self, quality=0, minimum=-2, maximum=2):
+        self.quality=quality
+        self.minimum=minimum
+        self.maximum=maximum
+class WeaponSkill: #equipping as weapon benefits from having skill in this weapon school
+    __slots__=['skill']
+    def __init__(self, skill):
+        self.skill=skill    # skill ID constant
+
+class Shootable:
+    __slots__=['ammoTypes','atk','dmg','pen','asp','rng','minrng','ammo','capacity','reloadTime','failChance','skill','func']
+    def __init__(self, aTypes,atk=0,dmg=0,pen=0,asp=0,rng=0,minrng=0,aMax=0,rTime=0,jam=0,skill=None,func=None):
+        self.ammoTypes=aTypes # *set* of ammo types that can be used
+        self.atk=atk        #Attack -- accuracy
+        self.dmg=dmg        #damage (ranged) - physical by default (ElementalDamage component affects elemental damage...)
+        self.pen=pen        #Penetration
+        self.asp=asp        #Attack speed for shooting: different from melee
+        self.rng=rng        #range (maximum)
+        self.minrng=minrng  #range (minimum)
+        self.ammo=aMax      #current ammo quantity
+        self.capacity=aMax  # maximum ammo capacity
+        self.reloadTime=rTime # time to reload one shot or put/take mag
+        self.failChance=jam # int in 1/100ths of a percent (10000==100%)
+        self.skill=skill    # skill type constant for shooting this thing
+        self.func=func      # function that runs when you shoot (makes noise, light, smoke, knocks you back, etc.)
+
+class Throwable:
+    __slots__=['atk','rng','dmg','pen','asp','func','skill']
+    def __init__(self, rng=0,atk=0,dmg=0,pen=0,asp=0,func=None): #,skill=None
+        self.rng=rng    # range when thrown
+        self.atk=atk    # change in accuracy when thrown
+        self.dmg=dmg    # change in damage when thrown
+        self.pen=pen    # change in penetration when thrown
+        self.asp=asp    # change in attack speed when thrown
+        self.func=func  # script that runs when the item is thrown
+##        self.skill=skill # skill type constant for throwing this thing
+
+class ElementalDamageMelee: # and Thrown
+    __slots__=['elements']
+    def __init__(self, elements):
+        self.elements=elements  # {ELEM_CONST : damage}
+class ElementalDamageRanged: # for ranged attacks using the Shootable component
+    __slots__=['elements']
+    def __init__(self, elements):
+        self.elements=elements  # {ELEM_CONST : damage}
+
+class BonusToArmor: # bonus damage (and Atk?) vs. heavy-armor / hard targets
+    __slots__=['value']
+    def __init__(self, val):
+        self.value=val
+class BonusToFlesh: # bonus damage vs. flesh and other soft targets
+    __slots__=['value']
+    def __init__(self, val):
+        self.value=val
+class HacksOffLimbs: # can amputate opponent's limbs in combat
+    __slots__=['value']
+    def __init__(self, val):
+        self.value=val
+class Bludgeon: # can be used as a bludgeon to smash bone, stone, glass, etc.
+    __slots__=['value']
+    def __init__(self, val):
+        self.value=val
+       
+class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, or some other method to handle objects turning into raw mats based on their material or some shit??
+    __slots__=['energy','mats','tools']
+    def __init__(self, energy: int, mats: dict, tools: dict):
+        # mats = {MATERIAL : quantity}
+        # tools = {Component : quality}
+        self.energy=energy # energy required to harvest
+        self.mats=mats # raw materials that are harvested, and the amount
+        self.tools=tools # tools needed, and the quality needed to harvest
+
+class Light:
+    __slots__=['brightness','type']
+    def __init__(self, brightness: int, _type: int):
+        self.brightness=brightness
+        self.type=_type # source const. Fire? Electricity? Something else?
+
+       
+    #-----------------------#
+    #       Tools           #
+    #-----------------------#
+
+       
+class Tool_Cut: # cutting pushes material aside, requires a sharp edge. Whittling is also available. Performs the finest work.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Chop: # chopping is the quickest way to remove massive amount of material or break flexible things into many pieces.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Saw: # sawing removes material out of the way, good for big cutting jobs, but does not perform fine work.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Hammer: # carpentry, blacksmithing, smashing, light crushing, etc.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Striker: # heavy hammering/driving
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Chisel: # a chisel and hammer can remove a lot of material in a controlled manner to make fine crafts.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Anvil: # anvils bolster the hammer to allow for finer jobs in blacksmithing
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Furnace: # cooking, smelting, forge welding
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Weld: # the quickest way to fuse two metals together
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Torch: # fire tool (for burning/melting/force welding tiny things)
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_FireStarter: # match, flint/steel, etc.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Crucible: # smelting (contains hot materials)
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Tongs: # picking up hot things (as in a crucible in smelting)
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Pliers: # bending, clamping, pressing, plying
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drill: # hole boring
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Sew: # sewing needle
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Grinder: # grinding (removing large amounts of material from metal, etc.)
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Sharpener: # blade sharpener
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Honer: # blade honing
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_File: # smoother / detail filing
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Dig: # pit digging
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Pickaxe: # wall breaking
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Crush: # crushing, pressure welding
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_LockPick:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_CrossbowReloader:
+    __slots__=['quality','kind']
+    def __init__(self, quality: int, kind: int):
+        self.quality=quality
+        self.kind=kind
+class Tool_Mandril:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Swage:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Lens:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Identify:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_a:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_b:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_c:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_d:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_e:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Drillbit_f:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+
+
+
+       
+       
+    #-----------------------#
+    #       Foods           #
+    #-----------------------#
+   
+   
+class Food_Dry:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Wet:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Fibrous:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Chewy:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Crunchy:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Soft:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Acidic:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Salty:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Bitter:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Sweet:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Spicy:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_Savory:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Food_:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+##class Tool_FluidContainer: # FluidContainer is a component, no need for a separate Tool component
+
+   
+    #-----------------------#
+    #       Molds           #
+    #-----------------------#
+   
+class Mold_Anvil:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_AnvilSmall:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_SwordPlastic:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_SwordMetal:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_Dagger:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_StaffMetal:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_BoomerangPlastic:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_BoomerangMetal:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_ChainLink:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_Bullet:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_BulletSmall:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_BulletLarge:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_MinniBall:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Mold_:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+
 
 class Inventory: #item container
-    def __init__(self, capacity):
-        self.capacity=capacity
-        self.size=0
-        self.data=[]
-
+    __slots__=['capacity','size','data','money']
+    def __init__(self, capacity,money=0):
+        self.capacity=capacity  # mass total maximum
+        self.size=0             # total mass of all entities in the container
+        self.data=[]            # list of entities
+        self.money=money        # current amount of money in the container
+       
 class FluidContainer:
+    __slots__=['capacity','size','data']
     def __init__(self, capacity):
         self.capacity=capacity
         self.size=0
-        self.data={}
+        self.data={}    # { FLUIDTYPE : quantity }
 
-class Actor: #participates in the game by gaining and spending action points
-    def __init__(self, spd=1):
-        self.ap=0 #action points (energy/potential to act)
-        self.spd=spd #AP gained per turn
+class ReactsWithWater:
+    __slots__=['func'] # function that runs when it touches water
+    def __init__(self, func):
+        self.func=func
+class ReactsWithFire: # being on fire makes it explode, transform, etc. (melting is transforming.)
+    __slots__=['func'] # function that runs when it touches fire
+    def __init__(self, func):
+        self.func=func
+class ReactsWithAir:
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func
+class ReactsWithElectricity: # / powered by electricity
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func
+       
+##class ShattersOnImpact: # this could be a property of MATERIAL (Form) and need not be a new component... At least I think.
+##    __slots__=['numParticles','particles']
+##    def __init__(self, particles, numParticles):
+##        self.particles=particles # object that it creates when shattered
+##        self.numParticles=numParticles # number of objects to create
 
-class BasicStats: #stats any thing is expected to have
-    def __init__(self, hp=1, mp=1,
-                 resfire=0,resbio=0,reselec=0,resphys=0):
-        self.hpmax=hp
-        self.hp=hp
-        self.mpmax=mp
-        self.mp=mp
-        self.resfire=resfire    #resistances
-        self.resbio=resbio
-        self.reselec=reselec
-        self.resphys=resphys
-        self.temp=0             #meters
-        self.rads=0
-        self.sick=0
-        self.expo=0
-    
-class CombatStats: #stats any fighter is expected to have
-    def __init__(self, atk=0,dfn=0,dmg=0,arm=0,rng=0,_pow=0,asp=0,msp=0):
-        self.atk=atk    #attack
-        self.dfn=dfn    #DV
-        self.dmg=dmg    #melee damage
-        self.arm=arm    #AV
-        self.rng=rng    #range
-        self.pow=_pow   #ranged damage
-        self.asp=asp    #atk spd
-        self.msp=msp    #move spd
 
-class ElementalDamage: #special elemental damage
-    def __init__(self, element, dmg):
-        self.element=element
-        self.dmg=dmg
-##class ElementalPower: #special elemental ranged damage
-##    def __init__(self, element, dmg):
-##        self.element=element
-##        self.dmg=dmg
+class Injured:
+    __slots__=['injuries']
+    def __init__(self, _list):
+        self.injuries=_list
+class _Injury: # for use by Injured component
+    __slots__=['type','name','mods']
+    def __init__(self, _type, name, mods):
+        self.type=_type # injury type constant
+        self.name=name  # name of the injury for display on GUI
+        self.mods=mods  # {component : {var : modf}}
 
-class StatMods:
-    def __init__(self, *args, **kwargs):
-        self.mods=[]
-        for arg in args:
-            self.mods.append(arg)
-        for k,w in kwargs:
-            self.mods.append((k,w,))
+##class StatMods:
+##    __slots__=['mods']
+##    def __init__(self, mods): #{component : {var : modf,}}
+##        self.mods=mods
+##        #*args, **kwargs):
+##        self.mods=[]
+##        for arg in args:
+##            self.mods.append(arg)
+##        for k,w in kwargs:
+##            self.mods.append((k,w,))
+
 
 #status effects
     #owned by entities currently exhibiting status effect(s)
-class StatusFire:
+
+        # TODO: where should statMods for status effects be stored? Globally?
+       
+class StatusFire: # damage over time, creates light, sound, spreads heat, can cause burns, deep burns if the fire injures you
+    __slots__=['timer']
     def __init__(self, t=-1): #,dmg=1
         self.timer=t
 ##class StatusSmoldering:
 ##    def __init__(self, t=-1):
 ##        self.timer=t
-class StatusAcid:
+class StatusAcid: # damage over time, can cause deep wounds
+    __slots__=['timer']
     def __init__(self, t=8):
         self.timer=t
-class StatusBlind:
-    def __init__(self, t=20):
+class StatusBlind: # vision -90%
+    __slots__=['timer']
+    def __init__(self, t=30):
         self.timer=t
-class StatusDeaf:
-    def __init__(self, t=150):
+class StatusDeaf: # hearing -96%
+    __slots__=['timer']
+    def __init__(self, t=300):
         self.timer=t
-class StatusIrritated:
+class StatusIrritated: # vision -25%, hearing -25%
+    __slots__=['timer']
     def __init__(self, t=200):
         self.timer=t
-class StatusParalyzed:
+class StatusBleed: # minor bleed: lose blood each turn, drops blood to the floor randomly, gets your clothes bloody
+    __slots__=['timer']
+    def __init__(self, t=32):
+        self.timer=t
+class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
+    __slots__=['timer']
     def __init__(self, t=5):
         self.timer=t
-class StatusVomit:
+class StatusSick: # low chance to vomit, cough, sneeze; general fatigue, pain, etc.
+    __slots__=['timer']
+    def __init__(self, t=60000):
+        self.timer=t
+class StatusVomit: # chance to vomit uncontrollably each turn
+    __slots__=['timer']
     def __init__(self, t=50):
         self.timer=t
-class StatusCough:
+class StatusCough: # chance to cough uncontrollably each turn
+    __slots__=['timer']
     def __init__(self, t=25):
         self.timer=t
-class StatusSprint:
+class StatusSprint: # Msp +100%
+    __slots__=['timer']
     def __init__(self, t=10):
         self.timer=t
-class StatusHaste:
-    def __init__(self, t=25):
+class StatusTired: # cannot sprint, jump, or any major physical exertion
+    __slots__=['timer']
+    def __init__(self, t=50):
         self.timer=t
-class StatusSlow:
-    def __init__(self, t=25):
+class StatusFrightening: # add extra scariness for a time
+    __slots__=['timer']
+    def __init__(self, t=10):
         self.timer=t
-class StatusWet:
+class StatusFrightened: # overcome by fear
+    __slots__=['timer']
     def __init__(self, t=100):
         self.timer=t
-class StatusDrunk:
-    def __init__(self, t=250):
+class StatusHaste: # speed +50%
+    __slots__=['timer']
+    def __init__(self, t=25):
+        self.timer=t
+class StatusSlow: # speed -33%
+    __slots__=['timer']
+    def __init__(self, t=25):
+        self.timer=t
+class StatusDrunk: # balance -50%
+    __slots__=['timer']
+    def __init__(self, t=1800):
+        self.timer=t
+class StatusHeadInjury: # similar to sickness w/ headache, slurred speech
+    __slots__=['timer']
+    def __init__(self, t=3600):
         self.timer=t
 
 
@@ -283,8 +1187,9 @@ STATUSES = (
     StatusSprint,
     StatusHaste,
     StatusSlow,
-    StatusWet,
     StatusDrunk,
+    StatusSprint,
+    StatusTired,
     )
 
 
@@ -309,54 +1214,83 @@ STATUSES = (
 
 
 
-# TODO: make Fluid property into a component
-
-##
-##class Fluid:
-##
-##    def __init__(self, x,y):
-##        super(Fluid, self).__init__(x, y)
-##        self.dic={}
-##        self.size=0 #total quantity of fluid in this tile
-##
-##    def getData(self, stat):    #get a particular stat about the fluid
-##        return FLUIDS[self.name].__dict__[stat]
-##    
-##    def clear(self):            #completely remove all fluids from the tile
-##        self.dic={}
-##        self.size=0
-##    
-##    def add(self, name, quantity=1):
-##        newQuant = self.dic.get(name, 0) + quantity
-##        self.dic.update({name : newQuant})
-##        self.size += quantity
-##        
-##        '''floodFill = False
-##        if self.size + quantity > MAX_FLUID_IN_TILE:
-##            quantity = MAX_FLUID_IN_TILE - self.size
-##            floodFill = True #partial floodfill / mixing
-##            #how should the fluids behave when you "inject" a new fluid into a full lake of water, etc.?
-##            #regular floodfill will not cut it
-##            #maybe just replace the current fluid with the new fluid to keep it simple.
-##            '''
-##
-##        '''if floodFill:
-##            #do flood fill algo.
-##            #this is going to also have to run a cellular automata to distribute different types of fluids
-##            return'''
-##
-##    def removeType(self, name, quantity=1):
-##        if self.size > 0:
-##            curQuant = self.dic.get(name, 0)
-##            newQuant = max(0, curQuant - quantity)
-##            diff = curQuant - newQuant
-##            if not diff:     #no fluid of that type to remove
-##                return
-##            self.size -= diff
-##            if newQuant != 0:
-##                self.dic.update({name : newQuant})
-##            else:
-##                #we've run out of this type of fluid
-##                self.dic.remove(name)
 
 
+##    __slots__=[ # not using slots so that we are able to iterate through stats
+##        'str','con','int',
+##        'hpmax','hp','mpmax','mp',
+##        'resfire','rescold','resbio','reselec','resphys',
+##        'resrust','resrot','reswet','respain','resbleed',
+##        'atk','dfn','dmg','gra','arm','pen','pro','ctr',
+##        'spd','asp','msp',
+##        'sight','hearing','courage','intimidation',
+##        ]
+##class _BasicStats: # for use when an object doesn't need a full Stats profile (when carried in an inventory, a container, or otherwise not in the game world / not participating in the game
+##    __slots__=[
+##        'hpmax','hp','mpmax','mp',
+##        'resfire','resbio','reselec','resphys',
+##        ]
+##    def __init__(self,
+##                 hp=1, hpmax=1, mp=1, mpmax=1,
+##                 resfire=0,resbio=0,reselec=0,resphys=0
+##                 )
+##        self.hp=hp
+##        self.hpmax=hpmax
+##        self.mp=mp
+##        self.mpmax=mpmax
+##        self.resfire=resfire    #resistances
+##        self.resbio=resbio
+##        self.reselec=reselec
+##        self.resphys=resphys    # resist physical damage excepting fall damage or other G forces.
+       
+##class Temp_Stats: # storage for Stats while the Stats object is not needed.
+##    def __init__(self):
+##        pass
+
+# Maybe all weapons should give you bonus for 2-handed wielding
+##class Bonus_TwoHanded: #bonus stats for wielding the weapon two-handed
+##    __slots__=['mods']
+##    def __init__(self, mods): #{component : {var : modf,}}
+##        self.mods=mods
+       
+
+##class Fluid: # integrated into Form.
+##    __slots__=['ID','volume']
+##    def __init__(self, _id,vol):
+##        self.ID=_id
+##        self.volume=vol
+
+##class Rots: # thing is susceptible to rotting
+##    __slots__=['rot']
+##    def __init__(self, rot=0):
+##        self.rot=rot    # amount of rot (0-1000)
+##class Rusts: # thing is susceptible to rusting
+##    __slots__=['rust']
+##    def __init__(self, rust=0):
+##        self.rust=rust  # amount of rust (0-1000)
+##class Wets:
+##    __slots__=['wetness']
+##    def __init__(self, val=0):
+##        self.wetness=val    # how wet is it? Amount == mass of water
+##class Dirties:
+##    __slots__=['dirtiness']
+##    def __init__(self, val=0):
+##        self.dirtiness=val  # how dirty is it? Amount == mass of dirt
+
+# RESISTANCE TO THESE THINGS SHOULD BE STORED SEPARATELY. LIKE IN STATS?
+##        self.res=res        # resistance to getting dirty (max: 100)
+
+
+
+##class Ammo:
+##    def __init__(self, ammoType=0):
+##        self.ammoType=ammoType
+##class UsesAmmo:
+##    __slots__=['ammoType','capacity','reloadTime','jamChance']
+##    def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
+##        self.ammoType=ammoType
+##        self.capacity=capacity
+##        self.reloadTime=reloadTime
+##        self.jamChance=jamChance
+
+      

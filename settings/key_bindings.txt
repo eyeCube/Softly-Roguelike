@@ -1,0 +1,235 @@
+//file name: .\settings\key_bindings.txt
+
+//A "comment on comments:"
+//  All empty lines, and all lines beginning with "//"
+//  (without quotations), are considered to be comments
+//  by the file reader, and are thus ignored.
+
+//  --- Key Bindings Information ---
+//In order to remove one binding, set it to: NONE 
+//Bindings may begin with any combination of shift, ctrl,
+//  and alt, followed by a plus (+) symbol:
+//  "Shift+" OR "Ctrl+" OR "Alt+"
+//Example key bindings (note bindings are NOT case-sensitive):
+//  CTRL+ALT+DELETE
+//  shift+=
+//  f
+//  Ctrl+A
+//  none
+//  None
+//The action bound to the last combo will function if and
+//  only if the a button is pressed WHILE the Ctrl button
+//  is being held, and neither Alt nor Shift are also being
+//  pressed down; if the Alt button is also being held, for
+//  instance, the input will be treated as "Ctrl+Alt+a",
+//  which is different from "Ctrl+a".
+
+//Note:
+//  Left and right Ctrl are treated as the same.
+//  Left and right Alt are treated as the same.
+//  Left and right Shift are treated as the same.
+
+//ALERT: NumLock is currently unsupported.
+//  The numpad keys might not work as expected with NumLock on.
+//  Keep NumLock off during play.
+
+//---------\
+// Bindings |
+//---------//
+
+// Display Help Menu
+Shift+/
+NONE
+NONE
+
+// North
+k
+KP8
+UP
+
+// West
+h
+KP4
+LEFT
+
+// South
+j
+KP2
+DOWN
+
+// East
+l
+KP6
+RIGHT
+
+// Northwest
+y
+KP7
+NONE
+
+// Southwest
+b
+KP1
+NONE
+
+// Southeast
+n
+KP3
+NONE
+
+// Northeast
+u
+KP9
+NONE
+
+// Direct Towards Self
+.
+KP5
+NONE
+
+// Up
+Shift+,
+NONE
+NONE
+
+// Down
+Shift+.
+NONE
+NONE
+
+// Context-sensitive action
+c
+SPACE
+NONE
+
+// Get
+g
+,
+NONE
+
+// Open/Close
+o
+Shift+=
+NONE
+
+// Sprint
+s
+NONE
+NONE
+
+// Throw
+t
+NONE
+NONE
+
+// Fire weapon
+f
+NONE
+NONE
+
+// Examine or Look
+x
+/
+Shift+L
+
+// Rest
+r
+Shift+t
+NONE
+
+// Move view
+v
+NONE
+NONE
+
+// Fixed view mode
+Ctrl+v
+NONE
+NONE
+
+// Show player location (find player)
+Ctrl+f
+NONE
+NONE
+
+// Quit Game
+Alt+q
+NONE
+NONE
+
+// Inventory
+i
+NONE
+NONE
+
+// Message History
+Shift+h
+NONE
+NONE
+
+//---------\
+//  MENUS   |
+//---------//
+
+// Select
+SPACE
+ENTER
+NONE
+
+// Exit
+ESCAPE
+NONE
+NONE
+
+// Page Up
+PAGEUP
+NONE
+NONE
+
+// Page Down
+PAGEDOWN
+NONE
+NONE
+
+// Home
+HOME
+NONE
+NONE
+
+// End
+END
+NONE
+NONE
+
+// Delete
+DELETE
+NONE
+NONE
+
+// Insert
+INSERT
+NONE
+NONE
+
+// Backspace
+BACKSPACE
+NONE
+NONE
+
+//---------\
+// ADVANCED |
+//---------//
+
+// Shell / command prompt / console
+Ctrl+`
+NONE
+NONE
+
+// Execute last console command (during play)
+Ctrl+Shift+`
+NONE
+NONE
+
+// 
+
+//

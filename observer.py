@@ -54,12 +54,6 @@ def observer_remove(self,obs):
 class Observer_playerChange(Observer):
     def update(self, *args,**kwargs):
         super(Observer_playerChange, self).update()
-        '''if not args: return
-        print(args)
-        if (args[0] == 'x'
-            or args[0] == 'y'
-            or args[0] == 'stats.nrg'
-        ): '''
         rog.update_game()
         rog.update_hud()
     

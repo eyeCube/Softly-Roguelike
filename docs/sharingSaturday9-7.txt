@@ -1,0 +1,42 @@
+Softly Into the Night
+
+This week I continued to work towards getting a stable version with all the new changes. So many things have changed since the game was last run, that it's going to take a really long time to finally get that all together. As usual, I have also worked on a lot of new stuff and rules in the game.
+
+New items
+
+There are hundreds of items in Softly so far, and while there is still more work to implement the majority of them, the underlying mechanics and ECS supporting the wide variety will allow for hundreds more.
+
+Among the (planned) items are over a hundred melee weapons, over a hundred raw material items, dozens of other weapons, armor, and miscellaneous tools and devices. Many of them are mostly theoretical so far (not yet tested in-game) but all of them have at least some work towards their implementation.
+
+Combat Mechanics - Biting the Bullet
+
+Once again I decided to change a part of the combat. Attack (Accuracy) and DV (Defense or Dodge Value) now function like DnD's to-hit and AC (3rd edition on, I believe, where higher AC values is better), respectively. The old dice system made it so DV was a relatively useless stat until you accrued massive amounts of it. Though originally I wanted to avoid using DnD-like mechanics, I genuinely think DnD's system here is objectively better than what I had.
+
+For those who don't know, DnD's to-hit and AC work as follows. When you attack, you roll a 20-sided die and add to the result your proficiency and attribute modifiers. If the sum is equal to or greater than the AC of the target, the attack hits.
+
+I have added to this the following rules: if the player is attacking, a roll of 20 always results in a hit, no matter what; similarly if the enemy is attacking the player, a roll of 1 always results in a miss, no matter what. This skews the randomness in favor of the player so that the minimum chance to hit for the player is always 5% and the minimum chance to dodge is always at least 5%.
+
+Guns, Guns, Guns!
+
+I have spent a large portion of this week adding guns to the list of planned weapons and planning out their stats based on research I have done. Weapons in Softly are pulled from all eras of human history, so I did a lot of learning about early guns like caplock muskets, but also modern firearms.
+
+I have generally been able to implement ranged weapons using the same (kinds of) stats as the melee weapons: Attack, Damage, Penetration. Small caliber arms have low damage and higher penetration while hand cannons have high damage and low penetration.
+
+However, one stat has troubled me for a while; one which I do not believe I will be able to assign a good value to until I've done a lot of actual game testing. That stat is range. Most modern guns can obviously hit their target hundreds of meters away, but this kind of range is not really suited for RL-style gameplay IMO. So, in general, everything has far less range than it would have in real life, simply because this is a game and gameplay is more important than realism.
+
+Ideas on Level / World Design...
+
+Still, it's hard to know what an acceptable value would be especially because I still am not sure what the setting of the game will be, exactly. I could go the C:DDA route and have large, open areas where the player can shoot and be shot at by foes off the screen; or, I could have a compact level design where the whole game takes place underground or in a building complex, etc. 
+
+This is really hard to plan and I can see the game going either way, but lately I've been leaning towards the open-style. My only gripe with that is that it might slow down gameplay too much and it might be a nuisance to always have to check what is around the player off-screen (though a nice GUI with a list of nearby foes a la C:DDA would be a good balancer for that).
+
+Future Plans
+
+I plan to have Softly Into the Night fully playable and ready for testing hopefully by the end of this year. I have a todo list that I speculate will take approximately 6 weeks to complete, at which point the game should be in a testable state. I have given myself 2 times that amount of time (3 months) to complete the list, since I expect things will be more complicated than I predicted and also I am going to be busy with school and other game projects this semester (I'm now a part of a local game company / startup working with cutting edge tech).
+
+Keep your eye out for major updates to come when I complete implementation of the new features!
+
+Thanks for reading.
+
+Jacob Wharton / eyeCube Productions
+

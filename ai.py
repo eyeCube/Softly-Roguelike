@@ -16,13 +16,13 @@ import dice
 
 
 
-def tick(obj):
+def tick(ent):
     world = rog.world()
     if not world.has_component(ent, cmp.AI): return
     aiFunc = world.component_for_entity(ent, cmp.AI).func
     actor = world.component_for_entity(ent, cmp.Actor)
     while actor.ap > 0:
-        aiFunc(obj)
+        aiFunc(ent)
 
 class Desires():
     # stores monster's desires to move in each direction
