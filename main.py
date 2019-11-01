@@ -60,10 +60,17 @@ def main():
 
     # init player
     rog.Rogue.create_player(0,0) # is this the right position?
+    
+    # create light so player can see
+    log=rog.create_rawmat("log", 18,18)
+    rog.burn(log,200)
 
-    #TODO: create light so player can see!!!!!!!!!
-##    log=rog.create_stuff(THG.LOG, 18,18)
-##    rog.burn(log,200)
+    # DEBUG: why is everything still black around the player?
+
+    # TODO: heat dispersion with walls?? How to???
+    #   no wind indoors where there are walls/roofs
+    #   the walls absorb heat??
+    #   More general: terrain affects heat dispersion, but how...? 
 
     # TODO: map_generate function!!    
 ##    rog.map_generate(rog.map(),rog.dlvl())

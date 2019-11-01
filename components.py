@@ -73,7 +73,7 @@ class Player: # the player has some unique stats that only apply to them
 class Meters:
     __slots__=[
         'temp','rads','sick','expo','pain','bleed',
-        'rust','rot','wetness','fear',
+        'rust','rot','wet','fear',
         ]
     def __init__(self):
         self.temp=0 # temperature
@@ -137,6 +137,12 @@ class ModdedStats: # stores the modified stat values for an entity
     def __init__(self):
         pass
 
+class LightSource:
+    __slots__=['lightID','light']
+    def __init__(self, lightID, light):
+        self.lightID=lightID
+        self.light=light # Light object
+
 class SenseSight:
     __slots__=['fov_map','events']
     def __init__(self):
@@ -160,10 +166,11 @@ class Mutable:
 
 class Skills: # TODO: update this to store varying levels of skill instead of binary flags
     __slots__=['skills']
-    def __init__(self, *args):
-        self.skills=set()
-        for arg in args:
-            self.skills.add(arg)
+    def __init__(self, skills=None):
+        if skills==None:
+            self.skills={}
+        else:
+            self.skills=skills
 class Flags:
     __slots__=['flags']
     def __init__(self, *args):
@@ -1096,13 +1103,14 @@ class _Injury: # for use by Injured component
 
         # TODO: where should statMods for status effects be stored? Globally?
        
-class StatusFire: # damage over time, creates light, sound, spreads heat, can cause burns, deep burns if the fire injures you
+class StatusFire: # burning
     __slots__=['timer']
-    def __init__(self, t=-1): #,dmg=1
+    def __init__(self, t=-1):
         self.timer=t
-##class StatusSmoldering:
-##    def __init__(self, t=-1):
-##        self.timer=t
+class StatusFrozen: # icy cold
+    __slots__=['timer']
+    def __init__(self, t=-1):
+        self.timer=t
 class StatusAcid: # damage over time, can cause deep wounds
     __slots__=['timer']
     def __init__(self, t=8):
@@ -1143,7 +1151,7 @@ class StatusSprint: # Msp +100%
     __slots__=['timer']
     def __init__(self, t=10):
         self.timer=t
-class StatusTired: # cannot sprint, jump, or any major physical exertion
+class StatusTired: # sleepy (stamina is a separate thing)
     __slots__=['timer']
     def __init__(self, t=50):
         self.timer=t

@@ -2199,28 +2199,28 @@ def _trans_greased(item):
 #fire damage (increase temperature)
 #   temperature cannot exceed maxTemp
 def burn(ent, amt, maxTemp):
-    #get obj resistance
+    #get ent's resistance
     res = rog.getms(ent, 'resfire')
 ##    if rog.on(obj, WET):    
 ##        rog.clear_status(obj,WET)    #wet things get dried
 ##        #steam=stuff.create("steam", obj.x, obj.y)
     #increase temperature
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = min( maxTemp, max(0, meters.temp + dmg ) )
     #set burning status
-    if (not rog.get_status(ent, cmp.StatusFire) and
-        obj.stats.temp >= FIRE_TEMP):           #should depend on material?
-        rog.set_status(obj, cmp.StatusFire)
+    if (not rog.get_status(ent, cmp.StatusFire)
+            and meters.temp >= FIRE_THRESHOLD): #should depend on material?
+        rog.set_status(ent, cmp.StatusFire)
 def normalizeTemperature(ent, roomTemp=0): # normalize to room temp
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = meters.temp + rog.sign(roomTemp - meters.temp)
 def cooldown(ent, amt, minTemp=0): # cool to room temp
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = max(minTemp, meters.temp - amt )
-def cool(ent, amt, minTemp=-100):
+def cool(ent, amt, minTemp):
     res = rog.getms(ent, 'rescold')
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = max(minTemp, meters.temp - dmg)
     #set cold status
@@ -2232,7 +2232,7 @@ def cool(ent, amt, minTemp=-100):
 def disease(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase sickness meter
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
     if meters.sick >= 100:
@@ -2242,7 +2242,7 @@ def disease(ent, amt):
 def intoxicate(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase sickness meter
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
     if meters.sick >= 100:
@@ -2254,7 +2254,7 @@ def intoxicate(ent, amt):
 def irradiate(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase rads meter
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.rads += max(0, dmg )
     if meters.rads >= 100:
@@ -2266,7 +2266,7 @@ def irradiate(ent, amt):
 def exposure(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase exposure meter
-    dmg = int( amt*(1-(res/100)) )
+    dmg = amt*(1-(res/100))
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg )
     if meters.expo >= 100:
@@ -2276,7 +2276,7 @@ def exposure(ent, amt):
 #acid
 def corrode(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = int(amt * (1-(res/100)) / 10)
+    dmg = amt * (1-(res/100)) / 10
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2285,7 +2285,7 @@ def corrode(ent, amt):
 #coughing
 def cough(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = int(amt * (1-(res/100)) / 10)
+    dmg = amt * (1-(res/100)) / 10
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2294,7 +2294,7 @@ def cough(ent, amt):
 #vomiting
 def vomit(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = int(amt * (1-(res/100)) / 10)
+    dmg = amt * (1-(res/100)) / 10
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2303,7 +2303,7 @@ def vomit(ent, amt):
 #irritating
 def irritate(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = int(amt * (1-(res/100)) / 10)
+    dmg = amt * (1-(res/100)) / 10
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2314,7 +2314,7 @@ def irritate(ent, amt):
 #elec damage  
 def electrify(ent, amt):
     res = rog.getms(ent, 'reselec')
-    dmg = int(amt * (1-(res/100)) / 10)
+    dmg = amt * (1-(res/100)) / 10
     if dmg:
         rog.damage(ent, dmg)
         rog.sap(ent, dmg*10)
@@ -2343,7 +2343,6 @@ def paralyze(ent, dur):
 '''
 
 #create a thing from STUFF; does not register thing
-# name              :(type,material,value,color, HP, kg, solid,push?,script,)
 def create_stuff(name, x, y):
     typ,mat,val,fgcol,hp,kg,script = STUFF[name]
     world = rog.world()
@@ -2352,13 +2351,31 @@ def create_stuff(name, x, y):
     ent = world.create_entity(
         cmp.Name(name),
         cmp.Position(x,y),
-        cmp.Draw(typ, fgcol=fgcol),
-        cmp.Form(mass=round(kg*MULT_MASS), mat=mat, val=val*MULT_VALUE),
-        cmp.Stats(hp=hp),
+        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form(mat=mat, val=val*MULT_VALUE),
+        cmp.Stats(hp=hp, mass=round(kg*MULT_MASS)),
+        cmp.Meters(),
+        cmp.Flags(),
         )
-##    (ent, name=name, material=mat)
-##    if solid:
-##        rog.make(ent, ISSOLID)
+    _setGenericData(ent, material=mat)
+    script(ent)
+    return ent
+#create a thing from RAWMATERIALS; does not register thing
+def create_rawmat(name, x, y):
+    typ,val,kg,hp,mat,fgcol,script = RAWMATERIALS[name]
+    world = rog.world()
+    if fgcol == "random":
+        fgcol = random.choice(list(COL.values()))
+    ent = world.create_entity(
+        cmp.Name(name),
+        cmp.Position(x,y),
+        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form(mat=mat, val=val*MULT_VALUE),
+        cmp.Stats(hp=hp, mass=round(kg*MULT_MASS)),
+        cmp.Meters(),
+        cmp.Flags(),
+        )
+    _setGenericData(ent, material=mat)
     script(ent)
     return ent
 
@@ -2407,7 +2424,9 @@ def create_armor(name,x,y,quality):
         hp=hpmax,mp=hpmax,
         resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
         ))
-    _setGenericData(ent, name=name, material=material)
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    _setGenericData(ent, material=material)
     
     #stat mod dictionaries
     #{var : modf}
@@ -2472,7 +2491,9 @@ def create_weapon(name, x,y, quality=0):
         hp=hpmax,mp=hpmax,
         resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
         ))
-    _setGenericData(ent, name=name, material=material)
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    _setGenericData(ent, material=material)
     # equipable
     modDict={}
     if not atk==0: modDict.update({'atk':atk})
@@ -2536,7 +2557,9 @@ def create_monster(_type, x, y, col=None, mutate=0):
             spd=spd,asp=asp,msp=msp
             ),
         cmp.Inventory(carry, money=money),
-        cmp.Skills(), cmp.Flags(),
+        cmp.Skills(),
+        cmp.Meters(),
+        cmp.Flags(),
         cmp.EquipHand1(), cmp.EquipHand2(),
         cmp.Mutable(),
         )
@@ -2623,13 +2646,11 @@ def create_steel_weapon(itemName, x, y):
     return weap
 #
 
-# generic components that can be applied depending on entity's name/material
-def _setGenericData(ent, name="", material=0):
-    stats=world.component_for_entity(ent, cmp.Stats)
-    # rusting
-    if (material==MAT_METAL or "metal" in name):
+# generic components that can be applied depending on entity's data
+def _setGenericData(ent, material=0):
+    stats=rog.world().component_for_entity(ent, cmp.Stats)
+    if material==MAT_METAL:
         stats.resrust=0
-    # rotting
     if material==MAT_WOOD:
         stats.resrot=0
     return ent
@@ -3711,7 +3732,18 @@ C_ROPE = 'tan'
 C_ELEC = 'lime' # electronics
 C_QRTZ = 'crystal'
 
-RAWMATERIALS={
+#types of materials
+RAWM = T_RAWMAT
+SCRP = T_SCRAP
+SHRD = T_SHARD
+STIK = T_STICK
+PRCL = T_PARCEL
+PIEC = T_PIECE
+CHNK = T_CHUNK
+SLAB = T_SLAB
+CUBO = T_CUBOID
+CUBE = T_CUBE
+
 '''
 progression of material mass (exponential growth):
     scrap -> parcel -> piece -> chunk -> slab -> cuboid -> cube
@@ -3738,6 +3770,7 @@ Raw Mats are very common in crafting
 
 Idea: make the minimum price of items $1 regardless of if its value is 0
 '''
+RAWMATERIALS={
 
 # TODO: functions for creating these automatically
 ##"parcel of copper"      :(x3/5,   0.1, x0.5,  METL,C_METL,_mParcel,),
@@ -3746,257 +3779,257 @@ Idea: make the minimum price of items $1 regardless of if its value is 0
 ##"scrap steel"           :(3,   0.02,18,  METL,C_STEL,_particles,),
 
     # individual strands of material (tinyest pieces of material)
-# name                    $$$$,KG,  Dur, Mat, Color,  script
-"string"                :(0,   0.001,1,  CLTH,C_CLTH,None,),# string distinct from scrap cloth, it's a long 1m string whereas scrap cloth is a little patch of cloth.
+# name                    type,$$$$,KG,  Dur, Mat, Color,  script
+"string"                :(RAWM,0,   0.001,1,  CLTH,C_CLTH,None,),# string distinct from scrap cloth, it's a long 1m string whereas scrap cloth is a little patch of cloth.
 
     # Scrap, particles (tiny pieces of material)
-# name                    $$$$,KG,  Dur, Mat, Color,  script
-"dust"                  :(0,   0.04,1,   DUST,C_DUST,_dust,),# dust of non-specific kind
-"sand"                  :(0,   0.04,1,   DUST,C_SAND,_dust,),# quartz dust
-"dirt"                  :(0,   0.04,1,   DUST,C_DIRT,_dust,),
-"quartz"                :(0,   0.04,5,   QRTZ,C_QRTZ,_rawMat,),
-"gravel"                :(0,   0.04,15,  STON,C_STON,_particles,), # particles can be thrown to cause blindness
-"scrap clay"            :(0,   0.06,10,  CLAY,C_CLAY,_rawMat,),
-"scrap ceramic"         :(0,   0.02,1,   CERA,C_CERA,_particles,),
-"scrap cloth"           :(0.1, 0.008,1,  CLTH,C_CLTH,None,),
-"scrap plastic"         :(0,   0.01,1,   PLAS,C_PLAS,_particles,),
-"scrap wood"            :(0,   0.01,1,   WOOD,C_WOOD,_particles,),
-"scrap bone"            :(0.08,0.01,4,   BONE,C_BONE,_particles,),
-"scrap metal"           :(1,   0.02,6,   METL,C_METL,_particles,),
-"scrap leather"         :(0.4, 0.02,4,   LETH,C_LETH,_rawMat,),
-"scrap boiled leather"  :(0.6, 0.02,12,  LETH,C_LETH,_rawMat,),
-"scrap flesh"           :(0.2, 0.04,2,   FLSH,C_FLSH,_rawMat,),
-"scrap RAM"             :(1,   0.02,4,   QRTZ,C_ELEC,_rawMat,),
+# name                    type,$$$$,KG,  Dur, Mat, Color,  script
+"dust"                  :(RAWM,0,   0.04,1,   DUST,C_DUST,_dust,),# dust of non-specific kind
+"sand"                  :(RAWM,0,   0.04,1,   DUST,C_SAND,_dust,),# quartz dust
+"dirt"                  :(RAWM,0,   0.04,1,   DUST,C_DIRT,_dust,),
+"quartz"                :(RAWM,0,   0.04,5,   QRTZ,C_QRTZ,_rawMat,),
+"gravel"                :(RAWM,0,   0.04,15,  STON,C_STON,_particles,), # particles can be thrown to cause blindness
+"scrap clay"            :(SCRP,0,   0.06,10,  CLAY,C_CLAY,_rawMat,),
+"scrap ceramic"         :(SCRP,0,   0.02,1,   CERA,C_CERA,_particles,),
+"scrap cloth"           :(SCRP,0.1, 0.008,1,  CLTH,C_CLTH,None,),
+"scrap plastic"         :(SCRP,0,   0.01,1,   PLAS,C_PLAS,_particles,),
+"scrap wood"            :(SCRP,0,   0.01,1,   WOOD,C_WOOD,_particles,),
+"scrap bone"            :(SCRP,0.08,0.01,4,   BONE,C_BONE,_particles,),
+"scrap metal"           :(SCRP,1,   0.02,6,   METL,C_METL,_particles,),
+"scrap leather"         :(SCRP,0.4, 0.02,4,   LETH,C_LETH,_rawMat,),
+"scrap boiled leather"  :(SCRP,0.6, 0.02,12,  LETH,C_LETH,_rawMat,),
+"scrap flesh"           :(SCRP,0.2, 0.04,2,   FLSH,C_FLSH,_rawMat,),
+"scrap RAM"             :(SCRP,1,   0.02,4,   QRTZ,C_ELEC,_rawMat,),
 
     # Parcels (small pieces of material, used as currency and for making fine tools)
     # DO NOT CHANGE THE NAMES OF THESE.
-# name                    $$$$,KG,  Dur, Mat, Color, script
-"parcel of quartz"      :(1,   0.2, 15,  QRTZ,C_QRTZ,_qParcel,),
-"parcel of tarp"        :(0.6, 0.06,15,  TARP,C_TARP,_tParcel,),
-"parcel of clay"        :(0.2, 0.3, 15,  CLAY,C_CLAY,_clayParcel,),
-"parcel of ceramic"     :(0.2, 0.1, 1,   CERA,C_CERA,_ceramicParcel,),
-"parcel of cloth"       :(0.8, 0.04,10,  CLTH,C_CLTH,_clothParcel,),
-"parcel of leather"     :(2,   0.1, 20,  LETH,C_LETH,_lParcel,),
-"parcel of b.leather"   :(3,   0.1, 40,  BOIL,C_BOIL,_blParcel,),
-"parcel of flesh"       :(1,   0.2, 15,  FLSH,C_FLSH,_fParcel,),
-"parcel of stone"       :(0.2, 0.2, 50,  STON,C_STON,_sParcel,),
-"parcel of plastic"     :(0.2, 0.2, 30,  PLAS,C_PLAS,_pParcel,),
-"parcel of wood"        :(1,   0.2, 40,  WOOD,C_WOOD,_wParcel,),
-"parcel of bone"        :(0.4, 0.1, 45,  BONE,C_BONE,_bParcel,),
-"parcel of glass"       :(1,   0.04,2,   GLAS,C_GLAS,_gParcel,),
-"parcel of metal"       :(5,   0.1, 80,  METL,C_METL,_mParcel,),
-"parcel of rubber"      :(2,   0.1, 10,  RUBB,C_RUBB,_rParcel,),
+# name                    type,$$$$,KG,  Dur, Mat, Color, script
+"parcel of quartz"      :(PRCL,1,   0.2, 15,  QRTZ,C_QRTZ,_qParcel,),
+"parcel of tarp"        :(PRCL,0.6, 0.06,15,  TARP,C_TARP,_tParcel,),
+"parcel of clay"        :(PRCL,0.2, 0.3, 15,  CLAY,C_CLAY,_clayParcel,),
+"parcel of ceramic"     :(PRCL,0.2, 0.1, 1,   CERA,C_CERA,_ceramicParcel,),
+"parcel of cloth"       :(PRCL,0.8, 0.04,10,  CLTH,C_CLTH,_clothParcel,),
+"parcel of leather"     :(PRCL,2,   0.1, 20,  LETH,C_LETH,_lParcel,),
+"parcel of b.leather"   :(PRCL,3,   0.1, 40,  BOIL,C_BOIL,_blParcel,),
+"parcel of flesh"       :(PRCL,1,   0.2, 15,  FLSH,C_FLSH,_fParcel,),
+"parcel of stone"       :(PRCL,0.2, 0.2, 50,  STON,C_STON,_sParcel,),
+"parcel of plastic"     :(PRCL,0.2, 0.2, 30,  PLAS,C_PLAS,_pParcel,),
+"parcel of wood"        :(PRCL,1,   0.2, 40,  WOOD,C_WOOD,_wParcel,),
+"parcel of bone"        :(PRCL,0.4, 0.1, 45,  BONE,C_BONE,_bParcel,),
+"parcel of glass"       :(PRCL,1,   0.04,2,   GLAS,C_GLAS,_gParcel,),
+"parcel of metal"       :(PRCL,5,   0.1, 80,  METL,C_METL,_mParcel,),
+"parcel of rubber"      :(PRCL,2,   0.1, 10,  RUBB,C_RUBB,_rParcel,),
 
     # Pieces (medium size pieces of material, used for making tools, armor)
-# name                    $$$$,KG,  Dur, Mat, Color, script
-"piece of quartz"       :(5,   1.0, 60,  QRTZ,C_QRTZ,_qPiece,),
-"piece of tarp"         :(3,   0.3, 20,  TARP,C_TARP,_tPiece,),
-"piece of clay"         :(1,   1.5, 30,  CLAY,C_CLAY,_clayPiece,),
-"piece of ceramic"      :(1,   0.5, 5,   CERA,C_CERA,_ceramicPiece,),
-"piece of cloth"        :(3,   0.2, 40,  CLTH,C_CLTH,_clothPiece,),
-"piece of leather"      :(10,  0.5, 60,  LETH,C_LETH,_lPiece,),
-"piece of b.leather"    :(15,  0.5, 120, BOIL,C_BOIL,_blPiece,),
-"piece of flesh"        :(3,   1.0, 30,  FLSH,C_FLSH,_fPiece,),
-"piece of stone"        :(1,   1.0, 200, STON,C_STON,_sPiece,),
-"piece of plastic"      :(1,   1.0, 80,  PLAS,C_PLAS,_pPiece,),
-"piece of wood"         :(5,   1.0, 150, WOOD,C_WOOD,_wPiece,),
-"piece of bone"         :(2,   0.5, 180, BONE,C_BONE,_bPiece,),
-"piece of glass"        :(5,   0.2, 20,  GLAS,C_GLAS,_gPiece,),
-"piece of metal"        :(25,  0.5, 300, METL,C_METL,_mPiece,),
-"piece of rubber"       :(10,  0.5, 200, RUBB,C_RUBB,_rPiece,),
+# name                    type,$$$$,KG,  Dur, Mat, Color, script
+"piece of quartz"       :(PIEC,5,   1.0, 60,  QRTZ,C_QRTZ,_qPiece,),
+"piece of tarp"         :(PIEC,3,   0.3, 20,  TARP,C_TARP,_tPiece,),
+"piece of clay"         :(PIEC,1,   1.5, 30,  CLAY,C_CLAY,_clayPiece,),
+"piece of ceramic"      :(PIEC,1,   0.5, 5,   CERA,C_CERA,_ceramicPiece,),
+"piece of cloth"        :(PIEC,3,   0.2, 40,  CLTH,C_CLTH,_clothPiece,),
+"piece of leather"      :(PIEC,10,  0.5, 60,  LETH,C_LETH,_lPiece,),
+"piece of b.leather"    :(PIEC,15,  0.5, 120, BOIL,C_BOIL,_blPiece,),
+"piece of flesh"        :(PIEC,3,   1.0, 30,  FLSH,C_FLSH,_fPiece,),
+"piece of stone"        :(PIEC,1,   1.0, 200, STON,C_STON,_sPiece,),
+"piece of plastic"      :(PIEC,1,   1.0, 80,  PLAS,C_PLAS,_pPiece,),
+"piece of wood"         :(PIEC,5,   1.0, 150, WOOD,C_WOOD,_wPiece,),
+"piece of bone"         :(PIEC,2,   0.5, 180, BONE,C_BONE,_bPiece,),
+"piece of glass"        :(PIEC,5,   0.2, 20,  GLAS,C_GLAS,_gPiece,),
+"piece of metal"        :(PIEC,25,  0.5, 300, METL,C_METL,_mPiece,),
+"piece of rubber"       :(PIEC,10,  0.5, 200, RUBB,C_RUBB,_rPiece,),
 
     # Chunks (large pieces of material, used for making weapons, armor)
-# name                    $$$$,KG,  Dur, Mat, Color, script
+# name                    type,$$$$,KG,  Dur, Mat, Color, script
 ##"towel"                 :(20,  1.0, 120, CLTH,_towel,), # in STUFF, MOVE HERE
-"tarp"                  :(18,  1.5, 20,  TARP,C_TARP,_tarp,),
-"chunk of quartz"       :(25,  5.0, 150, QRTZ,C_QRTZ,_qChunk,),
-"chunk of clay"         :(4,   7.5, 350, CLAY,C_CLAY,_clayChunk,),
-"chunk of ceramic"      :(3,   2.5, 10,  CERA,C_CERA,_ceramicChunk,),
-"chunk of cloth"        :(15,  1.0, 160, CLTH,C_CLTH,_clothChunk,),
-"leather hide"          :(60,  2.5, 120, LETH,C_LETH,_lChunk,),
-"boiled leather hide"   :(75,  2.5, 240, BOIL,C_BOIL,_blChunk,),
-"chunk of flesh"        :(12,  5.0, 100, FLSH,C_FLSH,_fChunk,),
-"chunk of stone"        :(6,   5.0, 400, STON,C_STON,_sChunk,),
-"chunk of plastic"      :(5,   5.0, 250, PLAS,C_PLAS,_pChunk,),
-"chunk of wood"         :(30,  5.0, 300, WOOD,C_WOOD,_wChunk,),
-"chunk of bone"         :(10,  2.5, 350, BONE,C_BONE,_bChunk,),
-"chunk of glass"        :(25,  1.0, 50,  GLAS,C_GLAS,_gChunk,),
-"chunk of metal"        :(125, 2.5, 900, METL,C_METL,_mChunk,),
-"chunk of rubber"       :(50,  2.5, 500, RUBB,C_RUBB,_rChunk,),
+"tarp"                  :(CHNK,18,  1.5, 20,  TARP,C_TARP,_tarp,),
+"chunk of quartz"       :(CHNK,25,  5.0, 150, QRTZ,C_QRTZ,_qChunk,),
+"chunk of clay"         :(CHNK,4,   7.5, 350, CLAY,C_CLAY,_clayChunk,),
+"chunk of ceramic"      :(CHNK,3,   2.5, 10,  CERA,C_CERA,_ceramicChunk,),
+"chunk of cloth"        :(CHNK,15,  1.0, 160, CLTH,C_CLTH,_clothChunk,),
+"leather hide"          :(CHNK,60,  2.5, 120, LETH,C_LETH,_lChunk,),
+"boiled leather hide"   :(CHNK,75,  2.5, 240, BOIL,C_BOIL,_blChunk,),
+"chunk of flesh"        :(CHNK,12,  5.0, 100, FLSH,C_FLSH,_fChunk,),
+"chunk of stone"        :(CHNK,6,   5.0, 400, STON,C_STON,_sChunk,),
+"chunk of plastic"      :(CHNK,5,   5.0, 250, PLAS,C_PLAS,_pChunk,),
+"chunk of wood"         :(CHNK,30,  5.0, 300, WOOD,C_WOOD,_wChunk,),
+"chunk of bone"         :(CHNK,10,  2.5, 350, BONE,C_BONE,_bChunk,),
+"chunk of glass"        :(CHNK,25,  1.0, 50,  GLAS,C_GLAS,_gChunk,),
+"chunk of metal"        :(CHNK,125, 2.5, 900, METL,C_METL,_mChunk,),
+"chunk of rubber"       :(CHNK,50,  2.5, 500, RUBB,C_RUBB,_rChunk,),
 
     # Slabs (bricks of material, used for making large tools/weapons)
-# name                    $$$$,KG,  Dur, Mat, Color, script
+# name                    type,$$$$,KG,  Dur, Mat, Color, script
 ##"slab of cloth"         :(100, 5.0, 120, CLTH,_rawMat,), #certain types of slabs are difficult to achieve
 ##"slab of leather"       :(400, 12.5,400, LETH,_rawMat,),
-"tarp, large"           :(95,  7.5, 20,  TARP,C_TARP,_tarpLarge,),
-"slab of clay"          :(16,  37.5,2000,CLAY,C_CLAY,_claySlab,),
-"slab of ceramic"       :(15,  12.5,500, CERA,C_TARP,_ceramicSlab,),
-"slab of flesh"         :(100, 25.0,400, FLSH,C_FLSH,_fSlab,),
-"slab of stone"         :(40,  25.0,1200,STON,C_STON,_sSlab,),
-"slab of plastic"       :(25,  25.0,800, PLAS,C_PLAS,_pSlab,),
-"slab of wood"          :(180, 25.0,950, WOOD,C_WOOD,_wSlab,),
-"slab of bone"          :(100, 12.5,1050,BONE,C_BONE,_bSlab,),
-"slab of glass"         :(125, 5.0, 200, GLAS,C_GLAS,_gSlab,),
-"slab of metal"         :(600, 12.5,3000,METL,C_METL,_mSlab,),
+"tarp, large"           :(SLAB,95,  7.5, 20,  TARP,C_TARP,_tarpLarge,),
+"slab of clay"          :(SLAB,16,  37.5,2000,CLAY,C_CLAY,_claySlab,),
+"slab of ceramic"       :(SLAB,15,  12.5,500, CERA,C_TARP,_ceramicSlab,),
+"slab of flesh"         :(SLAB,100, 25.0,400, FLSH,C_FLSH,_fSlab,),
+"slab of stone"         :(SLAB,40,  25.0,1200,STON,C_STON,_sSlab,),
+"slab of plastic"       :(SLAB,25,  25.0,800, PLAS,C_PLAS,_pSlab,),
+"slab of wood"          :(SLAB,180, 25.0,950, WOOD,C_WOOD,_wSlab,),
+"slab of bone"          :(SLAB,100, 12.5,1050,BONE,C_BONE,_bSlab,),
+"slab of glass"         :(SLAB,125, 5.0, 200, GLAS,C_GLAS,_gSlab,),
+"slab of metal"         :(SLAB,600, 12.5,3000,METL,C_METL,_mSlab,),
 
     # Cuboids (solid 3D blocks, 9 times the mass of slabs)
-# name                    $$$$,KG,  Dur, Mat, Color, script
-"cuboid of clay"        :(100, 337, 5000,CLAY,C_CLAY,_cuboid,),
-"cuboid of flesh"       :(800, 225, 3000,FLSH,C_FLSH,_cuboid,),
-"cuboid of stone"       :(300, 225, 5000,STON,C_STON,_cuboid,),
-"cuboid of plastic"     :(170, 225, 2000,PLAS,C_PLAS,_cuboid,),
-"cuboid of wood"        :(950, 225, 5000,WOOD,C_WOOD,_cuboid,),
-"cuboid of bone"        :(990, 112, 5000,BONE,C_BONE,_cuboid,),
-"cuboid of glass"       :(850, 45,  2000,GLAS,C_GLAS,_cuboid,),
-"cuboid of metal"       :(5000,112, 9000,METL,C_METL,_cuboid,),
+# name                    type,$$$$,KG,  Dur, Mat, Color, script
+"cuboid of clay"        :(CUBO,100, 337, 5000,CLAY,C_CLAY,_cuboid,),
+"cuboid of flesh"       :(CUBO,800, 225, 3000,FLSH,C_FLSH,_cuboid,),
+"cuboid of stone"       :(CUBO,300, 225, 5000,STON,C_STON,_cuboid,),
+"cuboid of plastic"     :(CUBO,170, 225, 2000,PLAS,C_PLAS,_cuboid,),
+"cuboid of wood"        :(CUBO,950, 225, 5000,WOOD,C_WOOD,_cuboid,),
+"cuboid of bone"        :(CUBO,990, 112, 5000,BONE,C_BONE,_cuboid,),
+"cuboid of glass"       :(CUBO,850, 45,  2000,GLAS,C_GLAS,_cuboid,),
+"cuboid of metal"       :(CUBO,5000,112, 9000,METL,C_METL,_cuboid,),
 
     # Cubes (27 times the mass of cuboids)
-# name                    $$$$$$,KG,  Dur, Mat, script
-"cube of clay"          :(2250,  9112,5000,CLAY,C_CLAY,_cube,),
-"cube of flesh"         :(20000, 6075,3000,FLSH,C_FLSH,_cube,),
-"cube of stone"         :(7500,  6075,5000,STON,C_STON,_cube,),
-"cube of plastic"       :(5500,  6075,2000,PLAS,C_PLAS,_cube,),
-"cube of wood"          :(20000, 6075,5000,WOOD,C_WOOD,_cube,),
-"cube of bone"          :(20000, 3037,5000,BONE,C_BONE,_cube,),
-"cube of glass"         :(10000, 1215,2000,GLAS,C_GLAS,_cube,),
-"cube of metal"         :(120000,3037,9000,METL,C_METL,_cube,),
+# name                    type,$$$$$$,KG,  Dur, Mat, script
+"cube of clay"          :(CUBE,2250,  9112,5000,CLAY,C_CLAY,_cube,),
+"cube of flesh"         :(CUBE,20000, 6075,3000,FLSH,C_FLSH,_cube,),
+"cube of stone"         :(CUBE,7500,  6075,5000,STON,C_STON,_cube,),
+"cube of plastic"       :(CUBE,5500,  6075,2000,PLAS,C_PLAS,_cube,),
+"cube of wood"          :(CUBE,20000, 6075,5000,WOOD,C_WOOD,_cube,),
+"cube of bone"          :(CUBE,20000, 3037,5000,BONE,C_BONE,_cube,),
+"cube of glass"         :(CUBE,10000, 1215,2000,GLAS,C_GLAS,_cube,),
+"cube of metal"         :(CUBE,120000,3037,9000,METL,C_METL,_cube,),
 
     # Walls (1m x 1m x 3m massive solid blocks of material)
-# name                    $$$$$$,KG,   Dur,  Mat, script
-"wall of clay"          :(9999,  99999,99999,CLAY,C_CLAY,None,),
-"wall of flesh"         :(99999, 99999,99999,FLSH,C_FLSH,None,),
-"wall of stone"         :(9999,  99999,99999,STON,C_STON,None,),
-"wall of plastic"       :(9999,  99999,99999,PLAS,C_PLAS,None,),
-"wall of wood"          :(99999, 99999,99999,WOOD,C_WOOD,None,),
-"wall of bone"          :(99999, 99999,99999,BONE,C_BONE,None,),
-"wall of glass"         :(99999, 99999,99999,GLAS,C_GLAS,None,),
-"wall of metal"         :(999999,99999,99999,METL,C_METL,None,),
+# name                    type,$$$$$$,KG,   Dur,  Mat, script
+"wall of clay"          :(219, 9999,  99999,99999,CLAY,C_CLAY,None,),
+"wall of flesh"         :(219, 99999, 99999,99999,FLSH,C_FLSH,None,),
+"wall of stone"         :(219, 9999,  99999,99999,STON,C_STON,None,),
+"wall of plastic"       :(219, 9999,  99999,99999,PLAS,C_PLAS,None,),
+"wall of wood"          :(219, 99999, 99999,99999,WOOD,C_WOOD,None,),
+"wall of bone"          :(219, 99999, 99999,99999,BONE,C_BONE,None,),
+"wall of glass"         :(219, 99999, 99999,99999,GLAS,C_GLAS,None,),
+"wall of metal"         :(219, 999999,99999,99999,METL,C_METL,None,),
 
     # Shards (small and sharp pieces of material)
-# name                    $$$$, Kg,  Dur, Mat, Color, script
-"shard of plastic"      :(0,    0.18,3,   PLAS,C_PLAS,_pShard,),
-"shard of ceramic"      :(1,    0.12,1,   CERA,C_CERA,_cShard,),
-"shard of wood"         :(0.2,  0.18,10,  WOOD,C_WOOD,_wShard,),
-"shard of stone"        :(0.2,  0.18,15,  STON,C_STON,_sShard,),
-"shard of bone"         :(0.4,  0.08,20,  BONE,C_BONE,_bShard,),
-"shard of glass"        :(1,    0.05,2,   GLAS,C_GLAS,_gShard,),
-"shard of metal"        :(1,    0.1, 30,  METL,C_METL,_mShard,),
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
+"shard of plastic"      :(SHRD,0,    0.18,3,   PLAS,C_PLAS,_pShard,),
+"shard of ceramic"      :(SHRD,1,    0.12,1,   CERA,C_CERA,_cShard,),
+"shard of wood"         :(SHRD,0.2,  0.18,10,  WOOD,C_WOOD,_wShard,),
+"shard of stone"        :(SHRD,0.2,  0.18,15,  STON,C_STON,_sShard,),
+"shard of bone"         :(SHRD,0.4,  0.08,20,  BONE,C_BONE,_bShard,),
+"shard of glass"        :(SHRD,1,    0.05,2,   GLAS,C_GLAS,_gShard,),
+"shard of metal"        :(SHRD,1,    0.1, 30,  METL,C_METL,_mShard,),
 
     # Sticks
-# name                    $$$$, Kg,  Dur, Mat, Color, script
-"stick of plastic"      :(1,    1.0, 75,  PLAS,C_PLAS,_pStick,),
-"stick of wood"         :(5,    1.0, 150, WOOD,C_WOOD,_wStick,), # wood is greenwood when you need it to be, and deadwood when you need it to be. Simplifies things.
-"stick of metal"        :(50,   0.5, 500, METL,C_METL,_mStick,),
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
+"stick of plastic"      :(STIK,1,    1.0, 75,  PLAS,C_PLAS,_pStick,),
+"stick of wood"         :(STIK,5,    1.0, 150, WOOD,C_WOOD,_wStick,), # wood is greenwood when you need it to be, and deadwood when you need it to be. Simplifies things.
+"stick of metal"        :(STIK,50,   0.5, 500, METL,C_METL,_mStick,),
 
     # Poles (long sticks, 2x the mass of sticks)
-# name                    $$$$, Kg,  Dur, Mat, Color, script
-"pole of plastic"       :(2,    2.0, 150, PLAS,C_PLAS,_pPole,),
-"pole of wood"          :(10,   2.0, 225, WOOD,C_WOOD,_wPole,),
-"pole of metal"         :(100,  1.0, 600, METL,C_METL,_mPole,),
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
+"pole of plastic"       :(STIK,2,    2.0, 150, PLAS,C_PLAS,_pPole,),
+"pole of wood"          :(STIK,10,   2.0, 225, WOOD,C_WOOD,_wPole,),
+"pole of metal"         :(STIK,100,  1.0, 600, METL,C_METL,_mPole,),
 
     # Rings
-# name                    $$$$, Kg,  Dur, Mat, Color, script
-"plastic ring"          :(0,    0.01,10,  PLAS,C_PLAS,_rawMat,),
-"wooden ring"           :(1,    0.02,40,  WOOD,C_WOOD,_rawMat,),
-"bone ring"             :(1,    0.02,80,  BONE,C_BONE,_rawMat,),
-"stone ring"            :(1,    0.03,120, STON,C_STON,_rawMat,),
-"glass ring"            :(1,    0.01,10,  GLAS,C_GLAS,_rawMat,),
-"metal ring"            :(5,    0.02,300, METL,C_METL,_rawMat,),
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
+"plastic ring"          :(RAWM,0,    0.01,10,  PLAS,C_PLAS,_rawMat,),
+"wooden ring"           :(RAWM,1,    0.02,40,  WOOD,C_WOOD,_rawMat,),
+"bone ring"             :(RAWM,1,    0.02,80,  BONE,C_BONE,_rawMat,),
+"stone ring"            :(RAWM,1,    0.03,120, STON,C_STON,_rawMat,),
+"glass ring"            :(RAWM,1,    0.01,10,  GLAS,C_GLAS,_rawMat,),
+"metal ring"            :(RAWM,5,    0.02,300, METL,C_METL,_rawMat,),
 
 
     # Others
-# name                    $$$$, Kg,  Dur, Mat, Color, script
-"glue"                  :(0,    0.001,1,  PLAS,'yellow',None,),
-"gluestick"             :(10,   0.1,  10, PLAS,'yellow',_trinket,),
-"duct tape"             :(0,    0.01, 8,  PLAS,'gray',None,),
-"roll of duct tape"     :(20,   1.0,  200,PLAS,'gray',_trinket,),
-"battery, small"        :(2,    0.05, 15, PLAS,'blue',_trinket,),
-"battery"               :(5,    0.2,  25, PLAS,'blue',_trinket,),
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
+"glue"                  :(RAWM,0,    0.001,1,  PLAS,'yellow',None,),
+"gluestick"             :(RAWM,10,   0.1,  10, PLAS,'yellow',_trinket,),
+"duct tape"             :(RAWM,0,    0.01, 8,  PLAS,'gray',None,),
+"roll of duct tape"     :(RAWM,20,   1.0,  200,PLAS,'gray',_trinket,),
+"battery, small"        :(RAWM,2,    0.05, 15, PLAS,'blue',_trinket,),
+"battery"               :(RAWM,5,    0.2,  25, PLAS,'blue',_trinket,),
 
 
-# name                    $$$$, Kg,  Dur, Mat, Color, script
+# name                    type,$$$$, Kg,  Dur, Mat, Color, script
         # cloth
-"spool of string"       :(5,    0.3, 50,  CLTH,C_CLTH,_spoolString,),# can unwind into hundreds of strings
+"spool of string"       :(RAWM,5,    0.3, 50,  CLTH,C_CLTH,_spoolString,),# can unwind into hundreds of strings
         # carbon
-"charcoal"              :(1,    0.1, 5,   CARB,C_CARB,_rawMat,),# obtained by putting wood in a charcoal mound and cooking it for a long ass time (< 24 hours)
-"coke"                  :(1,    0.05,3,   CARB,C_CARB,_rawMat,),# used to smelt metal; can smelt rust back into metal, and create a weak steel that is stronger than normal metal. Obtained by cooking charcoal in airless environment for a long time (12-18 hours).
-"powdered charcoal"     :(1,    0.1, 1,   CARB,C_CARB,_dust,),
-"activated carbon"      :(3,    0.05,1,   CARB,C_CARB,_dust,),# filtration systems, antitoxin, antibiotic, odor absorbent. Needs powdered coal, calcium chloride and baking at 300C.
+"charcoal"              :(RAWM,1,    0.1, 5,   CARB,C_CARB,_rawMat,),# obtained by putting wood in a charcoal mound and cooking it for a long ass time (< 24 hours)
+"coke"                  :(RAWM,1,    0.05,3,   CARB,C_CARB,_rawMat,),# used to smelt metal; can smelt rust back into metal, and create a weak steel that is stronger than normal metal. Obtained by cooking charcoal in airless environment for a long time (12-18 hours).
+"powdered charcoal"     :(RAWM,1,    0.1, 1,   CARB,C_CARB,_dust,),
+"activated carbon"      :(RAWM,3,    0.05,1,   CARB,C_CARB,_dust,),# filtration systems, antitoxin, antibiotic, odor absorbent. Needs powdered coal, calcium chloride and baking at 300C.
         # rubber
-"rubber hose"           :(3,    0.1, 15,  RUBB,C_RUBB,_rawMat,),
-"rubber band"           :(1,    0.02,10,  RUBB,C_RUBB,_rawMat,),
+"rubber hose"           :(RAWM,3,    0.1, 15,  RUBB,C_RUBB,_rawMat,),
+"rubber band"           :(RAWM,1,    0.02,10,  RUBB,C_RUBB,_rawMat,),
         # plastic
-"plastic bottle"        :(1,    0.1, 5,   PLAS,C_PLAS,_pBottle,),
-"plastic cup"           :(1,    0.07,5,   PLAS,C_PLAS,_rawMat,),
-"plastic pipe"          :(1,    1.0, 100, PLAS,C_PLAS,_pPipe,),
-"plastic tube"          :(1,    0.1, 20,  PLAS,C_PLAS,_rawMat,),
-"insulated wire"        :(6,    0.05,30,  PLAS,C_PLAS,_rawMat,),
-"fishing wire"          :(0,    0.003,5,  METL,C_PLAS,_rawMat,),
-"spool of fishing wire" :(150,  1.0, 100, METL,C_PLAS,_spoolFishingWire,),# can unwind into hundreds of fishing wire
+"plastic bottle"        :(RAWM,1,    0.1, 5,   PLAS,C_PLAS,_pBottle,),
+"plastic cup"           :(RAWM,1,    0.07,5,   PLAS,C_PLAS,_rawMat,),
+"plastic pipe"          :(RAWM,1,    1.0, 100, PLAS,C_PLAS,_pPipe,),
+"plastic tube"          :(RAWM,1,    0.1, 20,  PLAS,C_PLAS,_rawMat,),
+"insulated wire"        :(RAWM,6,    0.05,30,  PLAS,C_PLAS,_rawMat,),
+"fishing wire"          :(RAWM,0,    0.003,5,  METL,C_PLAS,_rawMat,),
+"spool of fishing wire" :(RAWM,150,  1.0, 100, METL,C_PLAS,_spoolFishingWire,),# can unwind into hundreds of fishing wire
         # wood
-"wooden plank"          :(4,    1.25,80,  WOOD,C_WOOD,_plank,),#2H only
-"twig"                  :(0,    0.1, 4,   WOOD,C_WOOD,_rawMat,),
-"fibrous leaf"          :(0,    0.2, 30,  WOOD,C_WOOD,_rawMat,),
-"foliage"               :(0,    0.3, 20,  WOOD,C_WOOD,_rawMat,),
-"root"                  :(1,    1.0, 100, WOOD,C_WOOD,_rawMat,),
-"branch"                :(1,    6.0, 800, WOOD,C_WOOD,_rawMat,),# becomes sticks of wood, sticks of wood, long, and foliage...
-"log"                   :(92,   100, 1000,WOOD,C_WOOD,_log,),
+"wooden plank"          :(RAWM,4,    1.25,80,  WOOD,C_WOOD,_plank,),#2H only
+"twig"                  :(RAWM,0,    0.1, 4,   WOOD,C_WOOD,_rawMat,),
+"fibrous leaf"          :(RAWM,0,    0.2, 30,  WOOD,C_WOOD,_rawMat,),
+"foliage"               :(RAWM,0,    0.3, 20,  WOOD,C_WOOD,_rawMat,),
+"root"                  :(RAWM,1,    1.0, 100, WOOD,C_WOOD,_rawMat,),
+"branch"                :(RAWM,1,    6.0, 800, WOOD,C_WOOD,_rawMat,),# becomes sticks of wood, sticks of wood, long, and foliage...
+"log"                   :(T_LOG,92,  100, 1000,WOOD,C_WOOD,_log,),
         # bone
-"skull"                 :(5,    1.0, 80,  BONE,C_BONE,_skull,),
-"bone"                  :(2,    0.25,120, BONE,C_BONE,_bone,),
-"bone, broken"          :(1,    0.2, 30,  BONE,C_BONE,_bBone,),
-"bone, large"           :(10,   2.0, 300, BONE,C_BONE,_boneLarge,),#2H only
-"bone, small"           :(1,    0.1, 40,  BONE,C_BONE,_boneSmall,),
+"skull"                 :(RAWM,5,    1.0, 80,  BONE,C_BONE,_skull,),
+"bone"                  :(RAWM,2,    0.25,120, BONE,C_BONE,_bone,),
+"bone, broken"          :(RAWM,1,    0.2, 30,  BONE,C_BONE,_bBone,),
+"bone, large"           :(RAWM,10,   2.0, 300, BONE,C_BONE,_boneLarge,),#2H only
+"bone, small"           :(RAWM,1,    0.1, 40,  BONE,C_BONE,_boneSmall,),
         # glass
-"magnifying glass"      :(54,   0.1, 5,   GLAS,C_GLAS,_magnifyingGlass,),
-"glass bottle"          :(5,    0.5, 1,   GLAS,C_GLAS,_gBottle,),
-"glass tube"            :(1,    0.01,1,   GLAS,C_GLAS,_rawMat,),
+"magnifying glass"      :(RAWM,54,   0.1, 5,   GLAS,C_GLAS,_magnifyingGlass,),
+"glass bottle"          :(RAWM,5,    0.5, 1,   GLAS,C_GLAS,_gBottle,),
+"glass tube"            :(RAWM,1,    0.01,1,   GLAS,C_GLAS,_rawMat,),
         # metal
     # springs
-"spring, small"         :(3,    0.02,2,   METL,C_METL,_rawMat,),
-"spring"                :(8,    0.1, 10,  METL,C_METL,_rawMat,),
-"spring, large"         :(55,   0.5, 50,  METL,C_METL,_rawMat,),
-"spring, giant"         :(275,  2.5, 250, METL,C_METL,_rawMat,),
-"torsion spring, small" :(6,    0.05,10,  METL,C_METL,_rawMat,),
-"torsion spring"        :(18,   0.2, 50,  METL,C_METL,_rawMat,),
-"torsion spring, large" :(160,  1.0, 250, METL,C_METL,_rawMat,),
+"spring, small"         :(RAWM,3,    0.02,2,   METL,C_METL,_rawMat,),
+"spring"                :(RAWM,8,    0.1, 10,  METL,C_METL,_rawMat,),
+"spring, large"         :(RAWM,55,   0.5, 50,  METL,C_METL,_rawMat,),
+"spring, giant"         :(RAWM,275,  2.5, 250, METL,C_METL,_rawMat,),
+"torsion spring, small" :(RAWM,6,    0.05,10,  METL,C_METL,_rawMat,),
+"torsion spring"        :(RAWM,18,   0.2, 50,  METL,C_METL,_rawMat,),
+"torsion spring, large" :(RAWM,160,  1.0, 250, METL,C_METL,_rawMat,),
     # chains
-"chain link, small"     :(0,    0.003,60, METL,C_METL,None,),
-"chain, small"          :(25,   0.5, 75,  METL,C_METL,_chainLight,),
-"chain link"            :(1,    0.01,125, METL,C_METL,None,),
-"chain"                 :(50,   1.0, 150, METL,C_METL,_chain,),
-"chain link, large"     :(2,    0.04,300, METL,C_METL,None,),
-"chain, large"          :(100,  2.0, 350, METL,C_METL,_chainHeavy,),
+"chain link, small"     :(RAWM,0,    0.003,60, METL,C_METL,None,),
+"chain, small"          :(RAWM,25,   0.5, 75,  METL,C_METL,_chainLight,),
+"chain link"            :(RAWM,1,    0.01,125, METL,C_METL,None,),
+"chain"                 :(RAWM,50,   1.0, 150, METL,C_METL,_chain,),
+"chain link, large"     :(RAWM,2,    0.04,300, METL,C_METL,None,),
+"chain, large"          :(RAWM,100,  2.0, 350, METL,C_METL,_chainHeavy,),
     # magnets
-"magnet, weak"          :(6,    0.05,115, METL,C_METL,_magnetWeak,),
-"magnet"                :(26,   0.15,225, METL,C_METL,_magnet,),
-"magnet, strong"        :(166,  0.3, 335, METL,C_METL,_magnetStrong,),
+"magnet, weak"          :(RAWM,6,    0.05,115, METL,C_METL,_magnetWeak,),
+"magnet"                :(RAWM,26,   0.15,225, METL,C_METL,_magnet,),
+"magnet, strong"        :(RAWM,166,  0.3, 335, METL,C_METL,_magnetStrong,),
     # other metals
-"brass rivet"           :(0,    0.005,10, METL,C_METL,_rawMat,),
-"pop tab"               :(0,    0.005,50, METL,C_METL,_rawMat,),
-"pop tab mail ring"     :(0,    0.005,40, METL,C_METL,_rawMat,),
-"mail ring, riveted"    :(1,    0.01,150, METL,C_METL,_rawMat,),
-"mail ring, welded"     :(1,    0.01,150, METL,C_METL,_rawMat,),
-"paperclip"             :(0,    0.001,8,  METL,C_METL,_rawMat,),
-"bobby pin"             :(1,    0.01,25,  METL,C_METL,_bobbyPin,),
-"needle"                :(0,    0.001,15, METL,C_METL,_mNeedle,),
-"nail"                  :(0,    0.02,60,  METL,C_METL,_nail,),
-"screw"                 :(0,    0.02,120, METL,C_METL,_screw,),
-"razor blade"           :(8,    0.02,2,   METL,C_METL,_razorBlade,),
-"metal screen"          :(1,    0.05,5,   METL,C_METL,_rawMat,),
-"metal foil"            :(1,    0.01,3,   METL,C_METL,_rawMat,),
-"metal can"             :(5,    0.1, 25,  METL,C_METL,_mCan,),
-"metal wire"            :(3,    0.04,15,  METL,C_METL,_mWire,),
-"metal key"             :(6,    0.1, 350, METL,C_METL,_key,),
-"metal tube"            :(6,    0.25,40,  METL,C_METL,_mTube,),
-"metal pipe"            :(50,   1.0, 500, METL,C_METL,_mPipe,),
-"metal pipe, broken"    :(30,   0.6, 250, METL,C_METL,_mPipeBroken,),
-"metal bar"             :(50,   1.0, 1500,METL,C_METL,_mBar,),# flat inch-thick brick of metal
-"metal sheet"           :(136,  2.5, 50,  METL,C_METL,_mChunk,),
+"brass rivet"           :(RAWM,0,    0.005,10, METL,C_METL,_rawMat,),
+"pop tab"               :(RAWM,0,    0.005,50, METL,C_METL,_rawMat,),
+"pop tab mail ring"     :(RAWM,0,    0.005,40, METL,C_METL,_rawMat,),
+"mail ring, riveted"    :(RAWM,1,    0.01,150, METL,C_METL,_rawMat,),
+"mail ring, welded"     :(RAWM,1,    0.01,150, METL,C_METL,_rawMat,),
+"paperclip"             :(RAWM,0,    0.001,8,  METL,C_METL,_rawMat,),
+"bobby pin"             :(RAWM,1,    0.01,25,  METL,C_METL,_bobbyPin,),
+"needle"                :(RAWM,0,    0.001,15, METL,C_METL,_mNeedle,),
+"nail"                  :(RAWM,0,    0.02,60,  METL,C_METL,_nail,),
+"screw"                 :(RAWM,0,    0.02,120, METL,C_METL,_screw,),
+"razor blade"           :(RAWM,8,    0.02,2,   METL,C_METL,_razorBlade,),
+"metal screen"          :(RAWM,1,    0.05,5,   METL,C_METL,_rawMat,),
+"metal foil"            :(RAWM,1,    0.01,3,   METL,C_METL,_rawMat,),
+"metal can"             :(RAWM,5,    0.1, 25,  METL,C_METL,_mCan,),
+"metal wire"            :(RAWM,3,    0.04,15,  METL,C_METL,_mWire,),
+"metal key"             :(RAWM,6,    0.1, 350, METL,C_METL,_key,),
+"metal tube"            :(RAWM,6,    0.25,40,  METL,C_METL,_mTube,),
+"metal pipe"            :(RAWM,50,   1.0, 500, METL,C_METL,_mPipe,),
+"metal pipe, broken"    :(RAWM,30,   0.6, 250, METL,C_METL,_mPipeBroken,),
+"metal bar"             :(RAWM,50,   1.0, 1500,METL,C_METL,_mBar,),# flat inch-thick brick of metal
+"metal sheet"           :(RAWM,136,  2.5, 50,  METL,C_METL,_mChunk,),
         # ropes
-"cordage"               :(0,    0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
-"rope"                  :(1,    0.05,30,  ROPE,C_ROPE,_rope,),#2H only; length of rope is simply how many items of rope you possess -- this is the simplest way to do this.
-"cable"                 :(3,    0.15,100, ROPE,C_ROPE,_cable,),#2H only
+"cordage"               :(RAWM,0,    0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
+"rope"                  :(RAWM,1,    0.05,30,  ROPE,C_ROPE,_rope,),#2H only; length of rope is simply how many items of rope you possess -- this is the simplest way to do this.
+"cable"                 :(RAWM,3,    0.15,100, ROPE,C_ROPE,_cable,),#2H only
 
 }
 

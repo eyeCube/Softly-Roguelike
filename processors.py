@@ -7,6 +7,7 @@
 ##from dataclasses import dataclass
 import tcod as libtcod
 import numpy as np
+import scipy.signal
 import esper
 import time
 import math
@@ -155,114 +156,546 @@ return timer
     #   light and messages from fire, fire spreading and dousing
     # Note: does not control burning status effect
 class Fires:
-    _fires={}
-    newfires={}
-##    strongFires={} #fires that can't be put out
-    lights={}
-    removeList=[]
     soundsList={}
-
+    entsources={} # entity heat sources
+    
+    fires = np.full((ROOMW,ROOMH,), fill_value=False)
+    fuel = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.int16)
+    heat = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
+    heat_sources = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
+    
+    # dispersion arrays
+    DISPERSE_0 = np.array( # no wind
+        [   [5,  7,  5],
+            [7,  67, 7],
+            [5,  7,  5], ],
+        dtype=np.float64,
+    )
+    DISPERSE_0 /= DISPERSE_0.sum()
+    
+    # orthogonal winds
+    DISPERSE_1 = np.array( # easterly wind, slight strength
+        [   [4,  6,  8],
+            [3,  54, 16],
+            [4,  6,  8], ],
+        dtype=np.float64
+    )
+    DISPERSE_1 /= DISPERSE_1.sum()
+    DISPERSE_2 = np.array( # easterly wind, med-low strength
+        [   [4,  6,  12],
+            [2,  54, 28],
+            [4,  6,  12], ],
+        dtype=np.float64
+    )
+    DISPERSE_2 /= DISPERSE_2.sum()
+    DISPERSE_3 = np.array( # easterly wind, med-high strength
+        [   [4,  6,  14],
+            [2,  54, 42],
+            [4,  6,  14], ],
+        dtype=np.float64,
+    )
+    DISPERSE_3 /= DISPERSE_3.sum()
+    DISPERSE_4 = np.array( # easterly wind, high strength
+        [   [3,  6,  15],
+            [2,  52, 54],
+            [3,  6,  15], ],
+        dtype=np.float64,
+    )
+    DISPERSE_4 /= DISPERSE_4.sum()
+    DISPERSE_5 = np.array( # easterly wind, v. high strength
+        [   [3,  6,  16],
+            [2,  50, 66],
+            [3,  6,  16], ],
+        dtype=np.float64,
+    )
+    DISPERSE_5 /= DISPERSE_5.sum()
+    
+    # diagonal winds
+    DISPERSE_1_DIAG = np.array( # southeasterly wind, slight strength
+        [   [3,  5,  6],
+            [5,  54, 10],
+            [6,  10, 14], ],
+        dtype=np.float64,
+    )
+    DISPERSE_1_DIAG /= DISPERSE_1_DIAG.sum()
+    DISPERSE_2_DIAG = np.array( # southeasterly wind, med-low strength
+        [   [3,  5,  6],
+            [5,  54, 14],
+            [6,  14, 22], ],
+        dtype=np.float64,
+    )
+    DISPERSE_2_DIAG /= DISPERSE_2_DIAG.sum()
+    DISPERSE_3_DIAG = np.array( # southeasterly wind, med-high strength
+        [   [2,  4,  6],
+            [4,  54, 16],
+            [6,  16, 32], ],
+        dtype=np.float64,
+    )
+    DISPERSE_3_DIAG /= DISPERSE_3_DIAG.sum()
+    DISPERSE_4_DIAG = np.array( # southeasterly wind, high strength
+        [   [2,  4,  6],
+            [4,  50, 17],
+            [6,  17, 42], ],
+        dtype=np.float64,
+    )
+    DISPERSE_4_DIAG /= DISPERSE_4_DIAG.sum()
+    DISPERSE_5_DIAG = np.array( # southeasterly wind, v. high strength
+        [   [1,  3,  6],
+            [3,  46, 17],
+            [6,  17, 54], ],
+        dtype=np.float64,
+    )
+    DISPERSE_5_DIAG /= DISPERSE_5_DIAG.sum()
+    
+    DISPERSE_ORTHO = (
+        DISPERSE_1, DISPERSE_2, DISPERSE_3,
+        DISPERSE_4, DISPERSE_5,
+    )
+    DISPERSE_DIAG  = (
+        DISPERSE_1_DIAG, DISPERSE_2_DIAG, DISPERSE_3_DIAG,
+        DISPERSE_4_DIAG, DISPERSE_5_DIAG,
+    )
+    
+    ROTAMT = {
+        # for getting number of 90 degree ccw rotations.
+        #   From direction to number of rotations.
+        #   Orthogonal directions use disperse_ortho grids,
+        #   diagonal use the disperse_diag grids.
+        (1,1)   : 0,
+        (1,-1)  : 1,
+        (-1,-1) : 2,
+        (-1,1)  : 3,
+        (1,0)   : 0,
+        (0,-1)  : 1,
+        (-1,0)  : 2,
+        (0,1)   : 3,
+        }
+    
     @classmethod
-    def fireat(self, x,y):
-        return self._fires.get((x,y,), False)
+    def add_heat_source(cls,x,y,temp): cls.heat_sources[y][x] += temp
     @classmethod
-    def fires(self):
-        return self._fires.keys()
-
-    # set a tile on fire
+    def remove_heat_source(cls,x,y,temp): cls.heat_sources[y][x] -= temp
     @classmethod
-    def add(self, x,y):
-        if self.fireat(x,y): return
-        #print("fire addition!!")
-        self._fires.update({ (x,y,) : True })
-        light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
-        self.lights.update({(x,y,) : light})
+    def add_heat(cls,x,y,temp): cls.heat[y][x] += temp
+    @classmethod
+    def remove_heat(cls,x,y,temp): cls.heat[y][x] -= temp
+    @classmethod
+    def add_fuel(cls,x,y,fuel): cls.fuel[y][x] += fuel
+    @classmethod
+    def remove_fuel(cls,x,y,fuel):
+        cls.fuel[y][x] = max(0, cls.fuel[y][x] - fuel)
+    @classmethod
+    def add_entity_heat_source(cls, ent):
+        pos = rog.world().component_for_entity(ent, cmp.Position)
+        temp = rog.world().component_for_entity(ent, cmp.Meters).temp
+        mass = rog.getms(ent, "mass")
+        sourceValue = cls.calc_source_heat(temp, mass)
+        if ent in cls.entsources: # remove current heat source data for entity
+            cls.heat_sources[pos.y][pos.x] -= cls.entsources[ent]
+        cls.heat_sources[pos.y][pos.x] += sourceValue
+        cls.entsources[ent] = sourceValue
+    @classmethod
+    def remove_entity_heat_source(cls, ent):
+        if ent in cls.entsources:
+            pos = rog.world().component_for_entity(ent, cmp.Position)
+            cls.heat_sources[pos.y][pos.x] -= cls.entsources[ent]
+            del cls.entsources[ent]
+    @classmethod
+    def calc_source_heat(cls, temp, mass):
+        return (temp*mass / (MULT_MASS*100))
         
-        #obj.observer_add(light)
-        #self.lights.update({obj : light})
-        
-    # remove a fire from a tile
     @classmethod
-    def remove(self, x,y):
-        #print("~trying to remove fire")
-        if not self.fireat(x,y): return
-        #print("fire removal!")
-        del self._fires[(x,y,)]
-        light=self.lights[(x,y,)]
-        rog.release_light(light)
-        del self.lights[(x,y,)]
-        #TODO: Douse sound
-        '''obj=rog.thingat(x,y)
-        if obj:
-            textSee="The fire on {n} is extinguished.".format(n=obj.name)
-            rog.event_sight(obj.x,obj.y, textSee)
-            #rog.event_sound(obj.x,obj.y, SND_DOUSE)'''
-
-    #tell it to add a fire but not yet
+    def fireat(cls, x,y): # fire present at pos x,y ?
+        return cls.fires[y][x]
     @classmethod
-    def _addLater(self, x,y):
-        if self.newfires.get((x,y,),False): return
-        self.newfires.update({ (x,y,) : True})
-    #put new fires onto fire grid
+    def tempat(cls, x,y): # get temperature at pos x,y
+        return cls.heat[y][x]
     @classmethod
-    def _fuseGrids(self):
-        for k,v in self.newfires.items():
-            x,y = k
-            self.add(x,y)
-        self.newfires={} #reset grid2
-
-    # look nearby a burning tile to try and set other stuff on fire
+    def Index(cls, x, y): # get a unique index for the x,y pair
+        return x + y*1000
     @classmethod
-    def _spread(self, xo, yo, iterations):
-        #heat=FIREBURN #could vary based on what's burning here, etc...
-        for ii in range(iterations):
-            index = dice.roll(8) - 1
-            x,y = DIRECTION_FROM_INT[index]
-            fuel=rog.thingat(xo + x, yo + y)
-            if fuel:
-                self._addLater(xo + x, yo + y)
-
-    #consume an object
-    #get food value based on object passed in
-        #get sound effects "
+    def Coords(cls, index): # get the coordinates corresponding to the index given
+        return (index % 1000, index // 1000,)
     @classmethod
-    def _gobble(self, ent):
-        world = rog.world()
-        pos = world.component_for_entity(ent, cmp.Position)
-        form = world.component_for_entity(ent, cmp.Form)
-        isCreature = world.has_component(ent, cmp.Creature)
-        #print("gobbling object {} at {},{}".format(obj.name,obj.x,obj.y))
-        food = 0
-        if form.material == MAT_WOOD:
-            food = 10
-            if dice.roll(6) == 1: #chance to make popping fire sound
-                self.soundsList.update( {(pos.x,pos.y,) : SND_FIRE} )
-        elif form.material == MAT_FLESH:
-            food = 2
-            if not isCreature: #corpses burn better than alive people
-                food = 3
-        elif form.material == MAT_VEGGIE:
-            food = 3
-        elif form.material == MAT_SAWDUST:
-            food = 50
-##        elif obj.material == MAT_GUNPOWDER:
-##            food = 100
-        elif form.material == MAT_PAPER:
-            food = 10
-        elif form.material == MAT_CLOTH:
-            food = 10
-        elif form.material == MAT_LEATHER:
-            food = 1
-        elif form.material == MAT_FUNGUS:
-            food = 1
-        elif form.material == MAT_PLASTIC:
-            food = 1
-        return food
-
+    def get_disperse(cls, wind_force, wind_direction):
+        if wind_force==0: # no wind, just return regular dispersion grid
+            return cls.DISPERSE_0
+        # get the basic matrix
+        xd, yd = wind_direction
+        if (xd + yd) % 2 == 0: # it's diagonal
+            matrix = cls.DISPERSE_DIAG[wind_force - 1]
+        else: # it's orthogonal
+            matrix = cls.DISPERSE_ORTHO[wind_force - 1]
+        # rotate matrix by direction
+        rotamt = cls.ROTAMT[wind_direction]
+        matrix = np.rot90(matrix, rotamt)
+        print("TESTING disperse array...\nforce: {}\ndir: {}\nmatrix: {}".format(
+            wind_force, wind_direction, matrix))
+        return matrix
+ 
 class FireProcessor(esper.Processor):
+    
+    def __init__(self):
+        self.clist=[] # coordinate list of fires
+        self.lights={} # dict of lights created by fires
+    
     def process(self):
+        
+        # disperse heat, handle fires
+        dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())
+        Fires.heat += Fires.heat_sources # heat sources radiating heat
+        Fires.fires = (Fires.heat >= FIRE_THRESHOLD) * (Fires.fuel > 0) # get grid of fires (true/false)
+        Fires.heat += Fires.fires * Fires.fuel # fires creating heat
+        Fires.heat += ENVIRONMENT_DELTA_HEAT # passive heat loss (or gain)
+        Fires.heat = scipy.signal.convolve2d( # Spread heat to adjacent cells.
+            Fires.heat, dispersion, mode='same', boundary='fill', fillvalue=0
+        )
+        np.clip(Fires.heat, HEATMIN, HEATMAX, out=Fires.heat) # min/max the heat grid
+        
+        # get list of x,y coordinate pairs of cells that are on fire
+        oldlist=self.clist.copy() # old list = the list before we update it.
+        self.clist=np.stack(Fires.fires.nonzero(), axis = 1) # coord. list
+        oldset=set() # old coordinate index set from last iteration
+        for item in oldlist:
+            y, x = item
+            oldset.add(Fires.Index(x,y))
+        cset=set() # current coordinate index set
+        for item in self.clist:
+            y, x = item
+            cset.add(Fires.Index(x,y))
+        
+        # get the fires which are new since last iteration
+        newfires = [i for i in cset if i not in oldset]
+        # get the fires which have gone out since last iteration
+        outfires = [i for i in oldset if i not in cset]
+        
+        # add new lights where there are new fires
+        for fireID in newfires:
+            x, y = Fires.Coords[fireID]
+            print("new fire at pos. x={} y={}".format(x,y))
+            light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
+            self.lights.update({fireID : light})
+        # release lights from fires that have gone out
+        for fireID in outfires:
+            x, y = Fires.Coords[fireID]
+            print("fire put out at pos. x={} y={}".format(x,y))
+            rog.release_light(self.lights[fireID])
+            del self.lights[fireID]
+    #
+#
+
+
+#
+# Fluids
+#
+
+class Fluids:
+    _fluids={}
+    @classmethod
+    def _flow(self):
         pass
-    # TODO: update this to use the method w/o for loops (numpy/scipy)
+    # TODO: use numpy to flow fluids...
+    @classmethod
+    def flow(self):
+        Fluids._flow()
+
+class FluidProcessor(esper.Processor):
+    def process(self):
+        Fluids.flow()
+
+
+##    def fluidsat(self,x,y):
+##        return self._fluids.get((x,y,), ())
+
+
+    
+#
+# Status
+#
+
+class Status:
+    @classmethod
+    def add(self, ent, component):
+        if rog.world().has_component(ent, component): return False
+        status_str = ""
+        #attribute modifiers, aux. effects, message (based on status type)
+        if component is cmp.StatusFire:
+            status_str = " catches fire"
+        elif component is cmp.StatusFrozen:
+            status_str = " becomes frozen"
+            rog.damage(ent, FREEZE_DAMAGE)
+        elif component is cmp.StatusAcid:
+            status_str = " begins corroding"
+        elif component is cmp.StatusBlind:
+            status_str = " becomes blinded"
+        elif component is cmp.StatusDeaf:
+            status_str = " becomes deafened"
+        elif component is cmp.StatusIrritated:
+            status_str = " becomes irritated"
+        elif component is cmp.StatusBleed:
+            status_str = " begin bleeding"
+        elif component is cmp.StatusParalyzed:
+            status_str = "'s muscles stiffen"
+        elif component is cmp.StatusSick:
+            status_str = " comes down with the sickness"
+        elif component is cmp.StatusVomit:
+            status_str = " becomes nauseous"
+        elif component is cmp.StatusCough:
+            status_str = " enters into a coughing fit"
+        elif component is cmp.StatusSprint:
+            status_str = " starts sprinting"
+        elif component is cmp.StatusTired:
+            status_str = " starts to yawn"
+        elif component is cmp.StatusFrightening:
+            status_str = " becomes scarier"
+        elif component is cmp.StatusFrightened:
+            status_str = " becomes frightened"
+        elif component is cmp.StatusHaste:
+            status_str = "'s movements speed up"
+            rog.alts(ent, "spd", HASTE_SPEEDMOD)
+        elif component is cmp.StatusSlow:
+            status_str = "'s movements slow"
+            rog.alts(ent, "spd", SLOW_SPEEDMOD)
+        elif component is cmp.StatusDrunk:
+            status_str = " becomes inebriated"
+        elif component is cmp.StatusHeadInjury:
+            status_str = " hits {} head".format(gender.pronouns[2])
+        #if status_str:
+            #"{}{}{}".format(name.title, name.name, status_str)
+        rog.world().add_component(ent, component)
+        return True
+        
+    @classmethod
+    def remove(self, ent, component):
+        if not rog.world().has_component(ent, component): return False
+        status_str = ""
+        #attribute modifiers, aux. effects, message (based on status type)
+        if component is cmp.StatusHaste:
+            status_str = "'s movements slow"
+            rog.alts(ent, "spd", -HASTE_SPEEDMOD)
+        elif component is cmp.StatusSlow:
+            status_str = "'s movements speed up"
+            rog.alts(ent, "spd", -SLOW_SPEEDMOD)
+        #if status_str:
+            #"{}{}{}".format(name.title, name.name, status_str)
+        rog.world().remove_component(ent, component)
+        return True
+    
+    @classmethod
+    def remove_all(self, ent):
+        for status in cmp.STATUS_COMPONENTS:
+            if not rog.world().has_component(ent, component):
+                continue
+            #attribute modifiers
+            #auxiliary effects
+            #message
+            rog.world().remove_component(ent, component)
+
+class StatusProcessor(esper.Processor):
+    def process(self):
+        for ent, compo in self.world.get_component(cmp.StatusFire):
+            temp = self.world.component_for_entity(ent, cmp.Meters)
+            if temp < FIRE_THRESHOLD:
+                Status.remove(ent, cmp.StatusFire)
+                continue
+            rog.damage(ent, 1)
+        for ent, compo in self.world.get_component(cmp.StatusFrozen):
+            temp = self.world.component_for_entity(ent, cmp.Meters)
+            if temp > FREEZE_THRESHOLD:
+                Status.remove(ent, cmp.StatusFrozen)
+                continue
+
+
+
+#
+# Status Meters
+#
+    #Status Meters are the build-up counters for status effects like fire, sickness, etc.
+        
+class MetersProcessor(esper.Processor):
+    def process(self):
+        for ent,stats in self.world.get_component(cmp.Meters):
+            '''
+                interface with environment
+                    (e.g. in cases of heat exchange with the air)
+                and take effects from internal state
+            '''
+            
+            def _getambd(dt, mass):
+                ''' get the amount of ambient temperature change
+                    based on how much the entity's temperature changed.
+                    The more massive, the greater the effect. '''
+                return -dt * mass / (MULT_MASS * 100)
+            
+            pos = rog.world().component_for_entity(ent, cmp.Position)
+            ambient_temp = Fires.tempat(pos.x, pos.y)
+            
+            #print(thing.name," is getting cooled down") #TESTING
+            # cool down temperature meter if not currently burning
+            if (abs(stats.temp - ambient_temp) >= 1):
+                # TODO: take insulation into account for deltatemp
+                #   as well as the actual difference in temperature
+                deltatemp = rog.sign(ambient_temp - stats.temp)
+                stats.temp = stats.temp + deltatemp
+                ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
+                Fires.add_heat(pos.x, pos.y, ambientdelta)
+                if (not rog.get_status(ent, cmp.StatusFire) and
+                    stats.temp >= FIRE_THRESHOLD):
+                    rog.set_status(ent, cmp.StatusFire)
+                elif (not rog.get_status(ent, cmp.StatusFrozen) and
+                    stats.temp <= FREEZE_THRESHOLD):
+                    rog.set_status(ent, cmp.StatusFrozen)
+            # sickness meter
+            if (stats.sick > 0):
+                stats.sick = max(0, stats.sick - BIO_METERLOSS)
+            # exposure meter
+            if (stats.expo > 0):
+                stats.expo = max(0, stats.expo - CHEM_METERLOSS)
+            # rads meter
+            #if (thing.stats.rads > 0):
+            #    thing.stats.rads -= 1
+        
+    
+
+
+        
+
+
+
+
+
+
+
+
+
+
+                ''' only commented out code below '''
+
+
+
+
+
+
+
+
+
+
+
+
+##STATUSES={
+### ID    : defaultDur, onVerb, statusVerb,
+##WET     : (100,     "is",   "wet",),
+##SPRINT  : (10,      "begins", "sprinting",),
+##TIRED   : (50,      "is", "tired",),
+##HASTE   : (20,      "is", "hasty",),
+##SLOW    : (10,      "is", "slowed",),
+##FIRE    : (99999999,"catches", "on fire",),
+##SICK    : (500,     "is", "sick",),
+##ACID    : (7,       "begins", "corroding",),
+##IRRIT   : (200,     "is", "irritated",),
+##PARAL   : (5,       "is", "paralyzed",),
+##COUGH   : (10,      "is", "in a coughing fit",),
+##VOMIT   : (25,      "is", "wretching",),
+##BLIND   : (20,      "is", "blinded",),
+##DEAF    : (100,     "is", "deafened",),
+##TRAUMA  : (99999999,"is", "traumatized",),
+##    }
+
+
+
+
+# OLD CODE FOR FIRE MANAGER:   
+##
+##    # set a tile on fire
+##    @classmethod
+##    def add(self, x,y):
+##        if self.fireat(x,y): return
+##        #print("fire addition!!")
+##        self._fires.update({ (x,y,) : True })
+##        light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
+##        self.lights.update({(x,y,) : light})
+##        
+##        #obj.observer_add(light)
+##        #self.lights.update({obj : light})
+##        
+##    # remove a fire from a tile
+##    @classmethod
+##    def remove(self, x,y):
+##        #print("~trying to remove fire")
+##        if not self.fireat(x,y): return
+##        #print("fire removal!")
+##        del self._fires[(x,y,)]
+##        light=self.lights[(x,y,)]
+##        rog.release_light(light)
+##        del self.lights[(x,y,)]
+##        #TODO: Douse sound
+##        '''obj=rog.thingat(x,y)
+##        if obj:
+##            textSee="The fire on {n} is extinguished.".format(n=obj.name)
+##            rog.event_sight(obj.x,obj.y, textSee)
+##            #rog.event_sound(obj.x,obj.y, SND_DOUSE)'''
+##
+##    #tell it to add a fire but not yet
+##    @classmethod
+##    def _addLater(self, x,y):
+##        if self.newfires.get((x,y,),False): return
+##        self.newfires.update({ (x,y,) : True})
+##    #put new fires onto fire grid
+##    @classmethod
+##    def _fuseGrids(self):
+##        for k,v in self.newfires.items():
+##            x,y = k
+##            self.add(x,y)
+##        self.newfires={} #reset grid2
+##
+##    # look nearby a burning tile to try and set other stuff on fire
+##    @classmethod
+##    def _spread(self, xo, yo, iterations):
+##        #heat=FIREBURN #could vary based on what's burning here, etc...
+##        for ii in range(iterations):
+##            index = dice.roll(8) - 1
+##            x,y = DIRECTION_FROM_INT[index]
+##            fuel=rog.thingat(xo + x, yo + y)
+##            if fuel:
+##                self._addLater(xo + x, yo + y)
+##
+##    #consume an object
+##    #get food value based on object passed in
+##        #get sound effects "
+##    @classmethod
+##    def _gobble(self, ent):
+##        world = rog.world()
+##        pos = world.component_for_entity(ent, cmp.Position)
+##        form = world.component_for_entity(ent, cmp.Form)
+##        isCreature = world.has_component(ent, cmp.Creature)
+##        #print("gobbling object {} at {},{}".format(obj.name,obj.x,obj.y))
+##        food = 0
+##        if form.material == MAT_WOOD:
+##            food = 10
+##            if dice.roll(6) == 1: #chance to make popping fire sound
+##                self.soundsList.update( {(pos.x,pos.y,) : SND_FIRE} )
+##        elif form.material == MAT_FLESH:
+##            food = 2
+##            if not isCreature: #corpses burn better than alive people
+##                food = 3
+##        elif form.material == MAT_VEGGIE:
+##            food = 3
+##        elif form.material == MAT_SAWDUST:
+##            food = 50
+####        elif obj.material == MAT_GUNPOWDER:
+####            food = 100
+##        elif form.material == MAT_PAPER:
+##            food = 10
+##        elif form.material == MAT_CLOTH:
+##            food = 10
+##        elif form.material == MAT_LEATHER:
+##            food = 1
+##        elif form.material == MAT_FUNGUS:
+##            food = 1
+##        elif form.material == MAT_PLASTIC:
+##            food = 1
+##        return food
+
     
 ##        Fires.removeList=[]
 ##        Fires.soundsList={}
@@ -342,162 +775,6 @@ class FireProcessor(esper.Processor):
 ##            snd = v
 ##            rog.event_sound(xx,yy, snd)
                     
-
-#
-# Fluids
-#
-
-class Fluids:
-    _fluids={}
-    @classmethod
-    def _flow(self):
-        pass
-    # TODO: use numpy to flow fluids...
-    @classmethod
-    def flow(self):
-        Fluids._flow()
-
-class FluidProcessor(esper.Processor):
-    def process(self):
-        Fluids.flow()
-
-
-##    def fluidsat(self,x,y):
-##        return self._fluids.get((x,y,), ())
-
-
-    
-#
-# Status
-#
-
-class Status:
-    @classmethod
-    def add(self, ent, component):
-        if rog.world().has_component(ent, component): return False
-        #attribute modifiers
-        #auxiliary effects
-        #message
-        ## NOTE: is this the best way to do this? 
-        rog.world().add_component(ent, component)
-        return True
-        
-    @classmethod
-    def remove(self, ent, component):
-        if not rog.world().has_component(ent, component): return False
-        #attribute modifiers
-        #auxiliary effects
-        #message
-        rog.world().remove_component(ent, component)
-        return True
-    
-    @classmethod
-    def remove_all(self, ent):
-        for status in cmp.STATUS_COMPONENTS:
-            if not rog.world().has_component(ent, component):
-                continue
-            #attribute modifiers
-            #auxiliary effects
-            #message
-            rog.world().remove_component(ent, component)
-
-class StatusProcessor(esper.Processor):
-    def process(self):
-        #get data
-        removals=[]
-        burningData_init=[]
-        burningData=[]
-        for ent, cc in self.world.get_component(cmp.StatusFire):
-            hp = self.world.component_for_entity(ent, cmp.Stats).hp
-            burningData_init.append((ent, cc.timer, hp,))
-        
-        #update data
-        for ent, timer, hp in burningData_init:
-            hp -= 1
-            timer -= 1
-            if timer <= 0:
-                removals.update({ent, cmp.StatusFire})
-                continue
-            if hp <= 0:
-                removals.update({ent, cmp.StatusFire})
-                rog.kill(ent)
-                continue
-            burningData.append((ent, timer, hp,))
-        
-        #distribute data
-        for ent, timer, hp in burningData:
-            stats = self.world.component_for_entity(ent, cmp.Stats)
-            status = self.world.component_for_entity(ent, cmp.StatusFire)
-            status.timer = timer
-            stats.hp = hp
-            make(ent,DIRTY_STATS)
-        
-        #remove expired status effects
-        for ent, component in removals:
-            Status.remove(ent, component)
-    
-
-
-
-#
-# Status Meters
-#
-    #Status Meters are the build-up counters for status effects like fire, sickness, etc.
-        
-class MetersProcessor(esper.Processor):
-    def process(self):
-        for ent,stats in self.world.get_component(cmp.Meters):
-            #print(thing.name," is getting cooled down") #TESTING
-            # cool down temperature meter if not currently burning
-            if (stats.temp > 0 and not self.world.component_for_entity(ent, cmp.StatusFire)):
-                stats.temp = max(0, stats.temp - FIRE_METERLOSS)
-            #warm up
-            if (stats.temp < 0):
-                stats.temp = min(0, stats.temp + FIRE_METERGAIN)
-            # sickness meter
-            if (stats.sick > 0):
-                stats.sick = max(0, stats.sick - BIO_METERLOSS)
-            # exposure meter
-            if (stats.expo > 0):
-                stats.expo = max(0, stats.expo - CHEM_METERLOSS)
-            # rads meter
-            #if (thing.stats.rads > 0):
-            #    thing.stats.rads -= 1
-        
-    
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-##STATUSES={
-### ID    : defaultDur, onVerb, statusVerb,
-##WET     : (100,     "is",   "wet",),
-##SPRINT  : (10,      "begins", "sprinting",),
-##TIRED   : (50,      "is", "tired",),
-##HASTE   : (20,      "is", "hasty",),
-##SLOW    : (10,      "is", "slowed",),
-##FIRE    : (99999999,"catches", "on fire",),
-##SICK    : (500,     "is", "sick",),
-##ACID    : (7,       "begins", "corroding",),
-##IRRIT   : (200,     "is", "irritated",),
-##PARAL   : (5,       "is", "paralyzed",),
-##COUGH   : (10,      "is", "in a coughing fit",),
-##VOMIT   : (25,      "is", "wretching",),
-##BLIND   : (20,      "is", "blinded",),
-##DEAF    : (100,     "is", "deafened",),
-##TRAUMA  : (99999999,"is", "traumatized",),
-##    }
 
         
 

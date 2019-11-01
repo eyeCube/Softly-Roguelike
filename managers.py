@@ -157,6 +157,29 @@ class Event_Sound():
 
 
 
+#
+#
+#
+
+class Manager_Lights(Manager):
+    newID = 0
+
+    def __init__(self):
+        super(Manager_Lights,self).__init__()
+
+        self.lights={}
+
+    def add(self, light): # light is a Light object
+        Manager_Lights.newID += 1
+        self.lights.update({ Manager_Lights.newID : light })
+        return Manager_Lights.newID
+    def remove(self, _id):
+        del self.lights[_id]
+    def get(self, _id):
+        return self.lights[_id]
+
+
+
     
 #
 # Sights Seen by player

@@ -135,6 +135,7 @@ class Rogue:
 ##        cls.c_managers.update({'sights' : managers.Manager_SightsSeen()})
 ##        cls.c_managers.update({'sounds' : managers.Manager_SoundsHeard()})
         cls.c_managers.update({'events' : managers.Manager_Events()})
+        cls.c_managers.update({'lights' : managers.Manager_Lights()})
         
         
 '''
@@ -247,8 +248,6 @@ def grid_remove(ent): #remove thing from grid of things
     return Rogue.map.remove_thing(ent)
 def grid_insert(ent): #add thing to the grid of things
     return Rogue.map.add_thing(ent)
-def grid_lights_insert(obj):    Rogue.map.grid_lights[obj.x][obj.y].append(obj)
-def grid_lights_remove(obj):    Rogue.map.grid_lights[obj.x][obj.y].remove(obj)
 def grid_fluids_insert(obj):    Rogue.map.grid_fluids[obj.x][obj.y].append(obj)
 def grid_fluids_remove(obj):    Rogue.map.grid_fluids[obj.x][obj.y].remove(obj)
 
@@ -402,6 +401,11 @@ def singe(x,y): #burn tile
     if Rogue.map.get_char(x,y) == FUNGUS:
         tile_change(x,y,FLOOR)
 
+def wind_force():
+    return 0 # TEMPORARY, TODO: create wind processor
+def wind_direction():
+    return (1,0,) # TEMPORARY, TODO: create wind processor
+
 
     # component functions #
 
@@ -425,19 +429,23 @@ def copyflags(toEnt,fromEnt): #use this to set an object's flags to that of anot
             
     # entity functions #
 
-# get modified statistic (base stat + modifiers (permanent and conditional))
+# GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
     if on(ent, DIRTY_STATS): # dirty; re-calculate the stats first.
         makenot(ent, DIRTY_STATS)
         modded=_update_stats(ent)
         return modded.__dict__[_var]
     return Rogue.world.component_for_entity(ent, cmp.ModdedStats).__dict__[_var]
-##def setAP(ent, val):
-##    actor=Rogue.world.component_for_entity(ent, cmp.Actor)
-##    actor.ap = val
-##def spendAP(ent, amt):
-##    actor=Rogue.world.component_for_entity(ent, cmp.Actor)
-##    actor.ap = actor.ap - amt
+# ALTer Stat -- change stat stat by value val
+def alts(ent, stat, val):
+    make(ent, DIRTY_STATS)
+    Rogue.world.component_for_entity(ent, cmp.Stats).__dict__[stat] += val
+def setAP(ent, val):
+    actor=Rogue.world.component_for_entity(ent, cmp.Actor)
+    actor.ap = val
+def spendAP(ent, amt):
+    actor=Rogue.world.component_for_entity(ent, cmp.Actor)
+    actor.ap = actor.ap - amt
 # flags
 def on(ent, flag):
     return flag in Rogue.world.component_for_entity(ent, cmp.Flags).flags
@@ -471,13 +479,16 @@ def port(ent,x,y): # move thing to absolute location, update grid and FOV
     pos.x=x; pos.y=y;
     grid_insert(ent)
     update_fov(ent)
+    if Rogue.world.has_component(ent, cmp.LightSource):
+        compo = Rogue.world.component_for_entity(ent, cmp.LightSource)
+        compo.light.reposition(x, y)
 def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
     take(ent,item)              #on ground nearby ent.
     itempos=Rogue.world.component_for_entity(item, cmp.Position)
     entpos=Rogue.world.component_for_entity(ent, cmp.Position)
     itempos.x=entpos.x + dx
     itempos.y=entpos.y + dy
-    register_entity(item)
+    grid_insert(ent)
 def givehp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.hp = min(stats.hpmax, stats.hp + val)
@@ -500,7 +511,15 @@ def train (ent,skill):
         return False
     make(ent,DIRTY_STATS)
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.skills.add(skill)
+    skills.skills.update({ skill : (skills.skills.get(skill,0) + 1) })
+    return True
+# lose skill
+def forget(ent,skill):
+    if not Rogue.world.has_component(ent, cmp.Skills):
+        return False
+    make(ent,DIRTY_STATS)
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    skills.skills.update({ skill : (skills.skills.get(skill,1) - 1) })
     return True
 #damage hp
 def damage(ent, dmg: int):
@@ -521,7 +540,7 @@ def sap(ent, dmg: int):
     if stats.mp <= 0:
         zombify(ent)
 # elemental damage
-def burn(ent, dmg, maxTemp=200):
+def burn(ent, dmg, maxTemp=1000):
     return entities.burn(ent, dmg, maxTemp)
 def cool(ent, dmg, minTemp=-100):
     return entities.burn(ent, dmg, minTemp)
@@ -591,7 +610,7 @@ def kill(ent): #remove a thing from the world
         if isCreature:
             release_creature(ent)
         else:
-            release_inanimate(ent)
+            release_entity(ent)
 def zombify(ent):
     pass
 def explosion(name, x, y, radius):
@@ -646,42 +665,6 @@ def pc_listen_sounds():
         for ev in lis:
             Rogue.c_managers['sounds'].add(ev)
         manager_sounds_run()
-
-
-
-
-    #---------------#
-    #     Lists     #
-    #---------------#
-
-# TODO: remove all this
-class Lists():
-    creatures   =[]     # living things
-    inanimates  =[]     # nonliving
-    lights      =[]
-    fluids      =[]
-    
-    @classmethod
-    def things(cls):
-        lis1=set(cls.creatures)
-        lis2=set(cls.inanimates)
-        return lis1.union(lis2)
-
-# lists functions #
-
-def list_creatures():           return Lists.creatures
-def list_inanimates():          return Lists.inanimates
-def list_things():              return Lists.things()
-def list_lights():              return Lists.lights
-def list_fluids():              return Lists.fluids
-def list_add_creature(ent):     Lists.creatures.append(ent)
-def list_remove_creature(ent):  Lists.creatures.remove(ent)
-def list_add_inanimate(ent):    Lists.inanimates.append(ent)
-def list_remove_inanimate(ent): Lists.inanimates.remove(ent)
-def list_add_light(ent):        Lists.lights.append(ent)
-def list_remove_light(ent):     Lists.lights.remove(ent)
-def list_add_fluid(ent):        Lists.fluids.append(ent)
-def list_remove_fluid(ent):     Lists.fluids.remove(ent)
 
 
 
@@ -788,45 +771,36 @@ def path_step(path):
 
 def register_entity(ent):
     grid_insert(ent)
+    create_moddedStats(ent) # is there a place this would belong better?
     make(ent,DIRTY_STATS)
 def release_entity(ent):
     grid_remove(ent)
-    # do we have to remove all components too?
+    delete_entity(ent)
 def delete_entity(ent):
     Rogue.world.delete_entity(ent)
 def create_stuff(ID, x,y): # create & register an item from stuff list
     tt = entities.create_stuff(ID, x,y)
     register_entity(tt)
     return tt
+def create_rawmat(ID, x,y): # create & register an item from raw materials
+    tt = entities.create_rawmat(ID, x,y)
+    register_entity(tt)
+    return tt
 def create_entity():
     return Rogue.world.create_entity()
-def create_thing():
-    ent = Rogue.world.create_entity()
-    Rogue.world.add_component(ent, cmp.Flags) #flagset
-    return ent
-    
-##    list_add_inanimate(ent)
-##    list_remove_inanimate(ent)
-
+##def create_entity_flagset(): # create an entity with a flagset
+##    ent = Rogue.world.create_entity()
+##    Rogue.world.add_component(ent, cmp.Flags) #flagset
+##    return ent
 
 #  creature/monsters  #
 
-
 def register_creature(ent):
-    grid_insert(ent)
-    create_moddedStats(ent) # is there a place this would belong better?
-##    make(ent,ONGRID) # shouldn't be needed anymore.
-##    list_add_creature(ent) # do we need a list of creatures still? Should just be able to get list of components that we are searching for and their respective entities (Creature component)
+    register_entity(ent)
 def release_creature(ent):
-    release_thing(ent)
+    release_entity(ent)
     remove_listener_sights(ent)
     remove_listener_sounds(ent)
-##    list_remove_creature(ent)
-##    makenot(ent,ONGRID)
-def release_thing(ent):
-    Rogue.world.remove_component(ent, cmp.Position)
-
-
 
 def create_monster(typ,x,y,col,mutate=3): #init from entities.py
     '''
@@ -840,7 +814,7 @@ def create_monster(typ,x,y,col,mutate=3): #init from entities.py
     ent = entities.create_monster(typ,x,y,col,mutate)
 ##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
     givehp(ent)
-    register_entity(ent)
+    register_creature(ent)
     return monst
 
 def create_corpse(ent):
@@ -1046,10 +1020,15 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     world=Rogue.world
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
-    skills=world.component_for_entity(ent, cmp.Skills)
+    if world.has_component(ent, cmp.Skills):
+        skills=world.component_for_entity(ent, cmp.Skills)
+        armorSkill = (skills.skills.get(SKL_ARMOR,0)) # armored skill value
+        unarmored = (skills.skills.get(SKL_UNARMORED,0)) # unarmored skill
+    else:
+        skills=None
+        armorSkill = 0
+        unarmored = 0
     offhandItem = False
-    armorSkill = (SKL_ARMOR in skills.skills) # armored skill value
-    unarmored = (SKL_UNARMORED in skills.skills) # unarmored skill
     addMods=[]
     multMods=[]
 ##    skilledInWeapons=(weap_skill in skills.skills)
@@ -1124,7 +1103,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # equipment
         if head.slot.item:
             item=head.slot.item
-            itemStats=world.component_for_entity(item, cmp.Stats)
+            hp=rog.getms(item, "hp")
+            hpmax=rog.getms(item, "hpmax")
             equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
             for k,v in equipable.mods.items(): # collect add modifiers
                 dadd.update({k:v})
@@ -1139,7 +1119,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             
             # penalties
             # durability penalty multiplier for the stats
-            _apply_durabilityPenalty_armor(dadd, itemStats.hp, itemStats.hpMax)
+            _apply_durabilityPenalty_armor(dadd, hp, hpmax)
                                     
         else: # unarmored combat
             if unarmored:
@@ -1271,6 +1251,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     
 #-------------------------------------------------------#
 # TODO: finish updating all these to the new Body class format!! #
+# Switch itemStats to 
+##            hp=rog.getms(item, "hp")
+##            hpmax=rog.getms(item, "hpmax")
 #-------------------------------------------------------#
 
 # THIS IS ALL OBSELETE CODE!!!!!!!!!
@@ -1321,7 +1304,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if world.has_component(item, cmp.WeaponSkill):
                 weaponSkill=world.component_for_entity(item, cmp.WeaponSkill)
                 if weaponSkill.skill in skills.skills:
-                    skill=weaponSkill.skill
+                    skill=weaponSkill.skill # THIS IS OBSELETE W/ NUMBERED SKILL SYSTEM
                     statdata=SKILL_WEAPSTATDATA[skill]
                     for _var, _modf in statdata:
                         dadd[_var] = dadd[_var] + _modf
@@ -1481,24 +1464,25 @@ def occupation_elapse_turn(ent):
     #    lights      #
     #----------------#
 
+def list_lights(): return list(Rogue.c_managers["lights"].lights.values())
 def create_light(x,y, value, owner=None):
     light=lights.Light(x,y, value, owner)
     light.fov_map=fov_init()
-    register_light(light)
-    if owner:   #light follows owner if applicable
-        owner.observer_add(light)
-    return light
-
-def register_light(light):
     light.shine()
-    grid_lights_insert(light)
-    list_add_light(light)
-def release_light(light):
+    lightID = Rogue.c_managers['lights'].add(light)
+    if owner:
+        if Rogue.world.has_component(owner, cmp.LightSource):
+            compo = Rogue.world.component_for_entity(owner, cmp.LightSource)
+            release_light(compo.lightID)
+        Rogue.world.add_component(owner, cmp.LightSource(lightID, light))
+    return lightID
+
+def release_light(lightID):
+    light = Rogue.c_managers['lights'].get(lightID)
     light.unshine()
     if light.owner:
-        light.owner.observer_remove(light)
-    grid_lights_remove(light)
-    list_remove_light(light)
+        Rogue.world.remove_component(light.owner, cmp.LightSource)
+    Rogue.c_managers['lights'].remove(lightID)
 
 
 
@@ -1718,6 +1702,40 @@ STATMODS_CUDGELS    ={'atk':2,'dmg':2,'nrg':-2}
 '''
 
 
+
+
+##    #---------------#
+##    #     Lists     #
+##    #---------------#
+##
+##class Lists():
+##    creatures   =[]     # living things
+##    inanimates  =[]     # nonliving
+##    lights      =[]
+##    fluids      =[]
+##    
+##    @classmethod
+##    def things(cls):
+##        lis1=set(cls.creatures)
+##        lis2=set(cls.inanimates)
+##        return lis1.union(lis2)
+##
+### lists functions #
+##
+##def list_creatures():           return Lists.creatures
+##def list_inanimates():          return Lists.inanimates
+##def list_things():              return Lists.things()
+##def list_lights():              return Lists.lights
+##def list_fluids():              return Lists.fluids
+##def list_add_creature(ent):     Lists.creatures.append(ent)
+##def list_remove_creature(ent):  Lists.creatures.remove(ent)
+##def list_add_inanimate(ent):    Lists.inanimates.append(ent)
+##def list_remove_inanimate(ent): Lists.inanimates.remove(ent)
+##def list_add_light(ent):        Lists.lights.append(ent)
+##def list_remove_light(ent):     Lists.lights.remove(ent)
+##def list_add_fluid(ent):        Lists.fluids.append(ent)
+##def list_remove_fluid(ent):     Lists.fluids.remove(ent)
+##
 
     #------------------------#
     # Stats Functions + vars #

@@ -18,12 +18,12 @@ class Light(observer.Observer):
             by adding or subtracting values from a lightmap
     '''
 
-    def __init__(self, x,y, brightness, owner=None):
+    def __init__(self, x,y, lum, owner=None):
         super(Light, self).__init__()
 
         self.x=x
         self.y=y
-        self.brightness=brightness
+        self.lum=lum
         self.fov_map=None
         self.lit_tiles=[]
         self.owner=owner

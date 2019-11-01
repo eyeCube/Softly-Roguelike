@@ -45,8 +45,6 @@ HISTORY_ROADNAMES=(
 # Init Global Constants #
 #-----------------------#
 
-
-
 GAME_TITLE = "Softly Into the Night"
 
 ROOMW       = 80            #max level size, width and height
@@ -111,6 +109,18 @@ DIRECTION_FROM_INT={
     6   : (0,1,),
     7   : (1,1,),
     }
+##DIRECTIONS_DIAGONAL=(
+##    (-1,-1,),
+##    (1,1,),
+##    (-1,1,),
+##    (1,-1,),
+##    )
+##DIRECTIONS_ORTHOGONAL=(
+##    (0,-1,),
+##    (0,1,),
+##    (-1,0,),
+##    (1,0,),
+##    )
 
 
 # titles
@@ -214,6 +224,14 @@ MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all t
 MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_DMG_AV_HP      = 10    # finer scale for AV/dmg but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_PEN_PRO        = 10    # " (6.8 penetration functions as 6 pen, and displays as 6 in-game. Truncated decimal.)
+
+# fire / ice
+FIRE_THRESHOLD  = 70 # lowest temperature at which things may combust (should this be a np grid array that has different values for each tile depending on what kid of fuel is there? May be too complex but would add more functionality for e.g. high fuel objects that have a high flash point like explosives)
+ENVIRONMENT_DELTA_HEAT = -0.1 # global change in heat each iteration of heat dispersion
+HEATMIN         = -300 # minimum temperature
+HEATMAX         = 16000 # maximum temperature
+FREEZE_THRESHOLD= -30
+FREEZE_DAMAGE   = 10  # damage dealt when you become frozen
 
 #fluids
 MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
@@ -613,8 +631,8 @@ HASTE_SPEEDMOD      = 50    # speed bonus when hasty
 SLOW_SPEEDMOD       = -33   # speed penalty while slowed (PERCENTAGE?)
 
 # temp (fire)
-FIRE_METERLOSS  = 1     #temperature points lost per turn
-FIRE_METERGAIN  = FIRE_METERLOSS
+FIRE_METERLOSS  = -1    #temperature points lost per turn
+FIRE_METERGAIN  = 1
 FIRE_METERMAX   = 1000  #maximum temperature a thing can reach
 FIRE_MAXTEMP    = 400   #max temperature you can reach from normal means
 FIRE_TEMP       = 100   #avg. temperature at which a thing will set fire
@@ -704,13 +722,11 @@ T_MONEY         = ord('$')
 T_CORPSE        = ord('%')
 T_FOOD          = ord('&')
 T_SHELTER       = ord('^')
-##T_RAWMAT        = ord('`')
 T_AMMO          = ord(':')  # bullet / shell / ball / cartridge / arrow
 T_LIGHT         = ord(';')  # torch, etc.
 T_BOULDER       = ord('0')
 T_DUST          = ord('_')
 T_FOLIAGE       = ord('+')
-T_STICK         = ord('|')  # stick, pole, or pipe
 T_MELEEWEAPON   = ord('/')
 T_TWOHANDWEAP   = ord('\\') # FROM "OFFHANDWEAP"
 T_HEAVYWEAPON   = ord('=')
@@ -726,8 +742,9 @@ T_GAS           = ord('~')
     # raw mats
 T_RAWMAT        =   172     # 1/4  (raw materials not covered by the following)
 T_SCRAP         =   171     # 1/2
-T_PARCEL        = ord(".")
+T_STICK         = ord('|')  # stick, pole, or pipe
 T_SHARD         = ord(",")
+T_PARCEL        = ord(".")
 T_PIECE         = ord("'")
 T_CHUNK         =   7       # crystal
 T_SLAB          =   4       # diamond

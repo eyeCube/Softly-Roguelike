@@ -268,7 +268,7 @@ def pocketThing(ent, item):
     world = rog.world()
     rog.drain(ent, 'nrg', NRG_POCKET)
     rog.give(ent, item)
-    rog.release_inanimate(item)
+    rog.release_entity(item)
     entn = world.component_for_entity(ent, cmp.Name)
     itemn = world.component_for_entity(item, cmp.Name)
     rog.msg("{t}{n} packs {ti}{ni}.".format(
