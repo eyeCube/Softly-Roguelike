@@ -342,6 +342,8 @@ Reason: entity not in grid.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
                 canSee=False
                 
+##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
+                
                 if not rog.in_range(pos.x,pos.y, x,y, sight):
                     continue
                 if not libtcod.map_is_in_fov(seer.fov_map, x,y):

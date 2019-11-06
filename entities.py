@@ -2653,6 +2653,7 @@ def _setGenericData(ent, material=0):
         stats.resrust=0
     if material==MAT_WOOD:
         stats.resrot=0
+        stats.resfire=0
     return ent
 
 

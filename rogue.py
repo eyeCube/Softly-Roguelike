@@ -1519,11 +1519,11 @@ def set_status(ent, status, t=-1):
         # status    = ID of the status effect
         # t         = duration (-1 is the default duration for that status)
     '''
-    Rogue.processors['status'].add(ent, status, t)
+    proc.Status.add(ent, status, t)
 def clear_status(ent, status):
-    Rogue.processors['status'].remove(ent, status)
+    proc.Status.remove(ent, status)
 def clear_status_all(ent):
-    Rogue.processors['status'].remove_all(ent)
+    proc.Status.remove_all(ent)
 
 
 

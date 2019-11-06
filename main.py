@@ -59,11 +59,11 @@ def main():
     rog.map().init_terrain()
 
     # init player
-    rog.Rogue.create_player(0,0) # is this the right position?
+    rog.Rogue.create_player(15,18) # is this the right position?
     
     # create light so player can see
     log=rog.create_rawmat("log", 18,18)
-    rog.burn(log,200)
+    rog.burn(log,500)
 
     # DEBUG: why is everything still black around the player?
 

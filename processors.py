@@ -415,7 +415,7 @@ class FluidProcessor(esper.Processor):
 
 class Status:
     @classmethod
-    def add(self, ent, component):
+    def add(self, ent, component, t=-1):
         if rog.world().has_component(ent, component): return False
         status_str = ""
         #attribute modifiers, aux. effects, message (based on status type)
@@ -462,7 +462,10 @@ class Status:
             status_str = " hits {} head".format(gender.pronouns[2])
         #if status_str:
             #"{}{}{}".format(name.title, name.name, status_str)
-        rog.world().add_component(ent, component)
+        if t==-1: # use the default time value for the component
+            rog.world().add_component(ent, component())
+        else: # pass in the time value
+            rog.world().add_component(ent, component(t))
         return True
         
     @classmethod
@@ -482,8 +485,8 @@ class Status:
         return True
     
     @classmethod
-    def remove_all(self, ent):
-        for status in cmp.STATUS_COMPONENTS:
+    def remove_all(self, ent): # TODO: finish this and add STATUS_COMPONENTS constant to the class
+        for status, component in cmp.STATUS_COMPONENTS:
             if not rog.world().has_component(ent, component):
                 continue
             #attribute modifiers
@@ -494,13 +497,13 @@ class Status:
 class StatusProcessor(esper.Processor):
     def process(self):
         for ent, compo in self.world.get_component(cmp.StatusFire):
-            temp = self.world.component_for_entity(ent, cmp.Meters)
+            temp = self.world.component_for_entity(ent, cmp.Meters).temp
             if temp < FIRE_THRESHOLD:
                 Status.remove(ent, cmp.StatusFire)
                 continue
             rog.damage(ent, 1)
         for ent, compo in self.world.get_component(cmp.StatusFrozen):
-            temp = self.world.component_for_entity(ent, cmp.Meters)
+            temp = self.world.component_for_entity(ent, cmp.Meters).temp
             if temp > FREEZE_THRESHOLD:
                 Status.remove(ent, cmp.StatusFrozen)
                 continue
