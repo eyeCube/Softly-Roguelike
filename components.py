@@ -125,7 +125,7 @@ class Stats: #base stats
         self.msp=msp    #Move speed (affects AP cost of moving)
         self.gra=gra    #Grappling (wrestling)
         self.ctr=ctr    #Counter-attack chance
-        self.bal=bal    #Balance
+        self.bal=bal    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
         self.sight=sight        # senses
         self.hearing=hearing
         self.courage=courage    # resfear
@@ -142,6 +142,10 @@ class LightSource:
     def __init__(self, lightID, light):
         self.lightID=lightID
         self.light=light # Light object
+class Fuel: # fuel for fires
+    __slots__=['fuel']
+    def __init__(self, fuel=1):
+        self.fuel = int(fuel)
 
 class SenseSight:
     __slots__=['fov_map','events']

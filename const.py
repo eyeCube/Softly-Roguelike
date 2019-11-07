@@ -959,6 +959,34 @@ FL_NAPALM       =i; i+=1;
 FL_GASOLINE     =i; i+=1;
 FL_HAZMATS      =i; i+=1;
 
+# material fuel values
+FUEL_MULT       = 1 # global multiplier for all materials
+MAT_FUEL={
+MAT_FLESH       : 1,
+MAT_BONE        : 0,
+MAT_METAL       : 0,
+MAT_CARBON      : 0,
+MAT_PLASTIC     : 2,
+MAT_TARP        : 0.5,
+MAT_STONE       : 0,
+MAT_DUST        : 0.1,
+MAT_WOOD        : 2,
+MAT_PAPER       : 20,
+MAT_LEATHER     : 0.5,
+MAT_BLEATHER    : 0.25,
+MAT_CLOTH       : 1.5,
+MAT_ROPE        : 1.5,
+MAT_GLASS       : 0,
+MAT_RUST        : 0,
+MAT_CLAY        : 0, 
+MAT_CERAMIC     : 0,
+MAT_GAS         : 0,
+MAT_WATER       : 0,
+MAT_OIL         : 10,
+MAT_QUARTZ      : 0,
+MAT_RUBBER      : 0.5,
+    }
+
 #quality from material table
 MAXGRIND_FROM_MATERIAL={
 MAT_CARBON      : MAXGRIND_GRAPHENE,

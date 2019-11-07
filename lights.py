@@ -44,16 +44,16 @@ class Light(observer.Observer):
         self.shone=True
         #get the tiles we can see and lighten them up
         libtcod.map_compute_fov(
-            self.fov_map, self.x,self.y, self.brightness,
+            self.fov_map, self.x,self.y, self.lum,
             light_walls = True, algo=libtcod.FOV_RESTRICTIVE)
-        rang = self.brightness
+        rang = self.lum
         for x in     range( max(0, self.x-rang), min(ROOMW, self.x+rang+1) ):
             for y in range( max(0, self.y-rang), min(ROOMH, self.y+rang+1) ):
                 
                 if ( rog.in_range(self.x,self.y, x,y, rang)
                         and libtcod.map_is_in_fov(self.fov_map, x,y) ):
                     dist=maths.dist(self.x,self.y, x,y)
-                    value=round(self.brightness - dist)
+                    value=round(self.lum - dist)
                     if value > 0:
                         self.add_tile(x,y, value )
                         rog.tile_lighten(x,y,value)
@@ -100,7 +100,7 @@ def create_torch(name, x,y):
     torch.name=name
     torch.x=x
     torch.y=y
-    torch.brightness=data[1]
+    torch.lum=data[1]
     torch.color=COL['white']
 '''
     
