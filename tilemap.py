@@ -139,6 +139,8 @@ TODO: move rendering code to a new, different class.
 ##            for y in range(self.h):
 ##                if random.random()*100 > 50:
 ##                    self._tile_init(x,y,ROUGH)
+
+    # add tile (set tile) in the grid
                  
     def tile_change(self, x,y, typ):
         '''
@@ -156,12 +158,12 @@ TODO: move rendering code to a new, different class.
             else:
                 return False
         except IndexError:
-            print('''TILE CHANGE ERROR at {},{}. Cannot change to {}.
-Reason: out of bounds of grid array.'''.format(x,y,typ))
+            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
+Reason: out of bounds of grid array.'''.format(x,y,typ) )
             return False
-        except:
-            print('''TILE CHANGE ERROR at {},{}. Cannot change to {}.
-Reason: other.'''.format(x,y,typ))
+        except Exception as e:
+            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
+Reason: {}.'''.format(x,y,typ, e) )
             return False
     #
     
