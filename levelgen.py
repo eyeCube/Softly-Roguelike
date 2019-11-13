@@ -126,11 +126,12 @@ def generate_corridor(levelwidth, levelheight):
 
 
 # level generation
-def generate_level(width, height):
+def generate_level(width, height, z):
     '''
         Generate a tilemap terrain grid and populate it with stuff
         Parameters:
             width and height are the level's width and height
+            z is the dungeon level (integer)
     '''
     # generate rooms then corridors ? Should they be separate?
     # maybe just separate corridor grid from room grid
@@ -170,9 +171,23 @@ def generate_level(width, height):
                 grid_set_floor(corr_grid, x, y)
         else:
             # make sure it touches but does not overlap existing rooms.
+            # once we've found the proper place to put it, add to the grid
             for tile in room.area:
                 x, y = tile
                 grid_set_floor(room_grid, x, y)
+    # set all tiles to walls
+    rog.map().init_terrain(WALL)
+    # dig out the rooms and corridors
+    level_generate_from_grids( rog.map(z), (room_grid, corr_grid,) )
+    # populate the level with entities
+    
+    
+
+def level_generate_from_grids(Map, grids, digtile=FLOOR):
+    for grid in grids:
+        for tile in grid:
+            x, y = tile
+            Map.tile_change(x, y, digtile)
 
 
 ##corr_grid = [[0 for __ in range(5)] for _ in range(8)]

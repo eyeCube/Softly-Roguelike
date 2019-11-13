@@ -94,7 +94,9 @@ TODO: move rendering code to a new, different class.
         self.h = h
         
         #baseTemp=32 # room temperature #should not be stored in tilemap object
-        self.grid_terrain =     [ [ None for y in range(h)] for x in range(w) ]   
+        self.grid_terrain =     [ [ None for y in range(h)] for x in range(w) ]
+
+##        self.levels = {}
     #
     
     def COPY(self, tilemap):
@@ -126,14 +128,13 @@ TODO: move rendering code to a new, different class.
         self.con_memories = libtcod.console_new(w,h)
         self.con_map_state = libtcod.console_new(w,h)
 
-    def init_terrain(self):
+    def init_terrain(self, default=FLOOR):
         '''
             Call this to initialize the terrain tile grid with default data.
-            Only call once!
         '''
         for x in range(self.w):
             for y in range(self.h):
-                self._tile_init(x,y,FLOOR)
+                self._tile_init(x,y,default)
         # TESTING
 ##        for x in range(self.w):
 ##            for y in range(self.h):
@@ -144,7 +145,7 @@ TODO: move rendering code to a new, different class.
                  
     def tile_change(self, x,y, typ):
         '''
-            change a tile, update fov_map if necessary
+            change tile at (x,y), update fov_map if necessary
             return True if fov_maps for objects must now be updated, too
         '''
         try:

@@ -203,6 +203,7 @@ def msg_clear():
 def dlvl():             return Rogue.data.dlvl() #current dungeon level of player
 def level_up():         Rogue.data.dlvl_update(Rogue.data.dlvl() + 1)
 def level_down():       Rogue.data.dlvl_update(Rogue.data.dlvl() - 1)
+def level_set(lv):      Rogue.data.dlvl_update(lv)
 
 # clock
 def turn_pass():        Rogue.clock.turn_pass()
@@ -227,7 +228,16 @@ def view_max_y():   return  ROOMH - Rogue.view.h
 def fixedViewMode_toggle(): Rogue.view.fixed_mode_toggle()
 
 # map
-def map():          return Rogue.map
+def map(z):
+    # TODO: code for loading / unloading levels into the map
+    if dlvl() == z:
+        return Rogue.map
+    else:
+        # unload current map from Rogue.map into the levels dict
+        # load new map into Rogue.map from the levels dict
+        # update dlvl
+        level_set(z)
+        return Rogue.map
 def tile_get(x,y):          return Rogue.map.get_char(x,y)
 def tile_change(x,y,char):
     updateNeeded=Rogue.map.tile_change(x,y,char)
@@ -244,10 +254,10 @@ def identify_symbol_at(x,y):
     char = "{} ".format(chr(asci)) if (asci < 128 and not asci==32) else ""
     desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
     return "{}{}".format(char, desc)
-def grid_insert(ent): #add entity to the grids
-    return Rogue.map.add_thing(ent)
-def grid_remove(ent): #remove entity from grids
+def grid_remove(ent): #remove thing from grid of things
     return Rogue.map.remove_thing(ent)
+def grid_insert(ent): #add thing to the grid of things
+    return Rogue.map.add_thing(ent)
 def grid_fluids_insert(obj):    Rogue.map.grid_fluids[obj.x][obj.y].append(obj)
 def grid_fluids_remove(obj):    Rogue.map.grid_fluids[obj.x][obj.y].remove(obj)
 
@@ -473,14 +483,7 @@ def has_sight(ent):
         return True
     else:
         return False
-def port(ent,x,y):
-    '''
-        move entity to absolute location
-        update everything that needs updating based on this change
-            grid + fuel grid for fires
-            FOV
-            lights
-    '''
+def port(ent,x,y): # move thing to absolute location, update grid and FOV
     grid_remove(ent)
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
@@ -704,8 +707,8 @@ def can_see(ent,x,y):
         return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
-    return ( in_range(pos.x,pos.y, x,y, getms(ent, "sight")) #<- circle-ize
-             and libtcod.map_is_in_fov(senseSight.fov_map, x, y) )
+    return ( in_range(pos.x,pos.y, x,y, senseSight.sight) #<- circle-ize
+             and libtcod.map_is_in_fov(senseSight.fov_map,x,y) )
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps
 def update_all_fovmaps():
@@ -1009,19 +1012,6 @@ def _create_human_leg():
     #       Stats           #
     #-----------------------#
 
-##def _update_entity_fuel(ent, value): # may not be needed.
-##    '''
-##        (private)
-##        functions must call this to change the fuel value for an entity
-##        
-##    '''
-##    world=Rogue.world
-##    if not world.has_component(ent, cmp.Fuel):
-##        return False
-##    else:
-##        fuel = world.component_for_entity(ent, cmp.Fuel)
-##        return True
-
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     '''
@@ -1030,17 +1020,13 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             add any modifiers from equipment, status effects, etc.
         return the Modified Stats component
         after this is called, you can access the Modified Stats component
-            and it will contain the right value, until some component
-            updates which could change the calculation, at which point the
+            and it will contain the right value, until something significant
+            updates which would change the calculation, at which point the
             DIRTY_STATS flag for that entity must be set to True.
-        
-        TODO: test that everything here works properly!
     '''
-    
     # NOTE: apply all penalties (w/ limits) AFTER bonuses.
         # this is to ensure you don't end up with MORE during a
         #   penalty application; as in the case the value was negative
-        
     world=Rogue.world
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
