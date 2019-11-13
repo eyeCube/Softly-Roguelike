@@ -50,44 +50,88 @@ def pick_roomtype():
     if result < val: return RT_DRUNKENCORRIDOR
     return RT_ROOM # default
 
-def generate_room(width, height):
+def generate_room(levelwidth, levelheight):
+    borders = 5 # size of padding where origin of rooms cannot be placed
+    # offset position
+    xo = int(random.random() * (levelwidth - borders*2)) + borders
+    yo = int(random.random() * (levelheight - borders*2)) + borders
     # scale
     xs = 2 + int(random.random()*5)
     ys = 2 + int(random.random()*5)
-    xs = 4
-    ys = 4
-    # offset position
-    xo = int(random.random()*width)
-    yo = int(random.random()*height)
     # area and perimeter
         # NOTE: these values are starting from an origin of (0,0).
         #   Add the offset values to get the true x,y position on the map.
     # area (get all floor tiles together)
-##    print("size: {}, {}".format(xs, ys))
-##    print("Area")
     area = []
     for xx in range(xs):
         for yy in range(ys):
-            area.append( (xx - xs//2, yy - ys//2,) )
-##            print(area[-1])
-##    print("perimeter")
+            area.append( (xx - (xs//2), yy - (ys//2),) )
     # perimeter (get all surrounding/wall tiles together)
     perimeter = []
     for xx in range(xs):
         perimeter.append( (xx - (xs//2), -(ys//2) - 1,) )
         perimeter.append( (xx - (xs//2), math.ceil(ys/2),) )
-##        print(perimeter[-1])
-##        print(perimeter[-2])
     for yy in range(ys):
         perimeter.append( (-(xs//2) - 1, yy - (ys//2),) )
         perimeter.append( (math.ceil(xs/2), yy - (ys//2),) )
-##        print(perimeter[-1])
-##        print(perimeter[-2])
     # create the room object
     room = Room(xo,yo, area, perimeter)
     return room
 
+def generate_corridor(levelwidth, levelheight):
+    borders = 10 # size of padding where origin of rooms cannot be placed
+    result = random.random()*100
+    area = []
+    perimeter = []
+    # offset position
+    xo = int(random.random() * (levelwidth - borders*2)) + borders
+    yo = int(random.random() * (levelheight - borders*2)) + borders
+    # pick what kind of corridor, vertical or horizontal
+    if result < 40: # horizontal
+        # scale
+        scale = 3 + int(random.random()*13)
+        perimeter.append( (-(scale//2) - 1, 0,) )
+        perimeter.append( (math.ceil(scale/2), 0,) )
+        for xx in range(scale):
+            area.append( (xx - (scale//2), 0,) )
+            perimeter.append( (xx - (scale//2), -1,) )
+            perimeter.append( (xx - (scale//2), 1,) )
+    elif result < 80: # vertical
+        # scale
+        scale = 3 + int(random.random()*13)
+        perimeter.append( (0, -(scale//2) - 1,) )
+        perimeter.append( (0, math.ceil(scale/2),) )
+        for yy in range(scale):
+            area.append( (0, yy - (scale//2),) )
+            perimeter.append( (-1, yy - (scale//2),) )
+            perimeter.append( (1, yy - (scale//2),) )
+    else:#elif result < 90: # diagonal nw-se
+        # TODO: test this and add other diagonal
+        scale = 3 + int(random.random()*10)
+        ceil = math.ceil(scale/2)
+        perimeter.append( (-(scale//2), -(scale//2) + 1,) )
+        perimeter.append( (-(scale//2) + 1, -(scale//2) + 1,) )
+        perimeter.append( (ceil, ceil - 1,) )
+        perimeter.append( (ceil + 1, ceil - 1,) )
+        for dd in range(scale):
+            area.append( (dd - (scale//2), dd - (scale//2),) )
+            area.append( (dd - (scale//2) + 1, dd - (scale//2),) )
+            perimeter.append( (dd - (scale//2) - 1, dd - (scale//2),) )
+            perimeter.append( (dd - (scale//2) + 2, dd - (scale//2),) )
+##    else: # diagonal ne-sw
+##        scale = 3 + int(random.random()*10)
+    # create the room object
+    room = Room(xo,yo, area, perimeter)
+    return room
+
+
+# level generation
 def generate_level(width, height):
+    '''
+        Generate a tilemap terrain grid and populate it with stuff
+        Parameters:
+            width and height are the level's width and height
+    '''
     # generate rooms then corridors ? Should they be separate?
     # maybe just separate corridor grid from room grid
     #   then combine them together after all are placed on a grid
@@ -135,6 +179,7 @@ def generate_level(width, height):
 ##print(corr_grid)
 ##print(corr_grid[7][4])
 ##generate_room(80,50)
+generate_corridor(80,50)
 
 
 
