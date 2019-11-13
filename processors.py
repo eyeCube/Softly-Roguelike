@@ -271,19 +271,56 @@ class Fires:
         (0,1)   : 3,
         }
     
+    # hashing
     @classmethod
-    def add_heat_source(cls,x,y,temp): cls.heat_sources[y][x] += temp
+    def Index(cls, x, y): # get a unique index for the x,y pair
+        return x + y*1000
     @classmethod
-    def remove_heat_source(cls,x,y,temp): cls.heat_sources[y][x] -= temp
+    def Coords(cls, index): # get the coordinates corresponding to the index given
+        return (index % 1000, index // 1000,)
+    
+    # fires
+    @classmethod
+    def init_fires(cls):
+        cls.fires = np.full((ROOMW,ROOMH,), fill_value=False)
+    @classmethod
+    def fireat(cls, x,y): # fire present at pos x,y ?
+        return cls.fires[y][x]
+    
+    # heat
+    @classmethod
+    def init_heat(cls):
+        cls.heat = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
+    @classmethod
+    def tempat(cls, x,y): # get temperature at pos x,y
+        return cls.heat[y][x]
     @classmethod
     def add_heat(cls,x,y,temp): cls.heat[y][x] += temp
     @classmethod
     def remove_heat(cls,x,y,temp): cls.heat[y][x] -= temp
+    
+    # fuel
+    @classmethod
+    def init_fuel(cls):
+        cls.fuel = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.int16)
     @classmethod
     def add_fuel(cls,x,y,fuel): cls.fuel[y][x] += fuel
     @classmethod
     def remove_fuel(cls,x,y,fuel):
         cls.fuel[y][x] = max(0, cls.fuel[y][x] - fuel)
+    
+    # heat sources
+    @classmethod
+    def init_heat_sources(cls):
+        cls.heat_sources = np.full(
+            (ROOMW,ROOMH,), fill_value=0, dtype=np.float64
+            )
+    @classmethod
+    def add_heat_source(cls,x,y,temp): cls.heat_sources[y][x] += temp
+    @classmethod
+    def remove_heat_source(cls,x,y,temp): cls.heat_sources[y][x] -= temp
+    
+    # entity heat sources
     @classmethod
     def add_entity_heat_source(cls, ent):
         pos = rog.world().component_for_entity(ent, cmp.Position)
@@ -303,19 +340,8 @@ class Fires:
     @classmethod
     def calc_source_heat(cls, temp, mass):
         return (temp*mass / (MULT_MASS*100))
-        
-    @classmethod
-    def fireat(cls, x,y): # fire present at pos x,y ?
-        return cls.fires[y][x]
-    @classmethod
-    def tempat(cls, x,y): # get temperature at pos x,y
-        return cls.heat[y][x]
-    @classmethod
-    def Index(cls, x, y): # get a unique index for the x,y pair
-        return x + y*1000
-    @classmethod
-    def Coords(cls, index): # get the coordinates corresponding to the index given
-        return (index % 1000, index // 1000,)
+    
+    # wind
     @classmethod
     def get_disperse(cls, wind_force, wind_direction):
         if wind_force==0: # no wind, just return regular dispersion grid
@@ -332,7 +358,8 @@ class Fires:
         print("TESTING disperse array...\nforce: {}\ndir: {}\nmatrix: {}".format(
             wind_force, wind_direction, matrix))
         return matrix
- 
+
+# Fires Processor Fire Processor
 class FireProcessor(esper.Processor):
     
     def __init__(self):
@@ -340,16 +367,30 @@ class FireProcessor(esper.Processor):
         self.lights={} # dict of lights created by fires
     
     def process(self):
+        world = rog.world()
         
+        # get fuel amount
+            # for now this should be fine; only update this if
+            # performance from this particular 3 lines of code
+            # is seriously something to be concerned about.
+        Fires.init_fuel()
+        for ent, compos in world.get_components(cmp.Fuel, cmp.Position):
+            fuel, pos = compos
+            Fires.add_fuel(pos.x, pos.y, fuel.fuel)
+            
         # disperse heat, handle fires
         dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())
         Fires.heat += Fires.heat_sources # heat sources radiating heat
-        Fires.fires = (Fires.heat >= FIRE_THRESHOLD) * (Fires.fuel > 0) # get grid of fires (true/false)
         Fires.heat += Fires.fires * Fires.fuel # fires creating heat
         Fires.heat += ENVIRONMENT_DELTA_HEAT # passive heat loss (or gain)
         Fires.heat = scipy.signal.convolve2d( # Spread heat to adjacent cells.
             Fires.heat, dispersion, mode='same', boundary='fill', fillvalue=0
         )
+        
+        # get the fires grid
+        Fires.fires = (Fires.heat >= FIRE_THRESHOLD) * (Fires.fuel > 0) # get grid of fires (true/false)
+        
+        # limits
         np.clip(Fires.heat, HEATMIN, HEATMAX, out=Fires.heat) # min/max the heat grid
         
         # get list of x,y coordinate pairs of cells that are on fire
@@ -371,13 +412,13 @@ class FireProcessor(esper.Processor):
         
         # add new lights where there are new fires
         for fireID in newfires:
-            x, y = Fires.Coords[fireID]
+            x, y = Fires.Coords(fireID)
             print("new fire at pos. x={} y={}".format(x,y))
             light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
             self.lights.update({fireID : light})
         # release lights from fires that have gone out
         for fireID in outfires:
-            x, y = Fires.Coords[fireID]
+            x, y = Fires.Coords(fireID)
             print("fire put out at pos. x={} y={}".format(x,y))
             rog.release_light(self.lights[fireID])
             del self.lights[fireID]
@@ -399,6 +440,7 @@ class Fluids:
     def flow(self):
         Fluids._flow()
 
+# Fluid Processor Fluids Processor
 class FluidProcessor(esper.Processor):
     def process(self):
         Fluids.flow()
@@ -528,7 +570,7 @@ class MetersProcessor(esper.Processor):
                 ''' get the amount of ambient temperature change
                     based on how much the entity's temperature changed.
                     The more massive, the greater the effect. '''
-                return -dt * mass / (MULT_MASS * 100)
+                return -dt * mass / MULT_MASS
             
             pos = rog.world().component_for_entity(ent, cmp.Position)
             ambient_temp = Fires.tempat(pos.x, pos.y)
@@ -542,6 +584,7 @@ class MetersProcessor(esper.Processor):
                 stats.temp = stats.temp + deltatemp
                 ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
                 Fires.add_heat(pos.x, pos.y, ambientdelta)
+                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
                 if (not rog.get_status(ent, cmp.StatusFire) and
                     stats.temp >= FIRE_THRESHOLD):
                     rog.set_status(ent, cmp.StatusFire)

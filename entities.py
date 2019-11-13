@@ -2649,11 +2649,22 @@ def create_steel_weapon(itemName, x, y):
 # generic components that can be applied depending on entity's data
 def _setGenericData(ent, material=0):
     stats=rog.world().component_for_entity(ent, cmp.Stats)
+    # fuel
+    fuelValue = FUEL_MULT * MAT_FUEL[material] * stats.mass/MULT_MASS
+    if fuelValue:
+        rog.world().add_component(ent, cmp.Fuel(fuelValue))
+    # resistances,
     if material==MAT_METAL:
         stats.resrust=0
-    if material==MAT_WOOD:
+    elif material==MAT_WOOD:
         stats.resrot=0
         stats.resfire=0
+    elif material==MAT_CLOTH:
+        stats.resfire=0
+    elif material==MAT_PAPER:
+        stats.resfire=-500
+    elif material==MAT_OIL:
+        stats.resfire=-100
     return ent
 
 

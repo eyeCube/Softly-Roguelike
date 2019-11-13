@@ -389,10 +389,10 @@ Reason: entity not in grid.'''.format(ent))
         
     def _discover_place(self, x,y,ent=None):
         world=rog.world()
-        ent = self.thingat(x,y)
-        if ent and not world.component_for_entity(ent, cmp.Creature):
-            draw=world.component_for_entity(ent, Draw)
-            libtcod.console_put_char_ex(
+##        ent = self.thingat(x,y)
+        if ent and not world.has_component(ent, cmp.Creature):
+            draw=world.component_for_entity(ent, cmp.Draw)
+            libtcod.console_put_char_ex( # memorize items, not creatures
                 self.con_memories, x,y, draw.char, COL['dkgray'],COL['black']
                 )
         else:
@@ -403,7 +403,7 @@ Reason: entity not in grid.'''.format(ent))
     def _create_memories(self, pc, sight):
         world=rog.world()
         pos=world.component_for_entity(pc, cmp.Position)
-        if not sight:
+        if not sight: # and you feel around (?)
             self._discover_place(pos.x,pos.y,self.inanat(x,y))
         for x in     range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
