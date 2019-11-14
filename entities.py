@@ -2348,6 +2348,8 @@ def create_stuff(name, x, y):
     world = rog.world()
     if fgcol == "random":
         fgcol = random.choice(list(COL.values()))
+    else:
+        fgcol = COL[fgcol]
     ent = world.create_entity(
         cmp.Name(name),
         cmp.Position(x,y),
@@ -2366,6 +2368,8 @@ def create_rawmat(name, x, y):
     world = rog.world()
     if fgcol == "random":
         fgcol = random.choice(list(COL.values()))
+    else:
+        fgcol = COL[fgcol]
     ent = world.create_entity(
         cmp.Name(name),
         cmp.Position(x,y),
@@ -2650,7 +2654,7 @@ def create_steel_weapon(itemName, x, y):
 def _setGenericData(ent, material=0):
     stats=rog.world().component_for_entity(ent, cmp.Stats)
     # fuel
-    fuelValue = FUEL_MULT * MAT_FUEL[material] * stats.mass/MULT_MASS
+    fuelValue = FUEL_MULT * MAT_FUEL[material]
     if fuelValue:
         rog.world().add_component(ent, cmp.Fuel(fuelValue))
     # resistances,

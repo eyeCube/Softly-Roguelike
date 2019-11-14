@@ -145,7 +145,7 @@ class LightSource:
 class Fuel: # fuel for fires
     __slots__=['fuel']
     def __init__(self, fuel=1):
-        self.fuel = int(fuel)
+        self.fuel = fuel
 
 class SenseSight:
     __slots__=['fov_map','events']

@@ -42,7 +42,7 @@ def main():
     rog.Rogue.create_world()
     rog.Rogue.create_controller()
     rog.Rogue.create_data()
-    rog.Rogue.create_map(160,80)
+    rog.Rogue.create_map(80,50)
     rog.Rogue.create_clock()
     rog.Rogue.create_updater()
     rog.Rogue.create_view()
@@ -55,11 +55,23 @@ def main():
     rog.init_keyBindings()
         
     #map generation
-    rog.map().init_specialGrids()
-    rog.map().init_terrain()
+    rog.map(rog.dlvl()).init_specialGrids()
+    rog.map(rog.dlvl()).generate_dlvl(rog.dlvl())
 
     # init player
-    rog.Rogue.create_player(15,18) # is this the right position?
+    # temporary: find a position to place the player
+    xpos = 15
+    ypos = 15
+    while rog.map(rog.dlvl()).tileat(xpos, ypos) == WALL:
+        xpos +=1
+        if xpos >= 79:
+            xpos = 0
+            ypos += 1
+        if ypos >= 49:
+            print("ERROR!!!!!!!!!!!")
+            break
+    rog.Rogue.create_player(xpos, ypos)
+    rog.make(rog.pc(), NVISION)    
     
     # create light so player can see
     log=rog.create_rawmat("log", 18,18)

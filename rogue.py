@@ -228,8 +228,10 @@ def view_max_y():   return  ROOMH - Rogue.view.h
 def fixedViewMode_toggle(): Rogue.view.fixed_mode_toggle()
 
 # map
-def map(z):
+def map(z = -99):
     # TODO: code for loading / unloading levels into the map
+    if z == -99:
+        z = dlvl()
     if dlvl() == z:
         return Rogue.map
     else:
@@ -707,7 +709,7 @@ def can_see(ent,x,y):
         return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
-    return ( in_range(pos.x,pos.y, x,y, senseSight.sight) #<- circle-ize
+    return ( in_range(pos.x,pos.y, x,y, getms(ent, "sight")) #<- circle-ize
              and libtcod.map_is_in_fov(senseSight.fov_map,x,y) )
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps

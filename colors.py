@@ -3,11 +3,15 @@
     Jacob Wharton
 '''
 
+# !!! IMPORTANT NOTE ::: #
+
 # The values here are just used as the defaults,
 # for if the settings file is corrupted.
+
 # Global Settings object modifies these values
 # at runtime, using the settings file.
-# The values for each key are converted from strings
+
+# **The values for each key are converted from strings
 # into libtcod Color objects derived from the RGB string.
 
 COLORS={

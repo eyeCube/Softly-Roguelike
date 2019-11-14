@@ -376,7 +376,11 @@ class FireProcessor(esper.Processor):
         Fires.init_fuel()
         for ent, compos in world.get_components(cmp.Fuel, cmp.Position):
             fuel, pos = compos
-            Fires.add_fuel(pos.x, pos.y, fuel.fuel)
+            # apply fuel multipliers
+            # mass affects fuel value
+            massMult = rog.getms(ent,"mass") / MULT_MASS
+            # add fuel to the grid
+            Fires.add_fuel(pos.x, pos.y, round(fuel.fuel * massMult))
             
         # disperse heat, handle fires
         dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())

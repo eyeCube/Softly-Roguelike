@@ -434,20 +434,20 @@ class Update:
         #activate_all_necessary_updates()
         if self.updates[Update.U_HUD]:
             rog.render_hud(rog.pc());
-            print('updating hud')
+##            print('updating hud')
         if self.updates[Update.U_GAME]:
             rog.render_gameArea(rog.pc());
-            print('updating game')
+##            print('updating game')
         if self.updates[Update.U_MSG]:
             rog.logNewEntry();
             clearMsg=True;
-            print('updating msg')
+##            print('updating msg')
         if self.updates[Update.U_FINAL]:
             rog.blit_to_final( rog.con_game(),0,0);
-            print('updating final')
+##            print('updating final')
         if self.updates[Update.U_BASE]:
             rog.refresh();
-            print('updating base')
+##            print('updating base')
         if clearMsg:
             rog.msg_clear()
         self.set_all_to_false()
@@ -496,7 +496,7 @@ class GameData:
         global game data about current play session
     '''
     def __init__(self):
-        self._dlvl = 0
+        self._dlvl = 1
     def dlvl(self):     return self._dlvl
     def dlvl_update(self, value): #returns whether change was successful
         if value < 0: return False

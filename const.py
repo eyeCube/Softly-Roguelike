@@ -755,7 +755,7 @@ T_TREE          =   5       # club
 T_SHROOM        =   6       # spade
 T_TABLE         =   10      # pi
 T_FIREPIT       =   15      # gear-looking thing
-T_LOG           =   19      # double arrow facing left and right
+T_LOG           =   29      # double arrow facing left and right
 T_VORTEX        =   21      # hurricane-looking thing
 T_BOX           =   22      # horizontal rectangle
 T_SHED          =   127     # house looking thing
@@ -960,7 +960,7 @@ FL_GASOLINE     =i; i+=1;
 FL_HAZMATS      =i; i+=1;
 
 # material fuel values
-FUEL_MULT       = 1 # global multiplier for all materials
+FUEL_MULT       = 1.00 # global multiplier for all materials
 MAT_FUEL={
 MAT_FLESH       : 1,
 MAT_BONE        : 0,

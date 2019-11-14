@@ -17,6 +17,7 @@ from const import *
 import rogue as rog
 import components as cmp
 from colors import COLORS as COL
+import levelgen
 import maths
 import misc
 import dice
@@ -99,6 +100,61 @@ TODO: move rendering code to a new, different class.
 ##        self.levels = {}
     #
     
+    def tileat(self, x, y):             return self.get_char(x, y)
+    def get_blocks_sight(self,x,y):     return self.grid_terrain[x][y].opaque
+    def get_nrg_cost_enter(self,x,y):   return self.grid_terrain[x][y].nrg_enter
+    def get_nrg_cost_leave(self,x,y):   return self.grid_terrain[x][y].nrg_leave
+    def get_audio_dampen(self,x,y):     return self.grid_terrain[x][y].dampen
+    def get_char(self,x,y):         return self.grid_terrain[x][y].char
+    def get_color(self,x,y):        return COL[self.grid_terrain[x][y].fg]
+    def get_bgcolor(self,x,y):
+        if rog.fireat(x,y):
+            choices=['gold','orange','trueyellow']
+            bgCol=COL[choices[dice.roll(len(choices)) - 1]]
+        else: bgCol=COL[ self.grid_terrain[x][y].bg ]
+        return bgCol
+    
+    def nthings(self,x,y):              return len(self.grid_things[x][y])
+    def thingsat(self,x,y):             return self.grid_things[x][y]
+    def thingat(self,x,y): #return the thing at the top of the pile at tile
+        listHere = self.grid_things[x][y]
+        return listHere[-1] if listHere else None
+    
+    def inanat(self,x,y): #return inanimate thing at top of the pile at tile
+        listHere=self.grid_things[x][y]
+        if not listHere: return None
+        ent=listHere[-1]
+        if rog.world().has_component(ent, cmp.Creature):
+            if len(listHere) > 1:
+                return listHere[-2] #thing under the top thing
+            else:
+                return None
+        else:
+            return ent
+    
+    def monat (self,x,y):
+        '''
+            get monster in tile
+            (only 1 mon per tile is allowed at a time.
+              Monster is always the last element in the list of entities.)
+        '''
+        ent = self.thingat(x,y)
+        if not ent: return None
+        isCreature = rog.world().has_component(ent, cmp.Creature)
+        return ent if isCreature else None
+    
+    def solidat(self,x,y):    # get solid thing in tile i.e. things that cannot be moved through... only 1 allowed per tile
+        ent = self.thingat(x,y)
+        if not ent: return None
+        return ent if rog.on(ent, ISSOLID) else None
+    
+    def lightsat(self,x,y):
+        return self.grid_lights[x][y]
+    
+    def fluidsat(self,x,y):
+        return self.grid_fluids[x][y]
+    
+    
     def COPY(self, tilemap):
         ''' copy another TileMap object into this object '''
         for k,v in tilemap.__dict__.items():
@@ -140,7 +196,11 @@ TODO: move rendering code to a new, different class.
 ##            for y in range(self.h):
 ##                if random.random()*100 > 50:
 ##                    self._tile_init(x,y,ROUGH)
-
+    
+    # procedurally generate a dungeon level
+    def generate_dlvl(self, level):
+        levelgen.generate_level(self.w, self.h, level)
+    
     # add tile (set tile) in the grid
                  
     def tile_change(self, x,y, typ):
@@ -167,20 +227,7 @@ Reason: out of bounds of grid array.'''.format(x,y,typ) )
 Reason: {}.'''.format(x,y,typ, e) )
             return False
     #
-    
-    def get_blocks_sight(self,x,y):     return self.grid_terrain[x][y].opaque
-    def get_nrg_cost_enter(self,x,y):   return self.grid_terrain[x][y].nrg_enter
-    def get_nrg_cost_leave(self,x,y):   return self.grid_terrain[x][y].nrg_leave
-    def get_audio_dampen(self,x,y):     return self.grid_terrain[x][y].dampen
-    def get_char(self,x,y):     return self.grid_terrain[x][y].char
-    def get_color(self,x,y):    return COL[self.grid_terrain[x][y].fg]
-    def get_bgcolor(self,x,y):
-        if rog.fireat(x,y):
-            choices=['gold','orange','trueyellow']
-            bgCol=COL[choices[dice.roll(len(choices)) - 1]]
-        else: bgCol=COL[ self.grid_terrain[x][y].bg ]
-        return bgCol
-    
+        
     def add_thing(self, ent):
         ''' try to add a thing to the grid, return success/failure '''
         if not rog.world().has_component(ent, cmp.Position):
@@ -213,46 +260,6 @@ Reason: entity has no position component.'''.format(ent))
         print('''Error: failed to remove entity {} from grid.
 Reason: entity not in grid.'''.format(ent))
         return False #thing was not in the grid.
-    
-    def nthings(self,x,y):              return len(self.grid_things[x][y])
-    def thingsat(self,x,y):             return self.grid_things[x][y]
-    def thingat(self,x,y): #return the thing at the top of the pile at tile
-        listHere = self.grid_things[x][y]
-        return listHere[-1] if listHere else None
-    
-    def inanat(self,x,y): #return inanimate thing at top of the pile at tile
-        listHere=self.grid_things[x][y]
-        if not listHere: return None
-        ent=listHere[-1]
-        if rog.world().has_component(ent, cmp.Creature):
-            if len(listHere) > 1:
-                return listHere[-2] #thing under the top thing
-            else:
-                return None
-        else:
-            return ent
-    
-    def monat (self,x,y):
-        '''
-            get monster in tile
-            (only 1 mon per tile is allowed at a time.
-              Monster is always the last element in the list of entities.)
-        '''
-        ent = self.thingat(x,y)
-        if not ent: return None
-        isCreature = rog.world().has_component(ent, cmp.Creature)
-        return ent if isCreature else None
-    
-    def solidat(self,x,y):    # get solid thing in tile i.e. things that cannot be moved through... only 1 allowed per tile
-        ent = self.thingat(x,y)
-        if not ent: return None
-        return ent if rog.on(ent, ISSOLID) else None
-    
-    def lightsat(self,x,y):
-        return self.grid_lights[x][y]
-    
-    def fluidsat(self,x,y):
-        return self.grid_fluids[x][y]
     
     def countNeighbors(self, x,y, char):
         '''
