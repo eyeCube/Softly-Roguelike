@@ -71,9 +71,6 @@ def pick_roomtype():
     
     return RT_ROOM # default
 
-def grid_set_floor(grid, x, y):
-    grid[x][y] = 1
-
 # TODO: create all room and corridor gen functions.
 # For now they just do *something* so it doesn't raise an error.
 
@@ -150,7 +147,7 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
     yo = int(random.random() * (levelheight - borders*2)) + borders
     
     # make a bunch of rectangle rooms that are juxtaposed
-    for _ in range(num):
+    for ii in range(num):
         thisarea = set() # individual rectangle area / perimeter
         thisperi = set()
         # individual rectangle offset
@@ -174,6 +171,16 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
                 thisarea.add( (xx - (xs//2), yy - (ys//2),) )
         
         # make sure this box is touching the existing shape else reject it.
+        if ii == 0:
+            touches = True
+        else:
+            touches = False
+        for tile in thisperi:
+            if tile in area:
+                touches = True
+                break
+        if touches == False:
+            continue
         
         # add to the existing perimeter
         for tile in thisperi:
@@ -190,6 +197,14 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
     for tile in area:
         if tile in perimeter:
             perimeter.remove(tile)
+    
+##    print("area")
+##    for tile in area:
+##        print(tile)
+##    print("perimeter")
+##    for tile in perimeter:
+##        print(tile)
+    
     
     # create the room object
     room = Room(xo,yo, area, perimeter)
@@ -264,15 +279,10 @@ def generate_level(width, height, z):
             width and height are the level's width and height
             z is the dungeon level (integer)
     '''
-    # generate rooms then corridors ? Should they be separate?
-    # maybe just separate corridor grid from room grid
-    #   then combine them together after all are placed on a grid
-    #   (combination goes into the actual map grid)
-    #   the temp grids are corr_grid and room_grid
-    print("Generating level {}...".format(z))
-    corr_grid = [[0 for yy in range(height)] for xx in range(width)]
-    room_grid = [[0 for yy in range(height)] for xx in range(width)]
+    rooms = []
+    borders = 6
     
+    print("Generating level {}...".format(z))
     print("...Generating rooms...")
     for _ in range(50):
         corridor=False
@@ -305,44 +315,118 @@ def generate_level(width, height, z):
         
         # try to put the room in the grid
         if corridor:
-            # slide into place
-            xshift = 0
-            yshift = 0
             # as long as it touches some existing room,
             #   just add the corridor, allow overlapping.
-            for tile in room.area:
-                x, y = tile
-                xi = x + xshift
-                yi = y + yshift
-                if xi >= 0 and yi >= 0 and xi < width and yi < height:
-                    grid_set_floor(corr_grid, xi, yi)
+            # find a place to fit it
+            success = False
+            iii = 1
+            for _ in range(256):
+                if success:
+                    break
+                # else, slide the room and try again
+                room.x_offset +=1
+                if room.x_offset > width - borders:
+                    room.x_offset = borders
+                    room.y_offset += 5
+                if room.y_offset > height - borders:
+                    room.y_offset = iii + borders
+                    iii += 1
+                
+                overlaps = False
+                touches = False
+                for _rm in rooms:
+                    if overlaps or touches:
+                        success = True
+                        break
+                    for tile in _rm.area:
+                        if overlaps: break
+                        x, y = tile
+                        xi = x + _rm.x_offset
+                        yi = y + _rm.y_offset
+                        for tile2 in room.area:
+                            x2, y2 = tile2
+                            xi2 = x2 + room.x_offset
+                            yi2 = y2 + room.y_offset
+                            if xi == xi2 and yi == yi2:
+                                overlaps = True
+                                break
+                    for tile in _rm.perimeter:
+                        if touches: break
+                        x, y = tile
+                        xi = x + _rm.x_offset
+                        yi = y + _rm.y_offset
+                        for tile2 in room.perimeter:
+                            x2, y2 = tile2
+                            xi2 = x2 + room.x_offset
+                            yi2 = y2 + room.y_offset
+                            if xi == xi2 and yi == yi2:
+                                touches = True
+                                break
+            
+            rooms.append(room)
+        
         else:
-            # slide into place
-            xshift = 0
-            yshift = 0
             # make sure it touches but does not overlap existing rooms.
             # once we've found the proper place to put it, add to the grid
-##            for tile in room.area:
-##                x, y = tile
-##                xi = x + xshift
-##                yi = y + yshift
-##                if xi >= 0 and yi >= 0 and xi < width and yi < height:
-##                    if rog.map(z).tileat(xi, yi) == FLOOR:
-##                        success=True
-            for tile in room.area:
-                x, y = tile
-                xi = x + xshift + room.x_offset
-                yi = y + yshift + room.y_offset
-                if xi >= 0 and yi >= 0 and xi < width and yi < height:
-                    grid_set_floor(room_grid, xi, yi)
+            # find a place to fit it
+            success = False
+            iii = 1
+            for _ in range(256):
+                if success:
+                    break
+                # else, slide the room and try again
+                room.x_offset +=1
+                if room.x_offset > width - borders:
+                    room.x_offset = borders
+                    room.y_offset += 5
+                if room.y_offset > height - borders:
+                    room.y_offset = iii + borders
+                    iii += 1
+                    
+                touches = False
+                overlaps = False
+                for _rm in rooms:
+                    if touches and not overlaps:
+                        success = True
+                        break
+                    for tile in _rm.perimeter:
+                        if touches: break
+                        x, y = tile
+                        xi = x + _rm.x_offset
+                        yi = y + _rm.y_offset
+                        for tile2 in room.perimeter:
+                            x2, y2 = tile2
+                            xi2 = x2 + room.x_offset
+                            yi2 = y2 + room.y_offset
+                            if xi == xi2 and yi == yi2:
+                                touches = True
+                                break
+                    for tile in _rm.area:
+                        if overlaps: break
+                        x, y = tile
+                        xi = x + _rm.x_offset
+                        yi = y + _rm.y_offset
+                        for tile2 in room.area:
+                            x2, y2 = tile2
+                            xi2 = x2 + room.x_offset
+                            yi2 = y2 + room.y_offset
+                            if xi == xi2 and yi == yi2:
+                                overlaps = True
+                                break
+                
+            rooms.append(room)
     #
+
+    # get floor tiles all in one grid
+    floor_grid = get_grid_from_rooms(rooms, width, height)
     print("...Clearing map...")
     rog.map(z).init_terrain(WALL)
     print("...Digging out the rooms and corridors...")
-    level_generate_from_grids(
+    level_init_from_grids(
         rog.map(z),
-        (room_grid, corr_grid,),
-        width, height
+        (floor_grid,),
+        width, height,
+        digtile=FLOOR
         )
     print("...Adding dungeon features...")
     # add staircases
@@ -351,20 +435,29 @@ def generate_level(width, height, z):
     # add items
     print("Done.")
 
-def level_generate_from_grids(Map, grids, width, height, digtile=FLOOR):
+def level_init_from_grids(Map, grids, width, height, digtile=FLOOR):
     for grid in grids:
         for x in range(width):
             for y in range(height):
                 if grid[x][y] == 1:
                     Map.tile_change(x, y, digtile)
 
+def get_grid_from_rooms(rooms, width, height):
+    return_grid = [[0 for yy in range(height)] for xx in range(width)]
+    for room in rooms:
+        for tile in room.area:
+            x, y = tile
+            xi = x + room.x_offset
+            yi = y + room.y_offset
+            if xi >= 1 and yi >= 1 and xi < width-1 and yi < height-1:
+                return_grid[xi][yi] = 1
+    return return_grid
 
-##corr_grid = [[0 for __ in range(5)] for _ in range(8)]
-##for x in corr_grid:
-##    for y in x:
-##        print("x,y={}, {}".format(x, y))
-##generate_room(80,50)
-##generate_corridor(80,50)
+
+##if __name__ == "__main__":
+##    generate_room_conglomerate(80,50, mins=2, sizev=2, xvar=2, yvar=2, num=3)
+##    generate_room(80,50)
+##    generate_corridor(80,50)
 
 
 

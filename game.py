@@ -396,21 +396,21 @@ class Update:
     #def pcfov(self):
     #    self.updates.add(Update.U_PCFOV)
     def game(self):
-        print('setting game update to true')
+##        print('setting game update to true')
         self.updates.update({Update.U_GAME : True})
         self.updates.update({Update.U_FINAL : True})
     def hud(self):
-        print('setting hud update to true')
+##        print('setting hud update to true')
         self.updates.update({Update.U_HUD : True})
     def msg(self):
-        print('setting msg update to true')
+##        print('setting msg update to true')
         self.updates.update({Update.U_MSG : True})
     def final(self):
-        print('setting final update to true')
+##        print('setting final update to true')
         self.updates.update({Update.U_FINAL : True})
         self.updates.update({Update.U_BASE : True})
     def base(self):
-        print('setting base update to true')
+##        print('setting base update to true')
         self.updates.update({Update.U_BASE : True})
 
     '''def activate_all_necessary_updates(self):

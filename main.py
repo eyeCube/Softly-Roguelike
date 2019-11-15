@@ -68,7 +68,7 @@ def main():
             xpos = 0
             ypos += 1
         if ypos >= 49:
-            print("ERROR!!!!!!!!!!!")
+            print("! FATAL ERROR ! Failed to place player in the map!")
             break
     rog.Rogue.create_player(xpos, ypos)
     rog.make(rog.pc(), NVISION)    

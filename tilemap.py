@@ -50,7 +50,8 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 500,200,False,1,),
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen',1200,300,False,2,),
     JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen',1200,300,False,2,),
-    WALL        : Tile(WALL,      'dkred', 'orange',     0,0,  True, 50,),
+    # TODO: change costEnter to 0 for WALL! This is TEMPORARY for TESTING LEVEL GEN
+    WALL        : Tile(WALL,      'dkred', 'orange',   100,0,  True, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',  100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'brown', 'deep',    100,0,  False,1,),
@@ -348,22 +349,25 @@ Reason: entity not in grid.'''.format(ent))
         seer=world.component_for_entity(pc, cmp.SenseSight)
         pos=world.component_for_entity(pc, cmp.Position)
         rend=world.component_for_entity(pc, cmp.Draw)
+
+        sight = 100#TEMPORARY!!!!!
+
         for     x in range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
-                canSee=False
-                
-##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
-                
-                if not rog.in_range(pos.x,pos.y, x,y, sight):
-                    continue
-                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-                    continue
+##                canSee=False
+##                
+####                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
+##                
+##                if not rog.in_range(pos.x,pos.y, x,y, sight):
+##                    continue
+##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+##                    continue
                 ent=self.thingat(x, y)
-                if (not (x==pos.x and y==pos.y)
-                        and self.get_light_value(x,y) == 0
-                        and not rog.on(pc,NVISION) ):
-                    self._draw_silhouettes(pc, x,y, ent, sight)
-                    continue
+##                if (not (x==pos.x and y==pos.y)
+##                        and self.get_light_value(x,y) == 0
+##                        and not rog.on(pc,NVISION) ):
+##                    self._draw_silhouettes(pc, x,y, ent, sight)
+##                    continue
                 
                 if ent:
                     libtcod.console_put_char(
