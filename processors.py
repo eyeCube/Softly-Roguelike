@@ -1,7 +1,20 @@
 '''
     processors.py
-    Part of Softly Into the Night, a roguelike by Jacob Wharton.
-    Copyright 2019.
+    Softly Into the Night, a sci-fi/Lovecraftian roguelike
+    Copyright (C) 2019 Jacob Wharton.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
 ##from dataclasses import dataclass
@@ -417,13 +430,13 @@ class FireProcessor(esper.Processor):
         # add new lights where there are new fires
         for fireID in newfires:
             x, y = Fires.Coords(fireID)
-            print("new fire at pos. x={} y={}".format(x,y))
+##            print("new fire at pos. x={} y={}".format(x,y))
             light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
             self.lights.update({fireID : light})
         # release lights from fires that have gone out
         for fireID in outfires:
             x, y = Fires.Coords(fireID)
-            print("fire put out at pos. x={} y={}".format(x,y))
+##            print("fire put out at pos. x={} y={}".format(x,y))
             rog.release_light(self.lights[fireID])
             del self.lights[fireID]
     #
@@ -588,7 +601,7 @@ class MetersProcessor(esper.Processor):
                 stats.temp = stats.temp + deltatemp
                 ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
                 Fires.add_heat(pos.x, pos.y, ambientdelta)
-                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
+##                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
                 if (not rog.get_status(ent, cmp.StatusFire) and
                     stats.temp >= FIRE_THRESHOLD):
                     rog.set_status(ent, cmp.StatusFire)

@@ -1,9 +1,20 @@
 '''
     levelgen.py
-    Part of Softly Into the Night, a roguelike by Jacob Wharton.
-    Copyright 2019.
+    Softly Into the Night, a sci-fi/Lovecraftian roguelike
+    Copyright (C) 2019 Jacob Wharton.
 
-    procedural generation of dungeon levels
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
 import math
@@ -284,11 +295,11 @@ def generate_level(width, height, z):
     
     print("Generating level {}...".format(z))
     print("...Generating rooms...")
-    for _ in range(50):
+    for _ in range(100):
         corridor=False
         roomtype = pick_roomtype()
 
-##        print("picked room type ", roomtype)
+        print("picked room type ", roomtype)
         
         if roomtype==RT_ROOM:
             room = generate_room(width, height)
@@ -320,10 +331,12 @@ def generate_level(width, height, z):
             # find a place to fit it
             success = False
             iii = 1
-            for _ in range(256):
+            for _ in range(4):
                 if success:
                     break
                 # else, slide the room and try again
+                overlaps = False
+                touches = False
                 room.x_offset +=1
                 if room.x_offset > width - borders:
                     room.x_offset = borders
@@ -331,9 +344,6 @@ def generate_level(width, height, z):
                 if room.y_offset > height - borders:
                     room.y_offset = iii + borders
                     iii += 1
-                
-                overlaps = False
-                touches = False
                 for _rm in rooms:
                     if overlaps or touches:
                         success = True
@@ -350,6 +360,8 @@ def generate_level(width, height, z):
                             if xi == xi2 and yi == yi2:
                                 overlaps = True
                                 break
+                        # end for
+                    # end for
                     for tile in _rm.perimeter:
                         if touches: break
                         x, y = tile
@@ -362,19 +374,22 @@ def generate_level(width, height, z):
                             if xi == xi2 and yi == yi2:
                                 touches = True
                                 break
-            
+                        # end for
+                    # end for
+                # end for
             rooms.append(room)
-        
         else:
             # make sure it touches but does not overlap existing rooms.
             # once we've found the proper place to put it, add to the grid
             # find a place to fit it
             success = False
             iii = 1
-            for _ in range(256):
+            for _ in range(4):
                 if success:
                     break
                 # else, slide the room and try again
+                touches = False
+                overlaps = False
                 room.x_offset +=1
                 if room.x_offset > width - borders:
                     room.x_offset = borders
@@ -382,9 +397,6 @@ def generate_level(width, height, z):
                 if room.y_offset > height - borders:
                     room.y_offset = iii + borders
                     iii += 1
-                    
-                touches = False
-                overlaps = False
                 for _rm in rooms:
                     if touches and not overlaps:
                         success = True
@@ -398,9 +410,11 @@ def generate_level(width, height, z):
                             x2, y2 = tile2
                             xi2 = x2 + room.x_offset
                             yi2 = y2 + room.y_offset
-                            if xi == xi2 and yi == yi2:
+                            if (xi == xi2 and yi == yi2):
                                 touches = True
                                 break
+                        # end for
+                    # end for
                     for tile in _rm.area:
                         if overlaps: break
                         x, y = tile
@@ -413,12 +427,50 @@ def generate_level(width, height, z):
                             if xi == xi2 and yi == yi2:
                                 overlaps = True
                                 break
-                
+                        # end for
+                    # end for
+                # end for
             rooms.append(room)
-    #
-
+        # end if
+    # end for
+    
     # get floor tiles all in one grid
     floor_grid = get_grid_from_rooms(rooms, width, height)
+    print("Removing dead ends...")
+    list_tiles=[]
+    new_list=[]
+    for xx in range(width):
+        for yy in range(height):
+            list_tiles.append((xx,yy,))
+    nnn=-1
+    while list_tiles:
+        nnn+=1
+        print("iteration num ", nnn)
+        for tile in list_tiles:
+            xx, yy = tile
+            if floor_grid[xx][yy] == 0:
+                walls = 0
+                if (xx-1 > 0 and floor_grid[xx-1][yy] == 1):
+                    walls += 1
+                if (xx+1 < width-1 and floor_grid[xx+1][yy] == 1):
+                    walls += 1
+                if (yy-1 > 0 and floor_grid[xx][yy-1] == 1):
+                    walls += 1
+                if (yy+1 < height-1 and floor_grid[xx][yy+1] == 1):
+                    walls += 1
+                if walls == 3: # dead end
+                    print("dead end found at {}, {}".format(xx, yy))
+                    if xx-1 > 0:
+                        new_list.append((xx-1, yy,))
+                    if xx+1 < width-1:
+                        new_list.append((xx+1, yy,))
+                    if yy-1 > 0:
+                        new_list.append((xx, yy-1,))
+                    if yy+1 < height-1:
+                        new_list.append((xx, yy+1,))
+                    floor_grid[xx][yy] = 1
+        list_tiles=new_list
+        new_list=[]
     print("...Clearing map...")
     rog.map(z).init_terrain(WALL)
     print("...Digging out the rooms and corridors...")
@@ -461,5 +513,13 @@ def get_grid_from_rooms(rooms, width, height):
 
 
 
+##                                and ( ( (xi-1,yi,) in _rm.perimeter
+##                                    and (xi-1,yi,) in room.perimeter )
+##                                  or ( (xi+1,yi,) in _rm.perimeter
+##                                    and (xi+1,yi,) in room.perimeter ) 
+##                                  or ( (xi,yi-1,) in _rm.perimeter
+##                                    and (xi,yi-1,) in room.perimeter ) 
+##                                  or ( (xi,yi+1,) in _rm.perimeter
+##                                    and (xi,yi+1,) in room.perimeter ) )):
 
 
