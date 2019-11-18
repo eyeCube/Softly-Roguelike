@@ -34,12 +34,31 @@ RT_RARETHEMEDROOM=7
 RT_CAVEROOM=8
 RT_BIGCAVEROOM=9
 
+SLIDE_X = 3 #[1,7,4,3,]
+SLIDE_Y = 5
+
 class Room:
     def __init__(self, xo : int, yo : int, area : list, perimeter : list):
         self.x_offset = xo
         self.y_offset = yo
         self.area=area
         self.perimeter=perimeter
+
+
+# Level generation data
+# global vars for use by generate_ functions
+class LGD:
+    prev_xo=0
+    prev_yo=0
+    
+def get_offset_position(width, height, borders=5, offsetd=40):
+    xo = LGD.prev_xo + int(random.random() * (offsetd*2) - offsetd)
+    yo = LGD.prev_yo + int(random.random() * (offsetd*2) - offsetd)
+    xo = max(borders, min(width - borders, xo))
+    yo = max(borders, min(height - borders, yo))
+    print("chosen position {}, {}".format(xo, yo))
+    return (xo, yo,)
+
 
 # idea: separate corridor and room gen?
 #   make rooms then corridors.
@@ -113,9 +132,7 @@ def generate_room(levelwidth, levelheight, mins=2, sizev=5):
     borders = 5 # size of padding where origin of rooms cannot be placed
     area = set()
     perimeter = set()
-    # offset position
-    xo = int(random.random() * (levelwidth - borders*2)) + borders
-    yo = int(random.random() * (levelheight - borders*2)) + borders
+    xo, yo = get_offset_position(levelwidth, levelheight, borders)
     # scale
     xs = mins + int(random.random()*sizev)
     ys = mins + int(random.random()*sizev)
@@ -153,9 +170,7 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
     borders = 5 # size of padding where origin of rooms cannot be placed
     area = set()
     perimeter = set()
-    # offset position
-    xo = int(random.random() * (levelwidth - borders*2)) + borders
-    yo = int(random.random() * (levelheight - borders*2)) + borders
+    xo, yo = get_offset_position(levelwidth, levelheight, borders)
     
     # make a bunch of rectangle rooms that are juxtaposed
     for ii in range(num):
@@ -226,9 +241,7 @@ def generate_corridor(levelwidth, levelheight):
     result = random.random()*100
     area = set()
     perimeter = set()
-    # offset position
-    xo = int(random.random() * (levelwidth - borders*2)) + borders
-    yo = int(random.random() * (levelheight - borders*2)) + borders
+    xo, yo = get_offset_position(levelwidth, levelheight, borders)
     
     # pick what kind of corridor, vertical or horizontal
     if result < 40: # horizontal
@@ -282,7 +295,7 @@ def generate_corridor(levelwidth, levelheight):
 
 
 # level generation
-def generate_level(width, height, z):
+def generate_level(width, height, z, density=250):
     '''
         Make a dungeon level
         Generate a tilemap terrain grid and populate it with stuff
@@ -291,15 +304,26 @@ def generate_level(width, height, z):
             z is the dungeon level (integer)
     '''
     rooms = []
+    doors = [] # potential doors that could be added in
+    holes = []
     borders = 6
+    consecutive_failures = 0
     
     print("Generating level {}...".format(z))
     print("...Generating rooms...")
-    for _ in range(100):
-        corridor=False
+    # origin room at center of the map
+    room = generate_room(width, height)
+    room.x_offset = int(random.random()*width/2 + width/4)
+    room.y_offset = int(random.random()*height/2 + height/4)
+    LGD.prev_xo = room.x_offset
+    LGD.prev_yo = room.y_offset
+    rooms.append(room)
+    # other rooms
+    for _ in range(density):
+        corridor=False # last room placed was a corridor
         roomtype = pick_roomtype()
-
-        print("picked room type ", roomtype)
+        
+##        print("picked room type ", roomtype)
         
         if roomtype==RT_ROOM:
             room = generate_room(width, height)
@@ -327,41 +351,23 @@ def generate_level(width, height, z):
         # try to put the room in the grid
         if corridor:
             # as long as it touches some existing room,
-            #   just add the corridor, allow overlapping.
+            #   just add the corridor (allow overlapping)
             # find a place to fit it
             success = False
-            iii = 1
             for _ in range(4):
                 if success:
                     break
                 # else, slide the room and try again
                 overlaps = False
                 touches = False
-                room.x_offset +=1
+                room.x_offset +=SLIDE_X
                 if room.x_offset > width - borders:
-                    room.x_offset = borders
-                    room.y_offset += 5
+                    room.x_offset -= SLIDE_X*5
+                    room.y_offset += SLIDE_Y
                 if room.y_offset > height - borders:
-                    room.y_offset = iii + borders
-                    iii += 1
+                    room.y_offset -= SLIDE_Y*3
                 for _rm in rooms:
-                    if overlaps or touches:
-                        success = True
-                        break
-                    for tile in _rm.area:
-                        if overlaps: break
-                        x, y = tile
-                        xi = x + _rm.x_offset
-                        yi = y + _rm.y_offset
-                        for tile2 in room.area:
-                            x2, y2 = tile2
-                            xi2 = x2 + room.x_offset
-                            yi2 = y2 + room.y_offset
-                            if xi == xi2 and yi == yi2:
-                                overlaps = True
-                                break
-                        # end for
-                    # end for
+                    # perimeter touching, get potential doors
                     for tile in _rm.perimeter:
                         if touches: break
                         x, y = tile
@@ -373,34 +379,53 @@ def generate_level(width, height, z):
                             yi2 = y2 + room.y_offset
                             if xi == xi2 and yi == yi2:
                                 touches = True
-                                break
-                        # end for
-                    # end for
-                # end for
-            rooms.append(room)
-        else:
+                                # add a potential door
+                                doors.append((xi, yi,))
+                                holes.append((xi, yi,))
+##                                break
+                        # end for tile2
+                    # end for tile
+                    if not touches:
+                        for tile in _rm.area:
+                            if overlaps: break
+                            x, y = tile
+                            xi = x + _rm.x_offset
+                            yi = y + _rm.y_offset
+                            for tile2 in room.area:
+                                x2, y2 = tile2
+                                xi2 = x2 + room.x_offset
+                                yi2 = y2 + room.y_offset
+                                if xi == xi2 and yi == yi2:
+                                    overlaps = True
+                                    break
+                            # end for tile2
+                        # end for tile
+                    # end if
+                    if overlaps or touches:
+                        success = True
+                        break
+                # end for room
+                
+            # end for range
+        #
+        else: # it's a room (not a corridor)
             # make sure it touches but does not overlap existing rooms.
             # once we've found the proper place to put it, add to the grid
             # find a place to fit it
             success = False
-            iii = 1
             for _ in range(4):
                 if success:
                     break
                 # else, slide the room and try again
                 touches = False
                 overlaps = False
-                room.x_offset +=1
+                room.x_offset +=SLIDE_X
                 if room.x_offset > width - borders:
-                    room.x_offset = borders
-                    room.y_offset += 5
+                    room.x_offset -= SLIDE_X*5
+                    room.y_offset += SLIDE_Y
                 if room.y_offset > height - borders:
-                    room.y_offset = iii + borders
-                    iii += 1
+                    room.y_offset -= SLIDE_Y*3
                 for _rm in rooms:
-                    if touches and not overlaps:
-                        success = True
-                        break
                     for tile in _rm.perimeter:
                         if touches: break
                         x, y = tile
@@ -412,9 +437,11 @@ def generate_level(width, height, z):
                             yi2 = y2 + room.y_offset
                             if (xi == xi2 and yi == yi2):
                                 touches = True
+                                doors.append((xi, yi,))
+                                holes.append((xi, yi,))
                                 break
-                        # end for
-                    # end for
+                        # end for tile2
+                    # end for tile
                     for tile in _rm.area:
                         if overlaps: break
                         x, y = tile
@@ -427,15 +454,36 @@ def generate_level(width, height, z):
                             if xi == xi2 and yi == yi2:
                                 overlaps = True
                                 break
-                        # end for
-                    # end for
-                # end for
-            rooms.append(room)
+                        # end for tile2
+                    # end for tile
+                    if touches and not overlaps:
+                        success = True
+                        break
+                # end for room
+            # end for range
         # end if
-    # end for
+        if success:
+            LGD.prev_xo = room.x_offset
+            LGD.prev_yo = room.y_offset
+            rooms.append(room)
+            consecutive_failures = 0
+        else:
+            consecutive_failures += 1
+            if consecutive_failures >= 3:
+                if len(rooms) <= 1:
+                    LGD.prev_xo = rooms[0].x_offset
+                    LGD.prev_yo = rooms[0].y_offset
+                else:
+                    LGD.prev_xo = int(random.random()*(width-borders*2) + borders)
+                    LGD.prev_yo = int(random.random()*(height-borders*2) + borders)
+                    consecutive_failures = 0
+    # end for range
     
     # get floor tiles all in one grid
     floor_grid = get_grid_from_rooms(rooms, width, height)
+    
+    # done with big dungeon changes, now just tweak and add stuff
+    
     print("Removing dead ends...")
     list_tiles=[]
     new_list=[]
@@ -448,15 +496,15 @@ def generate_level(width, height, z):
         print("iteration num ", nnn)
         for tile in list_tiles:
             xx, yy = tile
-            if floor_grid[xx][yy] == 0:
+            if floor_grid[xx][yy] == 1:
                 walls = 0
-                if (xx-1 > 0 and floor_grid[xx-1][yy] == 1):
+                if (xx-1 > 0 and floor_grid[xx-1][yy] == 0):
                     walls += 1
-                if (xx+1 < width-1 and floor_grid[xx+1][yy] == 1):
+                if (xx+1 < width-1 and floor_grid[xx+1][yy] == 0):
                     walls += 1
-                if (yy-1 > 0 and floor_grid[xx][yy-1] == 1):
+                if (yy-1 > 0 and floor_grid[xx][yy-1] == 0):
                     walls += 1
-                if (yy+1 < height-1 and floor_grid[xx][yy+1] == 1):
+                if (yy+1 < height-1 and floor_grid[xx][yy+1] == 0):
                     walls += 1
                 if walls == 3: # dead end
                     print("dead end found at {}, {}".format(xx, yy))
@@ -468,11 +516,21 @@ def generate_level(width, height, z):
                         new_list.append((xx, yy-1,))
                     if yy+1 < height-1:
                         new_list.append((xx, yy+1,))
-                    floor_grid[xx][yy] = 1
+                    floor_grid[xx][yy] = 0
         list_tiles=new_list
         new_list=[]
+    #
+    
+    for hole in holes: # dig out other tiles not covered by the rooms
+        x, y = hole
+        floor_grid[x][y] = 1
+    
+    # done editing temporary grids
+    # from here on out only edit the actual tilemap terrain grid
+    
     print("...Clearing map...")
     rog.map(z).init_terrain(WALL)
+    
     print("...Digging out the rooms and corridors...")
     level_init_from_grids(
         rog.map(z),
@@ -480,19 +538,61 @@ def generate_level(width, height, z):
         width, height,
         digtile=FLOOR
         )
+    
     print("...Adding dungeon features...")
+    for tile in doors:
+        x, y = tile
+        canPlaceDoor = False
+        if ( rog.map(z).tileat(x - 1, y) == WALL
+            and rog.map(z).tileat(x + 1, y) == WALL
+            and rog.map(z).tileat(x, y - 1) == FLOOR
+            and rog.map(z).tileat(x, y + 1) == FLOOR ):
+            canPlaceDoor = True
+        elif ( rog.map(z).tileat(x, y - 1) == WALL
+            and rog.map(z).tileat(x, y + 1) == WALL
+            and rog.map(z).tileat(x - 1, y) == FLOOR
+            and rog.map(z).tileat(x + 1, y) == FLOOR ):
+            canPlaceDoor = True
+        if not canPlaceDoor:
+            continue
+        rog.map(z).tile_change(x, y, DOORCLOSED) # TEMPORARY:: see following
+##        if random.random()*100 < 30:
+##            pass
+##        elif random.random()*100 < 50:
+##            rog.map(z).tile_change(x, y, FLOOR)
+##        elif random.random()*100 < 75:
+##            rog.map(z).tile_change(x, y, DOORCLOSED)
+##        elif random.random()*100 < 85:
+##            rog.map(z).tile_change(x, y, DOOROPEN)
+##        elif random.random()*100 < 95:
+##            rog.map(z).tile_change(x, y, DOORLOCKED)
+##        else:
+##            rog.map(z).tile_change(x, y, SECRETDOOR)
+
     # add staircases
+
+    # DEBUG
+##    for room in rooms:
+##        for tile in room.perimeter:
+##            x, y = tile
+##            xi = x + room.x_offset
+##            yi = y + room.y_offset
+##            rog.map(z).tile_change(xi, yi, ROUGH)
+    
     print("...Populating...") # add entities
     # add creatures
     # add items
+
     print("Done.")
 
-def level_init_from_grids(Map, grids, width, height, digtile=FLOOR):
+def level_init_from_grids(Map, grids, width, height, digtile=FLOOR, testTile=ROUGH):
     for grid in grids:
         for x in range(width):
             for y in range(height):
                 if grid[x][y] == 1:
                     Map.tile_change(x, y, digtile)
+                if grid[x][y] == -1:
+                    Map.tile_change(x, y, testTile)
 
 def get_grid_from_rooms(rooms, width, height):
     return_grid = [[0 for yy in range(height)] for xx in range(width)]

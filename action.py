@@ -167,13 +167,15 @@ def drop_pc(pc,item):
         rog.alert("You can't put that there!")
 
 def open_pc(pc):
+    # pick what to open/close
     rog.alert("Open what?{d}".format(d=dirStr))
     args=rog.get_direction()
     if not args: return
     dx,dy,dz=args
-    xto=pc.x+dx
-    yto=pc.y+dy
-    
+    pos = rog.world().component_for_entity(pc, cmp.Position)
+    xto = pos.x + dx
+    yto = pos.y + dy
+    # do the open/close action
     if not openClose(pc, xto, yto):
         rog.alert("It won't open.")
 

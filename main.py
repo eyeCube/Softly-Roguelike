@@ -55,7 +55,7 @@ def main():
     rog.Rogue.create_world()
     rog.Rogue.create_controller()
     rog.Rogue.create_data()
-    rog.Rogue.create_map(80,50)
+    rog.Rogue.create_map(ROOMW,ROOMH)
     rog.Rogue.create_clock()
     rog.Rogue.create_updater()
     rog.Rogue.create_view()
@@ -77,10 +77,10 @@ def main():
     ypos = 15
     while rog.map(rog.dlvl()).tileat(xpos, ypos) == WALL:
         xpos +=1
-        if xpos >= 79:
+        if xpos >= ROOMW:
             xpos = 0
             ypos += 1
-        if ypos >= 49:
+        if ypos >= ROOMH:
             print("! FATAL ERROR ! Failed to place player in the map!")
             break
     rog.Rogue.create_player(xpos, ypos)

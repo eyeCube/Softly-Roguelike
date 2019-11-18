@@ -907,6 +907,49 @@ RECIPES={
     'byproducts': (),
     },
 
+    # water filters / purifiers
+# water qualities:
+# waste water (requires industrial purification to be potable)
+# dirty water (needs filtration, may need purification / distillation)
+# filtered water (physically filtered off particulates)
+    # drinkable, but may still make you sick
+# purified water (chemically purified)
+    # drinkable, but may still make you sick (lower chance than filtered)
+# distilled water (evaporated)
+    # drinkable, no risk of sickness
+'plastic water filter':{
+    # takes 10 minutes to filter 1 liter (1000g or 1KG of water)
+    # 1 minute for 100g; 3 seconds for 5g
+    'quantity'  : 1,
+    'table'     : CRT_STUFF,
+    'skills'    : ((SKL_ASSEMBLY,10,), (SKL_PLASTIC,1,),),
+    'construct' : 1200,
+    'components': (
+        [ ('plastic bottle', 2,), ],
+        [ ('gravel', 500,), ], # filters the large particles
+        [ ('sand', 100,), ], # filters the particulates
+        [ ('powdered charcoal', 50,), ], # filters the toxins
+        [ ('scrap cloth', 1,), ], # membrane
+        [ ('rubber band', 1,), ],
+        ),
+    'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
+    'byproducts': ( ('scrap plastic', 4,), ),
+    },
+'water purification tablet':{ # stretches out the water purification agent
+    # water purification agent is tetraglycerine hydroperiodide
+    # acts in 5 minutes
+    'quantity'  : 20,
+    'table'     : CRT_STUFF,
+    'skills'    : ((SKL_ASSEMBLY,15,),),
+    'construct' : 4800,
+    'components': (
+        [ ('water purification agent', 1,), ],
+        [ ('pill filler', 20,), ],
+        ),
+    'tools'     : (),
+    'byproducts': (),
+    },
+
     # light sources
 'torch':{
     'quantity'  : 1,
@@ -1033,7 +1076,7 @@ RECIPES={
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_PLASTIC,1,),),
-    'construct' : 1200,
+    'construct' : 2400,
     'durability': 'weakest_link',
     'components': (
         [ ('plastic bottlecap', 2,), ('plastic tube', 1,), ],
@@ -1049,7 +1092,7 @@ RECIPES={
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,15,), (SKL_LEATHER,5,),),
-    'construct' : 1600,
+    'construct' : 3600,
     'durability': 'weakest_link',
     'components': (
         [ ('metal tube', 1,), ],
@@ -1069,7 +1112,7 @@ RECIPES={
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,15,),),
-    'construct' : 5600,
+    'construct' : 8800,
     'durability': 'weakest_link',
     'components': (
         [ ('metal pipe', 1,), ],
@@ -1086,7 +1129,7 @@ RECIPES={
         ),
     },
 
-    # tanks
+    # fluid containers
 'plastic tank':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
@@ -1139,8 +1182,8 @@ RECIPES={
     'byproducts': (),
     },
 
-    # air compressors
-'plastic air compressor':{
+    # fluid compressors
+'plastic compressor':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_PLASTIC,2,),),

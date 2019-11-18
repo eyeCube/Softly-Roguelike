@@ -727,11 +727,10 @@ def can_see(ent,x,y):
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps
 def update_all_fovmaps():
-    for creat in list_creatures():
-        if has_sight(creat):
-            fovMap=creat.fov_map
-            libtcod.map_copy(Rogue.map.fov_map,fovMap)
-            update_fov(tt)
+    for ent, compo in Rogue.world.get_component(cmp.SenseSight):
+        fovMap=compo.fov_map
+        libtcod.map_copy(Rogue.map.fov_map, fovMap)
+        update_fov(ent)
 #******we should overhaul this FOV system!~*************
         #creatures share fov_maps. There are a few fov_maps
         #which have different properties like x-ray vision, etc.

@@ -60,8 +60,8 @@ HISTORY_ROADNAMES=(
 
 GAME_TITLE = "Softly Into the Night"
 
-ROOMW       = 80            #max level size, width and height
-ROOMH       = 50
+ROOMW       = 160            #max level size, width and height
+ROOMH       = 100
 MAXLEVEL    = 20            #deepest dungeon level
 TILES_PER_ROW = 16          # Num tiles per row (size of the char sheet 
 TILES_PER_COL = 16          # " per column         used for ASCII display)

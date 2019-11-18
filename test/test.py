@@ -1,4 +1,1 @@
-i=[1]
-while i:
-    print('hi')
-    i=[]
+print(3//2)
