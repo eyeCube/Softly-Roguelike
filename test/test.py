@@ -1,1 +1,5 @@
-print(3//2)
+t=set()
+t.add((1, 4,))
+print(t)
+t.add((1, 4,))
+print(t)

@@ -1714,9 +1714,13 @@ def _bullWhip(item):
 def _heavyWhip(item):
     pass
 def _pushDagger(item):
-    _bleed(item, 2*BLEED_STEEL)
+    _bleed(item, 3*BLEED_METAL)
     rog.world().add_component(item, cmp.Tool_Cut(6))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
+def _crescentBlade(item):
+    _bleed(item, 1.5*BLEED_STEEL)
+    rog.world().add_component(item, cmp.Tool_Cut(5))
+    rog.world().add_component(item, cmp.Tool_Chop(1))
 def _mThrowingKnife(item):
     _bleed(item, BLEED_METAL)
     rog.world().add_component(item, cmp.Tool_Cut(6))
@@ -3374,7 +3378,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, (-2, 5,  5,  0,  0,  0,  -42,0,  -5, 0,  4,),SKL_BULLWHIPS,_bullWhip,),
     # swords              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic sword"         :(2,    1.2, 30,  PLAS,8, (4,  3,  6,  1,  0,  0,  15, -6, -7, 3,  12,),SKL_SWORDS,_pSword,),
-"wooden sword"          :(38,   1.1, 50,  WOOD,7, (6,  4,  9,  2,  0,  0,  24, -6, -6, 4,  10,),SKL_SWORDS,_wSword,),
+"wooden sword"          :(22,   1.1, 50,  WOOD,7, (6,  4,  9,  2,  0,  0,  24, -6, -6, 4,  10,),SKL_SWORDS,_wSword,),
 "bone sword"            :(45,   0.75,40,  BONE,4, (5,  5,  12, 1,  0,  0,  21, -6, -5, 4,  8,),SKL_SWORDS,_bSword,),
 "metal sword"           :(70,   1.0, 160, METL,5, (7,  6,  14, 2,  0,  0,  45, -6, -4, 5,  8,),SKL_SWORDS,_mSword,),
 "diamonite sword"       :(2650, 0.9, 400, METL,4, (8,  9,  18, 3,  0,  0,  51, -6, -4, 7,  7,),SKL_SWORDS,_dSword,),
@@ -3396,18 +3400,20 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
     # knives
 "kukri"                 :(70,   0.5, 90,  METL,3, (4,  6,  10, 1,  0,  0,  51, -3, -3, 5,  8,),SKL_KNIVES,_kukri,),#POOR STEEL
 "metal throwing knife"  :(8,    0.1, 20,  METL,1, (5,  3,  18, 0,  0,  0,  54, 0,  -8, 1,  4,),SKL_KNIVES,_mThrowingKnife,),
-"butcher knife"         :(19,   0.3, 120, METL,3, (2,  5,  3,  0,  0,  0,  12, 0,  -10,1,  8,),SKL_KNIVES,_butcherKnife,),
+"metal butcher knife"   :(16,   0.3, 120, METL,3, (2,  5,  3,  0,  0,  0,  12, 0,  -10,1,  8,),SKL_KNIVES,_butcherKnife,),
     # boxing weapons
-"metal knuckles"        :(6,    0.1, 380, METL,2, (2,  5,  5,  0,  0,  0,  18, 0,  -5, 0,  4,),SKL_BOXING,_knuckles,),
-"metal spiked knuckles" :(14,   0.2, 220, METL,2, (2,  7,  7,  0,  0,  0,  -6, 0,  -6, 0,  8,),SKL_BOXING,_knuckles,),
+"metal knuckles"        :(6,    0.1, 380, METL,2, (2,  4,  4,  0,  0,  0,  18, 0,  -6, 0,  4,),SKL_BOXING,_knuckles,),
+"metal spiked knuckles" :(14,   0.2, 220, METL,2, (2,  5,  6,  0,  0,  0,  -6, 0,  -8, 0,  8,),SKL_BOXING,_knuckles,),
 "boxing wrap"           :(4,    0.25,20,  CLTH,2, (2,  2,  1,  1,  0,  0,  33, 0,  -8, 2,  3,),SKL_BOXING,_boxingWraps,),
     # bludgeons
-"metal baton"           :(31,   0.5, 250, METL,2, (6,  3,  5,  1,  0,  0,  9,  -3, -2, 3,  4,),SKL_BLUDGEONS,_baton,),
-"metal bat"             :(38,   0.7, 350, METL,4, (2,  7,  7,  0,  1,  0,  -6, -6, -8, 1,  8,),SKL_BLUDGEONS,_baton,),
-"wooden truncheon"      :(5,    0.85,325, WOOD,4, (4,  6,  7,  1,  0,  0,  -3, -3, -6, 2,  12,),SKL_BLUDGEONS,_club,),
+"metal baton"           :(25,   0.5, 250, METL,2, (6,  3,  5,  1,  0,  0,  9,  -3, -2, 3,  4,),SKL_BLUDGEONS,_baton,),
+"metal bat"             :(35,   0.7, 350, METL,4, (2,  7,  7,  0,  1,  0,  -6, -6, -8, 1,  8,),SKL_BLUDGEONS,_baton,),
+"wooden truncheon"      :(4,    0.85,325, WOOD,4, (4,  6,  7,  1,  0,  0,  -3, -3, -6, 2,  12,),SKL_BLUDGEONS,_club,),
 "metal truncheon"       :(46,   0.75,450, METL,4, (4,  8,  9,  1,  0,  0,  3,  -3, -4, 2,  10,),SKL_BLUDGEONS,_club,),
     # misc
-"metal push dagger"     :(25,   0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),SKL_PUSHDAGGERS,_pushDagger,), 
+"metal push dagger"     :(30,   0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),SKL_PUSHDAGGERS,_pushDagger,), 
+"crescent moon blade"   :(125,  0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),None,_crescentBlade,), 
+##"scissors katar"     :(25,   0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),SKL_PUSHDAGGERS,_pushDagger,), 
 
     # 2-handed weapons #
 
@@ -3431,14 +3437,14 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "wooden longstaff"      :(16,   2.25,350, WOOD,13,(9,  10, 8,  3,  4,  3,  57, -42,-21,6,  12,),SKL_POLEARMS,_longstaff,),
 "metal longstaff"       :(88,   2.05,500, METL,12,(10, 12, 10, 3,  3,  3,  60, -42,-18,7,  11,),SKL_POLEARMS,_longstaff,),
     # spears              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"plastic spear"         :(2,    2.1, 30,  PLAS,8, (7,  10, 10, 3,  2,  3,  51, -42,-17,8,  16,),SKL_SPEARS,_pSpear,),
-"wooden spear"          :(20,   2.05,60,  WOOD,8, (9,  11, 12, 3,  3,  3,  48, -45,-15,9,  15,),SKL_SPEARS,_wSpear,),
-"stone spear"           :(22,   2.15,100, WOOD,9, (8,  13, 13, 3,  3,  3,  42, -45,-15,9,  16,),SKL_SPEARS,_bSpear,),
-"bone spear"            :(25,   2.05,150, WOOD,8, (9,  12, 14, 3,  3,  3,  45, -45,-16,10, 16,),SKL_SPEARS,_sSpear,),
-"glass spear"           :(34,   1.9, 5,   WOOD,7, (11, 22, 10, 3,  3,  3,  51, -45,-16,14, 14,),SKL_SPEARS,_gSpear,),
-"metal spear"           :(32,   2.1, 200, WOOD,9, (10, 14, 16, 3,  3,  3,  45, -45,-14,12, 16,),SKL_SPEARS,_mSpear,),
-"metal winged spear"    :(40,   2.0, 300, WOOD,12,(9,  16, 15, 3,  3,  3,  36, -48,-8, 12, 20,),SKL_SPEARS,_mSpear,),
-"ceramic spear"         :(36,   1.95,10,  WOOD,7, (11, 24, 12, 3,  3,  3,  48, -45,-16,14, 14,),SKL_SPEARS,_cSpear,),
+"plastic spear"         :(2,    2.1, 30,  PLAS,8, (8,  10, 10, 3,  2,  3,  51, -42,-17,8,  16,),SKL_SPEARS,_pSpear,),
+"wooden spear"          :(20,   2.05,60,  WOOD,8, (10, 11, 12, 3,  3,  3,  48, -45,-15,9,  15,),SKL_SPEARS,_wSpear,),
+"stone spear"           :(22,   2.15,100, WOOD,9, (9,  13, 13, 3,  3,  3,  42, -45,-15,9,  16,),SKL_SPEARS,_bSpear,),
+"bone spear"            :(25,   2.05,150, WOOD,8, (10, 12, 14, 3,  3,  3,  45, -45,-16,10, 16,),SKL_SPEARS,_sSpear,),
+"glass spear"           :(34,   1.9, 5,   WOOD,7, (12, 22, 10, 3,  3,  3,  51, -45,-16,14, 14,),SKL_SPEARS,_gSpear,),
+"metal spear"           :(32,   2.1, 200, WOOD,9, (11, 14, 16, 3,  3,  3,  45, -45,-14,12, 16,),SKL_SPEARS,_mSpear,),
+"metal winged spear"    :(40,   2.0, 300, WOOD,12,(10, 16, 15, 3,  3,  3,  36, -48,-8, 12, 20,),SKL_SPEARS,_mSpear,),
+"ceramic spear"         :(36,   1.95,10,  WOOD,7, (12, 24, 12, 3,  3,  3,  48, -45,-16,14, 14,),SKL_SPEARS,_cSpear,),
     # partizans           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "metal partizan"        :(57,   2.2, 240, WOOD,14,(8,  18, 14, 2,  3,  3,  24, -51,-14,10, 22,),SKL_SPEARS,_mPartizan,),
     # naginatas           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
@@ -3584,25 +3590,26 @@ ARMOR={
     # cloth
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
 "t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  0,  -30,1,  3,  0,  0,  1,),None,),
-"hoody"                 :(23,    0.8,  30,  200,  CLTH,(0,  0,  1,  0,  -36,4,  6,  0,  0,  2,),None,),
-"cloth vest"            :(19,    0.6,  40,  200,  CLTH,(0,  0,  1,  0,  -12,2,  3,  0,  0,  3,),None,),
-"thick cloth vest"      :(98,    3.6,  120, 250,  CLTH,(1,  1,  2,  0,  -6, 3,  3,  0,  0,  6,),None,),
-"padded jacket"         :(150,   4.7,  150, 600,  CLTH,(1,  2,  5,  0,  -12,6,  6,  3,  0,  12,),None,),
-"padded jack"           :(310,   9.5,  275, 700,  CLTH,(2,  3,  6,  -1, -21,10, 9,  6,  3,  15,),None,),
+"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  0,  -36,4,  6,  0,  0,  2,),None,),
+"cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  0,  -12,2,  3,  0,  0,  3,),None,),
+"wool jacket"           :(85,    3.6,  160, 300,  CLTH,(1,  1,  3,  0,  -30,8,  6,  2,  0,  6,),None,),
+"thick cloth vest"      :(98,    2.8,  120, 300,  CLTH,(2,  1,  2,  0,  -12,3,  3,  1,  0,  3,),None,),
+"padded jacket"         :(150,   4.7,  150, 600,  CLTH,(2,  2,  5,  0,  -12,6,  6,  3,  1,  12,),None,),
+"padded jack"           :(310,   9.5,  275, 700,  CLTH,(3,  3,  6,  -1, -21,10, 9,  6,  3,  15,),None,),
 "gambeson"              :(460,   15.1, 400, 800,  CLTH,(4,  4,  8,  -2, -30,15, 9,  12, 5,  18,),None,),
     # flesh and fur
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
 "flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  -3, -6, 3,  6,  3,  0,  9,),None,),
 "flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  -3, -12,6,  9,  3,  3,  15,),None,),
-"fur cuirass"           :(265,   15.85,125, 600,  FLSH,(0,  3,  5,  -3, -33,12, 9,  9,  0,  9,),None,),
-"fur suit"              :(475,   25.5, 150, 4000, FLSH,(1,  3,  7,  -15,-48,36, 12, 15, 0,  15,),None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
+"fur cuirass"           :(265,   15.85,125, 600,  FLSH,(0,  3,  5,  -3, -33,9,  9,  9,  0,  9,),None,),
+"fur suit"              :(475,   25.5, 150, 4000, FLSH,(1,  3,  7,  -15,-48,30, 12, 15, 0,  15,),None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
     # leather and boiled leather
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
 "leather jacket"        :(100,   4.0,  60,  200,  LETH,(1,  1,  10, -1, -12,12, 12, 15, 5,  8,),None,),
 "leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, -3, -21,18, 12, 18, 10, 14,),None,),
 "boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  -6, -6, 3,  9,  24, 3,  5,),None,),
 "boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  5,  -3, -9, 3,  9,  21, 3,  5,),None,),
-"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  -27,-36,24, 15, -6, 3,  15,),None,),
+"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  -27,-36,21, 15, -6, 3,  15,),None,),
     # plastic
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,MSp,FIR,ICE,BIO,ELE,PHS,BLD),script
 "plastic cuirass"       :(42,    20.2, 80,  1200, PLAS,(-1, 4,  3,  -12,-36,0,  -6, 21, 0,  3,),None,),

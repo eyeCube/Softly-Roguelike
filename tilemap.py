@@ -215,7 +215,9 @@ TODO: move rendering code to a new, different class.
     
     # procedurally generate a dungeon level
     def generate_dlvl(self, level):
-        levelgen.generate_level(self.w, self.h, level)
+        # if level < 10:
+        algo = "tree"
+        levelgen.generate_level(self.w, self.h, level, algo=algo)
     
     # add tile (set tile) in the grid
                  

@@ -88,7 +88,32 @@ ornate
 		harvestable: yields gem(s) or gold
 engraved
 	affects: all things
-	item is engraved with a rune or name, which may give it special powers or signify its owner.
-	value varies?
+	item is engraved with a name that signifies its owner, or with a word or phrase that indicates some history
+	value varies
+elegant
+	affects: gear
+	item is made with an elegant style that makes it light while not giving any penalty
+	stat mods:
+		mass -10%
+quirky
+	affects: everything
+	item is designed badly/strangely or has some minor damage that makes it difficult to use without understanding the "quirk," in other words you must be skilled in this particular instance of gear in order to avoid a penalty to stats
+	Skill for individual instances of weapons is a binary value, either you know the weapon or you don't. This is stored in a component InstanceSkill which is only used for the player character. No need to have it for NPCs as you'd never know the difference anyway.
+	stat mods: (assuming you are not skilled in this instance)
+		Atk -1
+		Dfn -1
+		Pro -1
+		Gra -1
+
+
+
+
+
+
+
+
+
+
+
 	
 

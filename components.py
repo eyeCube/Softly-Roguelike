@@ -43,10 +43,10 @@ class Name:
 class Form: #physical makeup of the object
     __slots__=['material','value','length','phase']
     def __init__(self, mat=0, val=0, length=0, phase=0): #, volume, shape
-        self.material=mat   # fluid types are materials
-        self.value=val
-        self.length=length
-        self.phase=phase    # phase of matter, solid, liquid, etc.
+        self.material=int(mat)   # fluid types are materials
+        self.value=int(val)
+        self.length=int(length)
+        self.phase=int(phase)    # phase of matter, solid, liquid, etc.
         # TODO: fluids are implemented by:
         # phase, material, mass.
         #   phase-PHASE_FLUID
@@ -58,8 +58,8 @@ class Form: #physical makeup of the object
 class Position:
     __slots__=['x','y']
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = int(x)
+        self.y = int(y)
 
 class AI:
     __slots__=['func']
@@ -69,18 +69,18 @@ class AI:
 class Creature:
     __slots__=['job','faction']
     def __init__(self, job=None, faction=None):
-        self.job=job
-        self.faction=faction
+        self.job=int(job)
+        self.faction=int(faction)
        
 class Actor:
     __slots__=['ap']
     def __init__(self, ap=0):
-        self.ap=ap      #action points (energy/potential to act)
+        self.ap=int(ap)      #action points (energy/potential to act)
 
 class Player: # the player has some unique stats that only apply to them
     __slots__=['identify']
     def __init__(self, identify):
-        self.identify=identify
+        self.identify=int(identify)
        
        
 class Meters:
@@ -107,43 +107,43 @@ class Stats: #base stats
                  spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
                  sight=0,hearing=0,courage=0,scary=0,beauty=0,
                  ):
-        self.str=_str           # attributes
-        self.con=_con
-        self.int=_int
+        self.str=int(_str)           # attributes
+        self.con=int(_con)
+        self.int=int(_int)
 ##        self.agi=_agi # balance, mobility penalty reduction, Atk/DV, mobility
 ##        self.wil=_wil # willpower: courage, respain, stamina, affects response to stress (if your pain meter fills up, but you have high willpower, you have a chance to cut the pain down to half or to 0 in a second-wind of determination, etc.)
-        self.mass=mass
-        self.hpmax=hp           # life
-        self.hp=hp
-        self.mpmax=mp           # stamina
-        self.mp=mp
-        self.resfire=resfire    #resistances - FIR
-        self.rescold=rescold    # ICE
-        self.resbio=resbio      # BIO
-        self.reselec=reselec    # ELC
-        self.resphys=resphys    # PHS - resist physical damage excepting falls / G forces.
-        self.respain=respain    # PAI
-        self.resrust=resrust    # RUS
-        self.resrot=resrot      # ROT
-        self.reswet=reswet      # WET
-        self.resbleed=resbleed  # BLD
-        self.atk=atk    #Attack -- accuracy
-        self.dmg=dmg    #Damage, physical (melee)
-        self.pen=pen    #Penetration
-        self.dfn=dfn    #Defense -- DV (dodge value)
-        self.arm=arm    #Armor -- AV (armor value)
-        self.pro=pro    #Protection
-        self.spd=spd    #Speed -- AP gained per turn
-        self.asp=asp    #Attack speed (affects AP cost of attacking)
-        self.msp=msp    #Move speed (affects AP cost of moving)
-        self.gra=gra    #Grappling (wrestling)
-        self.ctr=ctr    #Counter-attack chance
-        self.bal=bal    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
-        self.sight=sight        # senses
-        self.hearing=hearing
-        self.courage=courage    # resfear
-        self.intimidation=scary
-        self.beauty=beauty
+        self.mass=int(mass)
+        self.hpmax=int(hp)           # life
+        self.hp=int(hp)
+        self.mpmax=int(mp)           # stamina
+        self.mp=int(mp)
+        self.resfire=int(resfire)    #resistances - FIR
+        self.rescold=int(rescold)    # ICE
+        self.resbio=int(resbio)      # BIO
+        self.reselec=int(reselec)    # ELC
+        self.resphys=int(resphys)    # PHS - resist physical damage excepting falls / G forces.
+        self.respain=int(respain)    # PAI
+        self.resrust=int(resrust)    # RUS
+        self.resrot=int(resrot)      # ROT
+        self.reswet=int(reswet)      # WET
+        self.resbleed=int(resbleed)  # BLD
+        self.atk=int(atk)    #Attack -- accuracy
+        self.dmg=int(dmg)    #Damage, physical (melee)
+        self.pen=int(pen)    #Penetration
+        self.dfn=int(dfn)    #Defense -- DV (dodge value)
+        self.arm=int(arm)    #Armor -- AV (armor value)
+        self.pro=int(pro)    #Protection
+        self.spd=int(spd)    #Speed -- AP gained per turn
+        self.asp=int(asp)    #Attack speed (affects AP cost of attacking)
+        self.msp=int(msp)    #Move speed (affects AP cost of moving)
+        self.gra=int(gra)    #Grappling (wrestling)
+        self.ctr=int(ctr)    #Counter-attack chance
+        self.bal=int(bal)    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
+        self.sight=int(sight)        # senses
+        self.hearing=int(hearing)
+        self.courage=int(courage)   # resfear
+        self.intimidation=int(scary)
+        self.beauty=int(beauty)
 
 
 class ModdedStats: # stores the modified stat values for an entity
@@ -158,7 +158,7 @@ class LightSource:
 class Fuel: # fuel for fires
     __slots__=['fuel']
     def __init__(self, fuel=1):
-        self.fuel = fuel
+        self.fuel = int(fuel)
 
 class SenseSight:
     __slots__=['fov_map','events']
@@ -591,49 +591,68 @@ class BPP_Nucleus:
 ##    def __init__(self, owner, slot):
 ##        self.owner=owner # entity that has equipped this item
 ##        self.slot=slot   # slot the item is equipped in
+
+'''
+    Equippable components
+
+    ap:     Action Points cost to equip / remove
+    mods:   stat mod dict {var : modf,}
+    fit:    how well it's fitted.
+        For wielded items, this is equivalent to "grip"
+        Highest possible fit value == no penalty to equipping
+        Any other fit value results in penalties to stats
+'''
 class EquipableInAmmoSlot:
-    __slots__=['ap','mods']
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit']
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 class EquipableInBodySlot: # can be equipped in the body slot
-    __slots__=['ap','mods'] # ap = AP (Energy) cost to equip / take off
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit'] # ap = AP (Energy) cost to equip / take off
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
-    __slots__=['ap','mods']
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit']
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cloaks, capes, etc.)
-    __slots__=['ap','mods']
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit']
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 class EquipableInHeadSlot:
-    __slots__=['ap','mods','coversFace','coversEyes']
-    def __init__(self, ap, mods, coversFace=False, coversEyes=False): #{component : {var : modf,}}
+    __slots__=['ap','mods','fit','coversFace','coversEyes']
+    def __init__(self, ap, mods, fit=1, coversFace=False, coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods        
+        self.fit=fit
         self.coversFace=coversFace
         self.coversEyes=coversEyes
 class EquipableInFaceSlot:
-    __slots__=['ap','mods','coversEyes']
-    def __init__(self, ap, mods, coversEyes=False): #{component : {var : modf,}}
+    __slots__=['ap','mods','fit','coversEyes']
+    def __init__(self, ap, mods, fit=1, coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
         self.coversEyes=coversEyes
 class EquipableInEyesSlot:
-    __slots__=['ap','mods']
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
-    __slots__=['ap','mods']
-    def __init__(self, ap, mods): #{var : modf,}
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
+        self.fit=fit
 ##class EquipableInJewelrySlot: # slot that has infinite room for more shit
 ##    __slots__=['ap','mods']
 ##    def __init__(self, ap, mods): #{var : modf,}
