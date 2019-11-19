@@ -38,11 +38,19 @@ SLIDE_X = 3 #[1,7,4,3,]
 SLIDE_Y = 5
 
 class Room:
-    def __init__(self, xo : int, yo : int, area : list, perimeter : list):
+    def __init__(
+            self,
+            xo : int, yo : int, area : list, perimeter : list,
+            boundw = -1, boundh = -1
+            ):
+        if boundw == -1: boundw = 999
+        if boundh == -1: boundh = 999
         self.x_offset = xo
         self.y_offset = yo
         self.area=area
         self.perimeter=perimeter
+        self.boundw = boundw # maximum width / height of this room:
+        self.boundh = boundh #   area+perimeter cannot exceed this value
 
 
 # Level generation data
@@ -297,6 +305,8 @@ def generate_room_big(levelwidth, levelheight, maxw=-1, maxh=-1):
 def generate_room_conglomerate_big(levelwidth, levelheight, maxw=-1, maxh=-1):
     return generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=8, xvar=6, yvar=6, num=16, maxw=maxw, maxh=maxh)
 
+# TODO: enforce maxw, maxh
+
 def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1):
     '''
         create a regular box room
@@ -329,7 +339,7 @@ def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1):
         perimeter.add( (math.ceil(xs/2), yy - (ys//2),) )
     
     # create the room object
-    room = Room(xo,yo, area, perimeter)
+    room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
     
 def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4, yvar=4, num=8, maxw=-1, maxh=-1):
@@ -406,7 +416,7 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
     
     
     # create the room object
-    room = Room(xo,yo, area, perimeter)
+    room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
 
 def generate_corridor(levelwidth, levelheight, maxw=-1, maxh=-1):
@@ -463,7 +473,7 @@ def generate_corridor(levelwidth, levelheight, maxw=-1, maxh=-1):
             perimeter.add( (-dd + (scale//2) + 2, dd - (scale//2),) )
     
     # create the room object
-    room = Room(xo,yo, area, perimeter)
+    room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
 
 # level generation
@@ -500,13 +510,15 @@ def _genRecursive(node, width, height, n, nMin):
         p1x, p1y = random.choice(prevRoom.perimeter)
         xdir = rog.sign(p1x)
         ydir = rog.sign(p1y)
-        result = dig(xdir, ydir, xstart=p1x, ystart=p1y)
+        result = dig(xdir, ydir, xstart=p1x, ystart=p1y) # TODO: make this func
         if result:
             # make the room
             room = make_room(maxw=maxw, maxh=maxh)
+            # make sure it fits (TODO!!)
+            
             # add a node to the tree
             node.left = BinNode(room)
-            _genRecursive(node, width, height, n+1, nMin)
+            _genRecursive(node.left, width, height, n+1, nMin)
     if ((n < nMin or random.random() < 0.25) and node.right==None):
         node.right = _genRecursive(node, width, height, n+1, nMin)
 
@@ -515,23 +527,26 @@ def _generate_level_tree(width, height, z, density=15, maxIterations=300):
         density is the minimum number of rooms
         returns: N/A
     '''
-    rooms = []
-    doors = [] # potential doors that could be added in
-    holes = []
-    borders = 6
-    consecutive_failures = 0
-    digger = Digger()
     
+    def traverse(rooms, node):
+        # store this room in the list
+        rooms.append(node.data)
+        # deal with child nodes
+        if node.left:
+            traverse(rooms, node.left)
+        if node.right:
+            traverse(rooms, node.right)
+            
+    rooms = []
     print("Generating level {}...".format(z))
-    print("...Generating rooms...")
     origin = create_origin_room(width, height) # origin room
     rooms.append(origin)
     root = BinNode(origin)
     # create other rooms
     iterations=0
     _genRecursive(root, width, height, 1, density)
-        
-        
+    traverse(rooms, root)
+    
 
 def _generate_level_dumb(width, height, z, density=250):
     '''
