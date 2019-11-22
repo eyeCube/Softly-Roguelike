@@ -575,7 +575,8 @@ def _generate_level_tree(width, height, z, density=15, maxDensity=50):
     rooms = []
     usedareas=set()
     print("Generating level {}...".format(z))
-    origin = create_origin_room(width, height) # origin room
+    # origin room is created somewhere in the middle of the map
+    origin = create_origin_room(width, height) 
     rooms.append(origin)
     root = BinNode(origin)
     _add_usedarea(usedareas, origin)
@@ -585,6 +586,7 @@ def _generate_level_tree(width, height, z, density=15, maxDensity=50):
         width, height, z,
         1, density, maxDensity
         )
+    # get all rooms in the tree into the room list
     traverse(rooms, root)
     
 
