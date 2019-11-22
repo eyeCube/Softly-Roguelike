@@ -71,98 +71,75 @@ class BinNode:
         self.left = left
         self.right = right
 
-class Digger:
-    def __init__(self):
-        self.x=0
-        self.y=0
-        
-    def setpos(self, x, y):
-        self.x=x
-        self.y=y
-        
-    def get_new_direction(xdir, ydir):
-        result = random.random()
-        if (xdir == 0):
-            if result < 0.5:
-                xdir = -1
-                ydir = 0
-            else:
-                xdir = 1
-                ydir = 0
+def _dig_get_new_dir(xdir, ydir):
+    result = random.random()
+    if (xdir == 0):
+        if result < 0.5:
+            xdir = -1
+            ydir = 0
         else:
-            if result < 0.5:
-                xdir = 0
-                ydir = -1
-            else:
-                xdir = 0
-                ydir = 1
-        return (xdir, ydir,)
-                
-    def dig(self, xdir, ydir, xstart=-1,ystart=-1, xend=-1,yend=-1):
-        '''
-            (try to) dig out a corridor
-            return the list of tiles or an empty list if failure
-            Parameters:
-                xdir    delta x
-                ydir    delta y
-                xstart  start position x
-                ystart  start position y
-                xend    end position x
-                yend    end position y
-
-            If no end position is specified, it just randomly moves around
-                Value of -1 == unspecified.
-        '''
-        assert(xdir + ydir % 2 == 0) # no diagonals!
-        
-        tiles = set()
-        longCorridor = False
-        numTurns = 0
-        numTiles = 0
-        if longCorridor:
-            maxTiles = 32
-            maxIterations = 128
-            maxTurns = 2
+            xdir = 1
+            ydir = 0
+    else:
+        if result < 0.5:
+            xdir = 0
+            ydir = -1
         else:
-            maxTiles = 16
-            maxIterations = 64
-            maxTurns = 1
-        # move position if necessary
-        if xstart != -1:
-            self.x = xstart
-        if ystart != -1:
-            self.y = ystart
-        
-        for ni in range(maxIterations):
+            xdir = 0
+            ydir = 1
+    return (xdir, ydir,)
             
-            tiles.add((self.x, self.y,))
-            
-            if numTiles > maxTiles:
-                break
-            if len(tiles) >= maxTiles:
-                break
-            # goal reached?
-            if (xend == self.x and yend == self.y):
-                break
-            # twisting corridors
-            if xend != -1:
-                if numTurns < maxTurns:
-                    if random.random()*100 < 5:
-                        numTurns += 1
-                        xdir, ydir = get_new_direction(xdir, ydir)
-            else:
-                # move towards the goal position
-                if self.x == xend:
-                    ydir = 0
-                    xdir = rog.sign(xend - self.x)
-                if self.y == yend:
-                    xdir = 0
-                    ydir = rog.sign(yend - self.y)
-            # continue digging
-            self.x += xdir
-            self.y += ydir
-        tiles.add((self.x, self.y,))
-        return tiles
+def dig(
+    usedareas,
+    xstart=-1,ystart=-1, xend=-1,yend=-1,
+    maxTurns=2, maxTiles=999
+    ):
+    '''
+        (try to) dig out a corridor
+        return the list of tiles or an empty list if failure
+        Parameters:
+            usedareas   list of (x1,y1,x2,y2) pointlists
+            xstart      start position x
+            ystart      start position y
+            xend        end position x
+            yend        end position y
+            maxTurns    maximum number of 90 degree turns in the corridor
+            maxTiles    maximum number of tiles in the corridor
+    '''
+    success = False
+    tiles = set()
+    numTurns = 0
+    xpos = xstart
+    ypos = ystart
+    
+    while True:        
+        if len(tiles) >= maxTiles:
+            return set() # failure -> empty set
+        # goal reached?
+        if (xend == xpos and yend == ypos):
+            break
+        # check that this tile is not intercepting used tiles
+        for area in usedareas:
+            x1,y1,x2,y2 = area
+            if (xpos >= x1 and xpos <= x2 and ypos >= y1 and ypos <= y2):
+                return set()
+        # add this tile to the corridor
+        tiles.add((xpos, ypos,))
+        # move towards the goal position
+        xd = xend - xpos
+        yd = yend - ypos
+        diff = rog.sign(math.abs(xd) - math.abs(yd))
+        if diff > 0:
+            xdir = rog.sign(xd)
+            ydir = 0
+        else:
+            xdir = 0
+            ydir = rog.sign(yd)
+        # continue digging
+        xpos += xdir
+        ypos += ydir
+    
+    return tiles
 
 # pick offset x, y position for a room
 def get_offset_position(width, height, borders=5, offsetd=40):
@@ -232,12 +209,22 @@ def pick_roomtype(corridors=True):
     
     return RT_ROOM # default
 
-def make_room(maxw=-1, maxh=-1):
+def make_room(width, height, maxw=-1, maxh=-1):
     ''' make a room (no corridors), only return the room object '''
-    return _make_room(corridors_allowed=False, maxw=maxw, maxh=maxh)[0]
-def _make_room(corridors_allowed=True, maxw=-1, maxh=-1):
+    return _make_room(
+        width, height,
+        corridors_allowed=False,
+        maxw=maxw, maxh=maxh
+        )[0]
+def _make_room(width, height, corridors_allowed=True, maxw=-1, maxh=-1):
     '''
         make a room or a corridor
+        Parameters:
+            width     level horizontal size
+            height    level vertical size
+            corridors_allowed whether the algo. can create corridors or not
+            maxw      maximum horizontal size of each individual room
+            maxh      maximum vertical size of each individual room
         Returns: (the room object, and whether it is a corridor (bool))
     '''
     roomtype = pick_roomtype(corridors_allowed)
@@ -498,31 +485,79 @@ def generate_level(width, height, z, density=250, algo="dumb"):
     if algo=="tree":
         _generate_level_tree(
             width, height, z,
-            density=density,
-            maxIterations=300
+            density=density//15,
+            maxDensity=density//5
             )
 
-# generate rooms and corridors recursively
-def _genRecursive(node, width, height, n, nMin):
-    if (random.random() < 0.25 and node.left==None):
-        # try to dig and find a place for a room
-        # pick a random perimeter tile to start the digger
-        p1x, p1y = random.choice(prevRoom.perimeter)
-        xdir = rog.sign(p1x)
-        ydir = rog.sign(p1y)
-        result = dig(xdir, ydir, xstart=p1x, ystart=p1y) # TODO: make this func
-        if result:
-            # make the room
-            room = make_room(maxw=maxw, maxh=maxh)
-            # make sure it fits (TODO!!)
-            
-            # add a node to the tree
-            node.left = BinNode(room)
-            _genRecursive(node.left, width, height, n+1, nMin)
-    if ((n < nMin or random.random() < 0.25) and node.right==None):
-        node.right = _genRecursive(node, width, height, n+1, nMin)
+def _add_usedarea(usedareas, room):
+    x1 = room.x_offset - room.maxw // 2
+    y1 = room.y_offset - room.maxh // 2
+    x2 = room.x_offset + math.ceil(room.maxw / 2)
+    y2 = room.y_offset + math.ceil(room.maxh / 2)
+    usedareas.add((x1,y1,x2,y2,))
 
-def _generate_level_tree(width, height, z, density=15, maxIterations=300):
+# generate rooms and corridors recursively
+def _genRecursive(node, usedareas, width, height, z, n, nMin, nMax):
+    '''
+        node:       previous (parent) node (node object)
+        usedareas:  list of (x1,y1,x2,y2) areas used by rooms
+        width:      level width
+        height:     level height
+        z:          dungeon level
+        n:          number rooms placed so far
+        nMin:       minimum number of rooms we must (at least try to) place
+    '''
+    if (n > nMax)
+        return
+    numTries = 5
+    if (random.random() < 0.25 and node.left==None):
+        for _ in range(numTries):
+            # pick a size and location for the next room; make the room
+            room = make_room(width, height, maxw=maxw, maxh=maxh)
+            
+            # make sure it fits
+            
+            # pick a random perimeter tile of parent room to start the digger
+            p1x, p1y = random.choice(node.data.perimeter)
+            # pick a random perimeter tile of destination room to end the digger
+            p2x, p2y = random.choice(room.perimeter)
+            
+            # dig corridor
+            diglist=[]
+            iterations=0
+            while (not diglist and iterations < 5):
+                iterations += 1
+                # try to dig a connecting corridor to parent room
+                diglist = dig(
+                    usedareas,
+                    xstart=p1x, ystart=p1y, xend=p2x, yend=p2y
+                    )
+                
+            if diglist:
+                # successfully connected the rooms
+                # usedareas: add the tiles to the set of used room tiles
+                _add_usedarea(usedareas, room)
+                # dig the corridor out
+                for tile in digtiles:
+                    rog.map(z).tile_change(tile[0], tile[1], FLOOR)
+                # add a node to the tree
+                node.left = BinNode(room)
+                # possibly dig extra connecting corridors to adjacent rooms TODO
+                # possibly add some child nodes/rooms to this room.
+                _genRecursive(
+                    node.left, usedareas,
+                    width, height, z,
+                    n+1, nMin, nMax
+                    )
+            # else we failed to place the new room.
+    if ((n < nMin or random.random() < 0.25) and node.right==None):
+        _genRecursive(
+            node.right, usedareas,
+            width, height, z,
+            n+1, nMin, nMax
+            )
+
+def _generate_level_tree(width, height, z, density=15, maxDensity=50):
     '''
         density is the minimum number of rooms
         returns: N/A
@@ -538,13 +573,18 @@ def _generate_level_tree(width, height, z, density=15, maxIterations=300):
             traverse(rooms, node.right)
             
     rooms = []
+    usedareas=set()
     print("Generating level {}...".format(z))
     origin = create_origin_room(width, height) # origin room
     rooms.append(origin)
     root = BinNode(origin)
+    _add_usedarea(usedareas, origin)
     # create other rooms
-    iterations=0
-    _genRecursive(root, width, height, 1, density)
+    _genRecursive(
+        root, usedareas,
+        width, height, z,
+        1, density, maxDensity
+        )
     traverse(rooms, root)
     
 
@@ -567,7 +607,7 @@ def _generate_level_dumb(width, height, z, density=250):
     rooms.append(origin)
     # other rooms
     for _ in range(density):
-        room, corridor = _make_room(corridors_allowed=True, width, height)
+        room, corridor = _make_room(width, height, corridors_allowed=True)
         
         # try to put the room in the grid
         if corridor:
@@ -842,5 +882,14 @@ def get_grid_from_rooms(rooms, width, height):
 ##                                    and (xi,yi-1,) in room.perimeter ) 
 ##                                  or ( (xi,yi+1,) in _rm.perimeter
 ##                                    and (xi,yi+1,) in room.perimeter ) )):
+
+
+
+##        # twisting corridors
+##        if xend != -1:
+##            if numTurns < maxTurns:
+##                if random.random()*100 < 5:
+##                    numTurns += 1
+##                    xdir, ydir = _dig_get_new_dir(xdir, ydir)
 
 
