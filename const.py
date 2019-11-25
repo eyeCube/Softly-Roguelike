@@ -1014,6 +1014,38 @@ MAT_GLASS       : MAXGRIND_GLASS,
 MAT_CERAMIC     : MAXGRIND_CERAMIC,
     }
 
+# Boiling, Melting, flash (Ignition) Points
+# temperature related to the points:
+#   below MP, it's solid
+#   between MP and BP, it's liquid
+#   above BP, it's a gas
+MATERIAL_PHYSICS={
+# material      : (MP,  BP,  IP,)
+MAT_FLESH       : (300, 900, 150,),
+MAT_BONE        : (1600,9999,1500,),
+MAT_METAL       : (1500,9999,9999,),
+MAT_CARBON      : (4200,9999,350,),
+MAT_PLASTIC     : (150, 9999,100,),
+MAT_TARP        : (200, 9999,100,),
+MAT_STONE       : (700, 9999,9999,),
+MAT_DUST        : (9999,9999,70,),
+MAT_WOOD        : (9999,9999,100,),
+MAT_PAPER       : (9999,9999,80,),
+MAT_LEATHER     : (9999,9999,200,),
+MAT_BLEATHER    : (9999,9999,300,),
+MAT_CLOTH       : (9999,9999,100,),
+MAT_ROPE        : (9999,9999,200,),
+MAT_GLASS       : (2200,9999,9999,),
+MAT_RUST        : (1500,9999,9999,),
+MAT_CLAY        : (9999,9999,9999,),
+MAT_CERAMIC     : (9999,9999,9999,),
+MAT_GAS         : (9999,9999,9999,),
+MAT_WATER       : (0,   100, 9999,),
+MAT_OIL         : (20,  500, 400,),
+MAT_QUARTZ      : (9999,9999,9999,),
+MAT_RUBBER      : (70,  9999,300,),
+    }
+
 
 
 

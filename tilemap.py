@@ -373,18 +373,18 @@ Reason: entity not in grid.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-##                if not rog.in_range(pos.x,pos.y, x,y, sight):
-##                    continue
-##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-##                    continue
+                if not rog.in_range(pos.x,pos.y, x,y, sight):
+                    continue
+                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+                    continue
 
                 ent=self.thingat(x, y)
 
-##                if (not (x==pos.x and y==pos.y)
-##                        and self.get_light_value(x,y) == 0
-##                        and not rog.on(pc,NVISION) ):
-##                    self._draw_silhouettes(pc, x,y, ent, sight)
-##                    continue
+                if (not (x==pos.x and y==pos.y)
+                        and self.get_light_value(x,y) == 0
+                        and not rog.on(pc,NVISION) ):
+                    self._draw_silhouettes(pc, x,y, ent, sight)
+                    continue
                 
                 if ent:
                     libtcod.console_put_char(

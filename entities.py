@@ -3404,13 +3404,13 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "rapier"                :(345,  1.5, 150, METL,11,(11, 4,  16, 5,  0,  1,  60, -12,-7, 8,  20,),SKL_SWORDS,_rapier,),#STEEL
     # other misc weapons  $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
     # knives
-"kukri"                 :(70,   0.5, 90,  METL,3, (4,  6,  10, 1,  0,  0,  51, -3, -3, 5,  8,),SKL_KNIVES,_kukri,),#POOR STEEL
+"kukri"                 :(70,   0.5, 90,  METL,3, (4,  6,  10, 1,  0,  0,  51, -3, -3, 5,  6,),SKL_KNIVES,_kukri,),#POOR STEEL
 "metal throwing knife"  :(8,    0.1, 20,  METL,1, (5,  3,  18, 0,  0,  0,  54, 0,  -8, 1,  4,),SKL_KNIVES,_mThrowingKnife,),
 "metal butcher knife"   :(16,   0.3, 120, METL,3, (2,  5,  3,  0,  0,  0,  12, 0,  -10,1,  8,),SKL_KNIVES,_butcherKnife,),
     # boxing weapons
 "metal knuckles"        :(6,    0.1, 380, METL,2, (2,  4,  4,  0,  0,  0,  18, 0,  -6, 0,  4,),SKL_BOXING,_knuckles,),
 "metal spiked knuckles" :(14,   0.2, 220, METL,2, (2,  5,  6,  0,  0,  0,  -6, 0,  -8, 0,  8,),SKL_BOXING,_knuckles,),
-"boxing wrap"           :(4,    0.25,20,  CLTH,2, (2,  2,  1,  1,  0,  0,  33, 0,  -8, 2,  3,),SKL_BOXING,_boxingWraps,),
+"boxing wrap"           :(4,    0.25,20,  CLTH,2, (2,  2,  1,  1,  0,  0,  33, 0,  -8, 2,  2,),SKL_BOXING,_boxingWraps,),
     # bludgeons
 "metal baton"           :(25,   0.5, 250, METL,2, (6,  3,  5,  1,  0,  0,  9,  -3, -2, 3,  4,),SKL_BLUDGEONS,_baton,),
 "metal bat"             :(35,   0.7, 350, METL,4, (2,  7,  7,  0,  1,  0,  -6, -6, -8, 1,  8,),SKL_BLUDGEONS,_baton,),
