@@ -69,8 +69,8 @@ class AI:
 class Creature:
     __slots__=['job','faction']
     def __init__(self, job=None, faction=None):
-        self.job=int(job)
-        self.faction=int(faction)
+        self.job=job
+        self.faction=faction
        
 class Actor:
     __slots__=['ap']
@@ -94,15 +94,16 @@ class Meters:
         self.sick=0 # illness / infection
         self.expo=0 # exposure to harmful chemicals
         self.pain=0 # respain increases the thresholds for pain tolerance
-        self.fear=0 # 100 fear == fully overcome by fear
         self.bleed=0 # greater bleed -> take damage more frequently
         self.rust=0 # amount of rustedness
         self.rot=0 # amount of rot
         self.wet=0 # amount of water it's taken on
+        self.fear=0 # 100 fear == fully overcome by fear
 class Stats: #base stats
     def __init__(self, hp=1,mp=1, _str=0,_con=0,_int=0, mass=1,
-                 resfire=100,rescold=100,resbio=100,reselec=100,resphys=100,
-                 resrust=100,resrot=100,reswet=100,respain=100,resbleed=100,
+                 resfire=100,rescold=100,resbio=100,reselec=100,
+                 resphys=100,resrust=100,resrot=100,reswet=100,
+                 respain=100,resbleed=100,reslight=100,ressound=100,
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
                  spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
                  sight=0,hearing=0,courage=0,scary=0,beauty=0,
@@ -127,6 +128,8 @@ class Stats: #base stats
         self.resrot=int(resrot)      # ROT
         self.reswet=int(reswet)      # WET
         self.resbleed=int(resbleed)  # BLD
+        self.reslight=int(reslight)  # LGT
+        self.ressound=int(ressound)  # SND
         self.atk=int(atk)    #Attack -- accuracy
         self.dmg=int(dmg)    #Damage, physical (melee)
         self.pen=int(pen)    #Penetration

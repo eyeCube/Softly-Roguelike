@@ -1019,6 +1019,10 @@ def _mTube(item):
     _weapon(item, acc=0,dmg=1,pen=0,asp=-51)
 def _bobbyPin(item):
     _canThrow(item, acc=-5, rng=2, dmg=-2)
+    rog.world().add_component(item, cmp.Tool_LockPick(1))
+def _lockPick(item):
+    _canThrow(item, acc=-5, rng=3, dmg=-2)
+    rog.world().add_component(item, cmp.Tool_LockPick(3))
 def _key(item):
     _canThrow(item, acc=-5, rng=4, dmg=1)
 def _magnetWeak(item):
@@ -2563,6 +2567,8 @@ def create_monster(_type, x, y, col=None, mutate=0):
     money = getMonMoney(_type)
     flags = getMonFlags(_type)
     script = getMonScript(_type)
+
+    # TODO: add fringe resistances like light, sounds, pain, bleed, etc.
     
     ent = rog.world().create_entity(
         cmp.Draw(_type, col, COL['deep']),
@@ -3379,23 +3385,23 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
     # swords              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic sword"         :(2,    1.2, 30,  PLAS,8, (4,  3,  6,  1,  0,  0,  15, -6, -7, 3,  12,),SKL_SWORDS,_pSword,),
 "wooden sword"          :(22,   1.1, 50,  WOOD,7, (6,  4,  9,  2,  0,  0,  24, -6, -6, 4,  10,),SKL_SWORDS,_wSword,),
-"bone sword"            :(45,   0.75,40,  BONE,4, (5,  5,  12, 1,  0,  0,  21, -6, -5, 4,  8,),SKL_SWORDS,_bSword,),
+"bone sword"            :(45,   0.75,40,  BONE,4, (5,  5,  12, 1,  0,  0,  21, -6, -5, 4,  6,),SKL_SWORDS,_bSword,),
 "metal sword"           :(70,   1.0, 160, METL,5, (7,  6,  14, 2,  0,  0,  45, -6, -4, 5,  8,),SKL_SWORDS,_mSword,),
 "diamonite sword"       :(2650, 0.9, 400, METL,4, (8,  9,  18, 3,  0,  0,  51, -6, -4, 7,  7,),SKL_SWORDS,_dSword,),
-"graphene sword"        :(11500,0.8, 1200,CARB,3, (9,  12, 22, 3,  0,  0,  60, -6, -3, 9,  6,),SKL_SWORDS,_grSword,),
+"graphene sword"        :(11500,0.8, 1200,CARB,3, (9,  12, 22, 3,  0,  0,  60, -6, -3, 9,  8,),SKL_SWORDS,_grSword,),
     # other swords        $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "leaf blade"            :(45,   0.7, 180, METL,3, (6,  6,  13, 2,  0,  0,  42, -3, -3, 2,  8,),SKL_SWORDS,_leafSword,),
-"hanger"                :(60,   0.8, 100, METL,3, (10, 4,  11, 4,  0,  0,  51, -6, -3, 4,  8,),SKL_SWORDS,_hanger,),#POOR STEEL
-"messer"                :(90,   1.4, 320, METL,6, (5,  6,  10, 3,  1,  1,  33, -9, -3, 3,  16,),SKL_SWORDS,_messer,),#POOR STEEL
+"hanger"                :(60,   0.8, 100, METL,3, (10, 4,  11, 4,  0,  0,  51, -6, -3, 4,  6,),SKL_SWORDS,_hanger,),#POOR STEEL
+"messer"                :(90,   1.4, 320, METL,6, (5,  6,  10, 3,  1,  1,  33, -9, -3, 3,  12,),SKL_SWORDS,_messer,),#POOR STEEL
 "smallsword"            :(105,  0.4, 60,  METL,1, (8,  3,  15, 4,  0,  0,  66, -3, -6, 8,  4,),SKL_SWORDS,_smallSword,),#STEEL
-"broadsword"            :(130,  1.3, 240, METL,7, (5,  8,  12, 2,  0,  0,  30, -12,-5, 2,  16,),SKL_SWORDS,_broadsword,),#POOR STEEL
+"broadsword"            :(130,  1.3, 240, METL,7, (5,  8,  12, 2,  0,  0,  30, -12,-5, 2,  15,),SKL_SWORDS,_broadsword,),#POOR STEEL
 "curved sword"          :(120,  1.1, 90,  METL,4, (7,  5,  7,  3,  0,  0,  54, -9, -2, 6,  8,),SKL_SWORDS,_curvedSword,),#POOR STEEL
 "falchion"              :(160,  1.4, 360, METL,8, (5,  8,  9,  1,  1,  0,  24, -12,-5, 3,  16,),SKL_SWORDS,_falchion,),#POOR STEEL
 "sabre"                 :(135,  1.25,240, METL,8, (8,  6,  10, 4,  0,  0,  48, -9, -4, 5,  12,),SKL_SWORDS,_sabre,),#POOR STEEL
-"cutlass"               :(130,  1.35,520, METL,7, (6,  6,  11, 3,  0,  1,  39, -12,-2, 6,  12,),SKL_SWORDS,_cutlass,),#POOR STEEL, made entirely of metal (no wood)
-"arming sword"          :(235,  1.35,300, METL,9, (8,  7,  18, 2,  0,  0,  45, -9, -4, 5,  8,),SKL_SWORDS,_armingSword,),#STEEL
-"basket-hilted sword"   :(295,  1.45,250, METL,10,(9,  6,  12, 3,  1,  2,  45, -9, -6, 7,  8,),SKL_SWORDS,_basketHiltedSword,),#STEEL
-"rapier"                :(345,  1.5, 150, METL,11,(11, 4,  16, 5,  0,  1,  60, -12,-7, 8,  16,),SKL_SWORDS,_rapier,),#STEEL
+"cutlass"               :(130,  1.35,520, METL,7, (6,  6,  11, 3,  0,  1,  39, -12,-2, 6,  15,),SKL_SWORDS,_cutlass,),#POOR STEEL, made entirely of metal (no wood)
+"arming sword"          :(235,  1.35,300, METL,9, (8,  7,  18, 2,  0,  0,  45, -9, -4, 5,  10,),SKL_SWORDS,_armingSword,),#STEEL
+"basket-hilted sword"   :(295,  1.45,250, METL,10,(9,  6,  12, 3,  1,  2,  45, -9, -6, 7,  14,),SKL_SWORDS,_basketHiltedSword,),#STEEL
+"rapier"                :(345,  1.5, 150, METL,11,(11, 4,  16, 5,  0,  1,  60, -12,-7, 8,  20,),SKL_SWORDS,_rapier,),#STEEL
     # other misc weapons  $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
     # knives
 "kukri"                 :(70,   0.5, 90,  METL,3, (4,  6,  10, 1,  0,  0,  51, -3, -3, 5,  8,),SKL_KNIVES,_kukri,),#POOR STEEL
@@ -3420,22 +3426,22 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 # Some weapons can only be built with steel, like longswords, greatswords.
 #   So these are expensive, and have no material designation.
     # longswords          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"bastard sword"         :(245,  1.55,400, METL,16,(4,  9,  12, 1,  1,  1,  15, -12,-10,6,  20,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game)
+"bastard sword"         :(245,  1.55,400, METL,16,(4,  9,  12, 1,  1,  1,  15, -12,-10,6,  24,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game)
 "longsword"             :(260,  1.6, 310, METL,7, (11, 12, 18, 4,  3,  3,  51, -15,-8, 12, 12,),SKL_LONGSWORDS,_longSword,),#STEEL
-"kriegsmesser"          :(265,  1.8, 500, METL,11,(8,  14, 12, 2,  3,  3,  36, -21,-12,9,  18,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
+"kriegsmesser"          :(265,  1.8, 500, METL,11,(8,  14, 12, 2,  3,  3,  36, -21,-12,9,  20,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
 "katana"                :(285,  1.45,120, METL,5, (10, 10, 16, 2,  2,  2,  45, -12,-8, 14, 9,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
-"estoc"                 :(305,  1.65,175, METL,6, (12, 10, 20, 3,  1,  2,  60, -15,-8, 16, 14,),SKL_LONGSWORDS,_estoc,),#STEEL
+"estoc"                 :(305,  1.65,175, METL,6, (12, 10, 20, 3,  1,  2,  60, -15,-8, 16, 16,),SKL_LONGSWORDS,_estoc,),#STEEL
     # greatswords         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"greatsword"            :(540,  3.5, 480, METL,22,(9,  18, 15, 3,  3,  3,  -15, -48,-10,10, 22,),SKL_GREATSWORDS,_greatSword,),
-"flamberge"             :(595,  3.3, 275, METL,21,(10, 16, 12, 2,  3,  3,  -12,-51,-13,10, 21,),SKL_GREATSWORDS,_flamberge,),
+"greatsword"            :(540,  3.5, 480, METL,22,(9,  18, 15, 3,  3,  3,  -15, -48,-10,10,26,),SKL_GREATSWORDS,_greatSword,),
+"flamberge"             :(595,  3.3, 275, METL,21,(10, 16, 12, 2,  3,  3,  -12,-51,-13,10, 25,),SKL_GREATSWORDS,_flamberge,),
     # short staves        $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"plastic staff"         :(1,    1.3, 100, PLAS,8, (6,  5,  4,  4,  2,  3,  69, -21,-5, 13, 9,),SKL_STAVES,_staff,),
-"wooden staff"          :(10,   1.2, 300, WOOD,8, (7,  7,  6,  4,  4,  3,  75, -21,-4, 15, 8,),SKL_STAVES,_staff,),
-"metal staff"           :(62,   1.0, 500, METL,8, (8,  9,  8,  4,  3,  3,  81, -21,-3, 16, 8,),SKL_STAVES,_staff,),
+"plastic staff"         :(1,    1.3, 100, PLAS,8, (6,  5,  4,  4,  2,  3,  69, -21,-5, 13, 11,),SKL_STAVES,_staff,),
+"wooden staff"          :(10,   1.2, 300, WOOD,8, (7,  7,  6,  4,  4,  3,  75, -21,-4, 15, 10,),SKL_STAVES,_staff,),
+"metal staff"           :(62,   1.0, 500, METL,8, (8,  9,  8,  4,  3,  3,  81, -21,-3, 16, 9,),SKL_STAVES,_staff,),
     # longstaves          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"plastic longstaff"     :(2,    2.45,120, PLAS,14,(8,  8,  6,  3,  2,  3,  54, -42,-24,5,  13,),SKL_POLEARMS,_longstaff,),
-"wooden longstaff"      :(16,   2.25,350, WOOD,13,(9,  10, 8,  3,  4,  3,  57, -42,-21,6,  12,),SKL_POLEARMS,_longstaff,),
-"metal longstaff"       :(88,   2.05,500, METL,12,(10, 12, 10, 3,  3,  3,  60, -42,-18,7,  11,),SKL_POLEARMS,_longstaff,),
+"plastic longstaff"     :(2,    2.45,120, PLAS,14,(8,  8,  6,  3,  2,  3,  54, -42,-24,5,  22,),SKL_POLEARMS,_longstaff,),
+"wooden longstaff"      :(16,   2.25,350, WOOD,13,(9,  10, 8,  3,  4,  3,  57, -42,-21,6,  21,),SKL_POLEARMS,_longstaff,),
+"metal longstaff"       :(88,   2.05,500, METL,12,(10, 12, 10, 3,  3,  3,  60, -42,-18,7,  20,),SKL_POLEARMS,_longstaff,),
     # spears              $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic spear"         :(2,    2.1, 30,  PLAS,8, (8,  10, 10, 3,  2,  3,  51, -42,-17,8,  16,),SKL_SPEARS,_pSpear,),
 "wooden spear"          :(20,   2.05,60,  WOOD,8, (10, 11, 12, 3,  3,  3,  48, -45,-15,9,  15,),SKL_SPEARS,_wSpear,),
@@ -3443,7 +3449,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "bone spear"            :(25,   2.05,150, WOOD,8, (10, 12, 14, 3,  3,  3,  45, -45,-16,10, 16,),SKL_SPEARS,_sSpear,),
 "glass spear"           :(34,   1.9, 5,   WOOD,7, (12, 22, 10, 3,  3,  3,  51, -45,-16,14, 14,),SKL_SPEARS,_gSpear,),
 "metal spear"           :(32,   2.1, 200, WOOD,9, (11, 14, 16, 3,  3,  3,  45, -45,-14,12, 16,),SKL_SPEARS,_mSpear,),
-"metal winged spear"    :(40,   2.0, 300, WOOD,12,(10, 16, 15, 3,  3,  3,  36, -48,-8, 12, 20,),SKL_SPEARS,_mSpear,),
+"metal winged spear"    :(40,   2.0, 300, WOOD,10,(10, 16, 15, 3,  3,  3,  36, -48,-8, 12, 20,),SKL_SPEARS,_mSpear,),
 "ceramic spear"         :(36,   1.95,10,  WOOD,7, (12, 24, 12, 3,  3,  3,  48, -45,-16,14, 14,),SKL_SPEARS,_cSpear,),
     # partizans           $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "metal partizan"        :(57,   2.2, 240, WOOD,14,(8,  18, 14, 2,  3,  3,  24, -51,-14,10, 22,),SKL_SPEARS,_mPartizan,),
@@ -3454,11 +3460,11 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
     # halberds            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "metal halberd"         :(75,   2.25,180, WOOD,15,(8,  18, 20, 2,  3,  2,  9,  -54,-6, 6,  22,),SKL_POLEARMS,_mHalberd,),#all polearms have REACH
     # poleaxes            $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"metal poleaxe"         :(58,   2.35,300, WOOD,14,(7,  22, 20, 2,  3,  2,  -15,-42,-6, 7,  24,),SKL_POLEARMS,_mPoleAxe,),
+"metal poleaxe"         :(58,   2.35,300, WOOD,12,(7,  22, 20, 2,  3,  2,  -15,-42,-6, 7,  24,),SKL_POLEARMS,_mPoleAxe,),
     # polehammers         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
-"plastic polehammer"    :(3,    2.7, 110, PLAS,16,(4,  11, 16, 1,  2,  2,  -27,-51,-14,3,  30,),SKL_POLEARMS,_pPoleHammer,),
-"wooden polehammer"     :(18,   2.6, 200, WOOD,15,(5,  13, 16, 1,  2,  2,  -24,-48,-12,4,  28,),SKL_POLEARMS,_wPoleHammer,),
-"metal polehammer"      :(45,   2.4, 475, WOOD,14,(6,  16, 24, 1,  3,  2,  -21,-45,-9, 5,  26,),SKL_POLEARMS,_mPoleHammer,),
+"plastic polehammer"    :(3,    2.7, 110, PLAS,15,(4,  11, 16, 1,  2,  2,  -27,-51,-14,3,  30,),SKL_POLEARMS,_pPoleHammer,),
+"wooden polehammer"     :(18,   2.6, 200, WOOD,14,(5,  13, 16, 1,  2,  2,  -24,-48,-12,4,  28,),SKL_POLEARMS,_wPoleHammer,),
+"metal polehammer"      :(45,   2.4, 475, WOOD,13,(6,  16, 24, 1,  3,  2,  -21,-45,-9, 5,  26,),SKL_POLEARMS,_mPoleHammer,),
     # war mallets         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic war mallet"    :(3,    2.4, 320, PLAS,12,(3,  11, 12, -1, 2,  2,  -45,-42,-20,3,  28,),SKL_MALLETS,_1mallet,),
 "wooden war mallet"     :(19,   2.3, 600, WOOD,11,(4,  13, 13, -1, 3,  2,  -42,-42,-20,4,  25,),SKL_MALLETS,_1mallet,),
@@ -3467,10 +3473,10 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "metal war mallet"      :(72,   2.0, 800, WOOD,9, (5,  19, 16, 0,  3,  2,  -39,-36,-14,6,  22,),SKL_MALLETS,_2mallet,),
     # great clubs         $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic great club"    :(3,    2.7, 450, PLAS,18,(5,  11, 7,  -1, 2,  2,  -33,-51,-32,2,  32,),SKL_BLUDGEONS,_heavyClub,),
-"wooden great club"     :(18,   2.6, 1000,WOOD,17,(6,  15, 9,  -1, 3,  2,  -27,-48,-28,3,  29,),SKL_BLUDGEONS,_heavyClub,),
+"wooden great club"     :(18,   2.6, 1000,WOOD,18,(6,  15, 9,  -1, 3,  2,  -27,-48,-28,3,  29,),SKL_BLUDGEONS,_heavyClub,),
 "stone great club"      :(22,   2.5, 280, STON,17,(7,  19, 10, -1, 3,  2,  -24,-45,-28,4,  29,),SKL_BLUDGEONS,_heavyClub,),
 "bone great club"       :(13,   1.75,360, BONE,15,(8,  14, 9,  0,  3,  2,  -15,-42,-26,5,  26,),SKL_BLUDGEONS,_heavyClub,),
-"metal great club"      :(95,   1.8, 1800,METL,15,(8,  21, 12, 0,  3,  2,  -18,-39,-24,6,  26,),SKL_BLUDGEONS,_heavyClub,),
+"metal great club"      :(95,   1.8, 1800,METL,16,(8,  21, 12, 0,  3,  2,  -18,-39,-24,6,  26,),SKL_BLUDGEONS,_heavyClub,),
     # great axes          $$$$, Kg,  Dur, Mat, St,(Acc,Dam,Pen,DV, AV, Pro,Asp,Msp,Gra,Ctr,Sta,TYPE,script
 "plastic great axe"     :(3,    2.2, 110, PLAS,11,(2,  14, 9,  1,  2,  2,  -27,-45,-16,3,  24,),SKL_GREATAXES,_pGreatAxe,),
 "wooden great axe"      :(22,   1.9, 210, WOOD,10,(3,  18, 10, 2,  3,  2,  -21,-39,-18,4,  23,),SKL_GREATAXES,_wGreatAxe,),
@@ -4048,9 +4054,10 @@ RAWMATERIALS={
 "mail ring, welded"     :(RAWM,1,    0.01,150, METL,C_METL,_rawMat,),
 "paperclip"             :(RAWM,0,    0.001,8,  METL,C_METL,_rawMat,),
 "bobby pin"             :(RAWM,1,    0.01,25,  METL,C_METL,_bobbyPin,),
+"lock pick"             :(RAWM,3,    0.05,5,   METL,C_METL,_lockPick,),
 "needle"                :(RAWM,0,    0.001,15, METL,C_METL,_mNeedle,),
-"nail"                  :(RAWM,0,    0.02,60,  METL,C_METL,_nail,),
-"screw"                 :(RAWM,0,    0.02,120, METL,C_METL,_screw,),
+"nail"                  :(RAWM,1,    0.02,60,  METL,C_METL,_nail,),
+"screw"                 :(RAWM,1,    0.02,120, METL,C_METL,_screw,),
 "razor blade"           :(RAWM,8,    0.02,2,   METL,C_METL,_razorBlade,),
 "metal screen"          :(RAWM,1,    0.05,5,   METL,C_METL,_rawMat,),
 "metal foil"            :(RAWM,1,    0.01,3,   METL,C_METL,_rawMat,),

@@ -37,6 +37,11 @@ RT_BIGCAVEROOM=9
 SLIDE_X = 3 #[1,7,4,3,]
 SLIDE_Y = 5
 
+
+class GlobalData:
+    __N = 0
+    __i = 0
+
 class Room:
     def __init__(
             self,
@@ -112,6 +117,19 @@ def dig(
     xpos = xstart
     ypos = ystart
     
+    # pick a starting direction
+    xd = xend - xpos
+    yd = yend - ypos
+    diff = rog.sign(abs(xd) - abs(yd))
+    if diff > 0:
+        xdir = rog.sign(xd)
+        ydir = 0
+    else:
+        xdir = 0
+        ydir = rog.sign(yd)
+
+    tiles.add((xstart, ystart,))
+    
     while True:        
         if len(tiles) >= maxTiles:
             return set() # failure -> empty set
@@ -123,21 +141,21 @@ def dig(
             x1,y1,x2,y2 = area
             if (xpos >= x1 and xpos <= x2 and ypos >= y1 and ypos <= y2):
                 return set()
-        # add this tile to the corridor
-        tiles.add((xpos, ypos,))
+        
         # move towards the goal position
-        xd = xend - xpos
-        yd = yend - ypos
-        diff = rog.sign(math.abs(xd) - math.abs(yd))
-        if diff > 0:
-            xdir = rog.sign(xd)
-            ydir = 0
-        else:
+        if xpos == xend:
             xdir = 0
-            ydir = rog.sign(yd)
+            ydir = rog.sign(yend - ypos)
+        if ypos == yend:
+            xdir = rog.sign(xend - xpos)
+            ydir = 0
+        
         # continue digging
         xpos += xdir
         ypos += ydir
+        
+        # add this tile to the corridor
+        tiles.add((xpos, ypos,))
     
     return tiles
 
@@ -154,8 +172,8 @@ def get_offset_position(width, height, borders=5, offsetd=40):
 def get_scale(minsize, sizev_w, sizev_h, maxw=-1, maxh=-1):
     if maxw==-1: maxw=9999
     if maxh==-1: maxh=9999
-    xs = minsize + min(maxw, int(random.random()*sizev_w))
-    ys = minsize + min(maxh, int(random.random()*sizev_h))
+    xs = minsize + min(maxw-2, int(random.random()*sizev_w))
+    ys = minsize + min(maxh-2, int(random.random()*sizev_h))
     return (xs, ys,)
 
 def pick_roomtype(corridors=True):
@@ -209,14 +227,14 @@ def pick_roomtype(corridors=True):
     
     return RT_ROOM # default
 
-def make_room(width, height, maxw=-1, maxh=-1):
+def make_room(width, height, maxw=-1, maxh=-1, offset=True):
     ''' make a room (no corridors), only return the room object '''
     return _make_room(
         width, height,
         corridors_allowed=False,
-        maxw=maxw, maxh=maxh
+        maxw=maxw, maxh=maxh, offset=offset
         )[0]
-def _make_room(width, height, corridors_allowed=True, maxw=-1, maxh=-1):
+def _make_room(width, height, corridors_allowed=True, maxw=-1, maxh=-1, offset=True):
     '''
         make a room or a corridor
         Parameters:
@@ -225,6 +243,7 @@ def _make_room(width, height, corridors_allowed=True, maxw=-1, maxh=-1):
             corridors_allowed whether the algo. can create corridors or not
             maxw      maximum horizontal size of each individual room
             maxh      maximum vertical size of each individual room
+            offset    whether or not to set an offset for the room
         Returns: (the room object, and whether it is a corridor (bool))
     '''
     roomtype = pick_roomtype(corridors_allowed)
@@ -233,32 +252,34 @@ def _make_room(width, height, corridors_allowed=True, maxw=-1, maxh=-1):
 
     corridor=False
     if roomtype==RT_ROOM:
-        room = generate_room(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_BIGROOM:
-        room = generate_room_big(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_big(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_CAVEROOM:
-        room = generate_room_cave(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_cave(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_BIGCAVEROOM:
-        room = generate_room_cave_big(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_cave_big(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_THEMEDROOM:
-        room = generate_room_themed(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_themed(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_RARETHEMEDROOM:
-        room = generate_room_themed_rare(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_themed_rare(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_CONGLOMERATEROOM:
-        room = generate_room_conglomerate(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_conglomerate(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_BIGCONGLOMERATEROOM:
-        room = generate_room_conglomerate_big(width, height, maxw=maxw, maxh=maxh)
+        room = generate_room_conglomerate_big(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
     elif roomtype==RT_CORRIDOR:
-        room = generate_corridor(width, height, maxw=maxw, maxh=maxh)
+        room = generate_corridor(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
         corridor=True
     elif roomtype==RT_DRUNKENCORRIDOR:
-        room = generate_corridor_drunken(width, height, maxw=maxw, maxh=maxh)
+        room = generate_corridor_drunken(width, height, maxw=maxw, maxh=maxh, setOffset=offset)
         corridor=True
     return (room, corridor,)
 
 def create_origin_room(width, height):
     # origin room at center of the map
-    room = generate_room(width, height)
+    ow = 4 + int(random.random()*12)
+    oh = 4 + int(random.random()*12)
+    room = _generate_room(ow, oh)
     room.x_offset = int(random.random()*width/2 + width/4)
     room.y_offset = int(random.random()*height/2 + height/4)
     LGD.prev_xo = room.x_offset
@@ -274,28 +295,57 @@ def create_origin_room(width, height):
 # TODO: create all room and corridor gen functions.
 # For now they just do *something* so it doesn't raise an error.
 
-def generate_room_themed(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh)
-def generate_room_themed_rare(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh)
+def generate_room_themed(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh, setOffset=setOffset)
+def generate_room_themed_rare(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh, setOffset=setOffset)
 
-def generate_room_cave(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh)
-def generate_room_cave_big(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh)
+def generate_room_cave(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh, setOffset=setOffset)
+def generate_room_cave_big(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room(levelwidth, levelheight, maxw=maxw, maxh=maxh, setOffset=setOffset)
 
-def generate_corridor_drunken(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_corridor(levelwidth, levelheight, maxw=maxw, maxh=maxh)
+def generate_corridor_drunken(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_corridor(levelwidth, levelheight, maxw=maxw, maxh=maxh, setOffset=setOffset)
 
-def generate_room_big(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room(levelwidth, levelheight, mins=10, sizev=5, maxw=maxw, maxh=maxh)
-def generate_room_conglomerate_big(levelwidth, levelheight, maxw=-1, maxh=-1):
-    return generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=8, xvar=6, yvar=6, num=16, maxw=maxw, maxh=maxh)
+def generate_room_big(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room(levelwidth, levelheight, mins=10, sizev=5, maxw=maxw, maxh=maxh, setOffset=setOffset)
+def generate_room_conglomerate_big(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
+    return generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=8, xvar=6, yvar=6, num=16, maxw=maxw, maxh=maxh, setOffset=setOffset)
 
-# TODO: enforce maxw, maxh
-
-def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1):
+def _generate_room(w, h):
     '''
+        create a regular box room
+        Parameters:
+            w     width of the room
+            h     height of the room
+    '''
+    borders = 5 # size of padding where origin of rooms cannot be placed
+    area = set()
+    perimeter = set()
+    
+    # area (get all floor tiles together)
+    for xx in range(w):
+        for yy in range(h):
+            area.add( (xx - (w//2), yy - (h//2),) )
+    
+    # perimeter (get all surrounding/wall tiles together)
+    for xx in range(w):
+        perimeter.add( (xx - (w//2), -(h//2) - 1,) )
+        perimeter.add( (xx - (w//2), math.ceil(h/2),) )
+    for yy in range(h):
+        perimeter.add( (-(w//2) - 1, yy - (h//2),) )
+        perimeter.add( (math.ceil(w/2), yy - (h//2),) )
+    
+    # create the room object
+    room = Room(0,0, area, perimeter, boundw=w+2, boundh=h+2)
+    return room
+
+def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1, setOffset=True):
+    '''
+        BUG: boundw and boundh are being set as -1 which is a bug
+        must be set to the actual bounding area of the room
+        
         create a regular box room
         Parameters:
             mins     minimum size
@@ -304,7 +354,10 @@ def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1):
     borders = 5 # size of padding where origin of rooms cannot be placed
     area = set()
     perimeter = set()
-    xo, yo = get_offset_position(levelwidth, levelheight, borders)
+    if setOffset == True:
+        xo, yo = get_offset_position(levelwidth, levelheight, borders)
+    else:
+        xo = yo = 0
     # scale
     xs, ys = get_scale(mins, sizev, sizev, maxw, maxh)
     
@@ -329,7 +382,7 @@ def generate_room(levelwidth, levelheight, mins=2, sizev=5, maxw=-1, maxh=-1):
     room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
     
-def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4, yvar=4, num=8, maxw=-1, maxh=-1):
+def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4, yvar=4, num=8, maxw=-1, maxh=-1, setOffset=True):
     '''
         create a conglomerate room made of several juxtaposed boxes
         Parameters:
@@ -338,11 +391,16 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
             xvar     x variation between each individual box (+/-)
             yvar     y variation between each individual box (+/-)
     '''
+
+    # TODO: fix this so that maxw/maxh will bound the conglomerate room
+    
     borders = 5 # size of padding where origin of rooms cannot be placed
     area = set()
     perimeter = set()
-    xo, yo = get_offset_position(levelwidth, levelheight, borders)
-    
+    if setOffset == True:
+        xo, yo = get_offset_position(levelwidth, levelheight, borders)
+    else:
+        xo = yo = 0
     # make a bunch of rectangle rooms that are juxtaposed
     for ii in range(num):
         thisarea = set() # individual rectangle area / perimeter
@@ -351,7 +409,7 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
         xoo = int(random.random() * xvar*2) - xvar
         yoo = int(random.random() * yvar*2) - xvar
         # individual rectangle scale
-        xs, ys = get_scale(mins, sizev, sizev, maxw, maxh)
+        xs, ys = get_scale(mins, sizev, sizev)
         
         # perimeter (get all surrounding/wall tiles together)
         for xx in range(xs):
@@ -406,12 +464,15 @@ def generate_room_conglomerate(levelwidth, levelheight, mins=2, sizev=4, xvar=4,
     room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
 
-def generate_corridor(levelwidth, levelheight, maxw=-1, maxh=-1):
+def generate_corridor(levelwidth, levelheight, maxw=-1, maxh=-1, setOffset=True):
     borders = 10 # size of padding where origin of rooms cannot be placed
     result = random.random()*100
     area = set()
     perimeter = set()
-    xo, yo = get_offset_position(levelwidth, levelheight, borders)
+    if setOffset == True:
+        xo, yo = get_offset_position(levelwidth, levelheight, borders)
+    else:
+        xo = yo = 0
     
     # pick what kind of corridor, vertical or horizontal
     if result < 40: # horizontal
@@ -463,7 +524,13 @@ def generate_corridor(levelwidth, levelheight, maxw=-1, maxh=-1):
     room = Room(xo,yo, area, perimeter, boundw=maxw, boundh=maxh)
     return room
 
-# level generation
+
+
+    #------------------#
+    # level generation #
+    #------------------#
+
+
 def generate_level(width, height, z, density=250, algo="dumb"):
     '''
         Make a dungeon level
@@ -489,57 +556,143 @@ def generate_level(width, height, z, density=250, algo="dumb"):
             maxDensity=density//5
             )
 
+def _get_area(room):
+    x1 = room.x_offset - room.boundw // 2
+    y1 = room.y_offset - room.boundh // 2
+    x2 = room.x_offset + math.ceil(room.boundw / 2)
+    y2 = room.y_offset + math.ceil(room.boundh / 2)
+    return (x1,y1,x2,y2,)
 def _add_usedarea(usedareas, room):
-    x1 = room.x_offset - room.maxw // 2
-    y1 = room.y_offset - room.maxh // 2
-    x2 = room.x_offset + math.ceil(room.maxw / 2)
-    y2 = room.y_offset + math.ceil(room.maxh / 2)
-    usedareas.add((x1,y1,x2,y2,))
+    usedareas.add(_get_area(room))
+
+def _areas_overlapping(area1, area2):
+    ax1,ay1,ax2,ay2 = area1
+    bx1,by1,bx2,by2 = area2
+    if (
+        (ax1 >= bx1 and ax1 <= bx2 and ay1 >= by1 and ay1 <= by2) or
+        (ax2 >= bx1 and ax2 <= bx2 and ay1 >= by1 and ay1 <= by2) or
+        (ax1 >= bx1 and ax1 <= bx2 and ay2 >= by1 and ay2 <= by2) or
+        (ax2 >= bx1 and ax2 <= bx2 and ay2 >= by1 and ay2 <= by2)
+        ):
+        return True
+    return False
+
+def _try_build_next_room(node, width, height, usedareas):
+    # pick a size and location for the next room; make the room
+    maxdist = 32
+    mindist = 10
+    borders = 10
+    roomw=2 + int(random.random()*13) +2 #must add +2 for borders
+    roomh=2 + int(random.random()*13) +2 #must add +2 for borders
+    room = _generate_room(roomw-2, roomh-2)
+    while (room.x_offset == 0 or
+           abs(room.x_offset - node.data.x_offset) + abs(
+               room.y_offset - node.data.y_offset) < mindist): # not too close -- ensure distance exceeds certain value
+        room.x_offset = min(width-borders, max(borders,
+            node.data.x_offset - maxdist + int(2*maxdist*random.random()) ))
+        room.y_offset = min(height-borders, max(borders,
+            node.data.y_offset - maxdist + int(2*maxdist*random.random()) ))
+
+    print("Trying to fit room at {}, {}".format(room.x_offset,room.y_offset))
+    
+    # make sure it fits
+    overlap = False
+    area = _get_area(room)
+    print(area)
+    for usedarea in usedareas:
+        print(usedarea)
+        if _areas_overlapping(area, usedarea):
+            overlap = True
+            break
+    if overlap: # it doesn't fit, try again with a different room
+        return None # failure
+
+    print("Fit room at {}, {}.".format(room.x_offset,room.y_offset))
+    
+    # pick a perimeter tile of parent room to start the digger
+    zipped=[]
+    for tile in node.data.perimeter:
+        dx = abs(tile[0] + node.data.x_offset - room.x_offset)
+        dy = abs(tile[1] + node.data.y_offset - room.y_offset)
+        zipped.append((tile, dx+dy,))
+    weighted = sorted(zipped, key=lambda x: x[-1])
+    
+    p1x, p1y = weighted[0][0]
+    p1x += node.data.x_offset
+    p1y += node.data.y_offset
+    
+    # pick a perimeter tile of destination room to end the digger
+    zipped=[]
+    for tile in room.perimeter:
+        dx = abs(tile[0] + room.x_offset - node.data.x_offset)
+        dy = abs(tile[1] + room.y_offset - node.data.y_offset)
+        zipped.append((tile, dx+dy,))
+    weighted = sorted(zipped, key=lambda x: x[-1])
+    
+    p2x, p2y = weighted[0][0]
+    p2x += room.x_offset
+    p2y += room.y_offset
+    
+    # dig corridor
+    diglist=[]
+    iterations=0
+    while (not diglist and iterations < 5):
+        iterations += 1
+        # try to dig a connecting corridor to parent room
+        diglist = dig(
+            usedareas, xstart=p1x, ystart=p1y, xend=p2x, yend=p2y
+            )
+        
+    if diglist:
+        # successfully connected the rooms.
+        
+        GlobalData.__N += 1
+        # usedareas: add the tiles to the set of used room tiles
+        _add_usedarea(usedareas, room)
+        # dig the corridor out
+        for tile in diglist:
+            rog.map(rog.dlvl()).tile_change(tile[0], tile[1], FLOOR)
+        # dig the room area out
+        for tile in room.area:
+            xi = tile[0] + room.x_offset
+            yi = tile[1] + room.y_offset
+            rog.map(rog.dlvl()).tile_change(xi, yi, FLOOR)
+            
+        print("~~~")
+        print(diglist)
+        
+        return room # success, return room
+    print("Failed to dig to new room")
+    return None # failure
 
 # generate rooms and corridors recursively
-def _genRecursive(node, usedareas, width, height, z, n, nMin, nMax):
+def _genRecursive(node, usedareas, width, height, z, nMin, nMax, maxi):
     '''
         node:       previous (parent) node (node object)
         usedareas:  list of (x1,y1,x2,y2) areas used by rooms
         width:      level width
         height:     level height
         z:          dungeon level
-        n:          number rooms placed so far
         nMin:       minimum number of rooms we must (at least try to) place
+        maxi:       max iterations allowed before it gives up
     '''
-    if (n > nMax)
+    if (GlobalData.__N > nMax):
         return
+    if (GlobalData.__i >= maxi):
+        return
+    GlobalData.__i += 1
+    
     numTries = 5
-    if (random.random() < 0.25 and node.left==None):
+    
+    # left child
+    if GlobalData.__N < nMin:
+        randval = 0.25
+    else:
+        randval = 0.1
+    if (random.random() < randval and node.left==None):
         for _ in range(numTries):
-            # pick a size and location for the next room; make the room
-            room = make_room(width, height, maxw=maxw, maxh=maxh)
-            
-            # make sure it fits
-            
-            # pick a random perimeter tile of parent room to start the digger
-            p1x, p1y = random.choice(node.data.perimeter)
-            # pick a random perimeter tile of destination room to end the digger
-            p2x, p2y = random.choice(room.perimeter)
-            
-            # dig corridor
-            diglist=[]
-            iterations=0
-            while (not diglist and iterations < 5):
-                iterations += 1
-                # try to dig a connecting corridor to parent room
-                diglist = dig(
-                    usedareas,
-                    xstart=p1x, ystart=p1y, xend=p2x, yend=p2y
-                    )
-                
-            if diglist:
-                # successfully connected the rooms
-                # usedareas: add the tiles to the set of used room tiles
-                _add_usedarea(usedareas, room)
-                # dig the corridor out
-                for tile in digtiles:
-                    rog.map(z).tile_change(tile[0], tile[1], FLOOR)
+            room = _try_build_next_room(node, width, height, usedareas)
+            if room:
                 # add a node to the tree
                 node.left = BinNode(room)
                 # possibly dig extra connecting corridors to adjacent rooms TODO
@@ -547,19 +700,35 @@ def _genRecursive(node, usedareas, width, height, z, n, nMin, nMax):
                 _genRecursive(
                     node.left, usedareas,
                     width, height, z,
-                    n+1, nMin, nMax
+                    nMin, nMax, maxi
                     )
-            # else we failed to place the new room.
-    if ((n < nMin or random.random() < 0.25) and node.right==None):
-        _genRecursive(
-            node.right, usedareas,
-            width, height, z,
-            n+1, nMin, nMax
-            )
+                break
+    
+    # right child
+    if GlobalData.__N < nMin:
+        randval = 1
+    else:
+        randval = 0.2
+    if ((random.random() < randval) and node.right==None):
+        for _ in range(numTries):
+            room = _try_build_next_room(node, width, height, usedareas)
+            if room:
+                # add a node to the tree
+                node.right = BinNode(room)
+                # possibly dig extra connecting corridors to adjacent rooms TODO
+                # possibly add some child nodes/rooms to this room.
+                _genRecursive(
+                    node.right, usedareas,
+                    width, height, z,
+                    nMin, nMax, maxi
+                    )
+                break
 
 def _generate_level_tree(width, height, z, density=15, maxDensity=50):
     '''
-        density is the minimum number of rooms
+        generate a floor using recursive binary tree descent
+            build the tree of room nodes at the same time we dig out the map
+        density is the minimum number of rooms; maxDensity the maximum
         returns: N/A
     '''
     
@@ -572,23 +741,38 @@ def _generate_level_tree(width, height, z, density=15, maxDensity=50):
         if node.right:
             traverse(rooms, node.right)
             
+    GlobalData.__N = 1
+    GlobalData.__i = 0
+    
     rooms = []
     usedareas=set()
     print("Generating level {}...".format(z))
+    
     # origin room is created somewhere in the middle of the map
     origin = create_origin_room(width, height) 
     rooms.append(origin)
     root = BinNode(origin)
     _add_usedarea(usedareas, origin)
+    for tile in origin.area:
+        xx = tile[0] + origin.x_offset
+        yy = tile[1] + origin.y_offset
+        rog.map(z).tile_change(xx, yy, FLOOR)
+        
     # create other rooms
     _genRecursive(
         root, usedareas,
         width, height, z,
-        1, density, maxDensity
+        density, maxDensity, 1000
         )
     # get all rooms in the tree into the room list
     traverse(rooms, root)
-    
+    # modify rooms, add connectors(?)
+    # finished generating map, tilemap map now contains all level info
+    # now populate with entities
+    print("Done generating level.")
+
+# old dumb algorithm
+
 
 def _generate_level_dumb(width, height, z, density=250):
     '''

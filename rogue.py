@@ -33,7 +33,7 @@ import debug
 import dice
 import entities
 import game
-import levels
+import levelgen
 import lights
 import misc
 import managers
@@ -263,7 +263,7 @@ def tile_lighten(x,y,value):Rogue.map.tile_lighten(x,y,value)
 def tile_darken(x,y,value): Rogue.map.tile_darken(x,y,value)
 def tile_set_light_value(x,y,value):Rogue.map.tile_set_light_value(x,y,value)
 def get_light_value(x,y):   return Rogue.map.get_light_value(x,y)
-def map_generate(Map,level): levels.generate(Map,level)
+##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
 def identify_symbol_at(x,y):
     asci = libtcod.console_get_char(0, getx(x),gety(y))
     char = "{} ".format(chr(asci)) if (asci < 128 and not asci==32) else ""

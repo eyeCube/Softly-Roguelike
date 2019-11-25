@@ -68,20 +68,22 @@ def main():
     rog.init_keyBindings()
         
     #map generation
-    rog.map(rog.dlvl()).init_specialGrids()
+    rog.map(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
+    rog.map(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
     rog.map(rog.dlvl()).generate_dlvl(rog.dlvl())
-
+    
     # init player
     # temporary: find a position to place the player
     xpos = 15
     ypos = 15
+    _borders = 10
     while rog.map(rog.dlvl()).tileat(xpos, ypos) == WALL:
         xpos +=1
-        if xpos >= ROOMW:
-            xpos = 0
+        if xpos >= ROOMW - _borders:
+            xpos = _borders
             ypos += 1
         if ypos >= ROOMH:
-            print("! FATAL ERROR ! Failed to place player in the map!")
+            print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
     rog.Rogue.create_player(xpos, ypos)
     rog.make(rog.pc(), NVISION)    

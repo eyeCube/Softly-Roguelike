@@ -1,0 +1,28 @@
+Softly Into the Night
+
+This week I continued working on the level generation algorithm. I started over with a completely new approach, in an attempt to make a superior generator that is quicker as well as more "clean." My previous level generator employed a kind of brute-force method that was really dumb. This new method I've come up with is surely going to be better.
+
+The new algorithm is going to do the following:
+
+Create an origin room node somewhere in the middle of the map.
+Recursively try to place up to 2 "child" room nodes for each node. A child must be within a certain distance. Before it places the room it makes sure there is enough space for it (including the perimeter tiles), using a simple area overlap check (rather than testing each tile, just box off a certain area using a tuple of x1,y1,x2,y2). If there is space, it then tries to dig a corridor from a randomly selected perimeter tile of the first room to a randomly selected perimeter tile from the next room (the random selection is weighted towards closer perimeter tiles).
+
+The room placement fails if it overlaps an existing room. The digger fails if it runs into another room, in which case the digger tries again a couple times. If it fails to place a room a certain number of times, it gives up and tries again for the next child, or recurses back upward to the parent node. The chance for a node to create a child or not depends on how many children have already been placed, so that a minimum number of rooms is hopefully enforced.
+
+The digger also adds doors at the appropriate places if applicable, and then after the room has been placed, or perhaps after all rooms have been placed, it will go through and try to add additional corridor connectors between rooms that are adjacent to one another.
+
+Finally we will makes things "messy" by digging out cave areas, drunken walk corridors, and juxtaposed rooms to give the impression that the purpose of the dungeon area has been changed over time or it has undergone weathering or other damages. I will also add lakes and stuff like that to just add more variety and a messier feel to it, but the idea is that the base map is going to be very clean.
+
+Lastly we will add entities like monsters and loot to populate the grid.
+
+I've already written virtually all the code for the new algorithm, and I've done all kinds of modifications to implement it but haven't fully tested it yet. Next week I should be able to show some pics of the level generator in action as well as any changes I make before the next SS.
+
+I also did some more minor changes.
+
+Added resistances: light and sound. You can be blinded by bright light or deafened by loud sound, and might need protection accordingly. Thus blinding lasers and loud sound could be employed as weapons -- of course, if the sound is loud enough it can burst your eardrum or other organs, or rattle you apart, while bright enough light can cause burns.
+
+Added recipes for water filters, water purification tablets; added lockpick item, and made bobby pin have a lockpick tool component; improved some old code and enhanced the map class to be able to work with multiple different levels instead of only having one grid; other changes I forget about.
+
+I wanted to show you all some pics of the new level gen algorithm today, but I am going to go ahead and post anyway. Next week I should have some good stuff to show.
+
+Thanks for reading :)

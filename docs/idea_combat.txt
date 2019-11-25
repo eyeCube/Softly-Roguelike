@@ -1,6 +1,25 @@
 combat
 
 
+
+combat skills
+
+How Stats are affected by skill in a weapon:
+	At 0 skill, Stamina cost of attacking w/ weapon is 2000% of the weapon's stamina cost. At 100 skill it's 100% (no extra penalty).
+	Atk is +0 at 0 skill. At 100 you have +50 (each 2 skill pts = +1 Atk)
+	Dmg x1 -> x2 of weapon damage.
+	Pen +0 -> +20
+	DV +0 -> +20
+	AV x1 -> x2
+	Pro +0 -> +20
+	Gra +0 -> +20
+	ASp +0 -> +200 (+2 for each 1 skill pt)
+	
+	Msp penalty for large weapons you are unskilled in.
+	
+
+
+
 idea for dual wielding
 
 if you wield two weapons you get a lot of penalties

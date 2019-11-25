@@ -423,6 +423,8 @@ def chargen(sx, sy):
                 resbleed=BASE_RESBLEED,
                 resrust=BASE_RESRUST,
                 resrot=BASE_RESROT,
+                reslight=BASE_RESLIGHT,
+                ressound=BASE_RESSOUND,
                 _str=BASE_STR, _con=BASE_CON, _int=BASE_INT,
                 gra=BASE_GRA, bal=BASE_BAL, ctr=BASE_CTR,
                 atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
