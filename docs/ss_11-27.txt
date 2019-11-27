@@ -1,0 +1,38 @@
+Softly Into the Night
+
+My improved design of the level generation algorithm has been fully implemented. It's a solid base, I think, from which to continue and create some really interesting, unique maps. Being my own design, and 100% my own code, I feel that my algorithm generates levels that have a style reminiscent of traditional roguelikes while also appearing somewhat distinguished in its own way.
+
+Pictures here
+
+I will now briefly describe how the algorithm works. It implements a binary tree in which each room is a node and has 0-2 children. It recursively generates the room starting from an origin room placed somewhere in the middle of the map, then rolls for how many children it will have, and repeatedly tries (a certain number of times) to place those rooms within a certain distance from the parent room. 
+
+It makes sure the new room is not overlapping any existing rooms, and then it tries to dig a corridor to connect the parent to the new child. If it fails to dig the corridor a certain number of times, like if the digger keeps running into existing room(s), then it gives up on placing this room. After failing to place a room enough times it moves on. 
+
+While placing rooms and corridors, it also places doors. If a room is placed adjacent to an existing room, it tries to place up to 1 door on a random tile of the shared wall between the rooms. The corridor digger also adds a door on the first and last tiles in the corridor.
+
+The cleanup phase comes next. Iterating over every tile in the map, we check for dead-ends and for useless doors which don't match the following patterns:
+
+Key:
+# 	wall
++ 	door
+. 	floor
+x 	don't care what is in this tile.
+
+Pattern 1:
+x#x
+.+.
+x#x
+
+Pattern 2:
+x.x
+#+#
+x.x
+
+Such useless doors are replaced by floor tiles. Dead ends are found by checking the number of adjacent walls in the 4 cardinal directions; a floor tile with 3 adjacent walls is a dead end, and then we add all 4 neighbors back into the list to iterate over again, so that whole dead-end hallways will be filled in with walls without the need for iterating over the entire map repeatedly.
+
+While my previous brute-force method of level generation was slow and took a couple seconds to make a (crappy) map, this algorithm is lightning-fast generating my tiny maps (80x50, which is about the limit due to my heat-grid system exploding in performance requirements exponentially based on the room size). It is also much cleaner-looking and more fun to explore.
+
+Other perhaps interesting info: the sizes of rooms and the distances between rooms is random between two values, but with a small chance to add extra width or height or distance, so that there is the rare exception of a larger-than-usual room or a longer-than-usual corridor.
+
+TODO: more room connections
+

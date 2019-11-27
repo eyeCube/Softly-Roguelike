@@ -178,6 +178,7 @@ def open_pc(pc):
     # do the open/close action
     if not openClose(pc, xto, yto):
         rog.alert("It won't open.")
+    rog.update_game()
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed

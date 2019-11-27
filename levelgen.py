@@ -41,6 +41,7 @@ SLIDE_Y = 5
 class GlobalData:
     __N = 0
     __i = 0
+    usedareas = set()
 
 class Room:
     def __init__(
@@ -95,7 +96,6 @@ def _dig_get_new_dir(xdir, ydir):
     return (xdir, ydir,)
             
 def dig(
-    usedareas,
     xstart=-1,ystart=-1, xend=-1,yend=-1,
     maxTurns=2, maxTiles=999,
     ok=None
@@ -104,7 +104,6 @@ def dig(
         (try to) dig out a corridor
         return the list of tiles or an empty list if failure
         Parameters:
-            usedareas   list of (x1,y1,x2,y2) pointlists
             xstart      start position x
             ystart      start position y
             xend        end position x
@@ -114,7 +113,7 @@ def dig(
             ok          area(s) to ignore in usedareas calculation
     '''
     success = False
-    tiles = set()
+    tiles = []
     numTurns = 0
     xpos = xstart
     ypos = ystart
@@ -130,7 +129,9 @@ def dig(
         xdir = 0
         ydir = rog.sign(yd)
 
-    tiles.add((xstart, ystart,))
+    beginTile = (xstart, ystart,)
+    endTile = beginTile
+    tiles.append(beginTile)
     
     while True:
         if len(tiles) >= maxTiles:
@@ -139,7 +140,7 @@ def dig(
         if (xend == xpos and yend == ypos):
             break
         # check that this tile is not intercepting used tiles
-        for area in usedareas:
+        for area in GlobalData.usedareas:
             breakout=False
             # if we are in an "ok" zone
             #   then don't care about off-limits areas
@@ -149,12 +150,14 @@ def dig(
                     if (xpos >= x1 and xpos <= x2 and ypos >= y1 and ypos <= y2):
                         breakout=True
                         break
+                # end for
                 if breakout: break
             # if we are not in an "ok" zone then check if we are
             #   in an off-limits area
             x1,y1,x2,y2 = area
             if (xpos >= x1 and xpos <= x2 and ypos >= y1 and ypos <= y2):
                 return set()
+        # end for
         
         # move towards the goal position
         if xpos == xend:
@@ -169,9 +172,10 @@ def dig(
         ypos += ydir
         
         # add this tile to the corridor
-        tiles.add((xpos, ypos,))
-        rog.map(rog.dlvl()).tile_change(xpos, ypos, ROUGH)
+        tiles.append((xpos, ypos,))
+##        rog.map(rog.dlvl()).tile_change(xpos, ypos, ROUGH) # TESTING
     
+    # sort the list of tiles with beginning tile at start, convert set->list
     return tiles
 
 # pick offset x, y position for a room
@@ -571,14 +575,31 @@ def generate_level(width, height, z, density=250, algo="dumb"):
             maxDensity=density//5
             )
 
+
+# helper functions
+def _getnwalls(xx, yy, z, width, height):
+    walls = 0
+    if (xx-1 > 0 and rog.map(z).tileat(xx-1, yy) == WALL):
+        walls += 1
+    if (xx+1 < width-1 and rog.map(z).tileat(xx+1, yy) == WALL):
+        walls += 1
+    if (yy-1 > 0 and rog.map(z).tileat(xx, yy-1) == WALL):
+        walls += 1
+    if (yy+1 < height-1 and rog.map(z).tileat(xx, yy+1) == WALL):
+        walls += 1
+    return walls
+
 def _get_area(room):
     x1 = room.x_offset - room.boundw // 2
     y1 = room.y_offset - room.boundh // 2
     x2 = room.x_offset + math.ceil(room.boundw / 2)
     y2 = room.y_offset + math.ceil(room.boundh / 2)
     return (x1,y1,x2,y2,)
-def _add_usedarea(usedareas, room):
-    usedareas.add(_get_area(room))
+
+def _add_usedarea(room):
+    room.boundw +=2; room.boundh +=2;
+    GlobalData.usedareas.add(_get_area(room))
+    room.boundw -=2; room.boundh -=2;
 
 def _areas_overlapping(area1, area2):
     ax1,ay1,ax2,ay2 = area1
@@ -592,41 +613,46 @@ def _areas_overlapping(area1, area2):
         return True
     return False
 
-def _try_build_next_room(node, width, height, usedareas, mindist=10, maxdist=32):
+def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
     # pick a size and location for the next room; make the room
     borders = 5
-    roomw=2 + int(random.random()*8) +2 #must add +2 for borders
-    roomh=2 + int(random.random()*8) +2 #must add +2 for borders
+    roomw=4 + int(random.random()*6) +2 #must add +2 for borders
+    roomh=4 + int(random.random()*4) +2 #must add +2 for borders
 
-    # rare chance to make a big room
-    if random.random()*100 < 5:
+    # rare chance to make a big room or little room
+    if random.random()*100 < 8:
         roomw += 5
-    if random.random()*100 < 5:
+    elif random.random()*100 < 5:
+        roomw -= 2
+    if random.random()*100 < 8:
         roomh += 5
+    elif random.random()*100 < 5:
+        roomh -= 2
 
     # create the room
     room = _generate_room(roomw-2, roomh-2)
     
     # offset position
     while (room.x_offset == 0 or # unmoved from default pos?
-           abs(room.x_offset - node.data.x_offset) + abs(
-               room.y_offset - node.data.y_offset) < mindist): # not too close -- ensure distance exceeds certain value
+           max(abs(room.x_offset - node.data.x_offset),
+               abs(room.y_offset - node.data.y_offset)) < mindist): # not too close -- ensure distance exceeds certain value
         room.x_offset = min(width-borders, max(borders,
             node.data.x_offset - maxdist + int(2*maxdist*random.random()) ))
         room.y_offset = min(height-borders, max(borders,
             node.data.y_offset - maxdist + int(2*maxdist*random.random()) ))
     
+    # make sure it fits
 ##    print("Trying to fit room at {}, {}".format(room.x_offset,room.y_offset))
     
-    # make sure it fits
-    overlap = False
+    # account for perimeter in the overlap calculation
+    room.boundw +=2; room.boundh +=2; # +1 +1 (each wall in w and h dir)
     area = _get_area(room)
-    for usedarea in usedareas:
+    room.boundw -=2; room.boundh -=2; # /revert to normal
+    
+    for usedarea in GlobalData.usedareas:
         if _areas_overlapping(area, usedarea):
-            overlap = True
-            break
-    if overlap: # it doesn't fit, try again with a different room
-        return None # failure
+##            print("FAILURE")
+            return None # failure
 
 ##    print("Fit room at {}, {}.".format(room.x_offset,room.y_offset))
     
@@ -638,7 +664,7 @@ def _try_build_next_room(node, width, height, usedareas, mindist=10, maxdist=32)
         zipped.append((tile, dx+dy,))
     weighted = sorted(zipped, key=lambda x: x[-1])
     
-    index = int(random.random() * (len(weighted) * 0.25) )
+    index = int(random.random() * (1 + len(weighted) * 0.1) )
     p1x, p1y = weighted[index][0]
     p1x += node.data.x_offset
     p1y += node.data.y_offset
@@ -651,7 +677,7 @@ def _try_build_next_room(node, width, height, usedareas, mindist=10, maxdist=32)
         zipped.append((tile, dx+dy,))
     weighted = sorted(zipped, key=lambda x: x[-1])
 
-    index = int(random.random() * (len(weighted) * 0.25) )
+    index = int(random.random() * (1 + len(weighted) * 0.1) )
     p2x, p2y = weighted[index][0]
     p2x += room.x_offset
     p2y += room.y_offset
@@ -664,32 +690,63 @@ def _try_build_next_room(node, width, height, usedareas, mindist=10, maxdist=32)
         # try to dig a connecting corridor to parent room
         okareas = [_get_area(node.data)] # ignore parent room area TEMPORARY SOLUTION / HACK
         diglist = dig(
-            usedareas, xstart=p1x, ystart=p1y, xend=p2x, yend=p2y, ok=okareas
+            xstart=p1x, ystart=p1y, xend=p2x, yend=p2y, ok=okareas
             )
         
     if diglist:
         # successfully connected the rooms.
         
-        GlobalData.__N += 1
-        # usedareas: add the tiles to the set of used room tiles
-        _add_usedarea(usedareas, room)
         # dig the corridor out
+        ii = -1
         for tile in diglist:
+            ii += 1
+            if (ii == 0 or ii == len(diglist) - 1):
+                rog.map(rog.dlvl()).tile_change(tile[0], tile[1], DOORCLOSED)
+                continue
             rog.map(rog.dlvl()).tile_change(tile[0], tile[1], FLOOR)
         # dig the room area out
         for tile in room.area:
             xi = tile[0] + room.x_offset
             yi = tile[1] + room.y_offset
             rog.map(rog.dlvl()).tile_change(xi, yi, FLOOR)
+        # try to place a door on an adjacent room wall
+        for rm in rooms:
+            doorPlaced = False # only place one door per room
+            for tile1 in rm.perimeter:
+                if doorPlaced:
+                    break
+                if random.random() < 0.75:
+                    continue
+                x1 = tile1[0]
+                y1 = tile1[1]
+                for tile2 in room.perimeter:
+                    if doorPlaced:
+                        break
+                    if random.random() < 0.75:
+                        continue
+                    x2 = tile2[0] + room.x_offset
+                    y2 = tile2[1] + room.y_offset
+                    if (x1==x2 and y1==y2):
+                        rog.map(rog.dlvl()).tile_change(x1, y1, DOORCLOSED)
+                        doorPlaced = True
+                # end for
+            # end for
+        # end for
+        GlobalData.__N += 1
+        # usedareas: add the tiles to the set of used room tiles
+        _add_usedarea(room)
         
         return room # success, return room
+    # end if
+    # if we made it here we failed to place the room.
 ##    print("Failed to dig to new room")
     return None # failure
 
 # generate rooms and corridors recursively
-def _genRecursive(node, usedareas, width, height, z, nMin, nMax, maxi):
+def _genRecursive(node, rooms, width, height, z, nMin, nMax, maxi):
     '''
         node:       previous (parent) node (node object)
+        rooms:      list of room objects placed in the map
         usedareas:  list of (x1,y1,x2,y2) areas used by rooms
         width:      level width
         height:     level height
@@ -701,85 +758,101 @@ def _genRecursive(node, usedareas, width, height, z, nMin, nMax, maxi):
         return
     if (GlobalData.__i >= maxi):
         return
-    GlobalData.__i += 1
     
-    numTries = 10
+    GlobalData.__i += 1 # number of iterations
+    numTries = 30 # number tries to create a child room before it gives up
+    mind = 4 # minimum distance a room can be from parent room
+    
+    # NOTE: FIRST, figure out if we are going to have a left/right child
+    #   BEFORE we create the children, so that GlobalData.__N 
+    #   is the right value and we branch from origin more often
+                    # left
+    if GlobalData.__N < nMin:
+        randval = 1
+    else:
+        randval = 0.25
+    if (random.random() < randval and node.left==None):
+        tryLeft = True
+    else: tryLeft = False
+    lmaxd = 8 + int(random.random()*9)
+    if random.random() < 0.05:
+        lmaxd += 8
+    lmaxd += max(node.data.boundw, node.data.boundh)//2
+                    # right
+    if GlobalData.__N < nMin:
+        randval = 1
+    else:
+        randval = 0.25
+    if ((random.random() < randval) and node.right==None):
+        tryRight = True
+    else: tryRight = False
+    rmaxd = 8 + int(random.random()*9)
+    if random.random() < 0.05:
+        rmaxd += 8
+    rmaxd += max(node.data.boundw, node.data.boundh)//2
+    
+    # NOW (possibly) create the children.
     
     # left child
-    if GlobalData.__N < nMin:
-        randval = 0.5
-    else:
-        randval = 0.1
-    if (random.random() < randval and node.left==None):
+    if tryLeft:
         for _ in range(numTries):
             room = _try_build_next_room(
-                node, width, height, usedareas,
-                mindist=10, maxdist=32
+                node, width, height, rooms,
+                mindist=mind, maxdist=lmaxd
                 )
             if room:
+                rooms.append(room)
                 # add a node to the tree
                 node.left = BinNode(room)
                 # possibly dig extra connecting corridors to adjacent rooms TODO
                 # possibly add some child nodes/rooms to this room.
                 _genRecursive(
-                    node.left, usedareas,
+                    node.left, rooms,
                     width, height, z,
                     nMin, nMax, maxi
                     )
                 break
     
     # right child
-    if GlobalData.__N < nMin:
-        randval = 1
-    else:
-        randval = 0.2
-    if ((random.random() < randval) and node.right==None):
+    if tryRight:
         for _ in range(numTries):
             room = _try_build_next_room(
-                node, width, height, usedareas,
-                mindist=10, maxdist=20
+                node, width, height, rooms,
+                mindist=mind, maxdist=rmaxd
                 )
             if room:
+                rooms.append(room)
                 # add a node to the tree
                 node.right = BinNode(room)
                 # possibly dig extra connecting corridors to adjacent rooms TODO
                 # possibly add some child nodes/rooms to this room.
                 _genRecursive(
-                    node.right, usedareas,
+                    node.right, rooms,
                     width, height, z,
                     nMin, nMax, maxi
                     )
                 break
 
-def _generate_level_tree(width, height, z, density=20, maxDensity=50):
+def _generate_level_tree(width, height, z, density=50, maxDensity=100):
     '''
         generate a floor using recursive binary tree descent
             build the tree of room nodes at the same time we dig out the map
         density is the minimum number of rooms; maxDensity the maximum
         returns: N/A
     '''
-    
-    def traverse(rooms, node):
-        # store this room in the list
-        rooms.append(node.data)
-        # deal with child nodes
-        if node.left:
-            traverse(rooms, node.left)
-        if node.right:
-            traverse(rooms, node.right)
             
     GlobalData.__N = 1
     GlobalData.__i = 0
+    GlobalData.usedareas=set()
     
     rooms = []
-    usedareas=set()
     print("Generating level {}...".format(z))
     
     # origin room is created somewhere in the middle of the map
     origin = create_origin_room(width, height) 
     rooms.append(origin)
     root = BinNode(origin)
-    _add_usedarea(usedareas, origin)
+    _add_usedarea(origin)
     for tile in origin.area:
         xx = tile[0] + origin.x_offset
         yy = tile[1] + origin.y_offset
@@ -787,18 +860,75 @@ def _generate_level_tree(width, height, z, density=20, maxDensity=50):
         
     # create other rooms
     _genRecursive(
-        root, usedareas,
+        root, rooms,
         width, height, z,
         density, maxDensity, 1000
         )
-    # get all rooms in the tree into the room list
-    traverse(rooms, root)
-    # modify rooms, add connectors(?)
+    
+    # modify rooms, add extra connectors(?)
+    
+    # clean up - remove dead ends and useless doors, etc.
+    print("Cleaning up...")
+    list_tiles=[]
+    new_list=[]
+    for xx in range(width):
+        for yy in range(height):
+            list_tiles.append((xx,yy,))
+    while list_tiles:
+        for tile in list_tiles:
+            xx, yy = tile
+            
+            # doors
+            if rog.map(z).tileat(xx, yy) == DOORCLOSED:
+                ok = False
+                if (rog.map(z).tileat(xx-1, yy) == WALL and
+                    rog.map(z).tileat(xx+1, yy) == WALL and
+                    rog.map(z).tileat(xx, yy-1) == FLOOR and
+                    rog.map(z).tileat(xx, yy+1) == FLOOR
+                    ):
+                    ok = True
+                elif (rog.map(z).tileat(xx-1, yy) == FLOOR and
+                    rog.map(z).tileat(xx+1, yy) == FLOOR and
+                    rog.map(z).tileat(xx, yy-1) == WALL and
+                    rog.map(z).tileat(xx, yy+1) == WALL
+                    ):
+                    ok = True
+                if not ok:
+                    rog.map(z).tile_change(xx, yy, FLOOR)
+            
+            # dead ends
+            if rog.map(z).tileat(xx, yy) == FLOOR:
+                walls = _getnwalls(xx, yy, z, width, height)
+                if walls == 3: # dead end
+##                    print("dead end found at {}, {}".format(xx, yy))
+                    if xx-1 > 0:
+                        new_list.append((xx-1, yy,))
+                    if xx+1 < width-1:
+                        new_list.append((xx+1, yy,))
+                    if yy-1 > 0:
+                        new_list.append((xx, yy-1,))
+                    if yy+1 < height-1:
+                        new_list.append((xx, yy+1,))
+                    rog.map(z).tile_change(xx, yy, WALL)
+        list_tiles=new_list
+        new_list=[]
+    #
+    
     # finished generating map, tilemap map now contains all level info
     # now populate with entities
     print("Done generating level.")
 
-# old dumb algorithm
+
+
+
+
+
+
+    
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # old dumb algorithm #
 
 
 def _generate_level_dumb(width, height, z, density=250):
@@ -957,8 +1087,9 @@ def _generate_level_dumb(width, height, z, density=250):
     floor_grid = get_grid_from_rooms(rooms, width, height)
     
     # done with big dungeon changes, now just tweak and add stuff
-    
-    print("Removing dead ends...")
+
+    # iterate over the grid, remove dead ends, unnecessary doors...
+    print("Cleaning up...")
     list_tiles=[]
     new_list=[]
     for xx in range(width):

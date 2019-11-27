@@ -69,8 +69,8 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     WALL        : Tile(WALL,      'dkred', 'orange',   0,  0,  True, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',  100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
-    DOOROPEN    : Tile(DOOROPEN,  'orange', 'brown',   100,0,  False,1,),
-    DOORCLOSED  : Tile(DOORCLOSED,'orange', 'brown',   0,0,    True,5,),
+    DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',   100,0,  False,1,),
+    DOORCLOSED  : Tile(DOORCLOSED,'yellow', 'brown',   0,0,    True,5,),
     VAULTOPEN   : Tile(VAULTOPEN, 'metal', 'deep',    100,0,  False,1,),
     VAULTCLOSED : Tile(VAULTCLOSED,'metal', 'deep',   0,0,    True,100,),
     }
@@ -373,18 +373,18 @@ Reason: entity not in grid.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-                if not rog.in_range(pos.x,pos.y, x,y, sight):
-                    continue
-                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-                    continue
+##                if not rog.in_range(pos.x,pos.y, x,y, sight):
+##                    continue
+##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+##                    continue
 
                 ent=self.thingat(x, y)
 
-                if (not (x==pos.x and y==pos.y)
-                        and self.get_light_value(x,y) == 0
-                        and not rog.on(pc,NVISION) ):
-                    self._draw_silhouettes(pc, x,y, ent, sight)
-                    continue
+##                if (not (x==pos.x and y==pos.y)
+##                        and self.get_light_value(x,y) == 0
+##                        and not rog.on(pc,NVISION) ):
+##                    self._draw_silhouettes(pc, x,y, ent, sight)
+##                    continue
                 
                 if ent:
                     libtcod.console_put_char(
