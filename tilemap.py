@@ -116,7 +116,10 @@ TODO: move rendering code to a new, different class.
 ##        self.levels = {}
     #
     
-    def tileat(self, x, y):             return self.get_char(x, y)
+    def tileat(self, x, y):
+        if (x >= self.w or x < 0 or y >= self.h or y < 0):
+            return WALL
+        return self.get_char(x, y)
     def get_blocks_sight(self,x,y):     return self.grid_terrain[x][y].opaque
     def get_nrg_cost_enter(self,x,y):   return self.grid_terrain[x][y].nrg_enter
     def get_nrg_cost_leave(self,x,y):   return self.grid_terrain[x][y].nrg_leave
@@ -373,19 +376,19 @@ Reason: entity not in grid.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-##                if not rog.in_range(pos.x,pos.y, x,y, sight):
-##                    continue
-##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-##                    continue
-
+                if not rog.in_range(pos.x,pos.y, x,y, sight):
+                    continue
+                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+                    continue
+##
                 ent=self.thingat(x, y)
 
-##                if (not (x==pos.x and y==pos.y)
-##                        and self.get_light_value(x,y) == 0
-##                        and not rog.on(pc,NVISION) ):
-##                    self._draw_silhouettes(pc, x,y, ent, sight)
-##                    continue
-                
+                if (not (x==pos.x and y==pos.y)
+                        and self.get_light_value(x,y) == 0
+                        and not rog.on(pc,NVISION) ):
+                    self._draw_silhouettes(pc, x,y, ent, sight)
+                    continue
+##                
                 if ent:
                     libtcod.console_put_char(
                         self.con_map_state, x,y,

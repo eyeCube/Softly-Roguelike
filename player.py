@@ -65,7 +65,8 @@ def commands_pages(pc, pcAct):
             rog.routine_print_msgHistory()  
             return
         if act == "inventory" :
-            action.inventory_pc(pc)
+            print("INVENTORY ACCESS (TODO: FIX)")
+##            action.inventory_pc(pc)
             return
 
 
