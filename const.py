@@ -214,8 +214,7 @@ THIEF       = i; i+=1;  # Creature desires gold / treasure and will steal it
 MEAN        = i; i+=1;  # Creature is always hostile to rogues
 DEAD        = i; i+=1;  # Is dead
 FLYING      = i; i+=1;  # Is currently flying
-IMMUNE      = i; i+=1;  # Immune to poison
-REACH       = i; i+=1;  # Has long reach
+REACH       = i; i+=1;  # Has long reach with melee attack (2-tile range)
 NVISION     = i; i+=1;  # Has Night vision
 INVIS       = i; i+=1;  # Is invisible
 SEEINV      = i; i+=1;  # Can see invisible things
@@ -223,7 +222,13 @@ SEEXRAY     = i; i+=1;  # LOS not blocked by walls
 TWOHANDS    = i; i+=1;  # 2-handed only (when wielded in hands)
 ISSOLID     = i; i+=1;  # Is solid (cannot walk through it)
 CANCOUNTER  = i; i+=1;  # Is able to counter-attack this turn
-DIRTY_STATS = i; i+=1;  # dirty flag: needs updating stats
+IMMUNEBIO   = i; i+=1;  # Immune to bio / chems / radiation damage
+IMMUNERUST  = i; i+=1;  # Immune to rusting
+IMMUNEROT   = i; i+=1;  # Immune to rotting
+IMMUNEWATER = i; i+=1;  # Immune to getting wet
+IMMUNEBLEED = i; i+=1;  # Immune to bleeding
+IMMUNEPAIN  = i; i+=1;  # Immune to pain
+DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 
 
 #
@@ -239,7 +244,7 @@ MULT_DMG_AV_HP      = 10    # finer scale for AV/dmg but only each 10 makes any 
 MULT_PEN_PRO        = 10    # " (6.8 penetration functions as 6 pen, and displays as 6 in-game. Truncated decimal.)
 
 # fire / ice
-FIRE_THRESHOLD  = 70 # lowest temperature at which things may combust (should this be a np grid array that has different values for each tile depending on what kid of fuel is there? May be too complex but would add more functionality for e.g. high fuel objects that have a high flash point like explosives)
+FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
 ENVIRONMENT_DELTA_HEAT = -0.1 # global change in heat each iteration of heat dispersion
 HEATMIN         = -300 # minimum temperature
 HEATMAX         = 16000 # maximum temperature
@@ -315,31 +320,86 @@ BASE_MSP        = 100
 BASE_ASP        = 100
 BASE_HP         = 20
 BASE_MP         = 200
-BASE_CARRY      = 0
+BASE_ENCMAX     = 100000
+BASE_FORCE      = 10
 BASE_STR        = 12
 BASE_CON        = 12
 BASE_INT        = 12
+BASE_DEX        = 12
+BASE_AGI        = 12
+BASE_END        = 12
+BASE_LUCK       = 0
 BASE_SIGHT      = 20 # TODO: set to 0, get all sight/hearing from body compo
 BASE_HEARING    = 60
 
-# attributes
-ATT_INT_AUGMENTATIONS   = 0.5   # mental augmentation slots per int
-ATT_INT_IDENTIFY        = 1     # identification ability per int
-ATT_INT_SOCIAL          = 1     # social influence gained per int
-ATT_CON_AUGMENTATIONS   = 0.5   # physical augmentation slots per con
-ATT_CON_HP              = 2     # HP gained per con
-ATT_CON_STAMINA         = 20    # stamina gained per con
-ATT_CON_GEARCARRY       = 0.02  # reduction of Msp penalty for equipping gear
-ATT_CON_CARRY           = 1000  # carrying capacity per con (g)
-ATT_STR_CARRY           = 1000  # carrying capacity per str (g)
-ATT_STR_HP              = 0.5   # HP gained per str
-ATT_STR_DMG             = 0.4   # damage gained per strength unit applied
-ATT_STR_ATK             = 0.2   # attack gained per strength unit applied
-ATT_STR_PEN             = 0.3   # penetration gained per strength unit applied
 
-##P_AUGS={ # physical augmentations
-##PAUG_
-##    }
+
+# attributes
+##ATT_INT_AUGMENTATIONS   = 0.5   # mental augmentation slots per int
+##ATT_INT_IDENTIFY        = 1     # identification ability per int
+##ATT_INT_SOCIAL          = 1     # social influence gained per int
+##ATT_CON_AUGMENTATIONS   = 0.5   # physical augmentation slots per con
+##ATT_CON_HP              = 2     # HP gained per con
+##ATT_CON_STAMINA         = 20    # stamina gained per con
+##ATT_CON_GEARCARRY       = 0.02  # reduction of Msp penalty for equipping gear
+##ATT_CON_CARRY           = 1000  # carrying capacity per con (g)
+##ATT_STR_CARRY           = 1000  # carrying capacity per str (g)
+##ATT_STR_HP              = 0.5   # HP gained per str
+##ATT_STR_DMG             = 0.4   # damage gained per strength unit applied
+##ATT_STR_ATK             = 0.2   # attack gained per strength unit applied
+##ATT_STR_PEN             = 0.3   # penetration gained per strength unit applied
+# UPDATE THE ABOVE TO THE FOLLOWING FORMAT!
+
+# Strength
+ATT_STR_THROW_RNG       = 1
+ATT_STR_MELEE_DMG       = 0.5
+ATT_STR_MELEE_ATK       = 0.4
+ATT_STR_MELEE_PEN       = 0.2
+ATT_STR_ENCUMBERANCE    = 5 # * MASS_MULT
+ATT_STR_FORCE           = 1
+ATT_STR_GRAPPLING       = 1
+
+# Agility
+ATT_AGI_MOVESPEED       = 5
+ATT_AGI_ATTACKSPEED     = 5 # melee attack speed
+
+# Dexterity
+ATT_DEX_ATTACK          = 0.75
+ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
+
+# Endurance
+ATT_END_RESHEAT         = 5
+ATT_END_RESCOLD         = 5
+ATT_END_RESPHYS         = 1
+ATT_END_RESPAIN         = 2
+ATT_END_RESBIO          = 1
+ATT_END_RESBLEED        = 2
+
+# Intelligence
+ATT_INT_AUGMENTATIONS   = 0.25
+ATT_INT_PERSUASION      = 1
+ATT_INT_IDENTIFY        = 1
+
+# Constitution
+ATT_CON_AUGMENTATIONS   = 0.25
+ATT_CON_HP              = 2
+ATT_CON_STAMINA         = 10
+ATT_CON_ENCUMBERANCE    = 5 # * MASS_MULT
+
+
+
+# body augmentations #
+PAUG_LIMITBREAKER       = i; i+=1;
+# Limit Breaker:
+#   * Removes the natural limitations placed on one's muscles
+#       in order to unlock supernatural strength. However, this
+#       leaves one's muscles highly prone to damage.
+#   Str +5
+#   Muscles 1000% more prone to tearing
+    
+AUGS_PHYS = {
+PAUG_LIMITBREAKER       : ("str",5,),
+    }
 
 
 
@@ -411,13 +471,27 @@ WATER_HYDRATION     = 100   # how much hydration is healed per unit of water
 #crafting
 CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
 
-#skills
-SKILLMAX            = 2     # highest skill level you can attain
-
 #stats
-##SUPER_HEARING       = 500   # hearing level you need to be able to tell direction and volume of sounds
+##SUPER_HEARING       = 500
 AVG_HEARING         = 100
 AVG_SPD             = 100
+
+# MP (stamina) cost to perform actions
+STA_MOVE            = 4 # standard movement option
+STA_ATTACK          = 8 # multiplied by STA cost of weapons?
+STA_PICKUP          = 1 # times KG?
+STA_POCKET          = 1
+STA_RUMMAGE         = 2
+STA_OPEN            = 2
+STA_CLOSE           = 1
+STA_EXAMINE         = 0
+STA_QUAFF           = 0
+STA_EAT             = 1
+STA_READ            = 0
+STA_WIELDSMALL      = 1
+STA_WIELDLARGE      = 2
+STA_WIELDXLARGE     = 4
+STA_USE             = 1 # default use item cost
 
 #energy (action potential or AP) cost to perform actions
 NRG_MOVE            = 100   # on default terrain (flat ground) 
@@ -436,20 +510,33 @@ NRG_READ            = 50    # cost to read a simple thing (phrase/sentence)
 NRG_READPARAGRAPH   = 250   # cost to read an idea (paragraph/complex sentence)
 NRG_READPAGE        = 2500  # cost to read a page of a book (several ideas forming one meta-idea that requires you to read it all to understand)
 NRG_USE             = 100   # generic use function
-NRG_WIELD           = 75    # default time it takes to brandish a weapon (medium sized 1-h, like a club). Notice "default" keyword. It can be more or less depending on context/skill of user, etc.
 NRG_WIELDSMALL      = 25    # default time it takes to brandish a weapon (small or easy to brandish, like handguns, knives, swords, etc.)
 NRG_WIELDLARGE      = 200   # default time it takes to brandish a weapon (large / 2-h)
 NRG_WIELDXLARGE     = 400   # default time it takes to brandish a weapon (largest 2-h weapons)
+NRG_WIELD           = 75    # default time it takes to brandish a weapon (medium sized 1-h, like a club). Notice "default" keyword. It can be more or less depending on context/skill of user, etc.
 # multipliers
 NRGM_QUICKATTACK    = 0.6
 STAM_QUICKATTACK    = 1.5
 
-# skills
-SKLMOD_ARMOR_PRO    = 1.25
-SKLMOD_ARMOR_AV     = 1.25
-SKLMOD_ARMOR_DV     = 1.25
 
 
+# body #
+
+
+# body plans:
+#   body part coverage, for targeting specific body parts
+i=0;
+BODYPLAN_HUMANOID   = i; i+=1; # torso 45% head 5% legs 30% arms 20%
+BODYPLAN_INSECTOID  = i; i+=1; # torso 75% head 10% legs 15%
+BODYPLAN_4LEGGED    = i; i+=1; # torso 45% head 5% legs 50%
+BODYPLAN_CUSTOM     = i; i+=1; # for special cases, body plan built up manually
+
+BODYPLANS={
+BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
+BODYPLAN_INSECTOID  : {"core":75, "head":10, "legs":15,},
+BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
+BODYPLAN_CUSTOM     : {"core":50,},
+    }
 
 # statuses of bodies / body parts
 
@@ -465,10 +552,10 @@ BONESTATUS_NORMAL       = i; i+=1;
 BONESTATUS_DAMAGED      = i; i+=1; # bone is damaged, susceptible to fracture or breakage
 BONESTATUS_FRACTURED    = i; i+=1; # hairline fracture
 BONESTATUS_CRACKED      = i; i+=1; # badly cracked
-BONESTATUS_BROKEN       = i; i+=1; # fully broken in half
-BONESTATUS_MULTIBREAKS  = i; i+=1; # fully broken in half in multiple places
-BONESTATUS_SHATTERED    = i; i+=1; # broken into many pieces
-BONESTATUS_MANGLED      = i; i+=1; # bone is in utter ruin
+BONESTATUS_BROKEN       = i; i+=1; # fully broken in two
+BONESTATUS_MULTIBREAKS  = i; i+=1; # fully broken in multiple places
+BONESTATUS_SHATTERED    = i; i+=1; # shattered; broken into several pieces
+BONESTATUS_MANGLED      = i; i+=1; # mullered; bone is in utter ruin
 
 i=0;
 MUSCLESTATUS_NORMAL     = i; i+=1;
@@ -486,19 +573,21 @@ ARTERYSTATUS_NORMAL     = i; i+=1;
 ARTERYSTATUS_CLOGGED    = i; i+=1; # clogged, not working at full capacity
 ARTERYSTATUS_OPEN       = i; i+=1; # artery opened, causing massive bleeding
 ARTERYSTATUS_CUT        = i; i+=1; # fully cut, requiring urgent surgery
+ARTERYSTATUS_MANGLED    = i; i+=1; # fully ruined
 
 i=0;
 SKINSTATUS_NORMAL       = i; i+=1;
 SKINSTATUS_RASH         = i; i+=1; # irritation / inflammation
 SKINSTATUS_SCRAPED      = i; i+=1; # very mild abrasion (a boo-boo)
 SKINSTATUS_MINORABRASION= i; i+=1; # mild abrasion
-SKINSTATUS_MAJORABRASION= i; i+=1; # serious deep and/or wide-ranging scrape
 SKINSTATUS_CUT          = i; i+=1; # cut open
-SKINSTATUS_DEEPCUT      = i; i+=1; # deeply cut to the muscle
+SKINSTATUS_MAJORABRASION= i; i+=1; # serious deep and/or wide-ranging scrape
 SKINSTATUS_BURNED       = i; i+=1; # skin is burned at the surface level (overwrite cuts and abrasions)
-SKINSTATUS_DEEPBURNED   = i; i+=1; # skin is burned at a deep level (overwrite all of the above)
+SKINSTATUS_DEEPCUT      = i; i+=1; # deeply cut to the muscle
 SKINSTATUS_SKINNED      = i; i+=1; # skin is partially removed
+SKINSTATUS_DEEPBURNED   = i; i+=1; # skin is burned at a deep level (overwrite all of the above)
 SKINSTATUS_FULLYSKINNED = i; i+=1; # skin is fully / almost fully removed
+SKINSTATUS_MANGLED      = i; i+=1; # skin is fully ruined
 
 i=0;
 BRAINSTATUS_NORMAL      = i; i+=1; # swelling brain is a status effect, not a brain status
@@ -508,55 +597,75 @@ BRAINSTATUS_DAMAGE      = i; i+=1; # temporary brain damage
 BRAINSTATUS_PERMDAMAGE  = i; i+=1; # permanent brain damage
 BRAINSTATUS_MAJORDAMAGE = i; i+=1; # MAJOR permanent brain damage
 BRAINSTATUS_DEAD        = i; i+=1; # braindead
+BRAINSTATUS_MANGLED     = i; i+=1; # ruined
 
 i=0;
 HAIRSTATUS_NORMAL       = i; i+=1;
-HAIRSTATUS_DAMAGED      = i; i+=1; # minor damage to hair
 HAIRSTATUS_SINGED       = i; i+=1; # minor burn
 HAIRSTATUS_BURNED       = i; i+=1; # badly burned
-# destroyed hair == no hair (status==NORMAL and length==0)
+HAIRSTATUS_DAMAGE       = i; i+=1; # minor damage to hair
+HAIRSTATUS_PERMDAMAGE   = i; i+=1; # permanent follicle damage
+HAIRSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent follicle damage
+HAIRSTATUS_MANGLED      = i; i+=1; # ruined
+# removed hair == no hair (status==NORMAL and length==0)
 
 i=0;
 HEARTSTATUS_NORMAL      = i; i+=1;
-HEARTSTATUS_INJURED     = i; i+=1;
+HEARTSTATUS_SCARRED     = i; i+=1;
+HEARTSTATUS_DAMAGE      = i; i+=1; # temporary damage
+HEARTSTATUS_PERMDAMAGE  = i; i+=1; # permanent damage
+HEARTSTATUS_MAJORDAMAGE = i; i+=1; # major permanent damage
+HEARTSTATUS_MANGLED     = i; i+=1; # ruined
 
 i=0;
 LUNGSTATUS_NORMAL       = i; i+=1;
 LUNGSTATUS_IRRITATED    = i; i+=1; # lung inflamed
 LUNGSTATUS_CLOGGED      = i; i+=1; # can't breathe; lung clogged up with something
+LUNGSTATUS_DAMAGE       = i; i+=1; # temporary damage
+LUNGSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
+LUNGSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
+LUNGSTATUS_MANGLED      = i; i+=1; # ruined
 
 i=0;
 GUTSSTATUS_NORMAL       = i; i+=1;
 GUTSSTATUS_UPSET        = i; i+=1; # might cause vomiting / diarrhea
 GUTSSTATUS_SICK         = i; i+=1; # likely to cause vomiting / diarrhea
 GUTSSTATUS_ILL          = i; i+=1; # guaranteed to cause vomiting / diarrhea
+GUTSSTATUS_DAMAGE       = i; i+=1; # temporary damage
+GUTSSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
+GUTSSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
+GUTSSTATUS_MANGLED      = i; i+=1; # ruined
 
-# Penalties for BPP statuses
+    #----------------------------#
+    # Penalties for BPP statuses #
+    #----------------------------#
+
 # skin
 ADDMODS_BPP_SKINSTATUS = { # stat : value
+    # (intensity is the preference value: higher intensity overwrites lower intensity effects since only one can exist at a time.)
 SKINSTATUS_RASH         :{'resbio':-1,'respain':-2,'resbleed':-2,'resfire':-2,},
 SKINSTATUS_SCRAPED      :{'resbio':-2,'respain':-3,'resbleed':-4,'resfire':-3,},
 SKINSTATUS_MINORABRASION:{'resbio':-3,'respain':-5,'resbleed':-6,'resfire':-4,},
-SKINSTATUS_CUT          :{'resbio':-10,'respain':-5,'resbleed':-10,},
+SKINSTATUS_CUT          :{'resbio':-10,'respain':-5,'resbleed':-10,'resfire':-4,},
 SKINSTATUS_MAJORABRASION:{'resbio':-10,'respain':-10,'resbleed':-10,'resfire':-6,},
-SKINSTATUS_DEEPCUT      :{'resbio':-25,'respain':-10,'resbleed':-20,},
-SKINSTATUS_BURNED       :{'resbio':-5,'respain':-10,'resbleed':-10,'resfire':-10,},
-SKINSTATUS_DEEPBURNED   :{'resbio':-10,'respain':-20,'resbleed':-20,'resfire':-20,},
-SKINSTATUS_SKINNED      :{'resbio':-10,'respain':-10,'resbleed':-20,'resfire':-10,},
-SKINSTATUS_FULLYSKINNED :{'resbio':-15,'respain':-20,'resbleed':-40,'resfire':-20,},
+SKINSTATUS_BURNED       :{'resbio':-10,'respain':-10,'resbleed':-10,'resfire':-10,},
+SKINSTATUS_DEEPCUT      :{'resbio':-20,'respain':-10,'resbleed':-20,'resfire':-6,},
+SKINSTATUS_SKINNED      :{'resbio':-20,'respain':-10,'resbleed':-20,'resfire':-10,},
+SKINSTATUS_DEEPBURNED   :{'resbio':-20,'respain':-20,'resbleed':-20,'resfire':-20,},
+SKINSTATUS_FULLYSKINNED :{'resbio':-40,'respain':-20,'resbleed':-25,'resfire':-20,},
     }
 # face
 ADDMODS_BPP_FACE_SKINSTATUS = { # stat : value
-SKINSTATUS_RASH         :{'beauty':-2,'intimidation':1,'resbio':-2,'respain':-2,'resbleed':-4,'resfire':-4,},
-SKINSTATUS_SCRAPED      :{'beauty':-2,'intimidation':1,'resbio':-4,'respain':-3,'resbleed':-8,'resfire':-6,},
-SKINSTATUS_MINORABRASION:{'beauty':-4,'intimidation':1,'resbio':-6,'respain':-5,'resbleed':-12,'resfire':-8,},
-SKINSTATUS_MAJORABRASION:{'beauty':-6,'intimidation':1,'resbio':-12,'respain':-10,'resbleed':-20,'resfire':-12,},
-SKINSTATUS_CUT          :{'beauty':-2,'intimidation':1,'resbio':-20,'respain':-5,'resbleed':-20,},
-SKINSTATUS_DEEPCUT      :{'beauty':-6,'intimidation':2,'resbio':-50,'respain':-10,'resbleed':-40,},
-SKINSTATUS_BURNED       :{'beauty':-6,'intimidation':3,'resbio':-10,'respain':-10,'resbleed':-20,'resfire':-15,},
-SKINSTATUS_DEEPBURNED   :{'beauty':-12,'intimidation':6,'resbio':-20,'respain':-20,'resbleed':-40,'resfire':-30,},
-SKINSTATUS_SKINNED      :{'beauty':-24,'intimidation':10,'resbio':-20,'respain':-10,'resbleed':-40,'resfire':-15,},
-SKINSTATUS_FULLYSKINNED :{'beauty':-48,'intimidation':20,'resbio':-30,'respain':-20,'resbleed':-60,'resfire':-30,},
+SKINSTATUS_RASH         :{'beauty':-2, 'intimidation':1, 'resbio':-4, 'respain':-2, 'resbleed':-2,'resfire':-2,},
+SKINSTATUS_SCRAPED      :{'beauty':-2, 'intimidation':1, 'resbio':-6, 'respain':-3, 'resbleed':-4,'resfire':-3,},
+SKINSTATUS_MINORABRASION:{'beauty':-3, 'intimidation':1, 'resbio':-8, 'respain':-5, 'resbleed':-6,'resfire':-4,},
+SKINSTATUS_CUT          :{'beauty':-3, 'intimidation':1, 'resbio':-12,'respain':-5, 'resbleed':-10,'resfire':-4,},
+SKINSTATUS_MAJORABRASION:{'beauty':-6, 'intimidation':1, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-6,},
+SKINSTATUS_BURNED       :{'beauty':-6, 'intimidation':4, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-10,},
+SKINSTATUS_DEEPCUT      :{'beauty':-6, 'intimidation':2, 'resbio':-25,'respain':-10,'resbleed':-20,'resfire':-6,},
+SKINSTATUS_SKINNED      :{'beauty':-24,'intimidation':8, 'resbio':-25,'respain':-10,'resbleed':-20,'resfire':-10,},
+SKINSTATUS_DEEPBURNED   :{'beauty':-24,'intimidation':8, 'resbio':-25,'respain':-20,'resbleed':-20,'resfire':-20,},
+SKINSTATUS_FULLYSKINNED :{'beauty':-48,'intimidation':16,'resbio':-50,'respain':-20,'resbleed':-25,'resfire':-20,},
     }
 # head
 MULTMODS_BPP_HEAD_BONESTATUS = { # stat : value
@@ -570,13 +679,19 @@ ADDMODS_BPP_BRAIN_STATUS = { # stat : value
 BRAINSTATUS_CONTUSION   :{'atk':-2,'dfn':-2,},
 BRAINSTATUS_CONCUSSION  :{'atk':-4,'dfn':-4,},
 BRAINSTATUS_DAMAGE      :{'atk':-6,'dfn':-6,},
-BRAINSTATUS_PERMDAMAGE  :{'atk':-8,'dfn':-8,},
+BRAINSTATUS_PERMDAMAGE  :{'atk':-6,'dfn':-6,},
+BRAINSTATUS_MAJORDAMAGE :{'atk':-12,'dfn':-12,},
+BRAINSTATUS_DEAD        :{'atk':-20,'dfn':-20,},
+BRAINSTATUS_MANGLED     :{'atk':-20,'dfn':-20,},
     }
 MULTMODS_BPP_BRAIN_STATUS = { # stat : value
-BRAINSTATUS_CONTUSION   :{'int':0.9,'bal':0.9,'sight':0.9,'hearing':0.9,'mpmax':0.9,'mp':0.9,},
-BRAINSTATUS_CONCUSSION  :{'int':0.8,'bal':0.8,'sight':0.8,'hearing':0.8,'mpmax':0.8,'mp':0.8,},
-BRAINSTATUS_DAMAGE      :{'int':0.7,'bal':0.7,'sight':0.7,'hearing':0.7,'mpmax':0.7,'mp':0.7,},
-BRAINSTATUS_PERMDAMAGE  :{'int':0.6,'bal':0.6,'sight':0.6,'hearing':0.6,'mpmax':0.6,'mp':0.6,},
+BRAINSTATUS_CONTUSION   :{'int':0.9,'bal':0.9,'sight':0.9,'hearing':0.9,'mpmax':0.9,},
+BRAINSTATUS_CONCUSSION  :{'int':0.8,'bal':0.8,'sight':0.8,'hearing':0.8,'mpmax':0.8,},
+BRAINSTATUS_DAMAGE      :{'int':0.7,'bal':0.7,'sight':0.7,'hearing':0.7,'mpmax':0.7,},
+BRAINSTATUS_PERMDAMAGE  :{'int':0.6,'bal':0.6,'sight':0.6,'hearing':0.6,'mpmax':0.6,},
+BRAINSTATUS_MAJORDAMAGE :{'int':0.3,'bal':0.3,'sight':0.3,'hearing':0.3,'mpmax':0.3,},
+BRAINSTATUS_MANGLED     :{'int':0.1,'bal':0.1,'sight':0.1,'hearing':0.1,'mpmax':0.1,},
+BRAINSTATUS_DEAD        :{'int':0,'bal':0,'sight':0,'hearing':0,'mpmax':0.1,},
     }
 # arm
 ADDMODS_BPP_ARM_BONESTATUS = { # stat : value
@@ -589,10 +704,11 @@ ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-5,},
 MUSCLESTATUS_KNOTTED    :{'asp':-3,'respain':-5,},
 MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-5,'resbleed':-5,},
-MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'asp':-5,'gra':-1,'resbleed':-2,},
-MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'asp':-10,'gra':-2,'resbleed':-4,},
-MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'asp':-15,'gra':-3,'resbleed':-6,},
-MUSCLESTATUS_RUPTURED   :{'str':-1,'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'resbleed':-8,},
+MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-2,},
+MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'asp':-10,'gra':-2,'respain':-10,'resbleed':-4,},
+MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'asp':-15,'gra':-3,'respain':-15,'resbleed':-6,},
+MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'respain':-20,'resbleed':-8,},
+MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'respain':-25,'resbleed':-16,},
     }
 # leg
 ADDMODS_BPP_LEG_BONESTATUS = { # stat : value
@@ -602,20 +718,38 @@ BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
-BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.83333,}, #5/6
-BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.66667,}, #2/3
+BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.8333333,}, #5/6
+BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.6666667,}, #2/3
 BONESTATUS_BROKEN       :{'bal':0.7,'msp':0.5,},     #1/2
-BONESTATUS_SHATTERED    :{'bal':0.6,'msp':0.33333,}, #1/3
+BONESTATUS_SHATTERED    :{'bal':0.6,'msp':0.3333333,}, #1/3
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-5,},
 MUSCLESTATUS_KNOTTED    :{'msp':-3,'respain':-5,},
 MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-5,'resbleed':-5,},
-MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'resbleed':-2,'bal':-1,},
-MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'resbleed':-4,'bal':-2,},
-MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'resbleed':-6,'bal':-3,},
-MUSCLESTATUS_RUPTURED   :{'str':-1,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'resbleed':-8,'bal':-4,},
+MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'respain':-5,'resbleed':-2,'bal':-1,},
+MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-10,'resbleed':-4,'bal':-2,},
+MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6,'bal':-3,},
+MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-20,'resbleed':-8,'bal':-4,},
+MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16,'bal':-5,},
     }
+
+
+    #--------------------------#
+    # BPP statuses alt effects #
+    #--------------------------#
+    
+LUNGSTATUS_CAPACITY={
+LUNGSTATUS_NORMAL       : 1,
+LUNGSTATUS_IRRITATED    : 0.9,
+LUNGSTATUS_CLOGGED      : 0.75,
+LUNGSTATUS_DAMAGE       : 0.67,
+LUNGSTATUS_PERMDAMAGE   : 0.67,
+LUNGSTATUS_MAJORDAMAGE  : 0.33,
+LUNGSTATUS_MANGLED      : 0,
+    }
+
+
 
 
 
@@ -634,7 +768,7 @@ BLEED_GRAPHENE  = 192
 BLEED_DIAMONITE = 144
 
 #wet
-WET_RESFIRE     = 50    # fire resistance gained while wet
+WET_RESFIRE     = 200   # fire resistance gained while wet (per liter)
 
 #sprint
 SPRINT_SPEEDMOD     = 100   # move speed bonus when you sprint
@@ -1110,10 +1244,22 @@ AMMO_ANYTHING       = i; i+=1;  # literally anything
 
 
 #
-# Skills
+# Skills SKILL CONSTANTS
 #
+
+# constants
 SKILL_EFFECTIVENESS_MULTIPLIER = 0.1 # higher -> skills have more effect
 SKILL_MAXIMUM = 100
+
+# armor
+SKLMOD_ARMOR_PRO    = 1.05 # 1.05^20 =~= 2.65
+SKLMOD_ARMOR_AV     = 1.05
+SKLMOD_ARMOR_DV     = 1.05
+
+
+#
+# Skills IDs skills unique IDs skill unique IDs
+#
 
 i=1;
 # Melee
@@ -1232,9 +1378,13 @@ SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 
 
 
-# skill data
+
+#
+# Skills data skill data
+#
+
 SKILLS_COMBAT={ # ID : (SP,name,)
-    # SP = skill points required to learn
+    # SP = skill points required to learn (in chargen)
 SKL_ARMOR       :(2,'armored combat',),
 SKL_UNARMORED   :(2,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
@@ -1277,6 +1427,7 @@ SKL_ENERGY      :(2,'energy weapons',),
 
 # Physical / Technical Skills
 SKILLS_PHYSTECH={ # ID : (SP,name,)
+    # SP = skill points required to learn (in chargen)
 SKL_ATHLETE     :(2,'athleticism',),
 SKL_STEALTH     :(1,'stealth',),
 SKL_COMPUTERS   :(2,'computers',),
@@ -1291,6 +1442,7 @@ SKL_SURGERY     :(4,'surgery',),
 
 # Crafting Skills
 SKILLS_CRAFTING={ # ID : (SP,name,)
+    # SP = skill points required to learn (in chargen)
 SKL_ASSEMBLY    :(1,'crafting',),
 SKL_COOKING     :(1,'cooking',),
 SKL_WOOD        :(1,'woodworking',),
@@ -1307,13 +1459,17 @@ SKL_GUNSMITH    :(3,'gunsmith',),
 SKL_HARDWARE    :(2,'technosmith',),
 SKL_ARMORSMITH  :(3,'armorsmith',),
     }
+
 # WEAPONS
     # these modifiers apply if you wield a weapon in your main hand
     # that you are skilled in
+    # These are passive modifiers
+    
 # TODO: update to a linear scaling system
 #   *based on a gradient (levels of skill) rather than binary skill
 # IDEA: both multiplicative and additive modifiers for skills.
     # add +2 Atk and +2 Dfn, +30Asp at minimum. Dmg, Pen are multipliers
+
 SKILL_WEAPSTATDATA={
 SKL_BOXING      : {'atk':6,'dmg':2,'pen':2,'gra':1,'dfn':4,'asp':60,},
 SKL_WRESTLING   : {'gra':4,'dfn':4,},
@@ -1366,15 +1522,15 @@ SKL_ENERGY      : {'atk':6,'pen':2,'asp':60,},
 # weapons
 WEAPONCLASS_CRITDAMAGE={ # damage % of target's total health on critical hit
 SKL_SWORDS          : 0.4,
-SKL_LONGSWORDS      : 0.3333334,
-SKL_GREATSWORDS     : 0.25,
-SKL_POLEARMS        : 0.25,
+SKL_LONGSWORDS      : 0.4,
+SKL_GREATSWORDS     : 0.3333334,
+SKL_POLEARMS        : 0.3333334,
 SKL_KNIVES          : 0.5,
 SKL_HAMMERS         : 0.25,
 SKL_MALLETS         : 0.25,
 SKL_AXES            : 0.3333334,
 SKL_GREATAXES       : 0.3333334,
-SKL_JAVELINS        : 0.3333334,
+SKL_JAVELINS        : 0.25,
 SKL_SPEARS          : 0.3333334,
 SKL_BLUDGEONS       : 0.25,
 SKL_SHIELDS         : 0.2,
@@ -1447,7 +1603,7 @@ NOISE_BANG      = "an explosion"
 NOISE_DING      = "a high-pitched ringing sound"
 NOISE_SCREECH   = "someone screeching"
 NOISE_WATERFALL = "water falling"
-NOISE_CLATTER   = "the kind of clattering that elicits concern"
+NOISE_CLATTER   = "the kind of clattering that causes concern"
 
                 # vol, superHearing, generic sound
 SND_FIRE        = (40, "a fire",    NOISE_POP,)
@@ -1469,6 +1625,11 @@ SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
 ### Things, specific
 ###
 ##
+
+# Although it would be nice to have constants for every item type in the game,
+# in practice this makes it tedious to add new items, and it's just nicer to
+# have strings for item types.
+
 ##class THG:#(Flag)
 ##    i=1;
 ##    GORE                = i; i+=1;

@@ -213,17 +213,21 @@ def _generate_room_box():
         create a regular rectangle room
     '''
     borders = 5 # size of padding where origin of rooms cannot be placed
-    w=4 + int(random.random()*6)
-    h=4 + int(random.random()*4)
+    w=5 + int(random.random()*6)
+    h=5 + int(random.random()*4)
     # rare chance to make a big room or little room
-    if random.random()*100 < 8:
-        w += 5
-    elif random.random()*100 < 5:
+    if random.random()*100 < 10:
+        w += 8
+    if random.random()*100 < 10:
         w -= 2
-    if random.random()*100 < 8:
-        h += 5
-    elif random.random()*100 < 5:
+        if random.random()*100 < 10:
+            w -= 1
+    if random.random()*100 < 10:
+        h += 8
+    if random.random()*100 < 10:
         h -= 2
+        if random.random()*100 < 10:
+            h -= 1
     area = set()
     perimeter = set()
     

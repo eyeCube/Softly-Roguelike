@@ -74,14 +74,14 @@ def commands_pages(pc, pcAct):
 #   commands
 #
 
-directional_command = 'move'
-
 def _Update():
     rog.update_game()
 ##    rog.update_final()
     rog.update_hud()
 def commands(pc, pcAct):
     world = rog.world()
+
+    directional_command = 'move'
     
     for act,arg in pcAct:
         
@@ -99,7 +99,8 @@ def commands(pc, pcAct):
         # convert action #
         #----------------#
         
-        if act =='target':  act=directional_command
+        if act =='context-dir':
+            act=directional_command
         
         
         #----------------#
@@ -159,8 +160,8 @@ def commands(pc, pcAct):
         if act == "sprint": #begin sprinting
             action.sprint_pc(pc)
             return
-        if act == "throw": #throw an object
-            action.throw_pc(pc)
+        if act == "target": #target entity + fire / throw / attack
+            action.target_pc(pc)
             return
 
         #unused actions
@@ -437,7 +438,7 @@ def chargen(sx, sy):
             cmp.Skills(), cmp.Flags(),
             cmp.SenseSight(), cmp.SenseHearing(),
             cmp.Mutable(),
-            cmp.Inventory(BASE_CARRY),
+            cmp.Inventory(),
         )
 
         # create body

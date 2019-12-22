@@ -172,10 +172,10 @@ class Fires:
     soundsList={}
     entsources={} # entity heat sources
     
-    fires = np.full((ROOMW,ROOMH,), fill_value=False)
-    fuel = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.int16)
-    heat = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
-    heat_sources = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
+    fires           = np.full((ROOMW,ROOMH,), fill_value=False)
+    fuel            = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.int16)
+    heat            = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
+    heat_sources    = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
     
     # dispersion arrays
     DISPERSE_0 = np.array( # no wind
@@ -368,8 +368,8 @@ class Fires:
         # rotate matrix by direction
         rotamt = cls.ROTAMT[wind_direction]
         matrix = np.rot90(matrix, rotamt)
-        print("TESTING disperse array...\nforce: {}\ndir: {}\nmatrix: {}".format(
-            wind_force, wind_direction, matrix))
+##        print("TESTING disperse array...\nforce: {}\ndir: {}\nmatrix: {}".format(
+##            wind_force, wind_direction, matrix))
         return matrix
 
 # Fires Processor Fire Processor
@@ -391,9 +391,9 @@ class FireProcessor(esper.Processor):
             fuel, pos = compos
             # apply fuel multipliers
             # mass affects fuel value
-            massMult = rog.getms(ent,"mass") / MULT_MASS
+            mass = rog.getms(ent,"mass") / MULT_MASS
             # add fuel to the grid
-            Fires.add_fuel(pos.x, pos.y, round(fuel.fuel * massMult))
+            Fires.add_fuel(pos.x, pos.y, round(fuel.fuel * mass))
             
         # disperse heat, handle fires
         dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())

@@ -23,6 +23,8 @@
 #   - (if you try to eat something inedible, it should say so, etc.)
 #
 
+import math
+
 from const import *
 import rogue as rog
 import components as cmp
@@ -148,7 +150,7 @@ def inventory_pc(pc):
         rmg=False
         if   opt == "drop":     rmg=True; drop_pc(pc, item)
         elif opt == "equip":    rmg=True; equip_pc(pc, item)
-        elif opt == "throw":    rmg=True; throw_pc(pc, item)
+        elif opt == "throw":    rmg=True; target_pc(pc, item)
         elif opt == "eat":      rmg=True; eat_pc(pc, item)
         elif opt == "quaff":    rmg=True; quaff_pc(pc, item)
         elif opt == "use":      rmg=True; use_pc(pc, item)
@@ -176,7 +178,10 @@ def open_pc(pc):
     xto = pos.x + dx
     yto = pos.y + dy
     # do the open/close action
-    if not openClose(pc, xto, yto):
+    success = openClose(pc, xto, yto)
+    if success:
+        pass
+    else:
         rog.alert("It won't open.")
     rog.update_game()
 
@@ -187,9 +192,16 @@ def sprint_pc(pc):
     else:
         rog.alert("You're too tired to sprint.")
 
-def throw_pc(pc):
-    pass
+def target_pc(pc):
+    target = IO.aim_find_target()
+    if target:
+        pass
+
+def examine_self_pc(pc):
+    choices=['body (whole body)']
     
+    ans=rog.menu(item=rog.menu("Examine what?".format(
+        pcn.title,pcn.name), x,y, choices)
 
 def equip_pc(pc,item):
     pass
@@ -335,11 +347,11 @@ def quaff(ent, drink):
     world.delete_entity(drink)
 
 
-#move
+#move - standard
 #returns True if move was successful, else False
 #do not drain Action Points unless move was successful
-def move(ent,dx,dy):  # locomotion
-        # init
+def move(ent,dx,dy, msp=1.0,ap=1.0,sta=1.0):  # actor locomotion
+    # init
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
     xto = pos.x + dx
@@ -349,10 +361,18 @@ def move(ent,dx,dy):  # locomotion
         return False        # 0 means we can't move there
     msp=rog.getms(ent,'msp')
     actor = world.component_for_entity(ent, cmp.Actor)
+    #
+    
+    # AP cost
     mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
-    nrg_cost = round(NRG_MOVE * mult * terrainCost / max(1, msp))
-        # perform action
-    actor.ap -= max(1, nrg_cost)
+    ap_cost = math.ceil(ap * NRG_MOVE * mult * terrainCost / max(1, msp))
+    actor.ap -= max(1, ap_cost)
+
+    # Stamina cost ( TODO )
+##    sta_cost = (sta * STA_MOVE)
+##    rog.sap(ent, sta_cost)
+    
+    # perform action
     rog.port(ent, xto, yto)
     return True
 
@@ -367,13 +387,15 @@ def openClose(ent, xto, yto):
     if rog.tile_get(xto,yto) == DOORCLOSED:
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOOROPEN)
-        rog.msg("{t}{n} opened a door.".format(t=entn.title,n=entn.name))
+        ss = "opened a door"
+        rog.msg("{t}{n} {ss}.".format(t=entn.title,n=entn.name,ss=ss))
         return True
     #close doors
     if rog.tile_get(xto,yto) == DOOROPEN:
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOORCLOSED)
-        rog.msg("{t}{n} closed a door.".format(t=entn.title,n=entn.name))
+        ss = "closed a door"
+        rog.msg("{t}{n} {ss}.".format(t=entn.title,n=entn.name,ss=ss))
         return True
     return False
 
@@ -428,7 +450,7 @@ def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
     
     # perform the attack
     if hit:
-        grazed=False
+        grazed = (hitDie==0)
             # counter-attack
         if counterable:
             # TODO: make sure defender is in range to counter-attack
@@ -442,9 +464,6 @@ def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
                     _strike(dfndr, attkr, power=0, counterable=False)
                     rog.makenot(dfndr,CANCOUNTER)
                     ctrd=True
-        
-        if hitDie==0:
-            grazed=True
         
         if not grazed: # can't penetrate if you only grazed them
                 # penetration (calculate armor effectiveness)

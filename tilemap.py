@@ -66,7 +66,7 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen',1200,300,False,2,),
     JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen',1200,300,False,2,),
     # TODO: change costEnter to 0 for WALL! This is TEMPORARY for TESTING LEVEL GEN
-    WALL        : Tile(WALL,      'dkred', 'orange',   0,  0,  True, 50,),
+    WALL        : Tile(WALL,      'dkred', 'orange',   110,  0,  True, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',  100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',   100,0,  False,1,),
@@ -376,18 +376,18 @@ Reason: entity not in grid.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-                if not rog.in_range(pos.x,pos.y, x,y, sight):
-                    continue
-                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-                    continue
+##                if not rog.in_range(pos.x,pos.y, x,y, sight):
+##                    continue
+##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+##                    continue
 ##
                 ent=self.thingat(x, y)
 
-                if (not (x==pos.x and y==pos.y)
-                        and self.get_light_value(x,y) == 0
-                        and not rog.on(pc,NVISION) ):
-                    self._draw_silhouettes(pc, x,y, ent, sight)
-                    continue
+##                if (not (x==pos.x and y==pos.y)
+##                        and self.get_light_value(x,y) == 0
+##                        and not rog.on(pc,NVISION) ):
+##                    self._draw_silhouettes(pc, x,y, ent, sight)
+##                    continue
 ##                
                 if ent:
                     libtcod.console_put_char(

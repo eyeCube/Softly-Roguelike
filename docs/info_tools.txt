@@ -4,8 +4,8 @@ This is just info for the dev. No need to inundate the player with so much infor
 
 
 class Tool_Cut:
-	levels: 10
-		level 	can cut through (fine or fast jobs require 1 more level)
+		 (cutting within a tool's capacity may still dull the blade based on the materials of the blade and the material being cut)
+		level 	can cut through (fine or fast jobs require even higher lvl)
 		1: 		thin rubber, membranes, leaves
 		2: 		paper
 		3: 		cordage, tarp, thin flesh, thin foliage, whittling plastic
@@ -13,44 +13,38 @@ class Tool_Cut:
 		5: 		thick foliage, thick flesh, whittling bone, fine plasticwork
 		6: 		rope; leather; thick cloth; 
 					* at this stage technically capable of cutting through riveted metal mail rings, but only in combat situations, not when used as a tool in crafting.
-		7: 		thin metal
-		8: 		metal wire, metal sheet
-		9: 		cable, metal rings, thin chain
-		10:		chain, whittling metal
+		7:		linen, wool, boiled leather, tough hide
+		8: 		thin metal, bone
+		9: 		metal wire, metal sheet
+		10:		cable, metal rings, thin chain
+		11:		locks, 
 class Tool_Chop:
-	levels: 6
 		level 	can chop through:
 		1: 		flesh
 		2: 		thin wood
 		3: 		wood
 		4: 		trees
 		5: 		log splitting, hardwood, thin metal
-		6: 		fast chopping
+		6: 		rockwood
+		7: 		stone
+		8: 		crystal
 class Tool_Saw:
-	levels: 6
 		level 	can saw through:
-		1:      plastic, cordage
-					* serrated knives have at least saw level 1.
-					* metal knives have at least saw level 1.
-		2: 		rope, thin wood, thick plastic
-					* serrated metal knife or bone saw, etc.
-		3: 		wood, weak metal, bone
-					* metal saws
-		4: 		logs, sheet metal, fine bone sawing
-					* big metal saws
-		5: 		thick metal
-					* power saws only.
-		6: 		stone.
-					* power saws only.
+		1:      plastic, cordage, vegetation
+		2: 		flesh
+		3: 		rope, thin wood, thick plastic
+		4: 		wood, weak metal, bone
+		5: 		logs, sheet metal, fine bone sawing
+		6: 		metal
+		7: 		thick metal / steel
+		8: 		stone
 class Tool_Machete:
-	levels: 4
 		level 	can cut/chop through:
 		1: 		shrubs
 		2: 		brambles
 		3: 		jungle
-		4: 		fast clearing jungle
+		4: 		jungle trees
 class Tool_Hammer:
-	levels: 7
 		level 	can be used for:
 		1: 		basic carpentry (driving nails), work crude plastic
 		2: 		advanced carpentry, basic weaponsmithing, armorsmithing
@@ -58,15 +52,15 @@ class Tool_Hammer:
 		4: 		metalsmithing, fine glass working, very fine wood, stoneworking
 		5: 		fine metalsmithing, crude steelsmithing, crude gemsmithing
 		6: 		fine steelsmithing, specialized metalsmithing, gemsmithing
-		7: 		specialized smithing, fast hammering (+power hammers)
+		7: 		specialized smithing, fast hammering, fine gemsmithing
+		crazy high levels for automated hammering machines
 class Tool_Striker:  #specialized hammer - large, heavy 2-h hammer
-	levels: 3
 		level	can be used for
 		1: 		crude striking purposes
 		2: 		regular striking purposes
 		3: 		heavy-duty striking
+		crazy high levels for automated striking machines
 class Tool_Chisel:
-	levels: 7
 		level 	can be used for:
 		1: 		plasticworking
 		2: 		bone, woodworking
@@ -76,7 +70,6 @@ class Tool_Chisel:
 		6: 		gemsmithing, specialized glassworking
 		7:      fast chiseling
 class Tool_Anvil:
-	levels: 5
 		level 	info
 		1: 		can do primitive anviling tasks (e.g. a hard floor)
 		2: 		can anvil any material with basic anviling tasks.
@@ -85,19 +78,16 @@ class Tool_Anvil:
 		4: 		specialist / very fine anviling
 		5: 		large anvil, for massive stuff
 class Tool_Weld:
-	levels: 3
 		level 	can weld
 		1: 		thin metal, plastic
 		2: 		thick metal
 		3: 		fast welding, specialist / fine welding
 class Tool_Crucible:
-	levels: 3
 		level 	can contain
 		1: 		molten glass, plastic
 		2:		molten metal
 		3:		large amounts of molten metal
 class Tool_Furnace:
-	levels: 4
 		level 	info
 		1:		can work wood and plastic, can cook food, can fire earthenware
 					* a campfire is a level 1 furnace.
@@ -105,40 +95,34 @@ class Tool_Furnace:
 		3: 		melts metal and glass
 		4: 		for working large amounts of metal, fast forging
 class Tool_Tongs:
-	levels: 4
 		level 	info
 		1:		can grasp small hot things
 		2:		performs most standard tonging tasks inc. crucible handling
 		3:		can perform tonging tasks on large objects
 		4: 		fine tonging
 class Tool_Torch: # fire tool, for burning/heating up small things. Once a tool reaches higher than level 3 torch, it just becomes either a furnace or a welding tool.
-	levels: 3
 		level	info
 		1: 		basic disposable lighter, can light tiny things
 		2: 		basic torch-sized flame
 		3: 		blow torch
 					* a lot of level 3 torches might be welding tools too.
 class Tool_FireStarter:
-	levels: 4
 		level	info
 		1: 		fails often
 		2: 		fails sometimes
 		3: 		fails rarely
 		4:  	never fails
 class Tool_Pliers:
-	levels: 4
 		level	info
 		1:		basic plying tasks
 		2: 		fine plying
 		3: 		heavy duty plying, vice gripping, clamping
 		4: 		power plying (fast plying)
 class Tool_Screwdriver:
-	levels: 2
 		level	info
 		1:		basic screwdriver
 		2: 		power screwdriver
 class Tool_Drill:
-	levels: 5
 		level	can drill:
 		1: 		thin materials (* hole puncher, hand drill)
 		2: 		plastic, wood, bone (* crude homemade drill)
@@ -146,75 +130,77 @@ class Tool_Drill:
 		4: 		thick metal (* table drill)
 		5: 		fast drilling, fine drilling (* industrial drill)
 class Tool_Sew: 
-	levels: 4
 		level	info
 		1:		crocheting, crude sewing jobs (* plastic sewing needle)
 		2:		sewing armor, clothes, stitching (* bone sewing needle)
 		3:		finer sewing jobs, making cloth (* metal sewing needle)
 		4:		fast sewing, very fine sewing (* sewing machine)
 class Tool_Sharpener:
-	levels: 5
 		level	can sharpen:
-		1: 		bone, crude stone sharpening (obv. plastic)
-		2: 		stone, crude metal sharpening
-		3:		metal
-		4:		steel to a very fine edge
-		5: 		ceramic
-					* diamond sharpeners
+		1: 		plastic
+		2: 		wood
+		3: 		bone, crude stone sharpening
+		4: 		stone, crude metal sharpening
+		5:		metal
+		6:		steel to a very fine edge
+		7: 		ceramic (* diamond sharpeners)
 class Tool_File:
-	levels: 5
 		level	can file:
-		1: 		bone
-		2:		stone
-		3:		metal
-		4:		steel to a very fine edge
-		5: 		ceramic
+		1: 		wood
+		2: 		bone
+		3:		stone
+		4:		metal
+		5:		steel to a very fine edge
+		6: 		ceramic
 class Tool_Grinder:
-	levels: 4
 		level	can grind:
-		1: 		bone
-		2:		stone
-		3:		metal
-		4:		steel
+		1: 		wood, flesh, plastic
+		2: 		bone
+		3:		stone
+		4:		metal, crystal
+		5:		steel
 class Tool_Swage: # curved anvil for forging round shapes, bending, punching..
-	levels: 3
 		level	info
 		1: 		can be used for simple swaging tasks
 		2:		most swaging tasks
 		3: 		specialized swaging
 class Tool_Mandril:
-	levels: 2
 		level	info:
-		1: 		can make gun barrels
-		2: 		
+		1: 		can make gun barrels for black powder guns
+		2: 		can make gun barrels for cartridge guns
 class Tool_Dig:
-	levels: 2
 		level	can dig through:
 		1: 		dirt
-		2: 		stone
+		2: 		rocky dirt
+		crazy high levels for rapid digging motors like excavators
 class Tool_Pickaxe:
-	levels: 2
 		level	can pick:
 		1: 		cobblestone
 		2: 		stone
-class Tool_Crush: # hydraulic/power crusher, only for when very high pressure/force is needed. Smashing nuts can be done with a level 1 hammer.
-	levels: 2
+class Tool_Crush: # hydraulic/power presser / crusher, only for when very high pressure/force is needed or when heavy / variable pressure is needed for an extended period of time. Smashing nuts can be done with a level 1 hammer.
 		level	can crush/flatten:
-		1: 		most things
-		2: 		everything
-class Tool_Lens: # magnify light
-	levels: 4
+		1: 		
+		2: 		wood, bone, flesh
+		3: 		stone, crystal, metal
+		4: 		most things
+		5: 		practically everything
+		6: 		everything.
+class Tool_FocusLens: # focus light
 		level	info:
 		1: 		10% efficiency (*metal can, clear bag of water)
 		2: 		33% efficiency 
 		3: 		67% efficiency 
-		4: 		90% efficiency 
+		4: 		85% efficiency 
+		5: 		94% efficiency 
+		6: 		99% efficiency 
+		surface area of the lens along with quality level affects how much light is focused on the target. Surface area affects the range of the lens.
 class Tool_Identify:
-	levels: 3
 		level	info:
 		1: 		spectacles
 		2: 		magnifying glass
-		3: 		ID device (itemdex)
+		3: 		ID device, slow (encyclopedia)
+		4: 		ID device, med (entdex : electronic encyclopedia)
+		5: 		ID device, fast (scanner)
 
 Tools to (possibly) add:
 	Peen: specialized hammer - rounded or chisel-like striking face

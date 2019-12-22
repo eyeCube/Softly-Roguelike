@@ -81,12 +81,16 @@ class Player: # the player has some unique stats that only apply to them
     __slots__=['identify']
     def __init__(self, identify):
         self.identify=int(identify)
-       
+
+class Targetable:
+    __slots__=['kind']
+    def __init__(self, kind=0):
+        self.kind = kind
        
 class Meters:
     __slots__=[
         'temp','rads','sick','expo','pain','bleed',
-        'rust','rot','wet','fear',
+        'rust','rot','wet','fear','dirt',
         ]
     def __init__(self):
         self.temp=0 # temperature
@@ -94,42 +98,54 @@ class Meters:
         self.sick=0 # illness / infection
         self.expo=0 # exposure to harmful chemicals
         self.pain=0 # respain increases the thresholds for pain tolerance
+        self.fear=0 # 100 fear == fully overcome by fear
         self.bleed=0 # greater bleed -> take damage more frequently
         self.rust=0 # amount of rustedness
         self.rot=0 # amount of rot
         self.wet=0 # amount of water it's taken on
-        self.fear=0 # 100 fear == fully overcome by fear
+        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
 class Stats: #base stats
-    def __init__(self, hp=1,mp=1, _str=0,_con=0,_int=0, mass=1,
+    def __init__(self, hp=1,mp=1, mass=1,
+                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,luck=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
                  respain=100,resbleed=100,reslight=100,ressound=100,
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
                  spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
-                 sight=0,hearing=0,courage=0,scary=0,beauty=0,
+                 encmax=0,force=0,sight=0,hearing=0,
+                 courage=0,scary=0,beauty=0,
                  ):
-        self.str=int(_str)           # attributes
+        # attributes
+        self.str=int(_str)           
         self.con=int(_con)
         self.int=int(_int)
-##        self.agi=_agi # balance, mobility penalty reduction, Atk/DV, mobility
-##        self.wil=_wil # willpower: courage, respain, stamina, affects response to stress (if your pain meter fills up, but you have high willpower, you have a chance to cut the pain down to half or to 0 in a second-wind of determination, etc.)
+        self.agi=int(_agi)
+        self.dex=int(_dex)
+        self.end=int(_end)
+        self.luck=int(luck)
+        # resistances
+        self.resfire=int(resfire)   # FIR
+        self.rescold=int(rescold)   # ICE
+        self.resbio=int(resbio)     # BIO
+        self.reselec=int(reselec)   # ELC
+        self.resphys=int(resphys)   # PHS - resist physical damage excepting falls / G forces.
+        self.respain=int(respain)   # PAI
+        self.resrust=int(resrust)   # RUS
+        self.resrot=int(resrot)     # ROT
+        self.reswet=int(reswet)     # WET
+        self.resbleed=int(resbleed) # BLD
+        self.reslight=int(reslight) # LGT
+        self.ressound=int(ressound) # SND
+        self.courage=int(courage)   # COU
+        # stats
         self.mass=int(mass)
-        self.hpmax=int(hp)           # life
-        self.hp=int(hp)
-        self.mpmax=int(mp)           # stamina
-        self.mp=int(mp)
-        self.resfire=int(resfire)    #resistances - FIR
-        self.rescold=int(rescold)    # ICE
-        self.resbio=int(resbio)      # BIO
-        self.reselec=int(reselec)    # ELC
-        self.resphys=int(resphys)    # PHS - resist physical damage excepting falls / G forces.
-        self.respain=int(respain)    # PAI
-        self.resrust=int(resrust)    # RUS
-        self.resrot=int(resrot)      # ROT
-        self.reswet=int(reswet)      # WET
-        self.resbleed=int(resbleed)  # BLD
-        self.reslight=int(reslight)  # LGT
-        self.ressound=int(ressound)  # SND
+        self.hpmax=int(hp)          # life
+        self.hp=self.hpmax
+        self.mpmax=int(mp)          # stamina
+        self.mp=self.mpmax
+        self.encmax=int(encmax)     # encumberance
+        self.enc=self.encmax        # " maximum
+        self.force=int(force)       # how much force its attack has (knockback)
         self.atk=int(atk)    #Attack -- accuracy
         self.dmg=int(dmg)    #Damage, physical (melee)
         self.pen=int(pen)    #Penetration
@@ -144,7 +160,6 @@ class Stats: #base stats
         self.bal=int(bal)    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
-        self.courage=int(courage)   # resfear
         self.intimidation=int(scary)
         self.beauty=int(beauty)
 
@@ -159,9 +174,10 @@ class LightSource:
         self.lightID=lightID
         self.light=light # Light object
 class Fuel: # fuel for fires
-    __slots__=['fuel']
-    def __init__(self, fuel=1):
+    __slots__=['fuel'] #,'ignition_temp'
+    def __init__(self, fuel=1): #, ignition_temp=None
         self.fuel = int(fuel)
+##        self.ignition_temp = int(ignition_temp) if ignition_temp is not None else FIRE_THRESHOLD
 
 class SenseSight:
     __slots__=['fov_map','events']
@@ -184,13 +200,22 @@ class Mutable:
     def __init__(self):
         self.mutations=0
 
-class Skills: # TODO: update this to store varying levels of skill instead of binary flags
+class Skills:
     __slots__=['skills']
     def __init__(self, skills=None):
-        if skills==None:
-            self.skills={}
-        else:
-            self.skills=skills
+        # skills = {int SKILL_CONSTANT : int skill_experience}
+        self.skills = skills if skills else {}
+        # exp to next level is always constant e.g. 1000 (paper mario style)
+        #   this is much easier for people to understand.
+        # Also this way, after a certain point, low level shit will no longer
+        #   suffice to level you up.
+        # level is calculated using experience -> experience % 1000
+##class _Skill: # shouldn't be necessary if using modulus system of exp
+##    __slots__=["level", "experience"]
+##    def __init__(self, level=0, experience=0):
+##        self.level = level # int level
+##        self.experience = experience # int experience CURRENT LEVEL
+        
 class Flags:
     __slots__=['flags']
     def __init__(self, *args):
@@ -227,14 +252,17 @@ class Body:
     blood       int, total mass of blood in the whole body / bloodMax=maximum
     hydration   int, total mass of water in the whole body / maximum
     satiation   int, units of hunger satisfaction / maximum
+    fatigue     int, units of sleep satisfaction / maximum
     '''
     __slots__=[
-        'slot','core','parts','position',
+        'plan','slot','core','parts','position',
         'blood','bloodMax','bodyfat',
-        'hydration','hydrationMax','satiation','satiationMax'
+        'hydration','hydrationMax',
+        'satiation','satiationMax',
+        'fatigue','fatigueMax'
         ]
     def __init__(self, core, blood=0, hydration=0, satiation=0, fat=0):
-##        self.plan=plan      # int constant
+        self.plan=plan      # int constant
         self.slot=Slot()    # 'about' slot
         self.core=core
         self.parts={}       # dict of BPC objects other than the core
@@ -245,7 +273,10 @@ class Body:
         self.satiation=satiation        # hunger satisfaction
         self.satiationMax=satiation  
         self.hydration=hydration        # thirst satisfaction
-        self.hydrationMax=hydration
+        self.hydrationMax=hydration  
+        self.fatigue=fatigue            # sleep satisfaction
+        self.fatigueMax=fatigueMax
+##        self.height=height              # int = height in centimeters(?)
 '''
     Body Part Containers (BPC)*
     contain only BP_ / BPM_ objects or lists of BP_ / BPM_ objects
@@ -303,10 +334,10 @@ class BPC_Tails:
         self.tails=[]
         for arg in args:
             self.tails.append(arg)
-class BPC_Genitals:
-    __slots__=['genitals']
-    def __init__(self):
-        self.genitals=BP_Genitals()
+##class BPC_Genitals:
+##    __slots__=['genitals']
+##    def __init__(self):
+##        self.genitals=BP_Genitals()
 
 '''
     Body Parts Meta (BPM)
@@ -491,6 +522,10 @@ class BP_Tail:
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+class BP_Genitals:
+    __slots__=['genitals']
+    def __init__(self):
+        self.genitals=BPP_Genitals()
 class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
     __slots__=['kind']
     def __init__(self, kind):
@@ -575,6 +610,10 @@ class BPP_Lung:
         self.capacity=cap
         self.status=0
 class BPP_Guts:
+    __slots__=['status']
+    def __init__(self):
+        self.status=0
+class BPP_Genitals:
     __slots__=['status']
     def __init__(self):
         self.status=0
@@ -904,6 +943,14 @@ class Tool_CrossbowReloader:
     def __init__(self, quality: int, kind: int):
         self.quality=quality
         self.kind=kind
+class Tool_Fuller: # for forging rounded shapes into iron
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Brush:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
 class Tool_Mandril:
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1076,10 +1123,12 @@ class Mold_:
 
 
 class Inventory: #item container
-    __slots__=['capacity','size','data','money']
-    def __init__(self, capacity,money=0):
-        self.capacity=capacity  # mass total maximum
-        self.size=0             # total mass of all entities in the container
+    __slots__=['capacity','mass','data','money','enc']
+    # renamed variable "size" --> "mass" 
+    def __init__(self, capacity=-1, money=0):
+        self.capacity=capacity  # volume total maximum (-1 == infinite) (could be implemented as total encumberance...)
+        self.mass=0             # total mass of all entities in the container
+        self.enc=0              # current total encumberance value
         self.data=[]            # list of entities
         self.money=money        # current amount of money in the container
        

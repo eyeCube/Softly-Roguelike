@@ -382,7 +382,6 @@ def alert(text=""):    # message that doesn't go into history
 
     # "Fun"ctions #
 
-def d_level(): return 1 # dungeon level TEMPORARY obviously
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
     return round(i + 0.00001)
 def sign(n):
@@ -471,6 +470,28 @@ def setAP(ent, val):
 def spendAP(ent, amt):
     actor=Rogue.world.component_for_entity(ent, cmp.Actor)
     actor.ap = actor.ap - amt
+
+# skills
+def getskill(ent, skill): # return skill level in a given skill
+    if not Rogue.world.has_component(ent, cmp.Skills):
+        return 0
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    return skills.skills.get(skill, 0)
+def train(ent, skill, pts): # train (improve) skill
+    if not Rogue.world.has_component(ent, cmp.Skills):
+        return False
+    make(ent,DIRTY_STATS)
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    skills.skills[skill] = skills.skills.get(skill, 0) + pts
+    return True
+def forget(ent, skill, pts): # lose skill experience
+    if not Rogue.world.has_component(ent, cmp.Skills):
+        return False
+    make(ent,DIRTY_STATS)
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    skills.skills[skill] = skills.skills.get(skill, pts) - pts
+    return True
+
 # flags
 def on(ent, flag):
     return flag in Rogue.world.component_for_entity(ent, cmp.Flags).flags
@@ -478,6 +499,8 @@ def make(ent, flag):
     Rogue.world.component_for_entity(ent, cmp.Flags).flags.add(flag)
 def makenot(ent, flag):
     Rogue.world.component_for_entity(ent, cmp.Flags).flags.remove(flag)
+#
+
 ##def has_equip(obj,item):
 ##    return item in Rogue.world.component_for_entity(obj, )
 def give(ent,item):
@@ -530,22 +553,6 @@ def capmp (ent):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp = min(stats.mp, stats.mpmax)
     make(ent,DIRTY_STATS)
-#train skill
-def train (ent,skill):
-    if not Rogue.world.has_component(ent, cmp.Skills):
-        return False
-    make(ent,DIRTY_STATS)
-    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.skills.update({ skill : (skills.skills.get(skill,0) + 1) })
-    return True
-# lose skill
-def forget(ent,skill):
-    if not Rogue.world.has_component(ent, cmp.Skills):
-        return False
-    make(ent,DIRTY_STATS)
-    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.skills.update({ skill : (skills.skills.get(skill,1) - 1) })
-    return True
 #damage hp
 def damage(ent, dmg: int):
 ##    assert isinstance(dmg, int)
@@ -595,10 +602,6 @@ def paralyze(ent, dur):
     return entities.paralyze(ent, dur)
 def mutate(ent):
     return entities.mutate(ent)
-
-'''
-    TODO: insert status effect fxns here
-'''
     
 def kill(ent): #remove a thing from the world
     if on(ent, DEAD): return
@@ -1026,6 +1029,154 @@ def _create_human_leg():
     #       Stats           #
     #-----------------------#
 
+    
+# local func for durability penalties (TODO: move all these nested functions and make it global private funcs)
+def append_mods(addMods, multMods, dadd, dmul):
+    if dadd:
+        addMods.append(dadd)
+    if dmul:
+        multMods.append(dmul)
+# for adding just 1 mod dict into dadd or dmul
+def _add(dadd, modDict):
+    for stat,val in modDict.items():
+        dadd[stat] = dadd.get(stat, 0) + val
+def _mult(dmul, modDict):
+    for stat,val in modDict.items():
+        dmul[stat] = dmul.get(stat, 1) * val
+# ADD DICT MULTIPLIER FUNCTIONS
+def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
+    modf = 1 - (1 - (hp / hpMax))**2
+    dadd['asp'] = min(dadd['asp'], dadd['asp'] * (0.5 + 0.5*modf))
+    dadd['atk'] = min(dadd['atk'], dadd['atk'] * (0.5 + 0.5*modf))
+    dadd['dmg'] = min(dadd['dmg'], dadd['dmg'] * (0.5 + 0.5*modf))
+    dadd['pen'] = min(dadd['pen'], dadd['pen'] * modf)
+    dadd['pro'] = min(dadd['pro'], dadd['pro'] * modf)
+    dadd['arm'] = min(dadd['arm'], dadd['arm'] * (0.5 + 0.5*modf))
+    dadd['dfn'] = min(dadd['dfn'], dadd['dfn'] * (0.5 + 0.5*modf))
+def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
+    modf = 1 - (1 - (hp / hpMax))**2
+    dadd['pro'] = min(dadd['pro'], dadd['pro'] * modf)
+    dadd['arm'] = min(dadd['arm'], dadd['arm'] * (0.5 + 0.5*modf))
+    dadd['dfn'] = min(dadd['dfn'], dadd['dfn'] * (0.5 + 0.5*modf))
+
+# BPC
+
+def _update_from_bpc_heads(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    # TODO: MOVE elsewhere (outside the scope of this function and probably outside of rogue)
+    for bpm in bpc.heads:
+        dadd,dmul=_update_from_bp_head(ent, bpm.head, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_neck(ent, bpm.neck, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_face(ent, bpm.face, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_eyes(ent, bpm.eyes, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_ears(ent, bpm.ears, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_nose(ent, bpm.nose, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_mouth(ent, bpm.mouth, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+def _update_from_bpc_legs(addMods, ent, bpc, armorSkill, unarmored):
+    for bpm in bpc.legs:
+        dadd,dmul=_update_from_bp_foot(ent, bpm.foot, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_leg(ent, bpm.leg, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+def _update_from_bpc_arms(addMods, ent, bpc, armorSkill, unarmored):
+    for bpm in bpc.arms:
+        dadd,dmul=_update_from_bp_hand(ent, bpm.hand, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        dadd,dmul=_update_from_bp_arm(ent, bpm.arm, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+
+# BP
+        
+def _update_from_bp_head(ent, head, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if head.slot.item:
+        item=head.slot.item
+        hp=rog.getms(item, "hp")
+        hpmax=rog.getms(item, "hpmax")
+        equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # bonuses
+        # armor skill bonus
+        if armorSkill:
+            sm=armorSkill*SKILL_EFFECTIVENESS_MULTIPLIER
+            dadd['pro'] = dadd.get('pro', 0)*SKLMOD_ARMOR_PRO*sm
+            dadd['arm'] = dadd.get('arm', 0)*SKLMOD_ARMOR_AV*sm
+            dadd['dfn'] = dadd.get('dfn', 0)*SKLMOD_ARMOR_DV*sm
+        
+        # penalties
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(dadd, hp, hpmax)
+                                
+    else: # unarmored combat
+        if unarmored:
+            am=unarmored*SKILL_EFFECTIVENESS_MULTIPLIER
+            dadd['pro'] = dadd.get('pro', 0) + SKLMOD_UNARMORED_PRO*sm
+            dadd['arm'] = dadd.get('arm', 0) + SKLMOD_UNARMORED_AV*sm
+            dadd['dfn'] = dadd.get('dfn', 0) + SKLMOD_UNARMORED_DV*sm
+    
+    # examine body part
+    
+# NOTE: status effect of getting hit in the head mimicks sickness
+# also restlessness, headache, speech skill penalty
+# status effect activastes when head hit hard; lasts long time
+            
+    if head.bone.status:
+        _mult(dmul, MULTMODS_BPP_HEAD_BONESTATUS.get(head.bone.status, {}))
+    if head.brain.status:
+        _add(dadd, ADDMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
+        _mult(dmul, MULTMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
+    if head.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(head.skin.status, {}))
+    return dadd,dmul
+
+def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+    if arm.bone.status:
+        _add(dadd, ADDMODS_BPP_ARM_BONESTATUS.get(arm.bone.status, {}))
+    if arm.muscle.status:
+        _add(dadd, ADDMODS_BPP_ARM_MUSCLESTATUS.get(arm.muscle.status, {}))
+    if arm.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(arm.skin.status, {}))
+    return dadd,dmul
+def _update_from_bp_hand(ent, hand, armorSkill, unarmored):
+    _update_from_bp_arm(ent, hand, armorSkill, unarmored)
+def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+    if leg.bone.status:
+        _add(dadd, ADDMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
+        _mult(dmul, MULTMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
+    if leg.muscle.status:
+        _add(dadd, ADDMODS_BPP_LEG_MUSCLESTATUS.get(leg.muscle.status, {}))
+    if leg.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(leg.skin.status, {}))
+    return dadd,dmul
+def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
+    _update_from_bp_leg(ent, foot, armorSkill, unarmored)
+def _update_from_bp_face(ent, face, armorSkill, unarmored):
+    pass
+def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
+    pass
+def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
+    pass
+def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
+    pass
+def _update_from_bp_nose(ent, nose, armorSkill, unarmored):
+    pass
+def _update_from_bp_mouth(ent, mouth, armorSkill, unarmored):
+    pass
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     '''
@@ -1056,164 +1207,15 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     addMods=[]
     multMods=[]
 ##    skilledInWeapons=(weap_skill in skills.skills)
-    
-    # local func for durability penalties (TODO: move all these nested functions and make it global private funcs)
-    def append_mods(addMods, multMods, dadd, dmul):
-        if dadd:
-            addMods.append(dadd)
-        if dmul:
-            multMods.append(dmul)
-    # for adding just 1 mod dict into dadd or dmul
-    def _add(dadd, modDict):
-        for stat,val in modDict.items():
-            dadd[stat] = dadd.get(stat, 0) + val
-    def _mult(dmul, modDict):
-        for stat,val in modDict.items():
-            dmul[stat] = dmul.get(stat, 1) * val
-    # ADD DICT MULTIPLIER FUNCTIONS
-    def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
-        modf = 1 - (1 - (hp / hpMax))**2
-        dadd['asp'] = min(dadd['asp'], dadd['asp'] * (0.5 + 0.5*modf))
-        dadd['atk'] = min(dadd['atk'], dadd['atk'] * (0.5 + 0.5*modf))
-        dadd['dmg'] = min(dadd['dmg'], dadd['dmg'] * (0.5 + 0.5*modf))
-        dadd['pen'] = min(dadd['pen'], dadd['pen'] * modf)
-        dadd['pro'] = min(dadd['pro'], dadd['pro'] * modf)
-        dadd['arm'] = min(dadd['arm'], dadd['arm'] * (0.5 + 0.5*modf))
-        dadd['dfn'] = min(dadd['dfn'], dadd['dfn'] * (0.5 + 0.5*modf))
-    def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
-        modf = 1 - (1 - (hp / hpMax))**2
-        dadd['pro'] = min(dadd['pro'], dadd['pro'] * modf)
-        dadd['arm'] = min(dadd['arm'], dadd['arm'] * (0.5 + 0.5*modf))
-        dadd['dfn'] = min(dadd['dfn'], dadd['dfn'] * (0.5 + 0.5*modf))
-
-    # BPC
-    
-    def _update_from_bpc_heads(addMods, multMods, ent, bpc, armorSkill, unarmored):
-        # TODO: MOVE elsewhere (outside the scope of this function and probably outside of rogue)
-        for bpm in bpc.heads:
-            dadd,dmul=_update_from_bp_head(ent, bpm.head, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_neck(ent, bpm.neck, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_face(ent, bpm.face, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_eyes(ent, bpm.eyes, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_ears(ent, bpm.ears, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_nose(ent, bpm.nose, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_mouth(ent, bpm.mouth, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-    def _update_from_bpc_legs(addMods, ent, bpc, armorSkill, unarmored):
-        for bpm in bpc.legs:
-            dadd,dmul=_update_from_bp_foot(ent, bpm.foot, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_leg(ent, bpm.leg, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-    def _update_from_bpc_arms(addMods, ent, bpc, armorSkill, unarmored):
-        for bpm in bpc.arms:
-            dadd,dmul=_update_from_bp_hand(ent, bpm.hand, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-            dadd,dmul=_update_from_bp_arm(ent, bpm.arm, armorSkill, unarmored)
-            append_mods(addMods, multMods, dadd, dmul)
-
-    # BP
-            
-    def _update_from_bp_head(ent, head, armorSkill, unarmored):
-        dadd={}
-        dmul={}
-
-        # equipment
-        if head.slot.item:
-            item=head.slot.item
-            hp=rog.getms(item, "hp")
-            hpmax=rog.getms(item, "hpmax")
-            equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
-            for k,v in equipable.mods.items(): # collect add modifiers
-                dadd.update({k:v})
-            
-            # bonuses
-            # armor skill bonus
-            if armorSkill:
-                sm=armorSkill*SKILL_EFFECTIVENESS_MULTIPLIER
-                dadd['pro'] = dadd.get('pro', 0)*SKLMOD_ARMOR_PRO*sm
-                dadd['arm'] = dadd.get('arm', 0)*SKLMOD_ARMOR_AV*sm
-                dadd['dfn'] = dadd.get('dfn', 0)*SKLMOD_ARMOR_DV*sm
-            
-            # penalties
-            # durability penalty multiplier for the stats
-            _apply_durabilityPenalty_armor(dadd, hp, hpmax)
-                                    
-        else: # unarmored combat
-            if unarmored:
-                am=unarmored*SKILL_EFFECTIVENESS_MULTIPLIER
-                dadd['pro'] = dadd.get('pro', 0) + SKLMOD_UNARMORED_PRO*sm
-                dadd['arm'] = dadd.get('arm', 0) + SKLMOD_UNARMORED_AV*sm
-                dadd['dfn'] = dadd.get('dfn', 0) + SKLMOD_UNARMORED_DV*sm
-        
-        # examine body part
-        
-# NOTE: status effect of getting hit in the head mimicks sickness
-    # also restlessness, headache, speech skill penalty
-    # status effect activastes when head hit hard; lasts long time
-                
-        if head.bone.status:
-            _mult(dmul, MULTMODS_BPP_HEAD_BONESTATUS.get(head.bone.status, {}))
-        if head.brain.status:
-            _add(dadd, ADDMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
-            _mult(dmul, MULTMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
-        if head.skin.status:
-            _add(dadd, ADDMODS_BPP_SKINSTATUS.get(head.skin.status, {}))
-        return dadd,dmul
-    
-    def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
-        dadd={}
-        dmul={}
-        if arm.bone.status:
-            _add(dadd, ADDMODS_BPP_ARM_BONESTATUS.get(arm.bone.status, {}))
-        if arm.muscle.status:
-            _add(dadd, ADDMODS_BPP_ARM_MUSCLESTATUS.get(arm.muscle.status, {}))
-        if arm.skin.status:
-            _add(dadd, ADDMODS_BPP_SKINSTATUS.get(arm.skin.status, {}))
-        return dadd,dmul
-    def _update_from_bp_hand(ent, hand, armorSkill, unarmored):
-        _update_from_bp_arm(ent, hand, armorSkill, unarmored)
-    def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
-        dadd={}
-        dmul={}
-        if leg.bone.status:
-            _add(dadd, ADDMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
-            _mult(dmul, MULTMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
-        if leg.muscle.status:
-            _add(dadd, ADDMODS_BPP_LEG_MUSCLESTATUS.get(leg.muscle.status, {}))
-        if leg.skin.status:
-            _add(dadd, ADDMODS_BPP_SKINSTATUS.get(leg.skin.status, {}))
-        return dadd,dmul
-    def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
-        _update_from_bp_leg(ent, foot, armorSkill, unarmored)
-    def _update_from_bp_face(ent, face, armorSkill, unarmored):
-        pass
-    def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
-        pass
-    def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
-        pass
-    def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
-        pass
-    def _update_from_bp_nose(ent, nose, armorSkill, unarmored):
-        pass
-    def _update_from_bp_mouth(ent, mouth, armorSkill, unarmored):
-        pass
         
 
-    # alter stats based on body status / equipped gear
+    # alter stats based on body status / equipped gear #
     
     if world.has_component(ent, cmp.Body):
         body=world.component_for_entity(ent, cmp.Body)
     else:
         body=None
-    
-    if body and False: # TESTTTT!!!!! and False is to make it always false...
+    if body:
         keys = body.parts.keys()
         if cmp.BPC_Heads in keys:
             _update_from_bpc_heads(
@@ -1278,6 +1280,10 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 # Switch itemStats to 
 ##            hp=rog.getms(item, "hp")
 ##            hpmax=rog.getms(item, "hpmax")
+
+# can we handle this recursively? e.g. _update_from_bpc_arms()
+    # calls functions that update its stats based on what is equipped
+    # to each arm....?
 #-------------------------------------------------------#
 
 # THIS IS ALL OBSELETE CODE!!!!!!!!!
@@ -1425,14 +1431,55 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.__dict__[k] = v
     
     # apply mods #
-    # add mods
+    # TODO: multiplier mods
+    # add mods, round the values
     for mod in addMods:
         for k,v in mod.items():
             modded.__dict__[k] = around(v + modded.__dict__[k])
+        
+    # attributes #
 
-    # round values
-    for k,v in modded.__dict__.items():
-        modded.__dict__[k] = around(v)
+    # Strength
+    _str = modded.str
+    modded.encmax += _str * AM_STR_ENCUMBERANCE
+    modded.force += _str * AM_STR_FORCE
+    modded.gra += _str * AM_STR_GRAPPLING
+
+    # Agility
+    _agi = modded.agi
+    modded.msp += _agi * AM_AGI_MOVESPEED
+    modded.asp += _agi * AM_AGI_ATTACKSPEED
+
+    # Dexterity
+    _dex = modded.dex
+    modded.atk += _dex * AM_DEX_ATTACK
+
+    # Endurance
+    _end = modded.end
+    modded.resfire += _end * AM_END_RESHEAT
+    modded.rescold += _end * AM_END_RESCOLD
+    modded.resphys += _end * AM_END_RESPHYS
+    modded.respain += _end * AM_END_RESPAIN
+    modded.resbio += _end * AM_END_RESBIO
+    modded.resbleed += _end * AM_END_RESBLEED
+
+    # Intelligence
+    _int = modded.int
+
+    # Constitution
+    _con = modded.con
+    modded.hpmax += _con * AM_CON_HP
+    modded.encmax += _con * AM_CON_ENCUMBERANCE
+
+    # Luck
+    luck = modded.luck
+    #
+    
+
+    # encumberance #
+    
+##    if encbp    
+##    #
     
     return modded
 #
@@ -1622,6 +1669,9 @@ def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
 
 def get_direction():
     return IO.get_direction()
+
+def adjacent_directions(_dir):
+    return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
 
 #prompt
 # show a message and ask the player for input

@@ -127,23 +127,29 @@ file_keyBindings=os.path.join(os.path.curdir,"settings","key_bindings.txt")
     #Note: commands are not case-sensitive.
 KEYBINDINGS_TEXT_DEFAULT = '''//file name: {filename}
 
-//A "comment on comments:"
+//These are comments.
 //  All empty lines, and all lines beginning with "//"
 //  (without quotations), are considered to be comments
-//  by the file reader, and are thus ignored.
+//  by the file reader, and are ignored.
 
-//  --- Key Bindings Information ---
+//      --- Key Bindings Information ---
+
 //In order to remove one binding, set it to: NONE 
 //Bindings may begin with any combination of shift, ctrl,
 //  and alt, followed by a plus (+) symbol:
 //  "Shift+" OR "Ctrl+" OR "Alt+"
-//Example key bindings (note bindings are NOT case-sensitive):
+//Keypad numbers begin with "KP" e.g. "KP5"
+
+//Example key bindings
+//    (note bindings are case-insensitive):
 //  CTRL+ALT+DELETE
 //  shift+=
 //  f
 //  Ctrl+A
 //  none
 //  None
+//  KP8
+
 //The action bound to the last combo will function if and
 //  only if the a button is pressed WHILE the Ctrl button
 //  is being held, and neither Alt nor Shift are also being
@@ -170,42 +176,42 @@ NONE
 NONE
 
 // North
-k
+K
 KP8
 UP
 
 // West
-h
+H
 KP4
 LEFT
 
 // South
-j
+J
 KP2
 DOWN
 
 // East
-l
+L
 KP6
 RIGHT
 
 // Northwest
-y
+Y
 KP7
 NONE
 
 // Southwest
-b
+B
 KP1
 NONE
 
 // Southeast
-n
+N
 KP3
 NONE
 
 // Northeast
-u
+U
 KP9
 NONE
 
@@ -229,6 +235,16 @@ c
 SPACE
 NONE
 
+// Move
+m
+NONE
+NONE
+
+// Attack
+f
+NONE
+NONE
+
 // Get
 g
 ,
@@ -244,13 +260,8 @@ s
 NONE
 NONE
 
-// Throw
+// Target entity (+ target limbs) to fire / throw / attack
 t
-NONE
-NONE
-
-// Fire weapon
-f
 NONE
 NONE
 
@@ -258,6 +269,11 @@ NONE
 x
 /
 Shift+L
+
+// Wait
+w
+Ctrl+t
+NONE
 
 // Rest
 r
@@ -367,25 +383,28 @@ NONE
 # Order of commands must match order in the key_bindings.txt file. #
 '''
 COMMANDS = {        # translate commands into actions
+
     'help'          : {'help': True}, # CHANGED ORDERING, TEST TO MAKE SURE IT STILL WORKS.
-    'north'         : {'target': (0, -1,  0,) },
-    'west'          : {'target': (-1, 0,  0,) },
-    'south'         : {'target': (0,  1,  0,) },
-    'east'          : {'target': (1,  0,  0,) },
-    'northwest'     : {'target': (-1, -1, 0,) },
-    'southwest'     : {'target': (-1, 1,  0,) },
-    'southeast'     : {'target': (1,  1,  0,) },
-    'northeast'     : {'target': (1, -1,  0,) },
-    'self'          : {'target': (0,  0,  0,) },
-    'up'            : {'target': (0,  0, -1,) },
-    'down'          : {'target': (0,  0,  1,) },
+    'north'         : {'context-dir': (0, -1,  0,) },
+    'west'          : {'context-dir': (-1, 0,  0,) },
+    'south'         : {'context-dir': (0,  1,  0,) },
+    'east'          : {'context-dir': (1,  0,  0,) },
+    'northwest'     : {'context-dir': (-1, -1, 0,) },
+    'southwest'     : {'context-dir': (-1, 1,  0,) },
+    'southeast'     : {'context-dir': (1,  1,  0,) },
+    'northeast'     : {'context-dir': (1, -1,  0,) },
+    'self'          : {'context-dir': (0,  0,  0,) },
+    'up'            : {'context-dir': (0,  0, -1,) },
+    'down'          : {'context-dir': (0,  0,  1,) },
     'context'       : {'context': True},
+    'move'          : {'move': True},
+    'attack'        : {'attack': True},
     'get'           : {'get': True},
     'open'          : {'open': True},
     'sprint'        : {'sprint': True},
-    'throw'         : {'throw': True},
-    'fire'          : {'fire': True},
+    'target'        : {'target': True},
     'look'          : {'look': True},
+    'wait'          : {'wait': True},
     'rest'          : {'rest': True},
     'move view'     : {'move view': True},
     'fixed view'    : {'fixed view': True},
@@ -928,6 +947,8 @@ def _init_keyBindings():
     n = NUM_ALT_CMDS
     # error checking
     if not ( numCommands == n*len(COMMANDS.keys()) ):
+        print("number of commands: ", numCommands)
+        print("number expected: ", n*len(COMMANDS.keys()))
         raise(Error_wrongNumberCommandsLoaded)
     # bind special combined key input to commands #
     try:
@@ -948,29 +969,86 @@ def _keyBindings_writeFromDefault():
         print("FATAL ERROR! Failed to create key_bindings.txt")
 
 #
+# target entity using a dumb line traversing algorithm
+# returns an entity or None
 #
-# get direction
-# player chooses a direction using key bindings or the mouse,
-# returns a tuple
-#
-def get_direction():
+def aim_find_target():
+    targeted = None
+    pos = rog.world().component_for_entity(rog.pc(), cmp.Position)
     while True:
         pcAct=handle_mousekeys(get_raw_input()).items()
         for act,arg in pcAct:
-            if act=="target":
-                return arg
+            
+            if (act=="context-dir" or act=="move"):
+                interesting = [] # possible targets
+                checkdir = arg
+                t = 0
+                
+                while t < sight:
+                    t += 1
+                    
+                    # check this tile
+                    xx = pos.x + checkdir[0]*t
+                    yy = pos.y + checkdir[1]*t
+                    here = rog.monat(xx,yy)
+                    if here:
+                        score = t
+                        interesting.append( (here, score) )
+                        
+                    # check tiles in 2 lines spreading outward from this tile
+                    for dir1, dir2 in rog.adjacent_directions(checkdir):
+                        g = 0
+                        while t + g < sight:
+                            pass
+                        # end while
+                    # end for
+                # end while
+
+                for ent, score in interesting:
+                    if score < lowscore:
+                        lowscore = score
+                        targeted = ent
+                # end for
+            #                        
             elif act=="exit":
                 rog.alert("")
                 return None
             elif act=="select":
-                return (0,0,0,)
+                return targeted
             elif act=="lclick":
                 mousex,mousey,z=arg
                 pc=rog.Ref.pc
                 dx=mousex - rog.getx(pc.x)
                 dy=mousey - rog.gety(pc.y)
                 if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
-                    return dx,dy,0
+                    return (dx,dy,0,)
+
+#
+#
+# get direction
+# player chooses a direction using key bindings or the mouse,
+# returns a tuple or None
+#
+def get_direction():
+    while True:
+        pcAct=handle_mousekeys(get_raw_input()).items()
+        for act,arg in pcAct:
+            if act=="context-dir":
+                return arg
+            if act=="move":
+                return arg
+            if act=="exit":
+                rog.alert("")
+                return None
+            if act=="select":
+                return (0,0,0,)
+            if act=="lclick":
+                mousex,mousey,z=arg
+                pc=rog.Ref.pc
+                dx=mousex - rog.getx(pc.x)
+                dy=mousey - rog.gety(pc.y)
+                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
+                    return (dx,dy,0,)
 
 
 
