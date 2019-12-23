@@ -1,0 +1,155 @@
+
+        
+    # status effect of getting hit in the head mimicks sickness
+    # also restlessness, headache, speech skill penalty
+    # status effect activastes when head hit hard; lasts long time
+	
+	
+	
+#-------------------------------------------------------#
+# TODO: finish updating all these to the new Body class format!! #
+# Switch itemStats to 
+##            hp=rog.getms(item, "hp")
+##            hpmax=rog.getms(item, "hpmax")
+
+# can we handle this recursively? e.g. _update_from_bpc_arms()
+    # calls functions that update its stats based on what is equipped
+    # to each arm....?
+#-------------------------------------------------------#
+
+# THIS IS ALL OBSELETE CODE!!!!!!!!!
+    '''
+    #
+    # armor
+    if world.has_component(ent, cmp.EquipArmor):
+        compo=world.component_for_entity(ent, cmp.EquipArmor)
+        if compo.item:
+            item=compo.item
+            itemStats=world.component_for_entity(item, cmp.Stats)
+            slot=world.component_for_entity(item, cmp.EquipableInArmorSlot)
+            dadd={}
+            for k,v in slot.mods.items(): # collect add modifiers
+                dadd.update({k:v})
+
+            # bonuses
+            # armor skill bonus
+            if armorSkill:
+                dadd['pro'] = dadd['pro']*SKLMOD_ARMOR_PRO
+                dadd['arm'] = dadd['arm']*SKLMOD_ARMOR_AV
+                dadd['dfn'] = dadd['dfn']*SKLMOD_ARMOR_DV
+
+            # penalties
+            # durability penalty
+            _apply_durabilityPenalty_armor(dadd, itemStats.hp, itemStats.hpMax)
+
+            addMods.append(dadd)
+
+        else: # unarmored combat
+            pass
+    #
+    # offhand
+    if world.has_component(ent, cmp.EquipHand2):
+        compo=world.component_for_entity(ent, cmp.EquipHand2)
+        if compo.item:
+            offhandItem = True
+            item=compo.item
+            itemStats=world.component_for_entity(item, cmp.Stats)
+            slot=world.component_for_entity(item, cmp.EquipableInHandSlot)
+            dadd={}
+            for k,v in slot.mods.items(): # collect add modifiers
+                dadd.update({k:v})
+
+            # bonuses
+
+            # weapon skill bonus
+            if world.has_component(item, cmp.WeaponSkill):
+                weaponSkill=world.component_for_entity(item, cmp.WeaponSkill)
+                if weaponSkill.skill in skills.skills:
+                    skill=weaponSkill.skill # THIS IS OBSELETE W/ NUMBERED SKILL SYSTEM
+                    statdata=SKILL_WEAPSTATDATA[skill]
+                    for _var, _modf in statdata:
+                        dadd[_var] = dadd[_var] + _modf
+
+            # penalties
+
+            # durability penalty
+            _apply_durabilityPenalty_weapon(dadd, itemStats.hp, itemStats.hpMax)
+            
+            # offhand penalty
+            dadd['atk'] = 0
+            dadd['dmg'] = 0
+            dadd['pen'] = 0
+            dadd['asp'] = 0
+            # penalty to defensive capability
+            #   applies to all weapons except shields and knives
+            if ( weaponsSkill==SKL_SHIELDS
+                 or weaponSkill==SKL_KNIVES ):
+                pass
+            else:
+                dadd['dfn'] = min( dadd['dfn'],
+                    dadd['dfn'] * OFFHAND_PENALTY_DFN )
+                dadd['arm'] = min( dadd['arm'],
+                    dadd['arm'] * OFFHAND_PENALTY_ARM )
+                dadd['pro'] = min( dadd['pro'],
+                    dadd['pro'] * OFFHAND_PENALTY_PRO )
+
+            addMods.append(dadd)
+            
+        else: # unarmed combat
+            pass
+    #
+    # main hand
+    if world.has_component(ent, cmp.EquipHand1):
+        compo=world.component_for_entity(ent, cmp.EquipHand1)
+        if compo.item:
+            item=compo.item
+            itemStats=world.component_for_entity(item, cmp.Stats)
+            slot=world.component_for_entity(item, cmp.EquipableInHandSlot)
+            dadd={}
+            for k,v in slot.mods.items(): # collect add modifiers
+                dadd.update({k:v})
+            
+            # bonuses
+
+            # weapon skill bonus
+            if world.has_component(item, cmp.WeaponSkill):
+                weaponSkill=world.component_for_entity(item, cmp.WeaponSkill)
+                if weaponSkill.skill in skills.skills:
+                    skill=weaponSkill.skill
+                    statdata=SKILL_WEAPSTATDATA[skill]
+                    for _var, _modf in statdata:
+                        dadd[_var] = dadd[_var] + _modf
+            
+            # 2-handed / 1-handed
+            twoh=on(item, TWOHANDS)
+            # apply bonus for wielding a 1-h weap in 2 hands (or w/ free hand)
+            if (not twoh and not offhandItem):
+                dadd['dfn'] = dadd['dfn'] + MOD_2HANDBONUS_DFN
+                dadd['arm'] = dadd['arm'] + MOD_2HANDBONUS_ARM
+                dadd['pro'] = dadd['pro'] + MOD_2HANDBONUS_PRO
+                dadd['atk'] = dadd['atk'] + MOD_2HANDBONUS_ATK
+                dadd['asp'] = dadd['asp'] + MOD_2HANDBONUS_ASP
+                dadd['dmg'] = dadd['dmg']*MULT_2HANDBONUS_DMG
+                dadd['pen'] = dadd['pen'] + MOD_2HANDBONUS_PEN
+            
+            # penalties
+
+            # durability penalty
+            _apply_durabilityPenalty_weapon(dadd, itemStats.hp, itemStats.hpMax)
+
+            # apply penalty for wielding a 2-h weap in 1 hand
+            if (twoh and offhandItem):
+                dadd['dfn'] = min(1, dadd['dfn'] - MOD_1HANDPENALTY_DFN)
+                dadd['arm'] = min(1, dadd['arm'] - MOD_1HANDPENALTY_ARM)
+                dadd['pro'] = min(1, dadd['pro'] - MOD_1HANDPENALTY_PRO)
+                dadd['atk'] = dadd['atk'] - MOD_1HANDPENALTY_ATK
+                dadd['asp'] = dadd['asp'] - MOD_1HANDPENALTY_ASP
+                dadd['dmg'] = dadd['dmg']*MULT_1HANDPENALTY_DMG
+                dadd['pen'] = dadd['pen']*MULT_1HANDPENALTY_PEN
+
+            addMods.append(dadd)
+                        
+        else: # unarmed combat
+            pass
+   
+'''

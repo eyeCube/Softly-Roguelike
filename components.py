@@ -424,10 +424,11 @@ class BP_Head:
         self.skin=BPP_Skin()
         self.hair=BPP_Hair()
 class BP_Neck:
-    __slots__=['slot','bone','muscle','skin']
+    __slots__=['slot','artery','bone','muscle','skin']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
+        self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
 class BP_Face:
@@ -590,9 +591,9 @@ class BPP_GustatorySystem:
         self.quality=quality
 class BPP_FacialFeatures:
     __slots__=['beauty','scariness']
-    def __init__(self, beauty=6, scariness=6):
+    def __init__(self, beauty=32, scary=32):
         self.beauty=beauty
-        self.scariness=scariness
+        self.scary=scary
 class BPP_Teeth:
     __slots__=['quantity','quality','material']
     def __init__(self, quantity=26, quality=2, mat=-1):
@@ -650,13 +651,28 @@ class EquipableInAmmoSlot:
         self.ap=ap
         self.mods=mods
         self.fit=fit
-class EquipableInBodySlot: # can be equipped in the body slot
+class EquipableInFrontSlot: # breastplate
+    __slots__=['ap','mods','fit']
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+        self.coversBack=coversBack
+        self.coversCore=coversCore
+        self.coversHips=coversHips
+class EquipableInCoreSlot: # tummy area
     __slots__=['ap','mods','fit'] # ap = AP (Energy) cost to equip / take off
     def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
+    __slots__=['ap','mods','fit']
+    def __init__(self, ap, mods, fit=1): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+class EquipableInHipsSlot: #
     __slots__=['ap','mods','fit']
     def __init__(self, ap, mods, fit=1): #{var : modf,}
         self.ap=ap

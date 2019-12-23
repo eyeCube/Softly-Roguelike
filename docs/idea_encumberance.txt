@@ -1,0 +1,45 @@
+# get the encumberance breakpoint
+# breakpoints are:
+#   Ratio   Effects
+# 	0-5% 	no effects
+# 	5-12% 	Sta cost* +10%
+# 	12-25%  Msp -5%, Sta cost +25%, Gra -1, DV -1, AGI -1
+#   25-50%  Msp -12%, Asp -5%, Sta cost +50%, Gra -2, DV -2, Atk -1, Pro -1, AGI -2
+#   50-75%  Msp -25%, Asp -10%, Sta cost +100%, Gra -4, DV -4, Atk -2, Pro -2, AGI -4
+#   75-87%  Msp -50%, Asp -20%, Sta cost +200%, Gra -6, DV -6, Atk -3, Pro -3, AGI -6
+#   87-95%  Msp -75%, Asp -30%, Sta cost +300%, Gra -8, DV -8, Atk -4, Pro -4, AGI -8
+#   95-100% Msp -90%, Asp -40%, Sta cost +400%, Gra -10, DV -10, Atk -5, Pro -5, AGI -10
+#   100%    Msp <=5, Asp -50%, Sta cost +500%, Gra -12, DV -12, Atk -6, Pro -6, AGI -12
+# *Sta cost == stamina cost for movement-related actions.
+# @100% encumberance your MSp cannot exceed 5.
+# For every 5% encumberance above 100%,
+#    you take 1 damage every time you take a step.
+#    your MSp maximum is reduced by 1. (@105% MSp max is 4, @110% it's 3, etc.)
+#    ASp -10%, Sta cost +100%, Gra -2, DV -2, Atk -1, Pro -1, AGI -2
+
+currenc= enc/encmax
+encbp = 0
+if currenc >= 1.05:
+	encbp = 9
+	excess = 20 * (enc - encmax) / encmax
+elif currenc >= 1:
+	encbp = 8
+elif currenc >= 0.95:
+	encbp = 7
+elif currenc >= 0.87:
+	encbp = 6
+elif currenc >= 0.75:
+	encbp = 5
+elif currenc >= 0.5:
+	encbp = 4
+elif currenc >= 0.25:
+	encbp = 3
+elif currenc >= 0.12:
+	encbp = 2
+elif currenc >= 0.05:
+	encbp = 1
+	
+if encbp == 0:
+	pass
+elif encbp == 1:
+	

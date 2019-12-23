@@ -2371,6 +2371,603 @@ def paralyze(ent, dur):
     return True
 
 
+# Stats #
+
+
+    #-----------------------#
+    #       Stats           #
+    #-----------------------#
+
+
+# local func for durability penalties (TODO: move all these nested functions and make it global private funcs)
+def append_mods(addMods, multMods, dadd, dmul):
+    if dadd:
+        addMods.append(dadd)
+    if dmul:
+        multMods.append(dmul)
+# for adding just 1 mod dict into dadd or dmul
+def _add(dadd, modDict):
+    for stat,val in modDict.items():
+        dadd[stat] = dadd.get(stat, 0) + val
+def _mult(dmul, modDict):
+    for stat,val in modDict.items():
+        dmul[stat] = dmul.get(stat, 1) * val
+# ADD DICT MULTIPLIER FUNCTIONS
+# multipliers that affect individual add mod dicts
+#   * For instance, a weapon that gives +5 Atk but has a poor condition,
+#   so it only gives +3 Atk for the purposes of wielding it in this moment.
+def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
+    modf = 1 - (1 - (hp / hpMax))**2
+    _2575 = (0.25 + 0.75*modf)
+    _5050 = (0.5 + 0.5*modf)
+    _7525 = (0.75 + 0.25*modf)
+    dadd['asp'] = min( dadd.get('asp',0), dadd.get('asp',0) * _7525 )
+    dadd['atk'] = min( dadd.get('atk',0), dadd.get('atk',0) * _5050 )
+    dadd['dmg'] = min( dadd.get('dmg',0), dadd.get('dmg',0) * _2575 )
+    dadd['pen'] = min( dadd.get('pen',0), dadd.get('pen',0) * modf )
+    dadd['pro'] = min( dadd.get('pro',0), dadd.get('pro',0) * modf )
+    dadd['arm'] = min( dadd.get('arm',0), dadd.get('arm',0) * _2575 )
+    dadd['dfn'] = min( dadd.get('dfn',0), dadd.get('dfn',0) * _5050 )
+# end def
+def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
+    modf = 1 - (1 - (hp / hpMax))**2
+    _2575 = (0.25 + 0.75*modf)
+    _5050 = (0.5 + 0.5*modf)
+    dadd['pro'] = min(dadd.get('pro',0), dadd.get('pro',0) * modf)
+    dadd['arm'] = min(dadd.get('arm',0), dadd.get('arm',0) * _2575)
+    dadd['dfn'] = min(dadd.get('dfn',0), dadd.get('dfn',0) * _5050)
+# end def
+def _apply_skill_bonus_armor(dadd, skill):
+    if not skill: return
+    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['pro'] = dadd.get('pro',0) * (1 + SKLMOD_ARMOR_PRO*sm)
+    dadd['arm'] = dadd.get('arm',0) * (1 + SKLMOD_ARMOR_AV*sm)
+    dadd['dfn'] = dadd.get('dfn',0) * (1 + SKLMOD_ARMOR_DV*sm)
+# end def
+def _apply_skill_bonus_unarmored(dadd, skill, coverage_modifier):
+    if not skill: return
+    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modifier
+    dadd['pro'] = dadd.get('pro',0) + SKLMOD_UNARMORED_PRO*sm
+    dadd['arm'] = dadd.get('arm',0) + SKLMOD_UNARMORED_AV*sm
+    dadd['dfn'] = dadd.get('dfn',0) + SKLMOD_UNARMORED_DV*sm
+# end def
+def _apply_skill_bonus_weapon(dadd, skill):
+    if not skill: return
+    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['atk'] = dadd.get('atk',0) * (1 + SKLMOD_WEAPON_ATK*sm)
+    dadd['pen'] = dadd.get('pen',0) * (1 + SKLMOD_WEAPON_PEN*sm)
+    dadd['dmg'] = dadd.get('dmg',0) * (1 + SKLMOD_WEAPON_DMG*sm)
+    dadd['dfn'] = dadd.get('dfn',0) * (1 + SKLMOD_WEAPON_DFN*sm)
+    dadd['pro'] = dadd.get('pro',0) * (1 + SKLMOD_WEAPON_PRO*sm)
+    dadd['arm'] = dadd.get('arm',0) * (1 + SKLMOD_WEAPON_ARM*sm)
+    dadd['asp'] = dadd.get('asp',0) * (1 + SKLMOD_WEAPON_ASP*sm)
+    dadd['gra'] = dadd.get('gra',0) * (1 + SKLMOD_WEAPON_GRA*sm)
+    dadd['ctr'] = dadd.get('ctr',0) * (1 + SKLMOD_WEAPON_CTR*sm)
+# end def
+
+# BPC
+
+def _update_from_bpc_heads(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    for bpm in bpc.heads:
+        # head
+        dadd,dmul=_update_from_bp_head(ent, bpm.head, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # neck
+        dadd,dmul=_update_from_bp_neck(ent, bpm.neck, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # face
+        dadd,dmul=_update_from_bp_face(ent, bpm.face, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # eyes
+        dadd,dmul=_update_from_bp_eyes(ent, bpm.eyes, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # ears
+        dadd,dmul=_update_from_bp_ears(ent, bpm.ears, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # nose
+        dadd,dmul=_update_from_bp_nose(ent, bpm.nose, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # mouth
+        dadd,dmul=_update_from_bp_mouth(ent, bpm.mouth, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+
+def _update_from_bpc_legs(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    for bpm in bpc.legs:
+        # foot
+        dadd,dmul=_update_from_bp_foot(ent, bpm.foot, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # leg
+        dadd,dmul=_update_from_bp_leg(ent, bpm.leg, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+# end def
+
+def _update_from_bpc_arms(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    for bpm in bpc.arms:
+        # hand
+        dadd,dmul=_update_from_bp_hand(ent, bpm.hand, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+        # arm
+        dadd,dmul=_update_from_bp_arm(ent, bpm.arm, armorSkill, unarmored)
+        append_mods(addMods, multMods, dadd, dmul)
+# end def
+
+def _update_from_bpc_torso(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    # core
+    dadd,dmul=_update_from_bp_torsoCore(ent, bpc.core, armorSkill, unarmored)
+    append_mods(addMods, multMods, dadd, dmul)
+    # front
+    dadd,dmul=_update_from_bp_torsoFront(ent, bpc.front, armorSkill, unarmored)
+    append_mods(addMods, multMods, dadd, dmul)
+    # back
+    dadd,dmul=_update_from_bp_torsoBack(ent, bpc.back, armorSkill, unarmored)
+    append_mods(addMods, multMods, dadd, dmul)
+    # hips
+    dadd,dmul=_update_from_bp_hips(ent, bpc.hips, armorSkill, unarmored)
+    append_mods(addMods, multMods, dadd, dmul)
+    # heart, lungs (TODO)
+# end def
+
+# BP
+
+# head  
+def _update_from_bp_head(ent, head, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if head.slot.item:
+        item=head.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)        
+    
+    # examine body part                
+    if head.bone.status: # skull
+        _add(dadd, ADDMODS_BPP_HEAD_BONESTATUS.get(head.bone.status, {}))
+        _mult(dmul, MULTMODS_BPP_HEAD_BONESTATUS.get(head.bone.status, {}))
+    if head.brain.status: # brain
+        _add(dadd, ADDMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
+        _mult(dmul, MULTMODS_BPP_BRAINSTATUS.get(head.brain.status, {}))
+    if head.skin.status: # scalp
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(head.skin.status, {}))
+    return dadd,dmul
+# end def
+
+# arm
+def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if arm.slot.item:
+        item=arm.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInArmSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+        
+    # examine body part
+    if arm.bone.status:
+        _add(dadd, ADDMODS_BPP_ARM_BONESTATUS.get(arm.bone.status, {}))
+    if arm.muscle.status:
+        _add(dadd, ADDMODS_BPP_ARM_MUSCLESTATUS.get(arm.muscle.status, {}))
+    if arm.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(arm.skin.status, {}))
+    return dadd,dmul
+# end def
+
+# hand
+def _update_from_bp_hand(ent, hand, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if hand.slot.item:
+        item=hand.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.05 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+        
+    # examine body part
+    if hand.bone.status:
+        _add(dadd, ADDMODS_BPP_ARM_BONESTATUS.get(hand.bone.status, {}))
+    if hand.muscle.status:
+        _add(dadd, ADDMODS_BPP_ARM_MUSCLESTATUS.get(hand.muscle.status, {}))
+    if hand.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(hand.skin.status, {}))
+    return dadd,dmul
+# end def
+
+# leg
+def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if leg.slot.item:
+        item=leg.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInLegSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+        
+    # examine body part
+    if leg.bone.status:
+        _add(dadd, ADDMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
+        _mult(dmul, MULTMODS_BPP_LEG_BONESTATUS.get(leg.bone.status, {}))
+    if leg.muscle.status:
+        _add(dadd, ADDMODS_BPP_LEG_MUSCLESTATUS.get(leg.muscle.status, {}))
+    if leg.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(leg.skin.status, {}))
+    return dadd,dmul
+# end def
+
+# foot
+def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if foot.slot.item:
+        item=foot.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInFootSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+        
+    # examine body part
+    if foot.bone.status:
+        _add(dadd, ADDMODS_BPP_LEG_BONESTATUS.get(foot.bone.status, {}))
+        _mult(dmul, MULTMODS_BPP_LEG_BONESTATUS.get(foot.bone.status, {}))
+    if foot.muscle.status:
+        _add(dadd, ADDMODS_BPP_LEG_MUSCLESTATUS.get(foot.muscle.status, {}))
+    if foot.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(foot.skin.status, {}))
+    return dadd,dmul
+# end def
+
+# face
+def _update_from_bp_face(ent, face, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if face.slot.item:
+        item=face.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInFaceSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+        
+    # examine body part
+    if face.skin.status:
+        _add(dadd, ADDMODS_BPP_FACE_SKINSTATUS.get(face.skin.status, {})
+    dadd['beauty'] += face.features.beauty
+    dadd['scary']  += face.features.scary
+    return dadd,dmul
+# end def
+
+# neck
+def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if neck.slot.item:
+        item=neck.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+        
+    # examine body part
+    if neck.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(neck.skin.status, {})
+    if neck.muscle.status:
+        _add(dadd, ADDMODS_BPP_NECK_MUSCLESTATUS.get(neck.muscle.status, {})
+    if neck.bone.status:
+        _add(dadd, ADDMODS_BPP_NECK_BONESTATUS.get(neck.bone.status, {})
+        _mult(dmul, MULTMODS_BPP_NECK_BONESTATUS.get(neck.bone.status, {})
+    return dadd,dmul
+# end def
+
+# eyes
+def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if eyes.slot.item:
+        item=eyes.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInEyesSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+        
+    # examine body part
+    dadd['sight'] += eyes.visualSystem.quality # TODO: make entities have 0 sight but give them eyes which have quality==the sight value you want.
+    return dadd,dmul
+# end def
+
+# ears
+def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+    # equipment (earplugs, earbuds, etc.)
+    if ears.slot.item:
+        item=ears.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+        
+    # examine body part
+    dadd['hearing'] += ears.auditorySystem.quality
+    return dadd,dmul
+# end def
+
+# nose
+def _update_from_bp_nose(ent, nose, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+    # examine body part
+    if nose.bone.status:
+        _add(dadd, ADDMODS_BPP_FACE_BONESTATUS.get(mouth.bone.status, {})
+    return dadd,dmul
+# end def
+
+# mouth
+def _update_from_bp_mouth(ent, mouth, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+    # examine body part
+    if mouth.bone.status:
+        _add(dadd, ADDMODS_BPP_FACE_BONESTATUS.get(mouth.bone.status, {})
+    if mouth.muscle.status:
+        _add(dadd, ADDMODS_BPP_FACE_MUSCLESTATUS.get(mouth.muscle.status, {})
+    if mouth.skin.status:
+        _add(dadd, ADDMODS_BPP_FACE_SKINSTATUS.get(mouth.skin.status, {})
+    return dadd,dmul
+# end def
+
+# torso core
+def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if core.slot.item:
+        item=core.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInCoreSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+             
+    # examine body part
+    if core.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(core.skin.status, {})
+    if core.muscle.status:
+        _add(dadd, ADDMODS_BPP_TORSO_MUSCLESTATUS.get(core.muscle.status, {})
+    if core.guts.status:
+        _add(dadd, ADDMODS_BPP_GUTSSTATUS.get(core.guts.status, {})
+    return dadd,dmul
+# end def
+
+# torso front
+def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if front.slot.item:
+        item=front.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInFrontSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+             
+    # examine body part
+    if front.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(front.skin.status, {})
+    if front.muscle.status:
+        _add(dadd, ADDMODS_BPP_TORSO_MUSCLESTATUS.get(front.muscle.status, {})
+    if front.bone.status:
+        _add(dadd, ADDMODS_BPP_TORSO_BONESTATUS.get(front.bone.status, {})
+        _mult(dmul, MULTMODS_BPP_TORSO_BONESTATUS.get(front.bone.status, {})
+    return dadd,dmul
+# end def
+
+# torso back
+def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if back.slot.item:
+        item=back.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInBackSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+             
+    # examine body part
+    if back.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(back.skin.status, {})
+    if back.muscle.status:
+        _add(dadd, ADDMODS_BPP_TORSO_MUSCLESTATUS.get(back.muscle.status, {})
+    if back.bone.status:
+        _add(dadd, ADDMODS_BPP_TORSO_BONESTATUS.get(back.bone.status, {})
+        _mult(dmul, MULTMODS_BPP_TORSO_BONESTATUS.get(back.bone.status, {})
+    return dadd,dmul
+# end def
+
+# hips
+def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
+    dadd={}
+    dmul={}
+
+    # equipment
+    if hips.slot.item:
+        item=hips.slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInHipsSlot)
+        for k,v in equipable.mods.items(): # collect add modifiers
+            dadd.update({k:v})
+        
+        # armor skill bonus
+        _apply_skill_bonus_armor(dadd, armorSkill)
+        
+        # durability penalty multiplier for the stats
+        _apply_durabilityPenalty_armor(
+            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+                                
+    else: # unarmored combat
+        cov = 0.1 # temporary (TODO: get from body plan...)
+        _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+             
+    # examine body part
+    if hips.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(hips.skin.status, {})
+    if hips.muscle.status:
+        _add(dadd, ADDMODS_BPP_TORSO_MUSCLESTATUS.get(hips.muscle.status, {})
+    if hips.bone.status:
+        _add(dadd, ADDMODS_BPP_TORSO_BONESTATUS.get(hips.bone.status, {})
+        _mult(dmul, MULTMODS_BPP_TORSO_BONESTATUS.get(hips.bone.status, {})
+    return dadd,dmul
+# end def
+
+# wing
+def _update_from_bp_wing(ent, wing, armorSkill, unarmored):
+    pass
+# end def
+
+# tail
+def _update_from_bp_tail(ent, tail, armorSkill, unarmored):
+    pass
+# end def
+
+# genitals
+def _update_from_bp_genitals(ent, wing, armorSkill, unarmored):
+    pass
+# end def
+
+# tentacle
+def _update_from_bp_tentacle(ent, tentacle, armorSkill, unarmored):
+    pass
+# end def
+
+# pseudopod
+def _update_from_bp_pseudopod(ent, pseudopod, armorSkill, unarmored):
+    pass
+# end def
+
+# ameboid
+def _update_from_bp_ameboid(ent, ameboid, armorSkill, unarmored):
+    pass
+# end def
+
+# appendage
+def _update_from_bp_appendage(ent, appendage, armorSkill, unarmored):
+    pass
+# end def
+
+
+
 
 
 '''
