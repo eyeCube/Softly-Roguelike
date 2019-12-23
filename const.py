@@ -256,6 +256,7 @@ MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
 
 
 #misc
+DURMOD_ASP = 50
 DUR_STATMODS={ # durability % affects stats (multipliers)
     # stm1: stat mod 1 affects:
         # Atk, Prot, Pen, 
@@ -292,20 +293,20 @@ ROTTEDNESS={
 
 
 # base stats for player
-BASE_RESFIRE    = 0
-BASE_RESCOLD    = 0
-BASE_RESBIO     = 0
-BASE_RESPHYS    = 0
+BASE_RESFIRE    = 50
+BASE_RESCOLD    = 50
+BASE_RESBIO     = 100
+BASE_RESPHYS    = 20
 BASE_RESELEC    = 0
-BASE_RESPAIN    = 0
-BASE_RESBLEED   = 0
-BASE_RESRUST    = 100
-BASE_RESROT     = 100
+BASE_RESPAIN    = 100
+BASE_RESBLEED   = 100
+BASE_RESRUST    = 0
+BASE_RESROT     = 0
 BASE_RESWET     = 0
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
-BASE_COURAGE    = 24
-BASE_SCARY      = 6
+BASE_COURAGE    = 32
+BASE_SCARY      = 32
 BASE_BAL        = 12
 BASE_GRA        = 6
 BASE_CTR        = 0
@@ -320,7 +321,7 @@ BASE_MSP        = 100
 BASE_ASP        = 100
 BASE_HP         = 20
 BASE_MP         = 200
-BASE_ENCMAX     = 100000
+BASE_ENCMAX     = 10
 BASE_FORCE      = 10
 BASE_STR        = 12
 BASE_CON        = 12
@@ -329,8 +330,8 @@ BASE_DEX        = 12
 BASE_AGI        = 12
 BASE_END        = 12
 BASE_LUCK       = 0
-BASE_SIGHT      = 20 # TODO: set to 0, get all sight/hearing from body compo
-BASE_HEARING    = 60
+BASE_SIGHT      = 40
+BASE_HEARING    = 80
 
 
 
@@ -540,6 +541,14 @@ ENCUMBERANCE_MODIFIERS = {
 
 # body #
 
+# calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
+CALCOST_SLEEP           = 25        # metabolism while asleep
+CALCOST_REST            = 40        # metabolism at rest (awake, alert)
+CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
+CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
+CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
+CALCOST_INTENSEACTIVITY = 1200      # sprinting, wrestling/intense combat
+
 
 # body plans:
 #   body part coverage, for targeting specific body parts
@@ -549,7 +558,8 @@ BODYPLAN_INSECTOID  = i; i+=1; # torso 75% head 10% legs 15%
 BODYPLAN_4LEGGED    = i; i+=1; # torso 45% head 5% legs 50%
 BODYPLAN_CUSTOM     = i; i+=1; # for special cases, body plan built up manually
 
-BODYPLANS={
+#formerly: BODYPLANS
+BODYPLANS_COVERAGE={ # for targeting with ranged weapons
 BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
 BODYPLAN_INSECTOID  : {"core":75, "head":10, "legs":15,},
 BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},

@@ -405,6 +405,12 @@ def chargen(sx, sy):
         _gift = 0
         
         #create pc object from the data given in chargen
+        
+        # create body
+        body, newmass = rog.create_body_humanoid(mass=mass, female=(_genderName=="female"))
+        body.heads.heads[0].eyes.sight = BASE_SIGHT
+        body.heads.heads[0].ears.hearing = BASE_HEARING
+        # create entity
         pc = world.create_entity(
             cmp.Name(_name, title=_title),
             cmp.Draw('@', COL['white'], COL['deep']),
@@ -414,7 +420,9 @@ def chargen(sx, sy):
             cmp.Creature(job=_className, faction=FACT_ROGUE),
             cmp.Gender(_genderName,_pronouns),
             cmp.Stats(
-                hp=BASE_HP, mp=BASE_MP, mass=0,#round(_mass*MULT_MASS), #TODO: mass calculated by body / inventory
+                hp=BASE_HP, mp=BASE_MP,
+                mass=newmass, # base mass before weight of water and blood and fat is added
+                encmax=BASE_ENCMAX*MASS_MULT,
                 resfire=BASE_RESFIRE,
                 rescold=BASE_RESCOLD,
                 resbio=BASE_RESBIO,
@@ -432,7 +440,7 @@ def chargen(sx, sy):
                 atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
                 dfn=BASE_DFN, arm=BASE_ARM, pro=BASE_PRO,
                 spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
-                sight=BASE_SIGHT, hearing=BASE_HEARING,
+                sight=0, hearing=0, # senses gained from Body component now
                 courage=BASE_COURAGE, scary=BASE_SCARY
                 ),
             cmp.Skills(), cmp.Flags(),
@@ -440,10 +448,8 @@ def chargen(sx, sy):
             cmp.Mutable(),
             cmp.Inventory(),
         )
-
-        # create body
-        body = rog.create_humanoid(_mass*MULT_MASS)
-        rog.world().add_component(pc, body)
+        # add other components
+        world.add_component(pc, body) # created earlier
         
         
         #add specific class stats

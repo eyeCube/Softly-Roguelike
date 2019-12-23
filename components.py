@@ -17,6 +17,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
+from const import *
+
 class Observable:
     __slots__=['observers']
     def __init__(self):
@@ -252,31 +254,34 @@ class Body:
     blood       int, total mass of blood in the whole body / bloodMax=maximum
     hydration   int, total mass of water in the whole body / maximum
     satiation   int, units of hunger satisfaction / maximum
-    fatigue     int, units of sleep satisfaction / maximum
+    sleep       int, units of sleep satisfaction / maximum
     '''
     __slots__=[
         'plan','slot','core','parts','position',
         'blood','bloodMax','bodyfat',
         'hydration','hydrationMax',
         'satiation','satiationMax',
-        'fatigue','fatigueMax'
+        'sleep','sleepMax'
         ]
-    def __init__(self, core, blood=0, hydration=0, satiation=0, fat=0):
+    def __init__(self, plan, core, parts={}, blood=0, fat=0, hydration=0, satiation=0, sleep=0):
         self.plan=plan      # int constant
         self.slot=Slot()    # 'about' slot
-        self.core=core
-        self.parts={}       # dict of BPC objects other than the core
-        self.position=0     # body pos.: standing, crouched, prone, etc.
+        self.core=core      # core body component (BPC core)
+        self.parts=parts        # dict of BPC objects other than the core
         self.bodyfat=fat        # total mass of body fat
         self.blood=blood                # mass of blood in the body
-        self.bloodMax=blood             # 7% of total mass of the body
-        self.satiation=satiation        # hunger satisfaction
+        self.bloodMax=blood             #   (7% of total mass of the body for humans)
+        self.satiation=satiation        # calories available to the body
         self.satiationMax=satiation  
-        self.hydration=hydration        # thirst satisfaction
+        self.hydration=hydration        # mass of water in the body != satisfaction of hydration
         self.hydrationMax=hydration  
-        self.fatigue=fatigue            # sleep satisfaction
-        self.fatigueMax=fatigueMax
+        self.sleep=sleep                # moments of wakefulness left before madness (or sleep)
+        self.sleepMax=sleep
 ##        self.height=height              # int = height in centimeters(?)
+        self.position=0     # body pos.: standing, crouched, prone, etc.
+    # end def
+# end class
+        
 '''
     Body Part Containers (BPC)*
     contain only BP_ / BPM_ objects or lists of BP_ / BPM_ objects
@@ -356,15 +361,17 @@ class BPM_Head:
         self.neck=BP_Neck()
         self.mouth=BP_Mouth()
 class BPM_Arm:
-    __slots__=['hand','arm']
-    def __init__(self):
+    __slots__=['hand','arm','dominant']
+    def __init__(self, dominant=False):
         self.arm=BP_Arm()
         self.hand=BP_Hand()
+        self.dominant=dominant # the dominant arm?
 class BPM_Leg:
-    __slots__=['leg','foot']
-    def __init__(self):
+    __slots__=['leg','foot','dominant']
+    def __init__(self, dominant=False):
         self.leg=BP_Leg()
         self.foot=BP_Foot()
+        self.dominant=dominant # the dominant leg?
 class BPM_Lungs:
     __slots__=['lungs']
     def __init__(self):
@@ -541,6 +548,7 @@ class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc
 class BPP_Skin: # 16% of total body mass
     __slots__=['status','material']
     def __init__(self, mat=-1):
+        if mat==-1: mat=MAT_FLESH
         self.material=mat
         self.status=0
 class BPP_Hair:
@@ -557,6 +565,7 @@ class BPP_Artery:
 class BPP_Bone:
     __slots__=['material','status']
     def __init__(self, mat=-1):
+        if mat==-1: mat=MAT_BONE
         self.material=mat # determines Strength of the bone
         self.status=0
 class BPP_Muscle:
@@ -597,6 +606,7 @@ class BPP_FacialFeatures:
 class BPP_Teeth:
     __slots__=['quantity','quality','material']
     def __init__(self, quantity=26, quality=2, mat=-1):
+        if mat==-1: mat=MAT_BONE
         self.quantity=quantity
         self.quality=quality
         self.material=mat
@@ -640,10 +650,7 @@ class BPP_Nucleus:
 
     ap:     Action Points cost to equip / remove
     mods:   stat mod dict {var : modf,}
-    fit:    how well it's fitted.
-        For wielded items, this is equivalent to "grip"
-        Highest possible fit value == no penalty to equipping
-        Any other fit value results in penalties to stats
+    fit:    the entity it's fitted to. 0==None. 
 '''
 class EquipableInAmmoSlot:
     __slots__=['ap','mods','fit']

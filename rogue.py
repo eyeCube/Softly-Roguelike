@@ -981,45 +981,8 @@ def create_gear(name,x,y):
     register_entity(ent)
     return ent
 
-def create_humanoid(mass, fatPercent=0):
-    mass=round(mass)
-    blood = mass * 0.07
-    satiation = mass
-    hydration = mass
-    fat = mass * fatPercent / 100
-    body = cmp.Body(
-        cmp.BPC_Torso(),
-        blood=blood, satiation=satiation, hydration=hydration, fat=fat
-        )
-    body.parts[cmp.BPC_Heads] = cmp.BPC_Heads(_create_human_head())
-    body.parts[cmp.BPC_Arms] = cmp.BPC_Arms(_create_human_arm(),_create_human_arm())
-    body.parts[cmp.BPC_Legs] = cmp.BPC_Legs(_create_human_leg(),_create_human_leg())
-    return body
-
-def _create_human_head():
-    partMeta = cmp.BPM_Head()
-    partMeta.head.bone.material = MAT_BONE
-    partMeta.head.skin.material = MAT_FLESH
-    partMeta.neck.bone.material = MAT_BONE
-    partMeta.neck.skin.material = MAT_FLESH
-    partMeta.face.skin.material = MAT_FLESH
-    partMeta.mouth.bone.material = MAT_BONE
-    partMeta.mouth.teeth.material = MAT_BONE
-    return partMeta
-def _create_human_arm():
-    partMeta = cmp.BPM_Arm()
-    partMeta.arm.bone.material = MAT_BONE
-    partMeta.arm.skin.material = MAT_FLESH
-    partMeta.hand.bone.material = MAT_BONE
-    partMeta.hand.skin.material = MAT_FLESH
-    return partMeta
-def _create_human_leg():
-    partMeta = cmp.BPM_Leg()
-    partMeta.leg.bone.material = MAT_BONE
-    partMeta.leg.skin.material = MAT_FLESH
-    partMeta.foot.bone.material = MAT_BONE
-    partMeta.foot.skin.material = MAT_FLESH
-    return partMeta
+def create_body_humanoid(mass=70, female=False):
+    return entities.create_body_humanoid(mass=mass, female=female)
 
 
     #--------------#
