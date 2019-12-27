@@ -415,7 +415,7 @@ def sprint(ent):
     rog.msg("{n} begins sprinting.".format(n=entn.name))
 
 
-def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
+def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
     '''
         strike the target with your primary weapon or body part
             this in itself is not an action -- requires no AP
@@ -428,12 +428,6 @@ def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
     
         # get the data we need
     world = rog.world()
-
-    # TODO: make aweap a function parameter, pass in the weapon the attacker uses to fight with.
-    if world.has_component(attkr, cmp.EquipHand1): # TEMPORARY!!!
-        aweap = world.component_for_entity(attkr, cmp.EquipHand1).item
-    else:
-        aweap = attkr # how to handle no weapons???
     
     # attacker stats
     acc =   rog.getms(attkr,'atk')//MULT_STATS
@@ -469,11 +463,8 @@ def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
             dfndr_ready = rog.on(dfndr,CANCOUNTER)
             if dfndr_ready:
                 if (dice.roll(100) <= ctr):
-##                    if world.has_component(dfndr, cmp.EquipHand1):
-##                        dweap = world.component_for_entity(dfndr, cmp.EquipHand1).item
-##                    else:
-##                        dweap = dfndr
-                    _strike(dfndr, attkr, power=0, counterable=False)
+                    dweap = rog.dominant_arm(dfndr).hand.slot.item
+                    _strike(dfndr, attkr, dweap, aweap, power=0, counterable=False)
                     rog.makenot(dfndr,CANCOUNTER)
                     ctrd=True
         
@@ -614,7 +605,10 @@ def fight(attkr,dfndr,adv=0,power=0):
     
     # strike!
     counterable = True # TODO: this is affected by range/reach!
-    _rd = _strike(attkr, dfndr, adv=adv, power=power, counterable=counterable)
+    _rd = _strike(
+        attkr, dfndr, aweap, dweap,
+        adv=adv, power=power, counterable=counterable
+        )
     hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _rd
     
     # AP cost
