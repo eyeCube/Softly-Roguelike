@@ -644,7 +644,8 @@ def zombify(ent):
     kill(ent) # temporary
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
-        
+def metabolize(ent, food=1, water=1):
+    entities.metabolism(ent, food, water)
 
 
 

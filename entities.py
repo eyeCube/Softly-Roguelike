@@ -3005,7 +3005,6 @@ def _update_from_bp_appendage(ent, appendage, armorSkill, unarmored):
 
 '''
     Body functions
-    Body Processor
 '''
 
 def metabolism(ent, hunger, thirst=0):
@@ -3013,88 +3012,51 @@ def metabolism(ent, hunger, thirst=0):
         burn calories
         filter water through kidneys (TO ALTER?)
             should you have to piss and shit in this game?
-
+        
         DOES NOT:
-            extract calories from food (stomach function does that)
-
+            extract calories/water from food (stomach function does that)
+        
         Parameters:
             hunger     calories to burn (not KiloCalories)
             thirst     thirst points to burn
+        
+        NOTE: No need for a processor to call this.
+            Every action performed by any entity will call this function
+            with the appropriate parameters for that action.
     '''
     body = rog.world().component_for_entity(ent, cmp.Body)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     
     # hunger
     body.satiation -= hunger
-    if body.satiation <= 0:
-        starve(ent)
     
     # thirst
     if not thirst:
-        thirst = 1 # TEMPORARY -> test the below line when things stabilize
-##        thirst = math.ceil(hunger*METABOLISM_THIRST)
+        thirst = math.ceil(hunger*METABOLISM_THIRST)
     body.hydration -= thirst
-    if body.hydration <= body.hydrationMax*0.9:
-        dehydrate(ent)
     
     # heat generation that is unaffected by heat res
     meters.temp += hunger * METABOLISM_HEAT
 # end def
 
-def stomach(ent):
-    '''
-        digestion function
-        get calories (satiation) from food
-
-        call this on a processor that runs every few turns or so
-    '''
-    world = rog.world()
-    if not world.has_component(ent, cmp.StatusDigesting):
-        return
-    body = world.component_for_entity(ent, cmp.Body)
-    compo = world.component_for_entity(ent, cmp.StatusDigesting)
-    # satiation ++, caloriesAvailableInFood --
-    metabolic_rate = stats.mass / MULT_MASS
-    caloric_value = min(metabolic_rate, compo.quantity)
-    compo.quantity -= caloric_value
-    body.satiation += caloric_value
-    # excess Calories -> fat
-    if body.satiation > body.satiationMax:
-        body.bodyfat += ( # 9 Calories per gram of fat (1/9 == 0.1111...)
-            body.satiationMax - body.satiation) / MULT_MASS *0.11111111
-        body.satiation = body.satiationMax
 
 def starve(ent):
     body = rog.world().component_for_entity(ent, cmp.Body)
-    assert(body.satiation < 0)
     if body.bodyfat > 0:
-        fat = body.bodyfat + body.satiation
+        # get calorie deficit from fat, and eat 10g of fat for 90 calories
+        body.bodyfat = body.bodyfat - 0.01
+        body.satiation += 90 # 9 (Kilo)Calories per g of fat, so 90 calories per 0.01g of fat.
     else:
-        wasteaway(body)
-        rog.set_status(ent, cmp.Starving)
+        rog.set_status(ent, cmp.StatusEmaciated)
 
 def dehydrate(ent):
-    pass
+    rog.damage(ent, 1)
+    rog.sap(ent, 1)
 
-def wasteaway(body):
-    ''' consume muscle mass of the body for food '''
-    pass
+##def wasteaway(body): handled by BodyProcessor
+##    ''' consume muscle mass of the body for food '''
+##    pass
 
-def homeostasis(ent):
-    '''
-        maintain heat equilibrium
-         # TODO: make creatures call this function once per turn
-    '''
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
-    if meters.temp > BODY_TEMP+1:
-        sweat(ent)
-    elif meters.temp < BODY_TEMP-1:
-        shiver(ent)
-
-def sweat(ent):
-    pass
-def shiver(ent):
-    pass
 
 
 

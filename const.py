@@ -536,8 +536,9 @@ CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
 CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
 CALCOST_INTENSEACTIVITY = 1200      # sprinting, wrestling/intense combat
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
-METABOLISM_THIRST       = 0.005     # metabolising food takes some amount of water
+METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
 HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
+
 
 # body plans:
 #   body part coverage, for targeting specific body parts
@@ -857,6 +858,14 @@ LUNGSTATUS_MANGLED      : 0,
 
 #STATUSES
 
+# is this a good place to put this?
+# TODO: do this for all relevant statuses, apply them when status activated and remove them when deactivated
+STATUS_STARVING_MULTMODS={'str':0.5,'end':0.5,}
+
+# bodily processes
+SHIVER_TEMP_GAIN = 0.1
+SWEAT_TEMP_LOSS  = 0.1
+
 # bleed
 BLEED_PLASTIC   = 6     # default bleed values for sharpened weapons of material types
 BLEED_WOOD      = 12
@@ -868,6 +877,11 @@ BLEED_METAL     = 24
 BLEED_STEEL     = 48
 BLEED_GRAPHENE  = 192
 BLEED_DIAMONITE = 144
+BLEED_QUALITY_MINORWOUND    = 1 # suggestions for bleed quality amounts
+BLEED_QUALITY_CONTUSION     = 3
+BLEED_QUALITY_MULTIWOUNDS   = 5
+BLEED_QUALITY_MAJORWOUND    = 8
+BLEED_QUALITY_ARTERIAL      = 15
 
 #wet
 WET_RESFIRE     = 200   # fire resistance gained while wet (per liter)

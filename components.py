@@ -270,7 +270,7 @@ class Body:
         self.slot=Slot()    # 'about' slot
         self.core=core      # core body component (BPC core)
         self.parts=parts        # dict of BPC objects other than the core
-        self.bodyfat=fat        # total mass of body fat
+        self.bodyfat=fat        # total mass of body fat : floating point
         self.blood=blood                # mass of blood in the body
         self.bloodMax=blood             #   (7% of total mass of the body for humans)
         self.satiation=satiation        # calories available to the body
@@ -1222,8 +1222,8 @@ class _Injury: # for use by Injured component
 #status effects
     #owned by entities currently exhibiting status effect(s)
 
-        # TODO: where should statMods for status effects be stored? Globally?
-       
+# some statuses have quality, which affects the degree to which
+#    you're affected by the status
 class StatusFire: # too hot and taking constant damage from the heat
     # This status is unrelated to the fire phenomenon, light,
     #     heat production, etc. Just handles damage over time.
@@ -1250,19 +1250,16 @@ class StatusIrritated: # vision -25%, hearing -25%
     __slots__=['timer']
     def __init__(self, t=200):
         self.timer=t
-# Bleed levels
-class StatusBleedMinor: # minor bleed: lose blood each turn, drops blood to the floor randomly, gets your clothes bloody
-    __slots__=['timer']
-    def __init__(self, t=32):
-        self.timer=t
 class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
     __slots__=['timer']
-    def __init__(self, t=128):
+    def __init__(self, t=128, q=1):
+        '''
+            quality == how many g of blood you lose per turn
+            minor: 1
+            major arterial bleeding: 15
+        '''
         self.timer=t
-class StatusBleedMajor: # major bleed: like minor bleed but you lose blood more rapidly; also much harder to staunch.
-    __slots__=['timer']
-    def __init__(self, t=-1):
-        self.timer=t
+        self.quality=q
 # NOTE: arterial bleed is handled by the BPP artery component having its status set to SEVERED or w/e.
 class StatusPain: # in overwhelming pain
     __slots__=['timer']
@@ -1285,12 +1282,8 @@ class StatusCough: # chance to cough uncontrollably each turn
     def __init__(self, t=25):
         self.timer=t
 class StatusSprint: # Msp +300%
-    __slots__=['timer']
+    __slots__=['timer'] # THIS SHOULD NOT BE A STATUS
     def __init__(self, t=10):
-        self.timer=t
-class StatusTired: # sleepy (stamina is a separate thing)
-    __slots__=['timer']
-    def __init__(self, t=50):
         self.timer=t
 class StatusFrightening: # add extra scariness for a time
     __slots__=['timer']
@@ -1315,6 +1308,26 @@ class StatusDrunk: # balance -50%
 class StatusHeadInjury: # similar to sickness w/ headache, slurred speech
     __slots__=['timer']
     def __init__(self, t=3600):
+        self.timer=t
+class StatusSweat: # sweating
+    __slots__=['timer']
+    def __init__(self, t=16):
+        self.timer=t
+class StatusShiver: # shivering
+    __slots__=['timer']
+    def __init__(self, t=16):
+        self.timer=t
+class StatusEmaciated: # starving famished starved emaciated
+    __slots__=['timer']
+    def __init__(self, t=-1):
+        self.timer=t
+class StatusDehydrated: # dehydrated
+    __slots__=['timer']
+    def __init__(self, t=-1):
+        self.timer=t
+class StatusTired: # sleepy (stamina is a separate thing)
+    __slots__=['timer']
+    def __init__(self, t=50):
         self.timer=t
 # quantity (non-timed) statuses:
 class StatusDigesting:

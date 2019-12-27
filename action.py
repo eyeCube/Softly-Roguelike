@@ -262,6 +262,7 @@ def rest_pc(pc):
 #recover your Action Points to their maximum
 def wait(ent):
     rog.world().component_for_entity(ent, cmp.Actor).ap = 0
+    rog.metabolize(ent, CALCOST_REST)
 
 def cough(ent):
     world = rog.world()
@@ -457,24 +458,28 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
     # perform the attack
     if hit:
         grazed = (hitDie==0)
-            # counter-attack
+
+        # counter-attack
         if counterable:
             # TODO: make sure defender is in range to counter-attack
             dfndr_ready = rog.on(dfndr,CANCOUNTER)
             if dfndr_ready:
                 if (dice.roll(100) <= ctr):
                     dweap = rog.dominant_arm(dfndr).hand.slot.item
-                    _strike(dfndr, attkr, dweap, aweap, power=0, counterable=False)
+                    _strike(
+                        dfndr, attkr, dweap, aweap,
+                        power=0, counterable=False
+                        )
                     rog.makenot(dfndr,CANCOUNTER)
                     ctrd=True
-        
+
+        # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
-                # penetration (calculate armor effectiveness)
             while (pen-prot-(6*pens) >= dice.roll(6)):
                 pens += 1   # number of penetrations ++
             armor = rog.around(arm * (0.5**pens))
         
-            # calculate physical damage #
+        # calculate physical damage #
 
         # additional damage from strength
         #   (TODO!!!!)
@@ -543,10 +548,11 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
             elif element == ELEM_COLD:
                 rog.cool(dfndr, elemDmg)
             elif element == ELEM_PAIN:
-                if trueDmg <= 0: continue   # if dmg==0, no pain is felt
+                if trueDmg <= 0: # if phys dmg==0, pain is cut in half
+                    elemDmg = elemDmg // 2
                 rog.hurt(dfndr, elemDmg)
             elif element == ELEM_BLEED:
-                if trueDmg <= 0: continue   # if dmg==0, no bleeding
+                if trueDmg <= 0: continue   # if phys dmg==0, no bleeding
                 rog.bleed(dfndr, elemDmg)
             elif element == ELEM_RUST:
                 rog.rust(dfndr, elemDmg)
@@ -578,8 +584,9 @@ def fight(attkr,dfndr,adv=0,power=0):
         
         TODO: implement this!
         # power:    how much force putting in the attack?
-            0 == use muscles only in the attacking limb(s)
-            1 == use muscles in whole body (offensive)
+            -1== subpar: use less than adequate force
+            0 == standard: use muscles only in the attacking limb(s)
+            1 == heavy hit: use muscles in whole body (offensive)
                 *leaves those body parts unable to provide defense
                  until your next turn
     '''
@@ -601,25 +608,26 @@ def fight(attkr,dfndr,adv=0,power=0):
     dweap = rog.dominant_arm(dfndr).hand.slot.item
 
     # ensure you have the proper amount of Stamina
-                 #(TODO)
+    if aweap:
+        equipable = world.component_for_entity(aweap, cmp.EquipableInHandSlot)
+        stamina_cost = equipable.stamina
+    else:
+        stamina_cost = 12 # TEMPORARY
+    if stamina_cost > rog.getms(attkr, "mp"):
+        power=-1
     
     # strike!
     counterable = True # TODO: this is affected by range/reach!
-    _rd = _strike(
+    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
         attkr, dfndr, aweap, dweap,
         adv=adv, power=power, counterable=counterable
         )
-    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _rd
     
     # AP cost
     aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
 
     # stamina cost
-    if aweap:
-        equipable = world.component_for_entity(aweap, cmp.EquipableInHandSlot)
-        rog.sap(attkr, equipable.stamina)
-    else:
-        rog.sap(attkr, 12) # TEMPORARY
+    rog.sap(attkr, stamina_cost)
                  
     # metabolism
     rog.metabolism(attkr, CALCOST_HEAVYACTIVITY)
