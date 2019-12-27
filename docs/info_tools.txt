@@ -3,8 +3,39 @@ Tools
 This is just info for the dev. No need to inundate the player with so much information as these in-depth guides to the deep mechanics of the game.
 
 
+Dumb idea to have unique glyphs for each tool type.
+/ Cut
+< Chop
+> Saw
+Machete
+[ Hammer
+] Striker
+, Chisel
+_ Anvil
+* Weld
+u Crucible
+f Furnace
+t Tongs
+; Torch
+! FireStarter
+= Pliers
+- Screwdriver
+Drill
+Sew
+Sharpener
+File
+Grinder
+Swage
+Mandril
+Dig
+Pickaxe
+Crush
+FocusLens
+Identify
+
 class Tool_Cut:
-		 (cutting within a tool's capacity may still dull the blade based on the materials of the blade and the material being cut)
+		 (cutting within a tool's capacity may still dull the blade based on the materials of the blade and the material being cut. For instance an iron/steel blade cutting a steel lock will dull, but a titanium blade cutting an iron sheet will not lose much durability.)
+		 (Cutting through metal is always tough and the best way to "cut" metal is actually to use a circular saw.)
 		level 	can cut through (fine or fast jobs require even higher lvl)
 		1: 		thin rubber, membranes, leaves
 		2: 		paper
@@ -12,12 +43,12 @@ class Tool_Cut:
 		4: 		plastic, thick rubber, flesh, foliage, whittling wood
 		5: 		thick foliage, thick flesh, whittling bone, fine plasticwork
 		6: 		rope; leather; thick cloth; 
-					* at this stage technically capable of cutting through riveted metal mail rings, but only in combat situations, not when used as a tool in crafting.
+					* at this stage technically capable of cutting through riveted metal mail rings, but only in combat situations, not when used as a tool in fine crafting jobs.
 		7:		linen, wool, boiled leather, tough hide
-		8: 		thin metal, bone
+		8: 		bone
 		9: 		metal wire, metal sheet
-		10:		cable, metal rings, thin chain
-		11:		locks, 
+		10:		cable, metal rings, thin metal + chains
+		11:		
 class Tool_Chop:
 		level 	can chop through:
 		1: 		flesh
@@ -36,14 +67,14 @@ class Tool_Saw:
 		4: 		wood, weak metal, bone
 		5: 		logs, sheet metal, fine bone sawing
 		6: 		metal
-		7: 		thick metal / steel
-		8: 		stone
+		7: 		thick metal / steel / stone
+		8: 		marble / thick steel
 class Tool_Machete:
 		level 	can cut/chop through:
-		1: 		shrubs
-		2: 		brambles
-		3: 		jungle
-		4: 		jungle trees
+		1:      weeds, downed foliage, etc.
+		2: 		shrubs
+		3: 		brambles
+		4: 		jungle
 class Tool_Hammer:
 		level 	can be used for:
 		1: 		basic carpentry (driving nails), work crude plastic

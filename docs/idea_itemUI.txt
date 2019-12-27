@@ -1,0 +1,89 @@
+
+Generic:
+-- Item description --
+full name
+	( glyph ) class of item
+		type: base item name (skill required to use)
+		
+	-- statistics --
+		types of fields:
+			Equipment statistics
+				for every slot it can be equipped in, detail the stats for that slot
+				special cases: thrown (Atk value is relative to melee capacity)
+			Tool statistics
+				for every tool class it belongs to, give the name and quality level.
+	
+	-- Type information --
+		for every class of item it belongs to, give a description of that class.
+		Higher level of abstraction -> lower level (specific instance descriptions come first, followed by more generic class descriptions)
+	
+	
+	
+Example:
+
+
+-- Item description --
+Jake's heavy wooden sword +1
+	( / ) 1-h weapon
+		type: wooden sword (swords)
+	condition: 34 / 50
+	$ 22, 1.25 kg (17.6 $$/kg)
+	primary material: wood
+	
+	-- Equipment statistics --
+	
+	1-h weapon:
+		StrReq. 9 			DexReq. 6
+		HIT: 5				DV:	2
+		DMG: 5				AV: 0
+		PEN: 10				PRO: 0
+		SPD: 24				encumber: 7.5 (6*1.25)
+		CTR: 4				stamina: 10
+		GRA: -6				
+		bleed: 24
+		
+	thrown:
+		HIT: 	-4
+		RNG: 	10
+	
+	-- Tool statistics --
+		
+	Chisel 2
+	Chop 1
+	Cut 5
+	Machete 2
+	
+	-- Type information --
+	
+	wooden sword:
+	The wooden sword is a choice weapon for training in the art of swordsmanship, as it allows one to practice swordplay without any serious threat of harm to oneself or others. In actual combat, a wooden sword is vastly inferior to a proper steel blade.
+	
+	swords:
+	Swords are very effective and versatile sidearms. They make useful cutting tools and machetes, and sometimes make good chopping implements, as well. In combat they are quick and agile weapons, highly effective against unarmored foes; but primarily, they are the ideal weapon for self-defense in terms of the amount of DV they provide their wielder.
+	
+	1-h weapon:
+	One-handed weapons can be wielded in the hand as a melee weapon, or in two hands for improved offensive and defensive effectiveness.
+
+##
+
+
+HIDDEN INFO:
+	information not available to the player 
+
+	heavy: *1.2 mass, *1.2 HP, *1.25 Dmg, -2 Atk, +2 Str. Req
+	Jake's: fitted to Jake, meaning grip is enhanced, along with Atk, Asp when wielded by the unique actor named Jake
+	+1: +1 to Attack, Penetration
+
+
+
+
+
+
+
+
+
+
+
+
+
+

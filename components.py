@@ -246,6 +246,8 @@ class Body:
     '''
         contains information about the physical geometrical makeup
             of a multi-part body/entity
+    plan        int constant, refers to the type of body
+                    e.g. humanoid which has 2 arms, 2 legs, a torso and a head.
     slot        the "About" slot which is for wearing things over your body
     core        the BPC sub-component of the core (where the hearts are)
     parts       list of all other BPC sub-components
@@ -263,7 +265,7 @@ class Body:
         'satiation','satiationMax',
         'sleep','sleepMax'
         ]
-    def __init__(self, plan, core, parts={}, blood=0, fat=0, hydration=0, satiation=0, sleep=0):
+    def __init__(self, plan, core, parts={}, height=175, blood=0, fat=0, hydration=0, satiation=0, sleep=0):
         self.plan=plan      # int constant
         self.slot=Slot()    # 'about' slot
         self.core=core      # core body component (BPC core)
@@ -275,9 +277,9 @@ class Body:
         self.satiationMax=satiation  
         self.hydration=hydration        # mass of water in the body != satisfaction of hydration
         self.hydrationMax=hydration  
-        self.sleep=sleep                # moments of wakefulness left before madness (or sleep)
+        self.sleep=sleep                # moments (seconds?) of wakefulness left before madness (or sleep)
         self.sleepMax=sleep
-##        self.height=height              # int = height in centimeters(?)
+        self.height=height              # int = height in centimeters
         self.position=0     # body pos.: standing, crouched, prone, etc.
     # end def
 # end class
@@ -654,13 +656,13 @@ class BPP_Nucleus:
 '''
 class EquipableInAmmoSlot:
     __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInFrontSlot: # breastplate
     __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
@@ -669,31 +671,31 @@ class EquipableInFrontSlot: # breastplate
         self.coversHips=coversHips
 class EquipableInCoreSlot: # tummy area
     __slots__=['ap','mods','fit'] # ap = AP (Energy) cost to equip / take off
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
     __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInHipsSlot: #
     __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cloaks, capes, etc.)
     __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInHeadSlot:
     __slots__=['ap','mods','fit','coversFace','coversEyes']
-    def __init__(self, ap, mods, fit=1, coversFace=False, coversEyes=False): #{component : {var : modf,}}
+    def __init__(self, ap, mods, fit=0, coversFace=False, coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods        
         self.fit=fit
@@ -701,23 +703,28 @@ class EquipableInHeadSlot:
         self.coversEyes=coversEyes
 class EquipableInFaceSlot:
     __slots__=['ap','mods','fit','coversEyes']
-    def __init__(self, ap, mods, fit=1, coversEyes=False): #{component : {var : modf,}}
+    def __init__(self, ap, mods, fit=0, coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods
         self.fit=fit
         self.coversEyes=coversEyes
 class EquipableInEyesSlot:
     __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+# weapon classes
 class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
     __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=1): #{var : modf,}
+    def __init__(self, ap, sta, mods, fit=0): #{var : modf,}
         self.ap=ap
+        self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
         self.fit=fit
+        
+# unused
+##
 ##class EquipableInJewelrySlot: # slot that has infinite room for more shit
 ##    __slots__=['ap','mods']
 ##    def __init__(self, ap, mods): #{var : modf,}
@@ -733,6 +740,9 @@ class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
 ##    def __init__(self, mods): #{component : {var : modf,}}
 ##        self.mods=mods
 
+###
+
+        
 
 class Ammo: # can be used as ammo
     __slots__=['quantity','ammoType']
@@ -1214,11 +1224,13 @@ class _Injury: # for use by Injured component
 
         # TODO: where should statMods for status effects be stored? Globally?
        
-class StatusFire: # burning
+class StatusFire: # too hot and taking constant damage from the heat
+    # This status is unrelated to the fire phenomenon, light,
+    #     heat production, etc. Just handles damage over time.
     __slots__=['timer']
     def __init__(self, t=-1):
         self.timer=t
-class StatusFrozen: # icy cold
+class StatusFrozen: # too cold and taking constant damage from the cold
     __slots__=['timer']
     def __init__(self, t=-1):
         self.timer=t
@@ -1238,9 +1250,23 @@ class StatusIrritated: # vision -25%, hearing -25%
     __slots__=['timer']
     def __init__(self, t=200):
         self.timer=t
-class StatusBleed: # minor bleed: lose blood each turn, drops blood to the floor randomly, gets your clothes bloody
+# Bleed levels
+class StatusBleedMinor: # minor bleed: lose blood each turn, drops blood to the floor randomly, gets your clothes bloody
     __slots__=['timer']
     def __init__(self, t=32):
+        self.timer=t
+class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
+    __slots__=['timer']
+    def __init__(self, t=128):
+        self.timer=t
+class StatusBleedMajor: # major bleed: like minor bleed but you lose blood more rapidly; also much harder to staunch.
+    __slots__=['timer']
+    def __init__(self, t=-1):
+        self.timer=t
+# NOTE: arterial bleed is handled by the BPP artery component having its status set to SEVERED or w/e.
+class StatusPain: # in overwhelming pain
+    __slots__=['timer']
+    def __init__(self, t=5):
         self.timer=t
 class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
     __slots__=['timer']
@@ -1248,7 +1274,7 @@ class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
         self.timer=t
 class StatusSick: # low chance to vomit, cough, sneeze; general fatigue, pain, etc.
     __slots__=['timer']
-    def __init__(self, t=60000):
+    def __init__(self, t=600):
         self.timer=t
 class StatusVomit: # chance to vomit uncontrollably each turn
     __slots__=['timer']
@@ -1258,7 +1284,7 @@ class StatusCough: # chance to cough uncontrollably each turn
     __slots__=['timer']
     def __init__(self, t=25):
         self.timer=t
-class StatusSprint: # Msp +100%
+class StatusSprint: # Msp +300%
     __slots__=['timer']
     def __init__(self, t=10):
         self.timer=t
@@ -1290,6 +1316,11 @@ class StatusHeadInjury: # similar to sickness w/ headache, slurred speech
     __slots__=['timer']
     def __init__(self, t=3600):
         self.timer=t
+# quantity (non-timed) statuses:
+class StatusDigesting:
+    __slots__=['quantity']
+    def __init__(self, q=1000):
+        self.quantity=q
 
 
 # GLOBAL LISTS OF COMPONENTS #

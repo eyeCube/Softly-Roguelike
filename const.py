@@ -240,8 +240,8 @@ DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
 MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
-MULT_DMG_AV_HP      = 10    # finer scale for AV/dmg but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
-MULT_PEN_PRO        = 10    # " (6.8 penetration functions as 6 pen, and displays as 6 in-game. Truncated decimal.)
+MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
+MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
@@ -336,20 +336,6 @@ BASE_HEARING    = 80
 
 
 # attributes
-##ATT_INT_AUGMENTATIONS   = 0.5   # mental augmentation slots per int
-##ATT_INT_IDENTIFY        = 1     # identification ability per int
-##ATT_INT_SOCIAL          = 1     # social influence gained per int
-##ATT_CON_AUGMENTATIONS   = 0.5   # physical augmentation slots per con
-##ATT_CON_HP              = 2     # HP gained per con
-##ATT_CON_STAMINA         = 20    # stamina gained per con
-##ATT_CON_GEARCARRY       = 0.02  # reduction of Msp penalty for equipping gear
-##ATT_CON_CARRY           = 1000  # carrying capacity per con (g)
-##ATT_STR_CARRY           = 1000  # carrying capacity per str (g)
-##ATT_STR_HP              = 0.5   # HP gained per str
-##ATT_STR_DMG             = 0.4   # damage gained per strength unit applied
-##ATT_STR_ATK             = 0.2   # attack gained per strength unit applied
-##ATT_STR_PEN             = 0.3   # penetration gained per strength unit applied
-# UPDATE THE ABOVE TO THE FOLLOWING FORMAT!
 
 # Strength
 ATT_STR_THROW_RNG       = 1
@@ -450,6 +436,7 @@ CMB_ROLL_PEN        = 6     # dice roll for penetration bonus
 CMB_ROLL_ATK        = 20    # dice roll for to-hit bonus (Attack)
 CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
+STRIKE_AIR_IMBALANCE_AMOUNT = 8 # balance penalty for attacking nothing
 
 
 #sounds
@@ -548,7 +535,9 @@ CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
 CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
 CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
 CALCOST_INTENSEACTIVITY = 1200      # sprinting, wrestling/intense combat
-
+METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
+METABOLISM_THIRST       = 0.005     # metabolising food takes some amount of water
+HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
 
 # body plans:
 #   body part coverage, for targeting specific body parts
@@ -685,9 +674,9 @@ SKINSTATUS_FULLYSKINNED :{'resbio':-30,'respain':-20,'resbleed':-25,'resfire':-2
 
 # torso
 ADDMODS_BPP_TORSO_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-10,},
-MUSCLESTATUS_KNOTTED    :{'msp':-3,'asp':-3,'respain':-15,},
-MUSCLESTATUS_CONTUSION  :{'msp':-3,'asp':-3,'respain':-15,'resbleed':-8,},
+MUSCLESTATUS_SORE       :{'respain':-5,},
+MUSCLESTATUS_KNOTTED    :{'msp':-3,'asp':-3,'respain':-10,},
+MUSCLESTATUS_CONTUSION  :{'msp':-3,'asp':-3,'respain':-10,'resbleed':-4,},
 MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,  'msp':-3, 'asp':-3, 'gra':-1,'respain':-5, 'resbleed':-4,},
 MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-10,'resbleed':-8,},
 MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-15,'resbleed':-12,},
@@ -695,16 +684,18 @@ MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'resp
 MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
 ADDMODS_BPP_TORSO_BONESTATUS = { # stat : value
-BONESTATUS_FRACTURED    :{'respain':-20,},
-BONESTATUS_CRACKED      :{'respain':-40,},
-BONESTATUS_BROKEN       :{'respain':-60,},
-BONESTATUS_SHATTERED    :{'respain':-80,},
+BONESTATUS_FRACTURED    :{'respain':-10,},
+BONESTATUS_CRACKED      :{'respain':-20,},
+BONESTATUS_BROKEN       :{'respain':-40,},
+BONESTATUS_MULTIBREAKS  :{'respain':-80,},
+BONESTATUS_SHATTERED    :{'respain':-100,},
     }
 MULTMODS_BPP_TORSO_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
-BONESTATUS_SHATTERED    :{'agi':0.6,'asp':0.5,'msp':0.5,},
+BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
+BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
     }
 
 # head
@@ -712,18 +703,20 @@ ADDMODS_BPP_HEAD_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'respain':-20,},
 BONESTATUS_BROKEN       :{'respain':-40,},
+BONESTATUS_MULTIBREAKS  :{'respain':-60,},
 BONESTATUS_SHATTERED    :{'respain':-80,},
     }
 MULTMODS_BPP_HEAD_BONESTATUS = { # stat : value
-BONESTATUS_FRACTURED    :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9, 'mp':0.9,},
-BONESTATUS_CRACKED      :{'int':0.8,'end':0.8,'bal':0.8,'sight':0.8,'mpmax':0.8, 'mp':0.8,},
-BONESTATUS_BROKEN       :{'int':0.7,'end':0.7,'bal':0.7,'sight':0.7,'mpmax':0.7, 'mp':0.7,},
-BONESTATUS_SHATTERED    :{'int':0.6,'end':0.6,'bal':0.6,'sight':0.6,'mpmax':0.6, 'mp':0.6,},
+BONESTATUS_FRACTURED    :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
+BONESTATUS_CRACKED      :{'int':0.8,'end':0.8,'bal':0.8,'sight':0.8,'mpmax':0.8,},
+BONESTATUS_BROKEN       :{'int':0.7,'end':0.7,'bal':0.7,'sight':0.7,'mpmax':0.7,},
+BONESTATUS_MULTIBREAKS  :{'int':0.6,'end':0.6,'bal':0.6,'sight':0.6,'mpmax':0.6,},
+BONESTATUS_SHATTERED    :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
     }
 
 # neck
 ADDMODS_BPP_NECK_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-20,},
+MUSCLESTATUS_SORE       :{'respain':-10,},
 MUSCLESTATUS_KNOTTED    :{'asp':-8,'respain':-20,},
 MUSCLESTATUS_CONTUSION  :{'asp':-4,'respain':-20,'resbleed':-8,},
 MUSCLESTATUS_STRAINED   :{'atk':-2,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-4,},
@@ -736,20 +729,22 @@ ADDMODS_BPP_NECK_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'respain':-20,},
 BONESTATUS_CRACKED      :{'respain':-40,},
 BONESTATUS_BROKEN       :{'respain':-60,},
-BONESTATUS_SHATTERED    :{'respain':-80,},
+BONESTATUS_MULTIBREAKS  :{'respain':-80,},
+BONESTATUS_SHATTERED    :{'respain':-100,},
     }
 MULTMODS_BPP_NECK_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
-BONESTATUS_SHATTERED    :{'agi':0.6,'asp':0.5,'msp':0.5,},
+BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
+BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
     }
 
 # face & mouth & nose
 ADDMODS_BPP_FACE_SKINSTATUS = { # stat : value
-SKINSTATUS_RASH         :{'beauty':-6, 'intimidation':2, 'resbio':-4, 'respain':-2, 'resbleed':-2,'resfire':-2,},
-SKINSTATUS_SCRAPED      :{'beauty':-2, 'intimidation':1, 'resbio':-6, 'respain':-3, 'resbleed':-4,'resfire':-3,},
-SKINSTATUS_MINORABRASION:{'beauty':-3, 'intimidation':1, 'resbio':-8, 'respain':-5, 'resbleed':-6,'resfire':-4,},
+SKINSTATUS_RASH         :{'beauty':-6, 'intimidation':1, 'resbio':-4, 'respain':-2, 'resbleed':-2, 'resfire':-2,},
+SKINSTATUS_SCRAPED      :{'beauty':-2, 'intimidation':1, 'resbio':-6, 'respain':-3, 'resbleed':-4, 'resfire':-3,},
+SKINSTATUS_MINORABRASION:{'beauty':-3, 'intimidation':1, 'resbio':-8, 'respain':-5, 'resbleed':-6, 'resfire':-4,},
 SKINSTATUS_CUT          :{'beauty':-3, 'intimidation':2, 'resbio':-12,'respain':-5, 'resbleed':-10,'resfire':-4,},
 SKINSTATUS_MAJORABRASION:{'beauty':-12,'intimidation':1, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-6,},
 SKINSTATUS_BURNED       :{'beauty':-12,'intimidation':8, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-10,},
@@ -760,12 +755,13 @@ SKINSTATUS_FULLYSKINNED :{'beauty':-64,'intimidation':32,'resbio':-50,'respain':
     }
 ADDMODS_BPP_FACE_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'respain':-16,},
-BONESTATUS_CRACKED      :{'respain':-32,'intimidation':-8,'beauty':-16},
-BONESTATUS_BROKEN       :{'respain':-48,'intimidation':-32,'beauty':-32,},
-BONESTATUS_SHATTERED    :{'respain':-64,'intimidation':-64,'beauty':-64,},
+BONESTATUS_CRACKED      :{'respain':-32,'intimidation':-4,'beauty':-8},
+BONESTATUS_BROKEN       :{'respain':-48,'intimidation':-8,'beauty':-16,},
+BONESTATUS_MULTIBREAKS  :{'respain':-64,'intimidation':-8,'beauty':-24,},
+BONESTATUS_SHATTERED    :{'respain':-96,'intimidation':-8,'beauty':-32,},
     }
-ADDMODS_BPP_FACE_MUSCLESTATUS = {
-MUSCLESTATUS_SORE       :{'respain':-20,},
+ADDMODS_BPP_FACE_MUSCLESTATUS = { # muscles around the face
+MUSCLESTATUS_SORE       :{'respain':-5,},
 MUSCLESTATUS_KNOTTED    :{'respain':-20,},
 MUSCLESTATUS_CONTUSION  :{'respain':-20,'resbleed':-5,},
 MUSCLESTATUS_STRAINED   :{'respain':-20,'resbleed':-6,},
@@ -800,12 +796,13 @@ ADDMODS_BPP_ARM_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
-BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
+BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
+BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
     }
 ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-5,},
 MUSCLESTATUS_KNOTTED    :{'asp':-3,'respain':-10,},
-MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-10,'resbleed':-5,},
+MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-10,'resbleed':-2,},
 MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-3,},
 MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'asp':-10,'gra':-2,'respain':-10,'resbleed':-6,},
 MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'asp':-15,'gra':-3,'respain':-15,'resbleed':-9,},
@@ -818,18 +815,20 @@ ADDMODS_BPP_LEG_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
-BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
+BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
+BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'bal':0.9,},
 BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333333,},
 BONESTATUS_BROKEN       :{'bal':0.6666667,'msp':0.6666667,},
-BONESTATUS_SHATTERED    :{'bal':0.3333333,'msp':0.5,},
+BONESTATUS_MULTIBREAKS  :{'bal':0.5,'msp':0.5,},
+BONESTATUS_SHATTERED    :{'bal':0.3333333,'msp':0.4,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-5,},
 MUSCLESTATUS_KNOTTED    :{'msp':-3,'respain':-5,},
-MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-5,'resbleed':-5,},
+MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-5,'resbleed':-2,},
 MUSCLESTATUS_STRAINED   :{'bal':-1,'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'respain':-5,'resbleed':-2,'bal':-1,},
 MUSCLESTATUS_TORN       :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-10,'resbleed':-4,'bal':-2,},
 MUSCLESTATUS_RIPPED     :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6,'bal':-3,},
@@ -900,10 +899,12 @@ BIO_HURT        = 1     # damage per turn while sick
 
 # chem (exposure)
 CHEM_METERLOSS  = 5     # exposure points lost per turn
-CHEM_HURT       = 5     # damage chem effect causes when exposure meter fills
+CHEM_HURT       = 20    # pain chem effect causes when exposure meter fills
+CHEM_DAMAGE     = 5     # damage chem effect causes when exposure meter fills
 
 # acid
 ACID_HURT       = 2
+##ACID_DMG        = 1.0
 
 # irritation
 IRRIT_ATKMOD    = -10
@@ -931,7 +932,6 @@ DEAF_HEARINGMOD = -9999
 #
 
 #electricity
-ELEC_PARALYZETIME= 3
 
 
 

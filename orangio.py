@@ -235,16 +235,6 @@ c
 SPACE
 NONE
 
-// Move
-m
-NONE
-NONE
-
-// Attack
-f
-NONE
-NONE
-
 // Get
 g
 ,
@@ -305,8 +295,18 @@ i
 NONE
 NONE
 
-// Message History
+// show Message History
 Shift+h
+NONE
+NONE
+
+// Move prompt
+m
+NONE
+NONE
+
+// Attack prompt
+f
 NONE
 NONE
 
@@ -397,8 +397,6 @@ COMMANDS = {        # translate commands into actions
     'up'            : {'context-dir': (0,  0, -1,) },
     'down'          : {'context-dir': (0,  0,  1,) },
     'context'       : {'context': True},
-    'move'          : {'move': True},
-    'attack'        : {'attack': True},
     'get'           : {'get': True},
     'open'          : {'open': True},
     'sprint'        : {'sprint': True},
@@ -412,6 +410,8 @@ COMMANDS = {        # translate commands into actions
     'quit'          : {'quit game': True},
     'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
+    'move-prompt'   : {'move-prompt': True},
+    'attack-prompt' : {'attack-prompt': True},
     
     'select'        : {'select': True},
     'exit'          : {'exit': True},
@@ -1022,6 +1022,11 @@ def aim_find_target():
                 dy=mousey - rog.gety(pc.y)
                 if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
                     return (dx,dy,0,)
+            #
+            
+        # end for
+    # end while
+# end def
 
 #
 #
@@ -1033,9 +1038,7 @@ def get_direction():
     while True:
         pcAct=handle_mousekeys(get_raw_input()).items()
         for act,arg in pcAct:
-            if act=="context-dir":
-                return arg
-            if act=="move":
+            if (act=="context-dir" or act=="move"):
                 return arg
             if act=="exit":
                 rog.alert("")

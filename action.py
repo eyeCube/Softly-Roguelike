@@ -347,10 +347,17 @@ def quaff(ent, drink):
     world.delete_entity(drink)
 
 
-#move - standard
-#returns True if move was successful, else False
-#do not drain Action Points unless move was successful
-def move(ent,dx,dy, msp=1.0,ap=1.0,sta=1.0):  # actor locomotion
+def move(ent,dx,dy, ap=1.0,sta=1.0):  # actor locomotion
+    '''
+        move: generic actor locomotion
+        Returns True if move was successful, else False
+        Parameters:
+            ent : entity that's moving
+            dx  : change in x position
+            dy  : change in y position
+            ap  : Action Point cost multiplier value
+            sta : Stamina cost multiplier value
+    '''
     # init
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
@@ -365,12 +372,14 @@ def move(ent,dx,dy, msp=1.0,ap=1.0,sta=1.0):  # actor locomotion
     
     # AP cost
     mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
-    ap_cost = math.ceil(ap * NRG_MOVE * mult * terrainCost / max(1, msp))
+    ap_cost = rog.around(ap * NRG_MOVE * mult * terrainCost / max(1, msp))
     actor.ap -= max(1, ap_cost)
 
     # Stamina cost ( TODO )
 ##    sta_cost = (sta * STA_MOVE)
 ##    rog.sap(ent, sta_cost)
+
+    # Satiation, hydration, fatigue (TODO FOR ALL ACTIONS!)
     
     # perform action
     rog.port(ent, xto, yto)
@@ -425,16 +434,19 @@ def _strike(attkr,dfndr,adv=0,power=0, counterable=False):
         aweap = world.component_for_entity(attkr, cmp.EquipHand1).item
     else:
         aweap = attkr # how to handle no weapons???
-
-    acc = rog.getms(attkr,'atk')
-    dmg = rog.getms(attkr,'dmg')
-    pen = rog.getms(attkr,'pen')
-    asp = rog.getms(attkr,'asp')
-    dv = rog.getms(dfndr,'dfn')
-    prot = rog.getms(dfndr,'pro')
-    arm = rog.getms(dfndr,'arm')
+    
+    # attacker stats
+    acc =   rog.getms(attkr,'atk')//MULT_STATS
+    dmg =   rog.getms(attkr,'dmg')//MULT_STATS
+    pen =   rog.getms(attkr,'pen')//MULT_STATS
+    asp =   rog.getms(attkr,'asp')//MULT_STATS
+    
+    # defender stats
+    dv =    rog.getms(dfndr,'dfn')//MULT_STATS
+    prot =  rog.getms(dfndr,'pro')//MULT_STATS
+    arm =   rog.getms(dfndr,'arm')//MULT_STATS
+    ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
-    ctr = rog.getms(dfndr,'ctr')
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
@@ -592,14 +604,31 @@ def fight(attkr,dfndr,adv=0,power=0):
     dpos = world.component_for_entity(dfndr, cmp.Position)
     aname=world.component_for_entity(attkr, cmp.Name)
     dname=world.component_for_entity(dfndr, cmp.Name)
-    
-    # do the action
-    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
+
+    # weapons of the combatants
+    aweap = rog.dominant_arm(attkr).hand.slot.item
+    dweap = rog.dominant_arm(dfndr).hand.slot.item
+
+    # ensure you have the proper amount of Stamina
+                 #(TODO)
     
     # strike!
     counterable = True # TODO: this is affected by range/reach!
     _rd = _strike(attkr, dfndr, adv=adv, power=power, counterable=counterable)
     hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _rd
+    
+    # AP cost
+    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
+
+    # stamina cost
+    if aweap:
+        equipable = world.component_for_entity(aweap, cmp.EquipableInHandSlot)
+        rog.sap(attkr, equipable.stamina)
+    else:
+        rog.sap(attkr, 12) # TEMPORARY
+                 
+    # metabolism
+    rog.metabolism(attkr, CALCOST_HEAVYACTIVITY)
     
     # finishing up
     message = True # TEMPORARY!!!!
@@ -615,17 +644,21 @@ def fight(attkr,dfndr,adv=0,power=0):
                 ex=" ({dr}:{ro})".format(dr=dr, ro=rol)
         else: # hit
             if rog.is_pc(attkr):
-                ex=" ({dr}:{ro}|{dm}x{p})".format(dr=dr, ro=rol, dm=trueDmg, p=pens)
+                ex=" ({dr}:{ro}|{dm}x{p})".format(
+                    dr=dr, ro=rol, dm=trueDmg, p=pens )
             if killed:
                 v="kills"
             else:
                 if grazed:
                     v="grazes"
                 else:
-                    v="hits"
+                    v = "crits" if crit else "hits"
+        if ctrd:
+            m = "and {dt}{n} counters".format(dt=dt,n=n)
         rog.event_sight(
             dpos.x,dpos.y,
-            "{at}{a} {v} {dt}{n}{ex}{x}".format(a=a,v=v,n=n,at=at,dt=dt,ex=ex,x=x)
+            "{at}{a} {v} {dt}{n}{ex}{m}{x}".format(
+                a=a,v=v,n=n,at=at,dt=dt,ex=ex,x=x,m=m )
         )
         rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
 #

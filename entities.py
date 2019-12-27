@@ -128,18 +128,18 @@ def get_gear_hpmax(gData):          return gData[2]
 def get_gear_apCost(gData):         return gData[3] # AP cost to put on/ take off
 def get_gear_mat(gData):            return gData[4]
 def get_gear_dv(gData):             return gData[5][0]
-def get_gear_av(gData):             return round(MULT_DMG_AV_HP*gData[5][1])
-def get_gear_pro(gData):            return round(MULT_PEN_PRO*gData[5][2])
-def get_gear_sight(gData):          return gData[5][3]
-def get_gear_enc(gData):            return gData[5][4]
-def get_gear_resfire(gData):        return gData[5][5]
-def get_gear_rescold(gData):        return gData[5][6]
-def get_gear_resbio(gData):         return gData[5][7]
-def get_gear_reselec(gData):        return gData[5][8]
-def get_gear_resphys(gData):        return gData[5][9]
-def get_gear_resbleed(gData):       return gData[5][10]
-def get_gear_reslight(gData):       return gData[5][11]
-def get_gear_ressound(gData):       return gData[5][12]
+def get_gear_av(gData):             return gData[5][1]
+def get_gear_pro(gData):            return gData[5][2]
+def get_gear_enc(gData):            return gData[5][3]
+def get_gear_resfire(gData):        return gData[5][4]
+def get_gear_rescold(gData):        return gData[5][5]
+def get_gear_resbio(gData):         return gData[5][6]
+def get_gear_reselec(gData):        return gData[5][7]
+def get_gear_resphys(gData):        return gData[5][8]
+def get_gear_resbleed(gData):       return gData[5][9]
+def get_gear_reslight(gData):       return gData[5][10]
+def get_gear_ressound(gData):       return gData[5][11]
+def get_gear_sight(gData):          return gData[5][12]
     # armor only
 def get_armor_script(gData):        return gData[6] 
     # eyewear
@@ -235,15 +235,22 @@ def getMonScript(_char):    return bestiary[_char][3]
 
 
 
-    # GENERIC FUNCTIONS
+    # GENERIC SCRIPTS
 
 def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=0,twoh=False,skill=None):
     world=rog.world()
-    dmod={'atk':acc,'dmg':dmg,'pen':pen,'dfn':dv,'arm':av,'pro':pro,'asp':asp,'enc':enc}
+    dmod={}
+    if acc !=0: dmod['acc'] = acc
+    if dmg !=0: dmod['dmg'] = dmg
+    if pen !=0: dmod['pen'] = pen
+    if dv !=0: dmod['dv'] = dv
+    if av !=0: dmod['av'] = av
+    if pro !=0: dmod['pro'] = pro
+    if asp !=0: dmod['asp'] = asp
+    if enc !=0: dmod['enc'] = enc
     world.add_component(item, cmp.EquipableInHandSlot(NRG_WIELD,mods))
     if twoh: rog.make(item, TWOHANDS)
-    if skill:
-        world.add_component(item, cmp.WeaponSkill(skill))
+    if skill: world.add_component(item, cmp.WeaponSkill(skill))
 
 def _canThrow(item, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None,elem=None,elemDmg=None):
     world=rog.world()
@@ -2193,11 +2200,11 @@ def _plagueMask(item):
     _canThrow(item, acc=-5, rng=5, skill=SKL_THROWING)
     # eye gear
 def _pGoggles(item):
-    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+    _canThrow(item, acc=0, rng=5, skill=SKL_SPINNING)
 def _gGoggles(item):
-    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
+    _canThrow(item, acc=0, rng=5, skill=SKL_SPINNING)
 def _glasses(item):
-    _canThrow(item, acc=0, rng=3, skill=SKL_SPINNING)
+    _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
 
 
 
@@ -2241,7 +2248,7 @@ def burn(ent, amt, maxTemp):
 ##        rog.clear_status(obj,WET)    #wet things get dried
 ##        #steam=stuff.create("steam", obj.x, obj.y)
     #increase temperature
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = min( maxTemp, max(0, meters.temp + dmg ) )
     #set burning status
@@ -2256,33 +2263,45 @@ def cooldown(ent, amt, minTemp=0): # cool to room temp
     meters.temp = max(minTemp, meters.temp - amt )
 def cool(ent, amt, minTemp):
     res = rog.getms(ent, 'rescold')
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = max(minTemp, meters.temp - dmg)
     #set cold status
 ##    if (not rog.on(obj, COLD) and obj.stats.temp >= FIRE_TEMP): #should depend on material?
 ##        rog.set_status(obj, FIRE)
     
+#   PAIN METER
+#pain damage
+def hurt(ent, amt):
+    res = rog.getms(ent, 'respain')
+    #increase sickness meter
+    dmg = amt*100/(res+100)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.pain += max(0, dmg )
+    if meters.pain >= 100:
+        meters.pain = 0
+        rog.set_status(ent, cmp.StatusPain)
+        
 #   SICK METER
 #bio damage
 def disease(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase sickness meter
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
     if meters.sick >= 100:
-        meters.sick = 100        #cap out sickness meter
+        meters.sick = 0
         rog.set_status(ent, cmp.StatusSick)
 #drunk damage
 def intoxicate(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase sickness meter
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
     if meters.sick >= 100:
-        meters.sick = 100        #cap out sickness meter
+        meters.sick = 0
         rog.set_status(ent, cmp.StatusDrunk)
         
 #   RADS METER
@@ -2290,7 +2309,7 @@ def intoxicate(ent, amt):
 def irradiate(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase rads meter
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.rads += max(0, dmg )
     if meters.rads >= 100:
@@ -2302,17 +2321,18 @@ def irradiate(ent, amt):
 def exposure(ent, amt):
     res = rog.getms(ent, 'resbio')
     #increase exposure meter
-    dmg = amt*(1-(res/100))
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg )
     if meters.expo >= 100:
         meters.expo = 0          #reset exposure meter
-        rog.damage(ent, CHEM_DAMAGE)  #instant damage when expo meter fills
+        rog.damage(ent, CHEM_DAMAGE*MULT_STATS)  #instant damage when expo meter fills
+        hurt(ent, CHEM_HURT)
         _random_chemical_effect(ent) #inflict chem status effect
 #acid
 def corrode(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = amt * (1-(res/100)) / 10
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2321,7 +2341,7 @@ def corrode(ent, amt):
 #coughing
 def cough(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = amt * (1-(res/100)) / 10
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2330,7 +2350,7 @@ def cough(ent, amt):
 #vomiting
 def vomit(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = amt * (1-(res/100)) / 10
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2339,7 +2359,7 @@ def vomit(ent, amt):
 #irritating
 def irritate(ent, amt):
     res = rog.getms(ent, 'resbio')
-    dmg = amt * (1-(res/100)) / 10
+    dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
@@ -2350,24 +2370,24 @@ def irritate(ent, amt):
 #elec damage  
 def electrify(ent, amt):
     res = rog.getms(ent, 'reselec')
-    dmg = amt * (1-(res/100)) / 10
+    dmg = amt*100/(res+100) * 0.1 * MULT_STATS
     if dmg:
         rog.damage(ent, dmg)
-        rog.sap(ent, dmg*10)
-    if dmg >= 9:
-        rog.paralyze(ent, ELEC_PARALYZETIME) # paralysis from high damage
+        rog.sap(ent, dmg)
+    if dmg >= (rog.getms(ent, 'hpmax')//3):
+        paralyze(ent, 3) # paralysis from high damage
 
 def mutate(ent):
-    ismutable = rog.world().has_component(ent, cmp.Mutable)
-    if not ismutable: return False
+    if not rog.world().has_component(ent, cmp.Mutable):
+        return False
     mutable = rog.world().component_for_entity(ent, cmp.Mutable)
     mutable.mutations += 1
     if mutable.mutations > 3:
         rog.kill(ent)
     return True
 def paralyze(ent, dur):
-    iscreature = rog.world().has_component(ent, cmp.Creature)
-    if not iscreature: return False
+    if not rog.world().has_component(ent, cmp.Creature):
+        return False
     rog.set_status(ent, cmp.StatusParalyzed, dur)
     return True
 
@@ -2445,6 +2465,10 @@ def _apply_skill_bonus_weapon(dadd, skill):
     dadd['gra'] = dadd.get('gra',0) * (1 + SKLMOD_WEAPON_GRA*sm)
     dadd['ctr'] = dadd.get('ctr',0) * (1 + SKLMOD_WEAPON_CTR*sm)
 # end def
+
+'''
+    Body
+'''
 
 # BPC
 
@@ -2979,6 +3003,100 @@ def _update_from_bp_appendage(ent, appendage, armorSkill, unarmored):
 # end def
 
 
+'''
+    Body functions
+    Body Processor
+'''
+
+def metabolism(ent, hunger, thirst=0):
+    '''
+        burn calories
+        filter water through kidneys (TO ALTER?)
+            should you have to piss and shit in this game?
+
+        DOES NOT:
+            extract calories from food (stomach function does that)
+
+        Parameters:
+            hunger     calories to burn (not KiloCalories)
+            thirst     thirst points to burn
+    '''
+    body = rog.world().component_for_entity(ent, cmp.Body)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    
+    # hunger
+    body.satiation -= hunger
+    if body.satiation <= 0:
+        starve(ent)
+    
+    # thirst
+    if not thirst:
+        thirst = 1 # TEMPORARY -> test the below line when things stabilize
+##        thirst = math.ceil(hunger*METABOLISM_THIRST)
+    body.hydration -= thirst
+    if body.hydration <= body.hydrationMax*0.9:
+        dehydrate(ent)
+    
+    # heat generation that is unaffected by heat res
+    meters.temp += hunger * METABOLISM_HEAT
+# end def
+
+def stomach(ent):
+    '''
+        digestion function
+        get calories (satiation) from food
+
+        call this on a processor that runs every few turns or so
+    '''
+    world = rog.world()
+    if not world.has_component(ent, cmp.StatusDigesting):
+        return
+    body = world.component_for_entity(ent, cmp.Body)
+    compo = world.component_for_entity(ent, cmp.StatusDigesting)
+    # satiation ++, caloriesAvailableInFood --
+    metabolic_rate = stats.mass / MULT_MASS
+    caloric_value = min(metabolic_rate, compo.quantity)
+    compo.quantity -= caloric_value
+    body.satiation += caloric_value
+    # excess Calories -> fat
+    if body.satiation > body.satiationMax:
+        body.bodyfat += ( # 9 Calories per gram of fat (1/9 == 0.1111...)
+            body.satiationMax - body.satiation) / MULT_MASS *0.11111111
+        body.satiation = body.satiationMax
+
+def starve(ent):
+    body = rog.world().component_for_entity(ent, cmp.Body)
+    assert(body.satiation < 0)
+    if body.bodyfat > 0:
+        fat = body.bodyfat + body.satiation
+    else:
+        wasteaway(body)
+        rog.set_status(ent, cmp.Starving)
+
+def dehydrate(ent):
+    pass
+
+def wasteaway(body):
+    ''' consume muscle mass of the body for food '''
+    pass
+
+def homeostasis(ent):
+    '''
+        maintain heat equilibrium
+         # TODO: make creatures call this function once per turn
+    '''
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    if meters.temp > BODY_TEMP+1:
+        sweat(ent)
+    elif meters.temp < BODY_TEMP-1:
+        shiver(ent)
+
+def sweat(ent):
+    pass
+def shiver(ent):
+    pass
+
+
 
 
 
@@ -2999,7 +3117,7 @@ def create_stuff(name, x, y):
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
         cmp.Form(mat=mat, val=val*MULT_VALUE),
-        cmp.Stats(hp=hp, mass=round(kg*MULT_MASS)),
+        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
         cmp.Flags(),
         )
@@ -3019,7 +3137,7 @@ def create_rawmat(name, x, y):
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
         cmp.Form(mat=mat, val=val*MULT_VALUE),
-        cmp.Stats(hp=hp, mass=round(kg*MULT_MASS)),
+        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
         cmp.Flags(),
         )
@@ -3042,19 +3160,24 @@ def create_armor(name,x,y,quality):
     ent = world.create_entity()
     
     gData = ARMOR[name]
-    value = get_gear_value(gData)
-    mass = get_gear_mass(gData)
-    hpmax = get_gear_hpmax(gData)
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
     apCost = get_gear_apCost(gData)
     material = get_gear_material(gData)
-    dfn = get_gear_dfn(gData)
-    arm = get_gear_arm(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
     enc = get_gear_enc(gData)
-    sight = get_gear_sight(gData)
     resbio = get_gear_resbio(gData)
     resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = get_gear_reslight(gData)
+    ressound = get_gear_ressound(gData)
+    sight = get_gear_sight(gData)
     script = get_armor_script(gData)
     
     fgcol = COL['accent']
@@ -3064,10 +3187,7 @@ def create_armor(name,x,y,quality):
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(
-        mass=round(mass*MULT_MASS),
-        material=material,
-        value=value*MULT_VALUE
-        ))
+        mass=mass, material=material, value=value ))
     world.add_component(ent, cmp.Stats(
         hp=hpmax,mp=hpmax,
         resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
@@ -3079,14 +3199,19 @@ def create_armor(name,x,y,quality):
     #stat mod dictionaries
     #{var : modf}
     statsDict = {}
-    if resbio: statsDict.update({"resbio":resbio})
-    if resfire: statsDict.update({"resfire":resfire})
-    if reselec: statsDict.update({"reselec":reselec})
-    if resphys: statsDict.update({"resphys":resphys})
-    if not dfn==0: statsDict.update({"dfn":dfn})
-    if not arm==0: statsDict.update({"arm":arm})
-    if not enc==0: statsDict.update({"enc":enc})
-    if not sight==0: statsDict.update({"sight":sight})
+    if resbio!=0: statsDict.update({"resbio":resbio})
+    if resfire!=0: statsDict.update({"resfire":resfire})
+    if rescold!=0: statsDict.update({"rescold":rescold})
+    if reselec!=0: statsDict.update({"reselec":reselec})
+    if resphys!=0: statsDict.update({"resphys":resphys})
+    if resbleed!=0: statsDict.update({"resbleed":resbleed})
+    if reslight!=0: statsDict.update({"reslight":reslight})
+    if ressound!=0: statsDict.update({"ressound":ressound})
+    if dfn!=0: statsDict.update({"dfn":dfn})
+    if arm!=0: statsDict.update({"arm":arm})
+    if pro!=0: statsDict.update({"pro":pro})
+    if enc!=0: statsDict.update({"enc":enc})
+    if sight!=0: statsDict.update({"sight":sight})
     world.add_component(ent, cmp.EquipableInFrontSlot(apCost, statsDict))
 ##    elif _type == BACK:
 ##        world.add_component(ent, cmp.EquipableInBackSlot(apCost, modDict))
@@ -3104,21 +3229,21 @@ def create_weapon(name, x,y, quality=0):
     # get weapon data from table
     data = WEAPONS[name]
     _type       = T_MELEEWEAPON
-    value       = get_weapon_value(data)
-    mass        = get_weapon_mass(data)
+    value       = int(get_weapon_value(data)*MULT_VALUE)
+    mass        = int(get_weapon_mass(data)*MULT_MASS)
     hpmax       = get_weapon_hpmax(data)
     material    = get_weapon_mat(data)
-    atk         = get_weapon_atk(data)
-    dmg         = get_weapon_dmg(data)
-    pen         = get_weapon_pen(data)
-    dfn         = get_weapon_dfn(data)
-    arm         = get_weapon_arm(data)
-    pro         = get_weapon_pro(data)
+    atk         = rog.around(get_weapon_atk(data)*MULT_STATS)
+    dmg         = rog.around(get_weapon_dmg(data)*MULT_STATS)
+    pen         = rog.around(get_weapon_pen(data))
+    dfn         = rog.around(get_weapon_dfn(data))
+    arm         = rog.around(get_weapon_arm(data))
+    pro         = rog.around(get_weapon_pro(data))
     asp         = get_weapon_asp(data)
     enc         = get_weapon_enc(data)
-    ctr         = get_weapon_ctr(data)
-    gra         = get_weapon_gra(data)
-    sta         = get_weapon_staminacost(data)
+    ctr         = rog.around(get_weapon_ctr(data))
+    gra         = rog.around(get_weapon_gra(data))
+    stamina_cost= get_weapon_staminacost(data)
 ##    grp         = get_weapon_grip(data)
     skill       = get_weapon_skill(data)
     script      = get_weapon_script(data)
@@ -3135,10 +3260,7 @@ def create_weapon(name, x,y, quality=0):
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw( char=_type, fgcol=fgcol, bgcol=bgcol ))
     world.add_component(ent, cmp.Form(
-        mass=round(mass*MULT_MASS),
-        material=material,
-        value=value*MULT_VALUE
-        ))
+        mass=mass, material=material, value=value ))
     world.add_component(ent, cmp.Stats(
         hp=hpmax,mp=hpmax,
         resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
@@ -3156,7 +3278,10 @@ def create_weapon(name, x,y, quality=0):
     if not pro==0: modDict.update({'pro':pro})
     if not asp==0: modDict.update({'asp':asp})
     if not enc==0: modDict.update({'enc':enc})
-    world.add_component(ent,cmp.EquipableInHandSlot(NRG_WIELD,modDict))
+    if not ctr==0: modDict.update({'ctr':ctr})
+    if not gra==0: modDict.update({'gra':gra})
+    world.add_component(ent, cmp.EquipableInHandSlot(
+        NRG_WIELD, stamina_cost, modDict) )
     if skill:
         world.add_component(ent,cmp.WeaponSkill(skill))
     # quality
@@ -3169,18 +3294,32 @@ def create_weapon(name, x,y, quality=0):
 #
 
 def create_monster(_type, x, y, col=None, mutate=0):
+
+              # THIS IS BROKEN AND NEEDS A LOT OF WORK
+
+              # TODO: import bestiary from Excel file
+
+              # TODO: get body type from excel, and from that info, make a body and assign it as component to the monster entity.
+
+              
     if not col:
         col = COL['red']
     monData = bestiary[_type]
     name = getMonName(_type)
-    hp = getMonLo(_type)
-    mp = getMonHi(_type)
-    atk = getMonAtk(_type)
-    dmg = getMonDmg(_type)
-    pen = getMonPen(_type)
-    pro = getMonPro(_type)
-    dv = getMonDV(_type)
-    av = getMonAV(_type)
+    _str = getMonStr(_type)*MULT_ATT 
+    _con = getMonCon(_type)*MULT_ATT
+    _dex = getMonDex(_type)*MULT_ATT
+    _agi = getMonAgi(_type)*MULT_ATT
+    _int = getMonInt(_type)*MULT_ATT
+    _end = getMonEnd(_type)*MULT_ATT
+    hp = getMonLo(_type)*MULT_STATS
+    mp = getMonHi(_type)*MULT_STATS
+    atk = getMonAtk(_type)*MULT_STATS
+    dmg = getMonDmg(_type)*MULT_STATS
+    pen = getMonPen(_type)*MULT_STATS
+    pro = getMonPro(_type)*MULT_STATS
+    dv = getMonDV(_type)*MULT_STATS
+    av = getMonAV(_type)*MULT_STATS
     spd = getMonSpd(_type)
     asp = getMonAsp(_type)
     msp = getMonMsp(_type)
@@ -3302,13 +3441,14 @@ def create_steel_weapon(itemName, x, y):
     return weap
 #
 
-def create_body_humanoid(mass=75, female=False):
+def create_body_humanoid(mass=75, height=175, female=False):
     '''
         create a generic humanoid body with everything a basic body needs
             *does not add any values to components -- inits default vals
         Parameters:
-            mass   : mass in KG
-            female : is the creature female?
+            int mass    : mass in KG
+            int height  : height in centimeters
+            bool female : is the creature female?
     '''
     mass = int(mass * MULT_MASS)
     fat = mass*0.1 if female else mass*0.05
@@ -3320,14 +3460,15 @@ def create_body_humanoid(mass=75, female=False):
             cmp.BPC_Arms  : cmp.BPC_Arms(cmp.BPM_Arm(dominant=True), cmp.BPM_Arm()),
             cmp.BPC_Legs  : cmp.BPC_Legs(cmp.BPM_Leg(dominant=True), cmp.BPM_Leg()),
             },
+        height=int(height)
         blood=int(mass*0.07),
-        fat=int(fat), # total fat mass in the body
-        hydration=int(mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you dehydrate and die.
+        fat=fat, # total fat mass in the body (can be stored as a float, no problem)
+        hydration=int(HYDRATION_MULTIPLIER*mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
         satiation=int(mass*50), # how many calories (not KiloCalories) you have available at maximum satiation w/o resorting to burning fat / muscle
         sleep=86400 # 24h * 60m * 60s
         )
-    mass = mass - body.fat - body.hydration - body.blood
-    return (body, mass,)
+    massleft = mass - body.fat - body.hydration - body.blood
+    return (body, massleft,)
 
 # generic components that can be applied depending on entity's data
 def _setGenericData(ent, material=0):
@@ -4131,32 +4272,34 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 ##}
 
 EYEWEAR={
-#--Name-------------------$$$$$,KG,  Dur,AP,  Mat, (DV, AV, Pro,Per,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT),script
-"plastic goggles"       :(15,   0.1, 8,  200, PLAS,(0,  0,  0.1,0.9,2,  0,  0,  15, 3,  0,  0,  10,),_pGoggles,),
-"glass goggles"         :(35,   0.15,2,  200, GLAS,(0,  0,  0.1,1,  2,  0,  0,  15, 0,  0,  0,  0,),_gGoggles,),
-"glasses"               :(7,    0.04,4,  100, GLAS,(0,  0,  0,  1,  12, 0,  0,  9,  0,  0,  0,  0,),_glasses,),
-"sunglasses"            :(2,    0.06,2,  100, PLAS,(0,  0,  0,  0.7,12, 0,  0,  12, 0,  0,  0,  100,),_glasses,),
+#--Name-------------------$$$$$,KG,  Dur,AP,  Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis),script
+"plastic goggles"       :(15,   0.1, 12, 200, PLAS,(0,  0,  0.1,2,  0,  0,  15, 3,  0,  0,  10, 0,  0.9,),_pGoggles,),
+"glass goggles"         :(35,   0.15,3,  200, GLAS,(0,  0,  0.1,2,  0,  0,  15, 0,  0,  0,  5,  0,  1,),_gGoggles,),
+"glasses"               :(7,    0.04,10, 100, GLAS,(0,  0,  0,  12, 0,  0,  9,  0,  0,  0,  0,  0,  1,),_glasses,),
+"sunglasses"            :(2,    0.06,3,  100, PLAS,(0,  0,  0,  12, 0,  0,  12, 0,  0,  0,  100,0,  0.7,),_glasses,),
+"laser glasses lv.1"    :(175,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  12, 0,  0,  0,  800,0,  0.5,),_glasses,),
+"laser glasses lv.2"    :(460,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  12, 0,  0,  0,  3200,0, 0.2,),_glasses,),
 }
 
 FACEWEAR={
 # Per : perception (vision AND hearing) (percentage modifier)
 # E: covers eyes? bool (0 or 1)
     
-#--Name-------------------$$$$$, KG,  Dur, AP,  Mat, (DV, AV, Pro,Per,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT)E,script
-"flesh mask"            :(25,    0.9, 15,  200, FLSH,(0,  0.1,0.8,0.9,3,  0,  1,  3,  0,  0,  6,  10,),1,_fMask,),# grants intimidation when you wear any armor but esp. if you wear flesh armor and the flesh face is the scariest of all
-"bandana"               :(2,     0.05,10,  300, CLTH,(0,  0.0,0.1,1,  1,  3,  0,  12, 0,  0,  0,  0,),0,_bandana,),
-"leather mask"          :(40,    0.8, 90,  200, LETH,(0,  0.6,1.2,0.8,3,  3,  1,  3,  6,  0,  3,  10,),1,_lMask,),
-"boiled leather mask"   :(62,    0.7, 150, 200, BOIL,(1,  1.0,1.6,0.8,3,  6,  1,  3,  9,  0,  3,  10,),1,_blMask,),
-"plastic mask"          :(1,     1.5, 30,  200, PLAS,(-1, 0.8,0.6,0.5,3,  -6, 0,  3,  3,  0,  0,  50,),1,_pMask,),#"made of a translucent plastic, this mask allows the wearer to see through it while providing some protection.
-"plastic respirator"    :(14,    1.4, 20,  400, PLAS,(-2, 0.8,0.7,0.5,6,  -6, 0,  30, 3,  0,  0,  50,),1,_respirator,),#mask with added breathing filter for added bio resistance.
-"plastic bio mask"      :(25,    1.5, 15,  400, PLAS,(-2, 0.8,0.8,0.5,9,  3,  1,  42, 3,  0,  0,  50,),1,_respirator,),#respirator with a plastic or glass eye-covering for added bio resistance.
-"plague mask"           :(95,    1.7, 60,  800, LETH,(-4, 0.8,1.0,0.2,12, 3,  3,  21, 9,  0,  3,  100,),1,_plagueMask,),
-"gas mask"              :(1200,  2.5, 80,  400, PLAS,(-2, 0.5,1.8,0.5,6,  15, 3,  60, 6,  1,  0,  100,),1,_gasMask,),#an ancient bio mask made of fire resistant material.
-"kevlar mask"           :(2750,  0.5, 200, 200, PLAS,(2,  1.4,2.4,0.8,1,  3,  0,  0,  3,  3,  3,  20,),1,_kMask,),
-"wooden mask"           :(20,    0.8, 50,  200, WOOD,(0,  0.5,1.0,0.5,3,  -6, 0,  3,  0,  0,  0,  50,),1,_wMask,),
-"metal mask"            :(130,   0.7, 320, 300, METL,(0,  1.7,2.0,0.5,3,  -6, -1, 3,  -9, 0,  0,  50,),1,_mMask,),
-"metal respirator"      :(160,   1.7, 120, 400, METL,(-2, 1.7,2.0,0.5,6,  0,  -1, 30, 0,  1,  0,  50,),1,_mRespirator,),
-"metal bio mask"        :(175,   1.8, 100, 400, METL,(-2, 1.7,2.0,0.5,9,  6,  2,  42, 0,  1,  0,  50,),1,_mRespirator,),#bio masks are respirators with a visor for eye protection
+#--Name-------------------$$$$$, KG,  Dur, AP,  Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,)E,script
+"flesh mask"            :(25,    0.9, 15,  200, FLSH,(0,  0.1,0.8,3,  0,  1,  3,  0,  0,  6,  10, 0,  0.9,),1,_fMask,),# grants intimidation when you wear any armor but esp. if you wear flesh armor and the flesh face is the scariest of all
+"bandana"               :(2,     0.05,10,  300, CLTH,(0,  0.0,0.1,1,  3,  0,  12, 0,  0,  0,  0,  0,  1,),0,_bandana,),
+"leather mask"          :(40,    0.8, 90,  200, LETH,(0,  0.6,1.2,3,  3,  1,  3,  6,  0,  3,  10, 0,  0.8,),1,_lMask,),
+"boiled leather mask"   :(62,    0.7, 150, 200, BOIL,(1,  1.0,1.6,3,  6,  1,  3,  9,  0,  3,  10, 0,  0.8,),1,_blMask,),
+"plastic mask"          :(1,     1.5, 30,  200, PLAS,(-1, 0.8,0.6,3,  -6, 0,  3,  3,  0,  0,  50, 0,  0.5,),1,_pMask,),#"made of a translucent plastic, this mask allows the wearer to see through it while providing some protection.
+"plastic respirator"    :(14,    1.4, 20,  400, PLAS,(-2, 0.8,0.7,6,  -6, 0,  30, 3,  0,  0,  50, 0,  0.5,),1,_respirator,),#mask with added breathing filter for added bio resistance.
+"plastic bio mask"      :(25,    1.5, 15,  400, PLAS,(-2, 0.8,0.8,9,  3,  1,  42, 3,  0,  0,  50, 0,  0.5,),1,_respirator,),#respirator with a plastic or glass eye-covering for added bio resistance.
+"plague mask"           :(95,    1.7, 60,  800, LETH,(-4, 0.8,1.0,12, 3,  3,  21, 9,  0,  3,  100,0,  0.2,),1,_plagueMask,),
+"gas mask"              :(1200,  2.5, 80,  400, PLAS,(-2, 0.5,1.8,6,  15, 3,  60, 6,  1,  0,  100,0,  0.5,),1,_gasMask,),#an ancient bio mask made of fire resistant material.
+"kevlar mask"           :(2750,  0.5, 200, 200, PLAS,(2,  1.4,2.4,1,  3,  0,  0,  3,  3,  3,  20, 0,  0.8,),1,_kMask,),
+"wooden mask"           :(20,    0.8, 50,  200, WOOD,(0,  0.5,1.0,3,  -6, 0,  3,  0,  0,  0,  50, 0,  0.5,),1,_wMask,),
+"metal mask"            :(130,   0.7, 320, 300, METL,(0,  1.7,2.0,3,  -6, -1, 3,  -9, 0,  0,  50, 0,  0.5,),1,_mMask,),
+"metal respirator"      :(160,   1.7, 120, 400, METL,(-2, 1.7,2.0,6,  0,  -1, 30, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),
+"metal bio mask"        :(175,   1.8, 100, 400, METL,(-2, 1.7,2.0,9,  6,  2,  42, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),#bio masks are respirators with a visor for eye protection
 }
 
 HEADWEAR={
@@ -4170,32 +4313,32 @@ HEADWEAR={
 # Per : perception (vision AND hearing) (multiplier modifier)
 # F: covers face? bool (0 or 1)
 # E: covers eyes? bool (0 or 1)
-#--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV, Pro,Per,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND)F,E,script
-"flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5,0.9,0,  2,  -6, 5,  0,  0,  0,  3,  0,  0,),0,0,_fCap,),
-"padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1,1.9,0,  1,  -3, 3,  3,  0,  0,  3,  0,  0,),0,0,_cCoif,),
-"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2,2.2,0,  1,  -6, 6,  3,  3,  3,  3,  0,  0,),0,0,_cCoif,),
-"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9,1.1,0,  2,  -9, 0,  -3, 6,  0,  0,  0,  0,),0,0,_pCap,),
-"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0,2.0,0.9,3,  -12,2,  -3, 9,  0,  0,  20, 0,),0,0,_pHelm,),
-"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2,3.0,0.5,6,  -18,3,  0,  12, 0,  0,  50, 0,),1,1,_pHelm,),
-"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6,2.5,0.8,12, -24,5,  12, 18, 0,  0,  10, 0,),1,1,_pHelm,),
-"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5,2.5,0.8,9,  -12,6,  24, 18, 0,  0,  10, 0,),1,1,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
-"kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0,2.2,0,  1,  3,  0,  0,  3,  5,  1,  0,  0,),0,0,_kCap,),
-"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6,1.0,0,  2,  -6, 2,  3,  6,  0,  1,  0,  0,),0,0,_lCap,),
-"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8,1.2,0,  2,  -3, 2,  3,  9,  0,  1,  0,  0,),0,0,_lCap,),
-"skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2,1.2,0,  2,  0,  1,  0,  6,  0,  0,  0,  0,),0,0,_bCap,),
-"bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2,2.0,0.9,6,  3,  2,  3,  9,  0,  0,  10, 0,),0,0,_bHelm,),
-"pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5,2.2,0,  2,  -3, 0,  3,  -6, 1,  3,  0,  0,),0,0,_mCoif,),
-"metal mail coif"       :(220,  2.9, 245, 200, METL,(1,  4.1,2.4,0,  2,  -3, 0,  3,  -6, 1,  3,  0,  0,),0,0,_mCoif,),
-"metal cap"             :(145,  2.4, 750, 100, METL,(0,  5.0,1.4,0,  2,  -6, -2, 0,  -6, 0,  1,  0,  0,),0,0,_mCap,),
-"metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10, 2.0,0.9,12, -9, -15,0,  -9, 0,  1,  0,  0,),0,0,_mCap,),
-"metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2,3.2,0.9,3,  -18,-3, 3,  -12,0,  2,  20, 0,),0,0,_mHelm,),
-"metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5,4.0,0.5,6,  -24,-6, 6,  -15,3,  2,  50, 0,),1,1,_mHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; 
-"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5,2.8,0.8,12, -36,0,  18, -9, 0,  2,  10, 0,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
-"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3,2.6,0.8,9,  -24,2,  30, -6, 0,  2,  10, 0,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
-"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8,5.2,0.2,9,  -24,-9, 9,  -18,3,  3,  100,0,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
-"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0,1.0,0.1,15, -6, -6, 12, -12,0,  2,  400,0,),1,1,_mHelm,),
-"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(2,  2.4,3.5,0.9,3,  -3, 3,  15, 9,  3,  1,  50, 30,),0,1,_motorcycleHelm,),
-"graphene helm"         :(18000,1.3, 560, 500, CARB,(3,  8.0,6.0,0.8,1,  18, 12, 24, 15, 3,  6,  50, 60,),1,1,_grHelm,),
+#--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV,  Pro, Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,)F,E,script
+"flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5, 0.9, 2,  -6, 5,  0,  0,  0,  3,  0,  0,  1,),0,0,_fCap,),
+"padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1, 1.9, 1,  -3, 3,  3,  0,  0,  3,  0,  0,  1,),0,0,_cCoif,),
+"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2, 2.2, 1,  -6, 6,  3,  3,  3,  3,  0,  0,  1,),0,0,_cCoif,),
+"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9, 1.1, 2,  -9, 0,  -3, 6,  0,  0,  0,  0,  1,),0,0,_pCap,),
+"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0, 2.0, 3,  -12,2,  -3, 9,  0,  0,  20, 0,  0.9,),0,0,_pHelm,),
+"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2, 3.0, 6,  -18,3,  0,  12, 0,  0,  50, 0,  0.5,),1,1,_pHelm,),
+"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6, 2.5, 12, -24,5,  12, 18, 0,  0,  10, 0,  0.8,),1,1,_pHelm,),
+"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5, 2.5, 9,  -12,6,  24, 18, 0,  0,  10, 0,  0.8,),1,1,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
+"kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0, 2.2, 1,  3,  0,  0,  3,  5,  1,  0,  0,  1,),0,0,_kCap,),
+"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6, 1.0, 2,  -6, 2,  3,  6,  0,  1,  0,  0,  1,),0,0,_lCap,),
+"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8, 1.2, 2,  -3, 2,  3,  9,  0,  1,  0,  0,  1,),0,0,_lCap,),
+"skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2, 1.2, 2,  0,  1,  0,  6,  0,  0,  0,  0,  1,),0,0,_bCap,),
+"bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2, 2.0, 6,  3,  2,  3,  9,  0,  0,  10, 0,  0.9,),0,0,_bHelm,),
+"pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5, 2.2, 2,  -3, 0,  3,  -6, 1,  3,  0,  0,  1,),0,0,_mCoif,),
+"metal mail coif"       :(220,  2.9, 245, 200, METL,(1,  4.1, 2.4, 2,  -3, 0,  3,  -6, 1,  3,  0,  0,  1,),0,0,_mCoif,),
+"metal cap"             :(145,  2.4, 750, 100, METL,(0,  5.0, 1.4, 2,  -6, -2, 0,  -6, 0,  1,  0,  0,  1,),0,0,_mCap,),
+"metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10,  2.0, 12, -9, -15,0,  -9, 0,  1,  0,  0,  0.9,),0,0,_mCap,),
+"metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2, 3.2, 3,  -18,-3, 3,  -12,0,  2,  20, 0,  0.9,),0,0,_mHelm,),
+"metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5, 4.0, 6,  -24,-6, 6,  -15,3,  2,  50, 0,  0.5,),1,1,_mHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; 
+"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5, 2.8, 12, -36,0,  18, -9, 0,  2,  10, 0,  0.8,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
+"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3, 2.6, 9,  -24,2,  30, -6, 0,  2,  10, 0,  0.8,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
+"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8, 5.2, 9,  -24,-9, 9,  -18,3,  3,  100,0,  0.2,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
+"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0, 1.0, 15, -6, -6, 12, -12,0,  2,  400,0,  0.1,),1,1,_mHelm,),
+"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(1,  2.4, 3.5, 3,  -3, 3,  15, 9,  3,  1,  50, 30, 0.8,),0,1,_motorcycleHelm,),
+"graphene helm"         :(18000,1.3, 560, 500, CARB,(2.5,8.0, 6.0, 1,  18, 12, 24, 15, 3,  6,  50, 60, 0.8,),1,1,_grHelm,),
 }
      
 '''

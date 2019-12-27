@@ -21,6 +21,8 @@
 '''
 
 import os
+import random
+
 from const      import *
 from colors     import COLORS as COL
 import rogue    as rog
@@ -121,7 +123,20 @@ def commands(pc, pcAct):
             pass
         
 #------------OTHER ACTION--------------------------#
+
+        # "move-prompt" : True
+        # prompt for a direction
+        #   and then perform the move action in that direction
+        if act == 'move-prompt':
+            pass
+
+        # "attack-prompt" : True
+        # prompt for a direction
+        #   and then perform the attack action in that direction
+        if act == 'attack-prompt':
+            pass
         
+        # "move" : (x_change, y_change, z_change,)
         if act == 'move':
             dx,dy,dz=arg
             pos = world.component_for_entity(pc, cmp.Position)
@@ -141,7 +156,7 @@ def commands(pc, pcAct):
             
             # fight if there is a monster present
             mon = rog.monat(xto,yto)
-            if (mon and mon is not pc):
+            if mon: # and mon != pc):
                 _Update()
                 action.fight(pc,mon)
             # or move
@@ -150,6 +165,35 @@ def commands(pc, pcAct):
                 if action.move(pc, dx,dy):
                     _Update()
                     rog.view_center_player()
+        # end conditional
+        
+        # "attack" : (x, y, z,)
+        if act == 'attack':
+            xto,yto,zto=arg
+            pos = world.component_for_entity(pc, cmp.Position)
+            actor = world.component_for_entity(pc, cmp.Actor)
+
+            # out of bounds
+            if ( not rog.is_in_grid_x(xto) or not rog.is_in_grid_y(yto) ):
+                return
+            
+            # fight if there is a monster present
+            mon = rog.monat(xto,yto)
+            if mon == pc:
+                rog.alert("You can't fight yourself!")
+            if mon:
+                _Update()
+                action.fight(pc,mon)
+            else:
+                _Update()
+                ent = rog.thingat(xto,yto)
+                if ent:
+                    action.fight(pc,ent)
+                else:
+                    rog.msg("You strike out at thin air, losing your balance.")
+                    actor.ap = 0
+                    rog.topple(pc, STRIKE_AIR_IMBALANCE_AMOUNT)
+        # end conditional
 
         if act == "get":
             action.pickup_pc(pc)
@@ -208,6 +252,101 @@ def commands(pc, pcAct):
 
 
 
+def chargen_roll():
+    '''
+        Roll a random character
+    '''
+    world = rog.world()
+
+    # name
+    _name = "pseudo" #random.choice(DEFAULT_NAMES)
+
+    # gender
+    _gender = random.choice("male", "female")
+
+    # class
+    for k,v in entities.getJobs().items(): # k=ID v=charType
+##        if v not in rog.playableJobs(): continue #can't play as this class yet
+        ID=k        # get ID of the class
+        typ=v       # get chartype of the class
+        name=entities.getJobName(ID)
+        _classList.update({name:(typ,ID,)})
+    _class = random.choice(_classList.keys())
+    # TODO: make class stats make a difference...
+    
+    # mass, height
+    if _gender=="female":
+        mass = 57 + int(random.random()*21)
+        height = 152 + int(random.random()*21)
+    elif _gender=="male":
+        mass = 72 + int(random.random()*21)
+        height = 160 + int(random.random()*31)
+    
+    # create body
+    body, newmass = rog.create_body_humanoid(
+        mass=mass, height=height, female=(_genderName=="female") )
+    body.heads.heads[0].eyes.sight = BASE_SIGHT
+    body.heads.heads[0].ears.hearing = BASE_HEARING
+
+    # create entity
+    pc = world.create_entity(
+        cmp.Name(_name, title=_title),
+        cmp.Draw('@', COL['white'], COL['deep']),
+        cmp.Position(sx, sy),
+        cmp.Actor(),
+        cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
+        cmp.Creature(job=_className, faction=FACT_ROGUE),
+        cmp.Gender(_genderName,_pronouns),
+        cmp.Stats(
+            hp=BASE_HP*MULT_STATS,
+            mp=BASE_MP*MULT_STATS,
+            mass=newmass, # base mass before weight of water and blood and fat is added
+            encmax=BASE_ENCMAX*MASS_MULT,
+            resfire=BASE_RESFIRE,
+            rescold=BASE_RESCOLD,
+            resbio=BASE_RESBIO,
+            reselec=BASE_RESELEC,
+            resphys=BASE_RESPHYS,
+            reswet=BASE_RESWET,
+            respain=BASE_RESPAIN,
+            resbleed=BASE_RESBLEED,
+            resrust=BASE_RESRUST,
+            resrot=BASE_RESROT,
+            reslight=BASE_RESLIGHT,
+            ressound=BASE_RESSOUND,
+            _str=BASE_STR*MULT_ATT,
+            _con=BASE_CON*MULT_ATT,
+            _int=BASE_INT*MULT_ATT,
+            _agi=BASE_AGI*MULT_ATT,
+            _dex=BASE_DEX*MULT_ATT,
+            _end=BASE_END*MULT_ATT,
+            gra=BASE_GRA*MULT_STATS,
+            bal=BASE_BAL*MULT_STATS,
+            ctr=BASE_CTR*MULT_STATS,
+            atk=BASE_ATK*MULT_STATS,
+            dmg=BASE_DMG*MULT_STATS,
+            pen=BASE_PEN*MULT_STATS,
+            dfn=BASE_DFN*MULT_STATS,
+            arm=BASE_ARM*MULT_STATS,
+            pro=BASE_PRO*MULT_STATS,
+            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
+            sight=0, hearing=0, # senses gained from Body component now
+            courage=BASE_COURAGE, scary=BASE_SCARY
+            ),
+        cmp.Skills(), cmp.Flags(),
+        cmp.SenseSight(), cmp.SenseHearing(),
+        cmp.Mutable(),
+        cmp.Inventory(),
+        body,
+    )
+
+    # additional skills... (TODO)
+    
+    # init
+    rog.register_creature(pc)
+    init(pc)
+    return pc
+
 #
 # Chargen
 # Create and return the player Thing object,
@@ -216,6 +355,7 @@ def commands(pc, pcAct):
 #   sx, sy: starting position x, y of player entity
 #
 def chargen(sx, sy):
+    
     world = rog.world()
     # init
     x1 = 0; y1 = 0;
@@ -229,6 +369,8 @@ def chargen(sx, sy):
             wrap=False,border=None,con=rog.con_game(),disp='mono')
 
         return iy+1
+    # end def
+    
     # get char data from player
     
     # name
@@ -257,6 +399,7 @@ def chargen(sx, sy):
             print("Continuing chargen...")
             break
 
+    # make a new character
     if not loadedGame:
         #continue chargen...
         
@@ -290,20 +433,21 @@ def chargen(sx, sy):
             
             _gender=rog.menu("Gender Select",xx,yy,_menuList,autoItemize=False)
             if _gender == 'nonbinary':
-                #select gender from list of added genders
-                _menuNonbin=[]
-                for jj in _genderList.keys():
-                    _menuNonbin.append(jj)
-                _menuNonbin.append('add new gender')
-                choice=rog.menu("Nonbinary Genders",xx,yy,_menuNonbin)
-                #add gender
-                if choice == 'add new gender':
-                    _genderName,_pronouns = _add_gender()
-                else:
-                    _genderName = choice
-                    _pronouns = _genderList[_genderName]
-                if _genderName=='': #failed to select or add new gender
-                    _gender='' #prompt user again for gender
+                _genderName = "nonbinary" # temporary...
+##                #select gender from list of added genders
+##                _menuNonbin=[]
+##                for jj in _genderList.keys():
+##                    _menuNonbin.append(jj)
+##                _menuNonbin.append('add new gender')
+##                choice=rog.menu("Nonbinary Genders",xx,yy,_menuNonbin)
+##                #add gender
+##                if choice == 'add new gender':
+##                    _genderName,_pronouns = _add_gender()
+##                else:
+##                    _genderName = choice
+##                    _pronouns = _genderList[_genderName]
+##                if _genderName=='': #failed to select or add new gender
+##                    _gender='' #prompt user again for gender
             else: #random, male and female
                 if _gender == 'random':
                     _gender = random.choice(("male","female",))
@@ -338,7 +482,7 @@ def chargen(sx, sy):
         #random
         if _className == 'random':
             _classID = random.choice(_randList)
-            _className = "__CLASSNAME__"  #jobs.getName(_classID)
+            _className = "__CLASSNAME__" #TEMP:  #jobs.getName(_classID)
         #get the relevant data
         _type = _classList[_className][0] # get the class Char value
         _mask = _type
@@ -407,7 +551,8 @@ def chargen(sx, sy):
         #create pc object from the data given in chargen
         
         # create body
-        body, newmass = rog.create_body_humanoid(mass=mass, female=(_genderName=="female"))
+        body, newmass = rog.create_body_humanoid(
+            mass=mass, height=height, female=(_genderName=="female") )
         body.heads.heads[0].eyes.sight = BASE_SIGHT
         body.heads.heads[0].ears.hearing = BASE_HEARING
         # create entity
@@ -436,6 +581,7 @@ def chargen(sx, sy):
                 reslight=BASE_RESLIGHT,
                 ressound=BASE_RESSOUND,
                 _str=BASE_STR, _con=BASE_CON, _int=BASE_INT,
+                _agi=BASE_AGI, _dex=BASE_DEX, _end=BASE_END,
                 gra=BASE_GRA, bal=BASE_BAL, ctr=BASE_CTR,
                 atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
                 dfn=BASE_DFN, arm=BASE_ARM, pro=BASE_PRO,
@@ -447,9 +593,8 @@ def chargen(sx, sy):
             cmp.SenseSight(), cmp.SenseHearing(),
             cmp.Mutable(),
             cmp.Inventory(),
+            body,
         )
-        # add other components
-        world.add_component(pc, body) # created earlier
         
         
         #add specific class stats

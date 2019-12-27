@@ -186,8 +186,8 @@ WHAT DO WE DO WITH THESE MANAGERS????
 # global objects
 def settings():     return Rogue.settings
 
-#
-def get_slots(obj):
+# ECS
+def get_slots(obj): # should only be used if absolutely necessary...
    return set(getattr(obj, '__slots__', set()))
 
 # world
@@ -195,14 +195,15 @@ def world():    return Rogue.world
 
 # player
 def pc():       return Rogue.pc
-def is_pc(ent): return ent==Rogue.pc
+def is_pc(ent): return (ent==Rogue.pc)
 
 # saved game
 def playableJobs():
     return entities.getJobs().items() #Rogue.savedGame.playableJobs
 
 # log
-def logNewEntry():      Rogue.log.drawNew()
+def logNewEntry():
+    Rogue.log.drawNew()
 def msg(txt, col=None):
     if col is None: #default text color
         col=COL['white']
@@ -570,7 +571,7 @@ def sap(ent, dmg: int):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp -= dmg
     if stats.mp <= 0:
-        zombify(ent)
+        exhaust(ent) # TODO
 # elemental damage
 def burn(ent, dmg, maxTemp=1000):
     return entities.burn(ent, dmg, maxTemp)
@@ -608,7 +609,7 @@ def kill(ent): #remove a thing from the world
     world = Rogue.world
     _type = world.component_for_entity(ent, cmp.Draw).char
     if world.has_component(ent, cmp.DeathFunction): # call destroy function
-        world.component_for_entity(ent, cmp.DeathFunction)(ent)
+        world.component_for_entity(ent, cmp.DeathFunction).func(ent)
     make(ent, DEAD)
     clear_status_all(ent)
     #drop inventory
@@ -640,9 +641,10 @@ def kill(ent): #remove a thing from the world
         else:
             release_entity(ent)
 def zombify(ent):
-    pass
+    kill(ent) # temporary
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
+        
 
 
 
@@ -984,6 +986,25 @@ def create_gear(name,x,y):
 def create_body_humanoid(mass=70, female=False):
     return entities.create_body_humanoid(mass=mass, female=female)
 
+def dominant_arm(ent):
+    assert(Rogue.world.has_component(ent, cmp.BPC_Arms))
+    for arm in Rogue.world.component_for_entity(ent, cmp.BPC_Arms).arms:
+        if arm.dominant:
+            return arm
+    return None
+def dominant_leg(ent):
+    assert(Rogue.world.has_component(ent, cmp.BPC_Legs))
+    for leg in Rogue.world.component_for_entity(ent, cmp.BPC_Legs).legs:
+        if leg.dominant:
+            return leg
+    return None
+
+def homeostasis(ent): entities.homeostasis(ent)
+def metabolism(ent, hunger, thirst=0): entities.metabolism(ent, hunger, thirst)
+def stomach(ent): entities.stomach(ent)
+def starve(ent): entities.starve(ent)
+def dehydrate(ent): entities.dehydrate(ent)
+        
 
     #--------------#
     #     Stats    #
@@ -1300,8 +1321,8 @@ def get_status(ent, statusCompo):
         return None
 def set_status(ent, status, t=-1):
     '''
-        # obj       = Thing object to set the status for
-        # status    = ID of the status effect
+        # ent       = Thing object to set the status for
+        # status    = status class (not an object instance)
         # t         = duration (-1 is the default duration for that status)
     '''
     proc.Status.add(ent, status, t)
