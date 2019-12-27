@@ -201,7 +201,7 @@ def examine_self_pc(pc):
     choices=['body (whole body)']
     
     ans=rog.menu(item=rog.menu("Examine what?".format(
-        pcn.title,pcn.name), x,y, choices)
+        pcn.title,pcn.name), x,y, choices))
 
 def equip_pc(pc,item):
     pass
