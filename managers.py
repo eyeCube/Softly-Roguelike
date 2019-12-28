@@ -355,7 +355,7 @@ class Manager_Actors(Manager):
         for ent,compo in world.get_component(cmp.Actor):
             if rog.on(ent,DEAD): continue
             ai.tick(ent)
-            spd=rog.getms(ent, 'spd')
+            spd=max(MIN_SPD, rog.getms(ent, 'spd'))
             compo.ap = min(compo.ap + spd, spd)
         
         

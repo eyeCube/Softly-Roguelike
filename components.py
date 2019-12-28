@@ -95,6 +95,7 @@ class Meters:
         'rust','rot','wet','fear','dirt',
         ]
     def __init__(self):
+        # all floating point values, no need for hyper precision
         self.temp=0 # temperature
         self.rads=0 # radiation
         self.sick=0 # illness / infection
@@ -1251,7 +1252,7 @@ class StatusIrritated: # vision -25%, hearing -25%
     def __init__(self, t=200):
         self.timer=t
 class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
-    __slots__=['timer']
+    __slots__=['timer','quality']
     def __init__(self, t=128, q=1):
         '''
             quality == how many g of blood you lose per turn
@@ -1263,11 +1264,11 @@ class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets
 # NOTE: arterial bleed is handled by the BPP artery component having its status set to SEVERED or w/e.
 class StatusPain: # in overwhelming pain
     __slots__=['timer']
-    def __init__(self, t=5):
+    def __init__(self, t=6):
         self.timer=t
 class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
     __slots__=['timer']
-    def __init__(self, t=5):
+    def __init__(self, t=6):
         self.timer=t
 class StatusSick: # low chance to vomit, cough, sneeze; general fatigue, pain, etc.
     __slots__=['timer']
@@ -1275,47 +1276,51 @@ class StatusSick: # low chance to vomit, cough, sneeze; general fatigue, pain, e
         self.timer=t
 class StatusVomit: # chance to vomit uncontrollably each turn
     __slots__=['timer']
-    def __init__(self, t=50):
+    def __init__(self, t=48):
         self.timer=t
 class StatusCough: # chance to cough uncontrollably each turn
     __slots__=['timer']
-    def __init__(self, t=25):
+    def __init__(self, t=24):
         self.timer=t
 class StatusSprint: # Msp +300%
     __slots__=['timer'] # THIS SHOULD NOT BE A STATUS
-    def __init__(self, t=10):
+    def __init__(self, t=12):
         self.timer=t
 class StatusFrightening: # add extra scariness for a time
     __slots__=['timer']
-    def __init__(self, t=10):
+    def __init__(self, t=12):
         self.timer=t
-class StatusFrightened: # overcome by fear
+class StatusFrightened: # overcome by fear and susceptible to panic
     __slots__=['timer']
-    def __init__(self, t=100):
+    def __init__(self, t=108):
+        self.timer=t
+class StatusPanic: # panicking in intense fear, lose control of self
+    __slots__=['timer']
+    def __init__(self, t=16):
         self.timer=t
 class StatusHaste: # speed +50%
     __slots__=['timer']
-    def __init__(self, t=25):
+    def __init__(self, t=24):
         self.timer=t
 class StatusSlow: # speed -33%
     __slots__=['timer']
-    def __init__(self, t=25):
+    def __init__(self, t=24):
         self.timer=t
 class StatusDrunk: # balance -50%
     __slots__=['timer']
-    def __init__(self, t=1800):
+    def __init__(self, t=1920):
         self.timer=t
-class StatusHeadInjury: # similar to sickness w/ headache, slurred speech
+class StatusHazy: # headache, slurred speech, vision loss, weakness
     __slots__=['timer']
-    def __init__(self, t=3600):
+    def __init__(self, t=3840):
         self.timer=t
 class StatusSweat: # sweating
     __slots__=['timer']
-    def __init__(self, t=16):
+    def __init__(self, t=36):
         self.timer=t
 class StatusShiver: # shivering
     __slots__=['timer']
-    def __init__(self, t=16):
+    def __init__(self, t=36):
         self.timer=t
 class StatusEmaciated: # starving famished starved emaciated
     __slots__=['timer']
@@ -1327,13 +1332,22 @@ class StatusDehydrated: # dehydrated
         self.timer=t
 class StatusTired: # sleepy (stamina is a separate thing)
     __slots__=['timer']
-    def __init__(self, t=50):
+    def __init__(self, t=144):
         self.timer=t
-# quantity (non-timed) statuses:
-class StatusDigesting:
-    __slots__=['quantity']
-    def __init__(self, q=1000):
-        self.quantity=q
+class StatusFull: # overeat
+    __slots__=['timer']
+    def __init__(self, t=384):
+        self.timer=t
+        
+# quantity (non-timed) statuses #
+# - statuses for which it would NEVER make sense for it to have a timer,
+#   and it has some other quantity indicator of when it will run out.
+
+class StatusDigest:
+    __slots__=['satiation','hydration']
+    def __init__(self, s=1, h=1):
+        self.satiation=c # potential maximum satiation points available
+        self.hydration=h # potential maximum hydration points available
 
 
 # GLOBAL LISTS OF COMPONENTS #

@@ -165,6 +165,7 @@ return timer
 #
 # Fires
 #
+    # NOTE: This is not the processor -- it's a helper class
     # stores fire grid; controls fires;
     #   light and messages from fire, fire spreading and dousing
     # Note: does not control burning status effect
@@ -371,8 +372,12 @@ class Fires:
 ##        print("TESTING disperse array...\nforce: {}\ndir: {}\nmatrix: {}".format(
 ##            wind_force, wind_direction, matrix))
         return matrix
+# end class
 
-# Fires Processor Fire Processor
+#
+# Fires Processor / Fire Processor
+#
+
 class FireProcessor(esper.Processor):
     
     def __init__(self):
@@ -380,7 +385,7 @@ class FireProcessor(esper.Processor):
         self.lights={} # dict of lights created by fires
     
     def process(self):
-        world = rog.world()
+        world = self.world
         
         # get fuel amount
             # for now this should be fine; only update this if
@@ -439,8 +444,7 @@ class FireProcessor(esper.Processor):
 ##            print("fire put out at pos. x={} y={}".format(x,y))
             rog.release_light(self.lights[fireID])
             del self.lights[fireID]
-    #
-#
+# end class
 
 
 #
@@ -456,15 +460,15 @@ class Fluids:
     @classmethod
     def flow(self):
         Fluids._flow()
+# end class
 
 # Fluid Processor Fluids Processor
 class FluidProcessor(esper.Processor):
     def process(self):
         Fluids.flow()
-
-
 ##    def fluidsat(self,x,y):
 ##        return self._fluids.get((x,y,), ())
+# end class
 
 
     
@@ -482,7 +486,7 @@ class Status:
             status_str = " catches fire"
         elif component is cmp.StatusFrozen:
             status_str = " becomes frozen"
-            rog.damage(ent, FREEZE_DAMAGE)
+            rog.damage(ent, FREEZE_INITIAL_DAMAGE)
         elif component is cmp.StatusAcid:
             status_str = " begins corroding"
         elif component is cmp.StatusBlind:
@@ -511,14 +515,12 @@ class Status:
             status_str = " becomes frightened"
         elif component is cmp.StatusHaste:
             status_str = "'s movements speed up"
-            rog.alts(ent, "spd", HASTE_SPEEDMOD)
         elif component is cmp.StatusSlow:
             status_str = "'s movements slow"
-            rog.alts(ent, "spd", SLOW_SPEEDMOD)
         elif component is cmp.StatusDrunk:
             status_str = " becomes inebriated"
-        elif component is cmp.StatusHeadInjury:
-            status_str = " hits {} head".format(gender.pronouns[2])
+        elif component is cmp.StatusHazy:
+            status_str = " begins slurring {} speech".format(gender.pronouns[2])
         #if status_str:
             #"{}{}{}".format(name.title, name.name, status_str)
         if t==-1: # use the default time value for the component
@@ -552,104 +554,248 @@ class Status:
             #auxiliary effects
             #message
             rog.world().remove_component(ent, component)
+# end class
+
 
 #
 # Status Processor
 #
 
 # Processes statuses once per turn.
-# Not all statuses are processed this way. Some are handled elsewhere.
 
 class StatusProcessor(esper.Processor):
     def process(self):
+        world = self.world
 
         # fire burning
-        for ent, compos in self.world.get_components(
+        for ent, (status, meters) in world.get_components(
             cmp.StatusFire, cmp.Meters):
-            status, meters = compos
             status.timer -= 1
-            if (status.timer == 0 or meters.temp < FIRE_THRESHOLD):
+            if (status.timer == 0 or meters.temp < FIRE_THRESHOLD): #temporary? When should fire go out?
                 Status.remove(ent, cmp.StatusFire)
                 continue
             rog.damage(ent, 1)
 
         # frozen ice
-        for ent, compos in self.world.get_components(
+        for ent, (status, meters) in world.get_components(
             cmp.StatusFrozen, cmp.Meters):
-            status, meters = compos
             status.timer -= 1
             if (status.timer == 0 or meters.temp > FREEZE_THRESHOLD):
                 Status.remove(ent, cmp.StatusFrozen)
                 continue
             
-        # shivering
-        for ent, compos in rog.world().get_components(
-            cmp.StatusShiver, cmp.Meters ):
-            shiver, meters = compos
-            meters.temp += SHIVER_TEMP_GAIN
+        # acid
+        for ent, status in world.get_component(
+            cmp.StatusAcid ):
+            status.timer -= 1
+            rog.damage(ent, ACID_DAMAGE)
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusAcid)
+                continue
             
-        # sweat sweating
-        for ent, compos in rog.world().get_components(
-            cmp.StatusSweat, cmp.Meters ):
-            sweat, meters = compos
-            meters.temp -= SWEAT_TEMP_LOSS
+        # blind
+        for ent, status in world.get_component(
+            cmp.StatusBlind ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusBlind)
+                continue
+            
+        # deaf
+        for ent, status in world.get_component(
+            cmp.StatusDeaf ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusDeaf)
+                continue
+            
+        # irritated
+        for ent, status in world.get_component(
+            cmp.StatusIrritated ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusIrritated)
+                continue
             
         # bleed
-        for ent, compos in rog.world().get_components(
+        for ent, (status, body) in world.get_components(
             cmp.StatusBleed, cmp.Body ):
-            bleed, body = compos
             body.blood -= bleed.quality
-
-
-#
-# Body Maintainence
-#
-
-# TODO: processes body regulation: too hot? too cold?
-#   too little calories? too little hydration? too w/e?
-
-class BodyProcessor(esper.Processor):
-    def process(self):
-        pass
-'''
-    if body.hydration <= body.hydrationMax*0.9:
-        dehydrate(ent)
-    if body.satiation <= 0:
-        starve(ent)
-        '''
-    # starve if has StatusStarving, / dehydrate if has StatusDehydrated,
-
-class HomeostasisProcessor(esper.Processor):
-    def process(self):
-        world = rog.world()
-        for ent, compos in world.get_components(
-            cmp.Body, cmp.Meters):
-            body, meters = compos
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusBleed)
+                continue
             
-            # maintain heat equilibrium
-            meters = rog.world().component_for_entity(ent, cmp.Meters)
-            if meters.temp > BODY_TEMP+1:
-                rog.set_status(ent, cmp.StatusSweat())
-            elif meters.temp < BODY_TEMP-1:
-                rog.set_status(ent, cmp.StatusShiver())
+        # pain
+        for ent, status in world.get_component(
+            cmp.StatusPain ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusPain)
+                continue
             
-            # digestion: get calories (satiation) from food consumed
+        # paralyzed
+        for ent, status in world.get_component(
+            cmp.StatusParalyzed ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusParalyzed)
+                continue
             
-        for ent, compos in world.get_components(
-            cmp.Body, cmp.StatusDigesting):
-            body, digesting = compos
-            # satiation ++, caloriesAvailableInFood --
-            metabolic_rate = stats.mass / MULT_MASS
-            caloric_value = min(metabolic_rate, digesting.quantity)
-            digesting.quantity -= caloric_value
-            body.satiation += caloric_value
-            # excess Calories -> fat
-            if body.satiation > body.satiationMax:
-                body.bodyfat += ( # 9 Calories per gram of fat (1/9 == 0.1111...)
-                    body.satiationMax - body.satiation) / MULT_MASS *0.11111111
-                body.satiation = body.satiationMax
-
-
+        # sick
+        for ent, status in world.get_component(
+            cmp.StatusSick ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusSick)
+                continue
+            
+        # vomit
+        for ent, status in world.get_component(
+            cmp.StatusVomit ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusVomit)
+                continue
+            
+        # cough
+        for ent, status in world.get_component(
+            cmp.StatusCough ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusCough)
+                continue
+            
+        # sprint
+        for ent, status in world.get_component(
+            cmp.StatusSprint ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusSprint)
+                continue
+            
+        # Frightening
+        for ent, status in world.get_component(
+            cmp.StatusFrightening ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusFrightening)
+                continue
+            
+        # Frightened
+        for ent, status in world.get_component(
+            cmp.StatusFrightened ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusFrightened)
+                continue
+            
+        # Panicking
+        for ent, status in world.get_component(
+            cmp.StatusPanic ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusPanic)
+                continue
+            
+        # Hasty hastey
+        for ent, status in world.get_component(
+            cmp.StatusHaste ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusHaste)
+                continue
+            
+        # slowed
+        for ent, status in world.get_component(
+            cmp.StatusSlow ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusSlow)
+                continue
+            
+        # drunk
+        for ent, status in world.get_component(
+            cmp.StatusDrunk ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusDrunk)
+                continue
+            
+        # hazy (head injury, sickness, stroke, blood loss, bloody pissed, etc.)
+        for ent, status in world.get_component(
+            cmp.StatusHazy ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusHazy)
+                continue
+            
+        # sweat sweating
+        for ent, (status, meters) in world.get_components(
+            cmp.StatusSweat, cmp.Meters ):
+            meters.temp -= SWEAT_TEMP_LOSS
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusSweat)
+                continue
+            
+        # shivering
+        for ent, (status, meters) in world.get_components(
+            cmp.StatusShiver, cmp.Meters ):
+            meters.temp += SHIVER_TEMP_GAIN
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusShiver)
+                continue
+            
+        # emaciated
+        for ent, status in world.get_component(
+            cmp.StatusEmaciated ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusEmaciated)
+                continue
+            
+        # dehydrated
+        for ent, status in world.get_component(
+            cmp.StatusDehydrated ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusDehydrated)
+                continue
+            
+        # tired
+        for ent, status in world.get_component(
+            cmp.StatusTired ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusTired)
+                continue
+            
+        #-------------------------------------------------#
+        # Quantity Status Effects (statuses w/ no timers) #
+        #-------------------------------------------------#
+            
+        # digestion / digesting
+        for ent, (status, body) in world.get_components(
+            cmp.StatusDigest, cmp.Body ): #, cmp.Stats
+            # quantity out -> clear status
+            if (status.satiation <= 0 and status.hydration <= 0):
+                Status.remove(ent, cmp.StatusDigest)
+                continue
+            # food
+            if status.satiation > 0:
+                amount = min(METABOLIC_RATE_FOOD.get(body.plan, 10),
+                             status.satiation)
+                status.satiation -= amount
+                body.satiation += amount
+            # water
+            if status.hydration > 0:
+                amount = min(METABOLIC_RATE_WATER.get(body.plan, 10),
+                             status.hydration)
+                status.hydration -= amount
+                body.hydration += amount
+# end class
 
 
 #
@@ -671,8 +817,9 @@ class MetersProcessor(esper.Processor):
                     based on how much the entity's temperature changed.
                     The more massive, the greater the effect. '''
                 return -dt * mass / MULT_MASS
+            #
             
-            pos = rog.world().component_for_entity(ent, cmp.Position)
+            pos = self.world.component_for_entity(ent, cmp.Position)
             ambient_temp = Fires.tempat(pos.x, pos.y)
             
             #print(thing.name," is getting cooled down") #TESTING
@@ -700,7 +847,90 @@ class MetersProcessor(esper.Processor):
             # rads meter
             #if (thing.stats.rads > 0):
             #    thing.stats.rads -= 1
+# end class
 
+
+
+#
+# Body Maintainence Processor / Body Processor
+#
+
+# Ran every turn.
+# This processor focuses on critical and hyper-critical body conditions.
+# HomeostasisProcessor worries about regulating less extreme conditions.
+
+class BodyProcessor(esper.Processor):
+    def process(self):
+        for ent, (body, meters) in world.get_components(
+            cmp.Body, cmp.Meters):
+            
+            # get body temperature information based on body plan
+            bodytemp, plus, minus = BODY_TEMP.get[body.plan]
+            bloodpc, bloodratio = BODY_BLOOD.get[body.plan]
+            
+            # too thirsty? (too little hydration?/too dehydrated?)
+            if body.hydration <= body.hydrationMax*0.9: # hyper-critical
+                entities.dehydrate(ent)
+            # too hungry? (too little calories?)
+            if body.satiation <= 0: # hyper-critical
+                entities.starve(ent)
+            # too hot?
+            if meters.temp > bodytemp + plus: # hyper-critical
+                rog.set_status(ent, cmp.StatusHyperthermia())
+            # too cold?
+            if meters.temp < bodytemp + minus: # hyper-critical
+                rog.set_status(ent, cmp.StatusHypothermia())
+            # too little blood?
+            if body.blood <= body.bloodMax * bloodratio: # hyper-critical
+                rog.set_status(ent, cmp.StatusExsanguination())
+            elif body.blood <= body.bloodMax * ( # critical
+                bloodratio + (1 - bloodratio)*0.5):
+                rog.set_status(ent, cmp.StatusHazy())
+# end class
+                
+
+#
+# Homeostasis Processor
+#
+
+# Ran once every few turns or so.
+# Concerned with body processes that are sub-critical.
+# BodyProcessor is the critical body processes processor.
+
+class HomeostasisProcessor(esper.Processor):
+    def process(self):
+        world = self.world
+        for ent, (body, meters) in world.get_components(
+            cmp.Body, cmp.Meters):
+            
+            # maintain heat equilibrium
+            meters = self.world.component_for_entity(ent, cmp.Meters)
+            if meters.temp > BODY_TEMP+1:
+                rog.set_status(ent, cmp.StatusSweat())
+            elif meters.temp < BODY_TEMP-1:
+                rog.set_status(ent, cmp.StatusShiver())
+            
+            # digestion: get calories (satiation) from food consumed
+
+            # TODO: when you eat, get StatusDigest status
+            
+        for ent, (body, status) in world.get_components(
+            cmp.Body, cmp.StatusDigest):
+            
+            # satiation ++, caloriesAvailableInFood --
+            metabolic_rate = stats.mass / MULT_MASS
+            caloric_value = min(metabolic_rate, status.quantity)
+            status.quantity -= caloric_value
+            body.satiation += caloric_value
+            # excess Calories -> fat
+            if body.satiation > body.satiationMax:
+                rog.set_status(ent, cmp.StatusFull())
+                # 9 Calories per gram of fat (1/9 == 0.1111...)
+##                df = body.satiationMax - body.satiation
+                caltofat = 1000 #df / MULT_MASS *0.11111111
+                body.bodyfat += caltofat*0.5
+                body.satiation -= caltofat
+# end class
 
 
         

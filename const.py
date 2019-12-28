@@ -249,7 +249,7 @@ ENVIRONMENT_DELTA_HEAT = -0.1 # global change in heat each iteration of heat dis
 HEATMIN         = -300 # minimum temperature
 HEATMAX         = 16000 # maximum temperature
 FREEZE_THRESHOLD= -30
-FREEZE_DAMAGE   = 10  # damage dealt when you become frozen
+FREEZE_INITIAL_DAMAGE   = 5  # damage dealt when you become frozen
 
 #fluids
 MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
@@ -431,7 +431,7 @@ MAXGRIND_METAL      = 5
 # $$ values of things not given values elsewhere
 VAL_HUMAN           = 5000
 
-#combat
+#combat system
 CMB_ROLL_PEN        = 6     # dice roll for penetration bonus
 CMB_ROLL_ATK        = 20    # dice roll for to-hit bonus (Attack)
 CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
@@ -443,8 +443,8 @@ STRIKE_AIR_IMBALANCE_AMOUNT = 8 # balance penalty for attacking nothing
 VOLUME_DEAFEN       = 500
 
 #items
-FOOD_BIGMEAL        = 96
-FOOD_MEAL           = 24
+FOOD_BIGMEAL        = 108
+FOOD_MEAL           = 36
 FOOD_RATION         = 12
 FOOD_SERVING        = 4
 FOOD_MORSEL         = 1
@@ -453,13 +453,19 @@ FOOD_MEAL_NRG       = 300000    #  600000
 FOOD_RATION_NRG     = 200000    #  300000
 FOOD_SERVING_NRG    = 60000     #  100000
 FOOD_MORSEL_NRG     = 15000     #   25000
-SATIETY_PER_RATION  = 100   # how much hunger is healed per ration of food
-WATER_HYDRATION     = 100   # how much hydration is healed per unit of water
+SATIETY_PER_RATION  = 25    # Calories per morsel of food
 
 #crafting
 CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
 
+
+
 #stats
+
+MIN_SPD     = 1
+MIN_ASP     = 1
+MIN_MSP     = 1
+
 ##SUPER_HEARING       = 500
 AVG_HEARING         = 100
 AVG_SPD             = 100
@@ -528,13 +534,37 @@ ENCUMBERANCE_MODIFIERS = {
 
 # body #
 
+BODY_TEMP = {
+BODYPLAN_HUMANOID   : (37, 3, -9,),
+BODYPLAN_4LEGGED    : (39, 6, -9,),
+BODYPLAN_INSECTOID  : (30, 8, -8,),
+    }
+BODY_BLOOD = {
+# plan : blood mass as a ratio of body mass, % blood needed to survive
+BODYPLAN_HUMANOID   : (0.07, 0.5,),
+BODYPLAN_4LEGGED    : (0.08, 0.5,),
+BODYPLAN_INSECTOID  : (0.04, 0.5,),
+    }
+
+METABOLIC_RATE_FOOD = { # how fast you metabolize calories from food
+BODYPLAN_HUMANOID   : 3333,
+BODYPLAN_4LEGGED    : 5000,
+BODYPLAN_INSECTOID  : 6667,
+    }
+METABOLIC_RATE_WATER = { # how fast you metabolize water
+BODYPLAN_HUMANOID   : 10000,
+BODYPLAN_4LEGGED    : 10000,
+BODYPLAN_INSECTOID  : 50000,
+    }
+
 # calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
 CALCOST_SLEEP           = 25        # metabolism while asleep
 CALCOST_REST            = 40        # metabolism at rest (awake, alert)
 CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
 CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
 CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
-CALCOST_INTENSEACTIVITY = 1200      # sprinting, wrestling/intense combat
+CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
+CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
 HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
@@ -869,8 +899,8 @@ SWEAT_TEMP_LOSS  = 0.1
 # bleed
 BLEED_PLASTIC   = 6     # default bleed values for sharpened weapons of material types
 BLEED_WOOD      = 12
-BLEED_BONE      = 12
-BLEED_STONE     = 12
+BLEED_BONE      = 18
+BLEED_STONE     = 18
 BLEED_GLASS     = 96
 BLEED_CERAMIC   = 72
 BLEED_METAL     = 24
@@ -887,29 +917,31 @@ BLEED_QUALITY_ARTERIAL      = 15
 WET_RESFIRE     = 200   # fire resistance gained while wet (per liter)
 
 #sprint
-SPRINT_SPEEDMOD     = 100   # move speed bonus when you sprint
+SPRINT_MSPMOD     = 3.0   # move speed bonus when you sprint
 
 #hasty
-HASTE_SPEEDMOD      = 50    # speed bonus when hasty
+HASTE_SPDMOD      = 1.5    # speed bonus when hasty (mult modifier)
 
 #slow
-SLOW_SPEEDMOD       = -33   # speed penalty while slowed (PERCENTAGE?)
+SLOW_SPDMOD       = 0.6666667 # speed penalty while slowed (mult modifier)
 
 # temp (fire)
-FIRE_METERLOSS  = -1    #temperature points lost per turn
-FIRE_METERGAIN  = 1
-FIRE_METERMAX   = 1000  #maximum temperature a thing can reach
-FIRE_MAXTEMP    = 400   #max temperature you can reach from normal means
-FIRE_TEMP       = 100   #avg. temperature at which a thing will set fire
+FIRE_METERMAX   = 3600  #maximum temperature a thing can reach
+FIRE_MAXTEMP    = 1200  #max temperature you can reach from normal means
 FIRE_BURN       = 34    #dmg fire deals to things (in fire damage) per turn
 FIRE_PAIN       = 10    #fire hurts!
 FIRE_DAMAGE     = 1     #lo dmg dealt per turn to things w/ burning status effect
 FIRE_LIGHT      = 12    #how much light is produced by fire?
-#FIRE_LEVELMAX     = 3     #max fire level; 0 is no fire, max is blazing flame
 
-# bio (sick)
+# frozen
+FROZEN_MSPMOD   = 0.33333
+
+# bio sick
 BIO_METERLOSS   = 1     # sickness points lost per turn
-BIO_HURT        = 1     # damage per turn while sick
+SICK_STRMOD     = 0.9
+SICK_ENDMOD     = 0.9
+SICK_CONMOD     = 0.9
+SICK_RESPAINMOD = -50
 
 # chem (exposure)
 CHEM_METERLOSS  = 5     # exposure points lost per turn
@@ -918,15 +950,17 @@ CHEM_DAMAGE     = 5     # damage chem effect causes when exposure meter fills
 
 # acid
 ACID_HURT       = 2
-##ACID_DMG        = 1.0
+ACID_DAMAGE     = 1.0
 
 # irritation
 IRRIT_ATKMOD    = -10
 IRRIT_RANGEMOD  = -10
-IRRIT_SIGHTMOD  = -5
+IRRIT_SIGHTMOD  = 0.75
+IRRIT_HEARINGMOD= 0.75
 
 # paralysis
 PARAL_ROLLSAVE  = 10    #affects chance to undo paralysis
+PARALYZED_SPDMOD = 0.1
 
 # cough
 COUGH_CHANCE    = 33
@@ -937,10 +971,15 @@ COUGH_DFNMOD    = -10
 VOMIT_CHANCE    = 10
 
 # blind
-BLIND_SIGHTMOD = -9999
+BLIND_SIGHTMOD = 0.1 # multiplier
 
 # deaf
-DEAF_HEARINGMOD = -9999
+DEAF_HEARINGMOD = 0.04 # multiplier
+
+# pain
+PAIN_STRMOD = 0.5
+PAIN_ENDMOD = 0.5
+PAIN_CONMOD = 0.75
 
 # trauma
 #

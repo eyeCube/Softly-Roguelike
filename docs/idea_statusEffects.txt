@@ -9,29 +9,29 @@ Creatures:
 sprinting
 	affects: creatures
 	stat mods:
-		Msp +100%
+		Msp +300%
 	gained by: sprinting.
 	requires: must not be crouched, supine, prone, sick, or drunk.
 	removed by: timer
 crouched
-	affects: creatures
+	affects: humanoid creatures
 	stat mods:
-		Msp -50%
+		Msp -80%
 		Stealth +1
 	gained by: crouching
 	removed by: standing up (context sensitive action)
 supine
-	affects: creatures
+	affects: humanoid creatures
 	stat mods:
-		Msp -90%
+		Msp -95%
 		Stealth +1
 	gained by: crouching
 	removed by: rolling over (context sensitive action, makes you prone)
 		or standing up, if you have Ninja skills (can stand up from supine position)
 prone
-	affects: creatures
+	affects: humanoid creatures
 	stat mods:
-		Msp -90%
+		Msp -95%
 		Stealth +1
 	gained by: crouching
 	removed by: standing up (context sensitive action)

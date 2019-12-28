@@ -1023,9 +1023,11 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             updates which would change the calculation, at which point the
             DIRTY_STATS flag for that entity must be set to True.
     '''
-    # NOTE: apply all penalties (w/ limits) AFTER bonuses.
+    # NOTE: apply all penalties (w/ limits, if applicable) AFTER bonuses.
         # this is to ensure you don't end up with MORE during a
         #   penalty application; as in the case the value was negative
+    
+    # init
     offhandItem = False
     addMods=[]
     multMods=[]
@@ -1039,9 +1041,28 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     else:
         skills=None
         armorSkill = 0
-        unarmored = 0        
+        unarmored = 0
+    # RESET all modded stats to their base
+    for k,v in base.__dict__.items():
+        modded.__dict__[k] = v
+    # /init
+    
+#~~~~~~~#----------------------------------------------#~~~~~~~~~~~~~~~#
+        # bonuses that are applied before gear bonuses #
+        #----------------------------------------------#
 
-    # alter stats based on body status / equipped gear #
+
+        #  good multiplier statuses  #    
+    # sprint
+    if world.has_component(ent, cmp.StatusSprint):
+        modded.msp = modded.msp * SPRINT_MSPMOD
+    # haste
+    if world.has_component(ent, cmp.StatusHaste):
+        modded.spd = modded.spd * HASTE_SPDMOD
+
+#~~~~~~~#-------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # Body Status / Equipment #
+        #-------------------------#
     
     if world.has_component(ent, cmp.Body):
         body=world.component_for_entity(ent, cmp.Body)
@@ -1099,28 +1120,44 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
                 )
     #
     
-    # calculate modded stats #
-    # reset all modded stats to their base
-    for k,v in base.__dict__.items():
-        modded.__dict__[k] = v
-    
-    # apply mods -- add mods
+    # apply mods -- addMods
     for mod in addMods:
         for k,v in mod.items():
             modded.__dict__[k] = v + modded.__dict__[k]
-
-
-        #------------#
+            
+#~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # inventory  #
         #------------#
 
     # add encumberance from all items in inventory
     # TODO
 
+
+        # statuses that affect attributes #
+        
+    # pain
+    if world.has_component(ent, cmp.StatusPain):
+        modded.str = modded.str * PAIN_STRMOD
+        modded.end = modded.end * PAIN_ENDMOD
+        modded.con = modded.con * PAIN_CONMOD
+    # sick
+    if world.has_component(ent, cmp.StatusSick):
+        modded.str = modded.str * SICK_STRMOD
+        modded.end = modded.end * SICK_ENDMOD
+        modded.con = modded.con * SICK_CONMOD
+        modded.respain = modded.respain + SICK_RESPAINMOD
     
-        #------------#
+    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+    
+    # *** Nothing below here that modifies attributes ***!!!
+    
+#~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # attributes #
         #------------#
+
+        # These are NOT multiplier modifiers;
+        # These only improve stats by adding some value to them.
 
     # Strength
     _str = modded.str
@@ -1157,9 +1194,39 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Luck
     luck = modded.luck
     #
-
     
-        #--------------#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+    #---------------------------------------------------------------#
+    #       FINAL        MULTIPLIERS       BEGIN       HERE         #
+    #---------------------------------------------------------------#
+
+#~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        #   bad multiplier statuses  #
+        #----------------------------#
+
+    # frozen
+    if world.has_component(ent, cmp.StatusFrozen):
+        modded.msp = modded.msp * FROZEN_MSPMOD
+    # blind
+    if world.has_component(ent, cmp.StatusBlind):
+        modded.sight = modded.sight * BLIND_SIGHTMOD
+    # deaf
+    if world.has_component(ent, cmp.StatusDeaf):
+        modded.hearing = modded.hearing * DEAF_HEARINGMOD
+    # irritated
+    if world.has_component(ent, cmp.StatusIrritated):
+        modded.sight = modded.sight * IRRITATED_SIGHTMOD
+        modded.hearing = modded.hearing * IRRITATED_HEARINGMOD
+    # paralyzed
+    if world.has_component(ent, cmp.StatusParalyzed):
+        modded.spd = modded.spd * PARALYZED_SPDMOD
+    # slow
+    if world.has_component(ent, cmp.StatusSlow):
+        modded.spd = modded.spd * SLOW_SPDMOD
+        
+
+#~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # encumberance #
         #--------------#
 
@@ -1194,7 +1261,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.bal = ENCUMBERANCE_MODIFIERS['bal'][index] * modded.bal
     #
     
-        #--------------#
+#~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #   finalize   #
         #--------------#
     
@@ -1204,15 +1271,16 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if modded.__dict__[k] > 0:
                 modded.__dict__[k] = v * modded.__dict__[k]
     
-    # round values
+    # round values as the final step
     for k,v in modded.__dict__.items():
         modded.__dict__[k] = around(v)
 
-    # resulting values can be negative, but this can be checked for
-    #   depending on the individual uses for each stat
-    #   Like MSp cannot be below 5 or something,
-    #   Atk minimum is 0 for the purposes of combat,
-    #   Pro has no minimum.
+    # NOTE: resulting values can be negative, but this can be
+    #   checked for, depending on the individual uses for each stat
+    #   e.g. MSp cannot be below 1-5 or so for purposes of movement,
+    #   Spd cannot be below 1, Dmg cannot be below 0,
+    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     
     return modded
 # end def

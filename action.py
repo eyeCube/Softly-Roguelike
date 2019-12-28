@@ -432,9 +432,9 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
     
     # attacker stats
     acc =   rog.getms(attkr,'atk')//MULT_STATS
-    dmg =   rog.getms(attkr,'dmg')//MULT_STATS
     pen =   rog.getms(attkr,'pen')//MULT_STATS
-    asp =   rog.getms(attkr,'asp')//MULT_STATS
+    dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
+    asp =   max( MIN_ASP, rog.getms(attkr,'asp')//MULT_STATS )
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
