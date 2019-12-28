@@ -218,6 +218,10 @@ def examine_pc(pc, item):
     rog.drain(pc, 'nrg', NRG_EXAMINE)
     rog.dbox(0,0,40,30, thing.DESCRIPTIONS[item.name])
 
+def eat_pc(pc, item):
+    result = eat(pc, item)
+    # do something with the result
+
 def rest_pc(pc):
     turns=rog.prompt(0,0,rog.window_w(),1,maxw=3,
                      q="How long do you want to rest? Enter number of turns:",
@@ -263,6 +267,9 @@ def rest_pc(pc):
 def wait(ent):
     rog.world().component_for_entity(ent, cmp.Actor).ap = 0
     rog.metabolize(ent, CALCOST_REST)
+
+def eat(ent, item): # entity ent begins the eating action
+    pass
 
 def cough(ent):
     world = rog.world()

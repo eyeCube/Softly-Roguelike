@@ -82,22 +82,67 @@ class FOVProcessor(esper.Processor):
 # Action Queue
 #
 
+# Stores the data for tasks that take entities multiple turns to finish
+# call "queue" to add a new task,
+#   "get" to get the Action object,
+#   "pay" to spend a certain number of AP towards finishing the task
+
 class ActionQueue:
     ID=0
-    queue=[]
+    queue={}
+    
     @classmethod
-    def add(self, ap, func):
-        ActionQueue.ID += 1
-        newAction = (ActionQueue.ID, ap, func,)
-        ActionQueue.queue.append(newAction)
-        return newAction[0] # ID of queued action
-
+    def get(cls, _id):
+        return cls.queue.get(_id, None)
+    @classmethod
+    def queue(cls, totalAP, func):
+        '''
+            queue a new Action, return the id
+            Parameters:
+                totalAP : total Action Points required to complete the job
+                func    : the function that will be executed when the job
+                          is completed
+        '''
+        cls.ID += 1
+        newAction = _Action(totalAP, func)
+        cls.queue[cls.ID] = newAction
+        return cls.ID
+    @classmethod
+    def pay(cls, _id, ap):
+        '''
+            pay towards the AP debt to make progress in completing
+                the action.
+            Return True if the job is completed, or False otherwise.
+            Parameters:
+                _id : the id of the Action to pay for
+                ap  : the amount of Action Points to pay towards the job
+        '''
+        cls.queue[_id].ap -= ap
+        if cls.queue[_id].ap <= 0:
+            cls.finish(_id)
+            return True
+        return False
+    @classmethod
+    def finish(cls, _id):
+        ''' call the function and remove the Action '''
+        cls.queue[_id].func()
+        del cls.queue[_id]
+# end class
+# private class for use by ActionQueue
+class _Action:
+    def __init__(self, totalAP, func):
+        self.ap = totalAP
+        self.func = func
+# end class
+#
 class ActionQueueProcessor(esper.Processor):
     def process(self):
         pass
 
 
 # TODO: make this, consolidate with ActionQueueProcessor
+#   - ...what is the need for this again...?
+
 ##class DelayedActionProcessor(esper.Processor):
 ##    
 ##    def __init__(self): 
@@ -373,11 +418,7 @@ class Fires:
 ##            wind_force, wind_direction, matrix))
         return matrix
 # end class
-
 #
-# Fires Processor / Fire Processor
-#
-
 class FireProcessor(esper.Processor):
     
     def __init__(self):
