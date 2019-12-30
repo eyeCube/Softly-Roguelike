@@ -45,7 +45,7 @@ import tilemap
 EQUIPABLE_CONSTS={
 EQ_MAINHAND : cmp.EquipableInHandSlot,
 EQ_OFFHAND  : cmp.EquipableInHandSlot,
-EQ_BODY     : cmp.EquipableInBodySlot,
+EQ_BODY     : cmp.EquipableInFrontSlot,
 EQ_BACK     : cmp.EquipableInBackSlot,
 EQ_HEAD     : cmp.EquipableInHeadSlot,
 EQ_AMMO     : cmp.EquipableInAmmoSlot,
@@ -368,7 +368,7 @@ def render_gameArea(pc) :
                          con_game(), view_port_x(),view_port_y())
 #@debug.printr
 def render_hud(pc) :
-    con = misc.render_hud(hud_w(),hud_h(), pc, get_turn(), d_level() )
+    con = misc.render_hud(hud_w(),hud_h(), pc, get_turn(), dlvl() )
     libtcod.console_blit(con,0,0,0,0, con_game(),hud_x(),hud_y())
 #@debug.printr
 def blit_to_final(con,xs,ys, xdest=0,ydest=0): # window-sized blit to final
@@ -450,6 +450,20 @@ def copyflags(toEnt,fromEnt): #use this to set an object's flags to that of anot
     for flag in Rogue.world.component_for_entity(fromEnt, cmp.Flags).flags:
         make(toEnt, flag)
 
+# duplicate component functions -- create copy(s) of a component
+def dupCmpMeters(meters):
+    newMeters = cmp.Meters()
+    newMeters.temp = meters.temp
+    newMeters.rads = meters.rads
+    newMeters.sick = meters.sick
+    newMeters.expo = meters.expo
+    newMeters.pain = meters.pain
+    newMeters.fear = meters.fear
+    newMeters.bleed = meters.bleed
+    newMeters.rust = meters.rust
+    newMeters.rot = meters.rot
+    newMeters.wet = meters.wet
+    return newMeters
 
             
     # entity functions #
@@ -563,16 +577,36 @@ def damage(ent, dmg: int):
     stats.hp -= dmg
     if stats.hp <= 0:
         kill(ent)
-#damage mp
-def sap(ent, dmg: int):
+#damage mp (stamina)
+def sap(ent, dmg: int, exhaustOnZero=True):
 ##    assert isinstance(dmg, int)
     if dmg < 0: return
     make(ent,DIRTY_STATS)
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp -= dmg
     if stats.mp <= 0:
-        exhaust(ent) # TODO
+        if exhaustOnZero:
+            exhaust(ent) # TODO
+        else:
+            stats.mp = 0
+# satiation / hydration
+def feed(ent, sat, hyd): # add satiation / hydration w/ Digest status
+    if world.has_component(ent, cmp.StatusDigest):
+        compo = world.component_for_entity(ent, cmp.StatusDigest)
+        compo.satiation += sat
+        compo.hydration += hyd
+    else:
+        world.add_component(ent, cmp.StatusDigest(cald, hydd))
+def sate(ent, pts):
+    compo = Rogue.world.component_for_entity(ent, cmp.Body)
+    compo.satiation = min(compo.satiation + pts, compo.satiationMax)
+    #TODO: convert excess calories to fat(?) how/where should this be done?
+def hydrate(ent, pts):
+    compo = Rogue.world.component_for_entity(ent, cmp.Body)
+    compo.hydration = min(compo.hydration + pts, compo.hydrationMax)
 # elemental damage
+def settemp(ent, temp):
+    Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
 def burn(ent, dmg, maxTemp=1000):
     return entities.burn(ent, dmg, maxTemp)
 def cool(ent, dmg, minTemp=-100):
@@ -984,8 +1018,8 @@ def create_gear(name,x,y):
     register_entity(ent)
     return ent
 
-def create_body_humanoid(mass=70, female=False):
-    return entities.create_body_humanoid(mass=mass, female=female)
+def create_body_humanoid(mass=70, height=175, female=False):
+    return entities.create_body_humanoid(mass=mass, height=height, female=female)
 
 def dominant_arm(ent):
     assert(Rogue.world.has_component(ent, cmp.BPC_Arms))
@@ -1112,12 +1146,6 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
                 ent, body.parts[cmp.BPC_Tails],
                 armorSkill, unarmored
                 )
-        if cmp.BPC_Genitals in keys:
-            entities._update_from_bpc_genitals(
-                addMods,multMods,
-                ent, body.parts[cmp.BPC_Genitals],
-                armorSkill, unarmored
-                )
     #
     
     # apply mods -- addMods
@@ -1161,35 +1189,35 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 
     # Strength
     _str = modded.str
-    modded.encmax += _str * AM_STR_ENCUMBERANCE
-    modded.force += _str * AM_STR_FORCE
-    modded.gra += _str * AM_STR_GRAPPLING
+    modded.encmax += _str * ATT_STR_ENCUMBERANCE
+    modded.force += _str * ATT_STR_FORCE
+    modded.gra += _str * ATT_STR_GRAPPLING
 
     # Agility
     _agi = modded.agi
-    modded.msp += _agi * AM_AGI_MOVESPEED
-    modded.asp += _agi * AM_AGI_ATTACKSPEED
+    modded.msp += _agi * ATT_AGI_MOVESPEED
+    modded.asp += _agi * ATT_AGI_ATTACKSPEED
 
     # Dexterity
     _dex = modded.dex
-    modded.atk += _dex * AM_DEX_ATTACK
+    modded.atk += _dex * ATT_DEX_ATTACK
 
     # Endurance
     _end = modded.end
-    modded.resfire += _end * AM_END_RESHEAT
-    modded.rescold += _end * AM_END_RESCOLD
-    modded.resphys += _end * AM_END_RESPHYS
-    modded.respain += _end * AM_END_RESPAIN
-    modded.resbio += _end * AM_END_RESBIO
-    modded.resbleed += _end * AM_END_RESBLEED
+    modded.resfire += _end * ATT_END_RESHEAT
+    modded.rescold += _end * ATT_END_RESCOLD
+    modded.resphys += _end * ATT_END_RESPHYS
+    modded.respain += _end * ATT_END_RESPAIN
+    modded.resbio += _end * ATT_END_RESBIO
+    modded.resbleed += _end * ATT_END_RESBLEED
 
     # Intelligence
     _int = modded.int
 
     # Constitution
     _con = modded.con
-    modded.hpmax += _con * AM_CON_HP
-    modded.encmax += _con * AM_CON_ENCUMBERANCE
+    modded.hpmax += _con * ATT_CON_HP
+    modded.encmax += _con * ATT_CON_ENCUMBERANCE
 
     # Luck
     luck = modded.luck
@@ -1229,8 +1257,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 #~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # encumberance #
         #--------------#
-
-    erat = modded.enc/modded.encmax # encumberance ratio
+    
+    erat = modded.enc/max(1,modded.encmax) # encumberance ratio
     if erat < 0.05:     # 0: 0 - 5%
         encbp = 0
     elif erat < 0.12:   # 1: 5 - 12%
@@ -1395,6 +1423,13 @@ def set_status(ent, status, t=-1):
         # t         = duration (-1 is the default duration for that status)
     '''
     proc.Status.add(ent, status, t)
+##def set_status_args(ent, status, *args): we might need this....?
+##    '''
+##        # ent       = Thing object to set the status for
+##        # status    = status class (not an object instance)
+##        # t         = duration (-1 is the default duration for that status)
+##    '''
+##    proc.Status.add(ent, status, args)
 def clear_status(ent, status):
     proc.Status.remove(ent, status)
 def clear_status_all(ent):

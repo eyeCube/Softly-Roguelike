@@ -252,100 +252,98 @@ def commands(pc, pcAct):
 
 
 
-def chargen_roll():
-    '''
-        Roll a random character
-    '''
-    world = rog.world()
-
-    # name
-    _name = "pseudo" #random.choice(DEFAULT_NAMES)
-
-    # gender
-    _gender = random.choice("male", "female")
-
-    # class
-    for k,v in entities.getJobs().items(): # k=ID v=charType
-##        if v not in rog.playableJobs(): continue #can't play as this class yet
-        ID=k        # get ID of the class
-        typ=v       # get chartype of the class
-        name=entities.getJobName(ID)
-        _classList.update({name:(typ,ID,)})
-    _class = random.choice(_classList.keys())
-    # TODO: make class stats make a difference...
-    
-    # mass, height
-    if _gender=="female":
-        mass = 57 + int(random.random()*21)
-        height = 152 + int(random.random()*21)
-    elif _gender=="male":
-        mass = 72 + int(random.random()*21)
-        height = 160 + int(random.random()*31)
-    
-    # create body
-    body, newmass = rog.create_body_humanoid(
-        mass=mass, height=height, female=(_genderName=="female") )
-    body.heads.heads[0].eyes.sight = BASE_SIGHT
-    body.heads.heads[0].ears.hearing = BASE_HEARING
-
-    # create entity
-    pc = world.create_entity(
-        cmp.Name(_name, title=_title),
-        cmp.Draw('@', COL['white'], COL['deep']),
-        cmp.Position(sx, sy),
-        cmp.Actor(),
-        cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
-        cmp.Creature(job=_className, faction=FACT_ROGUE),
-        cmp.Gender(_genderName,_pronouns),
-        cmp.Stats(
-            hp=BASE_HP*MULT_STATS,
-            mp=BASE_MP*MULT_STATS,
-            mass=newmass, # base mass before weight of water and blood and fat is added
-            encmax=BASE_ENCMAX*MASS_MULT,
-            resfire=BASE_RESFIRE,
-            rescold=BASE_RESCOLD,
-            resbio=BASE_RESBIO,
-            reselec=BASE_RESELEC,
-            resphys=BASE_RESPHYS,
-            reswet=BASE_RESWET,
-            respain=BASE_RESPAIN,
-            resbleed=BASE_RESBLEED,
-            resrust=BASE_RESRUST,
-            resrot=BASE_RESROT,
-            reslight=BASE_RESLIGHT,
-            ressound=BASE_RESSOUND,
-            _str=BASE_STR*MULT_ATT,
-            _con=BASE_CON*MULT_ATT,
-            _int=BASE_INT*MULT_ATT,
-            _agi=BASE_AGI*MULT_ATT,
-            _dex=BASE_DEX*MULT_ATT,
-            _end=BASE_END*MULT_ATT,
-            gra=BASE_GRA*MULT_STATS,
-            bal=BASE_BAL*MULT_STATS,
-            ctr=BASE_CTR*MULT_STATS,
-            atk=BASE_ATK*MULT_STATS,
-            dmg=BASE_DMG*MULT_STATS,
-            pen=BASE_PEN*MULT_STATS,
-            dfn=BASE_DFN*MULT_STATS,
-            arm=BASE_ARM*MULT_STATS,
-            pro=BASE_PRO*MULT_STATS,
-            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
-            sight=0, hearing=0, # senses gained from Body component now
-            courage=BASE_COURAGE, scary=BASE_SCARY
-            ),
-        cmp.Skills(), cmp.Flags(),
-        cmp.SenseSight(), cmp.SenseHearing(),
-        cmp.Mutable(),
-        cmp.Inventory(),
-        body,
-    )
-
-    # additional skills... (TODO)
-    
-    # init
-    rog.register_creature(pc)
-    init(pc)
-    return pc
+##def chargen_roll():
+##    '''
+##        Roll a random character
+##    '''
+##    world = rog.world()
+##
+##    # name
+##    _name = "pseudo" #random.choice(DEFAULT_NAMES)
+##
+##    # gender
+##    _gender = random.choice("male", "female")
+##
+##    # class
+##    for k,v in entities.getJobs().items(): # k=ID v=charType
+####        if v not in rog.playableJobs(): continue #can't play as this class yet
+##        ID=k        # get ID of the class
+##        typ=v       # get chartype of the class
+##        name=entities.getJobName(ID)
+##        _classList.update({name:(typ,ID,)})
+##    _class = random.choice(_classList.keys())
+##    # TODO: make class stats make a difference...
+##    
+##    # mass, height
+##    if _gender=="female":
+##        mass = 57 + int(random.random()*21)
+##        height = 152 + int(random.random()*21)
+##    elif _gender=="male":
+##        mass = 72 + int(random.random()*21)
+##        height = 160 + int(random.random()*31)
+##    
+##    # create body
+##    body, newmass = rog.create_body_humanoid(
+##        mass=mass, height=height, female=(_genderName=="female") )
+##    
+##    # create entity
+##    pc = world.create_entity(
+##        cmp.Name(_name, title=_title),
+##        cmp.Draw('@', COL['white'], COL['deep']),
+##        cmp.Position(sx, sy),
+##        cmp.Actor(),
+##        cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
+##        cmp.Creature(job=_className, faction=FACT_ROGUE),
+##        cmp.Gender(_genderName,_pronouns),
+##        cmp.Stats(
+##            hp=BASE_HP*MULT_STATS,
+##            mp=BASE_MP*MULT_STATS,
+##            mass=newmass, # base mass before weight of water and blood and fat is added
+##            encmax=BASE_ENCMAX*MASS_MULT,
+##            resfire=BASE_RESFIRE,
+##            rescold=BASE_RESCOLD,
+##            resbio=BASE_RESBIO,
+##            reselec=BASE_RESELEC,
+##            resphys=BASE_RESPHYS,
+##            reswet=BASE_RESWET,
+##            respain=BASE_RESPAIN,
+##            resbleed=BASE_RESBLEED,
+##            resrust=BASE_RESRUST,
+##            resrot=BASE_RESROT,
+##            reslight=BASE_RESLIGHT,
+##            ressound=BASE_RESSOUND,
+##            _str=BASE_STR*MULT_ATT,
+##            _con=BASE_CON*MULT_ATT,
+##            _int=BASE_INT*MULT_ATT,
+##            _agi=BASE_AGI*MULT_ATT,
+##            _dex=BASE_DEX*MULT_ATT,
+##            _end=BASE_END*MULT_ATT,
+##            gra=BASE_GRA*MULT_STATS,
+##            bal=BASE_BAL*MULT_STATS,
+##            ctr=BASE_CTR*MULT_STATS,
+##            atk=BASE_ATK*MULT_STATS,
+##            dmg=BASE_DMG*MULT_STATS,
+##            pen=BASE_PEN*MULT_STATS,
+##            dfn=BASE_DFN*MULT_STATS,
+##            arm=BASE_ARM*MULT_STATS,
+##            pro=BASE_PRO*MULT_STATS,
+##            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
+##            sight=0, hearing=0, # senses gained from Body component now
+##            courage=BASE_COURAGE, scary=BASE_SCARY
+##            ),
+##        cmp.Skills(), cmp.Flags(),
+##        cmp.SenseSight(), cmp.SenseHearing(),
+##        cmp.Mutable(),
+##        cmp.Inventory(),
+##        body,
+##    )
+##
+##    # additional skills... (TODO)
+##    
+##    # init
+##    rog.register_creature(pc)
+##    init(pc)
+##    return pc
 
 #
 # Chargen
@@ -421,7 +419,7 @@ def chargen(sx, sy):
                     gpronouns = data
                     _genderList.update({gname:gpronouns})
         except FileNotFoundError:
-            print("ALERT: file '{}' not found. Creating new file...")
+            print("ALERT: file '{}' not found. Creating new file...".format(genderFileDir))
             with open(genderFileDir, "w+") as file:
                 file.write("\n")
         
@@ -429,7 +427,6 @@ def chargen(sx, sy):
         _gender = ''
         while (_gender == ''):
             _menuList={'m':'male','f':'female','n':'nonbinary','*':'random',}
-            #read genders from genders.txt
             
             _gender=rog.menu("Gender Select",xx,yy,_menuList,autoItemize=False)
             if _gender == 'nonbinary':
@@ -454,6 +451,7 @@ def chargen(sx, sy):
                 if _gender == 'male':
                     _genderName = "male"
                     _pronouns = ('he','him','his',)
+                    print("YOOOO")
                 elif _gender == 'female':
                     _genderName = "female"
                     _pronouns = ('she','her','hers',)
@@ -548,13 +546,16 @@ def chargen(sx, sy):
         #gift?
         _gift = 0
         
-        #create pc object from the data given in chargen
-        
+        # mass, height
+        mass = 70 # temporary
+        height = 175 # temporary
+            
         # create body
         body, newmass = rog.create_body_humanoid(
             mass=mass, height=height, female=(_genderName=="female") )
-        body.heads.heads[0].eyes.sight = BASE_SIGHT
-        body.heads.heads[0].ears.hearing = BASE_HEARING
+        
+        #create pc object from the data given in chargen
+        
         # create entity
         pc = world.create_entity(
             cmp.Name(_name, title=_title),
@@ -567,26 +568,20 @@ def chargen(sx, sy):
             cmp.Stats(
                 hp=BASE_HP, mp=BASE_MP,
                 mass=newmass, # base mass before weight of water and blood and fat is added
-                encmax=BASE_ENCMAX*MASS_MULT,
-                resfire=BASE_RESFIRE,
-                rescold=BASE_RESCOLD,
-                resbio=BASE_RESBIO,
-                reselec=BASE_RESELEC,
-                resphys=BASE_RESPHYS,
-                reswet=BASE_RESWET,
-                respain=BASE_RESPAIN,
-                resbleed=BASE_RESBLEED,
-                resrust=BASE_RESRUST,
-                resrot=BASE_RESROT,
-                reslight=BASE_RESLIGHT,
-                ressound=BASE_RESSOUND,
+                encmax=BASE_ENCMAX*MULT_MASS,
+                resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
+                resbio=BASE_RESBIO, reselec=BASE_RESELEC,
+                resphys=BASE_RESPHYS, reswet=BASE_RESWET,
+                respain=BASE_RESPAIN, resbleed=BASE_RESBLEED,
+                resrust=BASE_RESRUST, resrot=BASE_RESROT,
+                reslight=BASE_RESLIGHT, ressound=BASE_RESSOUND,
                 _str=BASE_STR, _con=BASE_CON, _int=BASE_INT,
                 _agi=BASE_AGI, _dex=BASE_DEX, _end=BASE_END,
                 gra=BASE_GRA, bal=BASE_BAL, ctr=BASE_CTR,
                 atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
                 dfn=BASE_DFN, arm=BASE_ARM, pro=BASE_PRO,
                 spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
-                sight=0, hearing=0, # senses gained from Body component now
+                sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
                 courage=BASE_COURAGE, scary=BASE_SCARY
                 ),
             cmp.Skills(), cmp.Flags(),
@@ -602,11 +597,11 @@ def chargen(sx, sy):
 ##            #compo= # get component somehow...
 ##            world.component_for_entity(pc, compo).__dict__[_var] += _value
         #add specific class skills
-        for skid in _skills:
-            rog.train(pc,skid)
+        for sk_id in _skills:
+            rog.train(pc, sk_id, 25 * EXP_LEVEL)
         #add additional skill
-        for skid in _skillIDs:
-            rog.train(pc,skid)
+        for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
+            rog.train(pc, sk_id, 5 * EXP_LEVEL) # 15 * EXP_LEVEL
     # init
     rog.register_creature(pc)
     init(pc)

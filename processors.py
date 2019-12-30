@@ -152,6 +152,7 @@ class ActionQueue:
                 _id : the id of the Action to pay for
                 ap  : the amount of Action Points to pay towards the job
         '''
+        qa.elapsed += 1 # track how many times we pay
         qa.ap -= points
         actor.ap -= points
         if qa.ap <=0: # finished job

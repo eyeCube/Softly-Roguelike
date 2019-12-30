@@ -33,10 +33,10 @@ import maths
 ##import entities
 
 
-
-
 dirStr=" <hjklyubn.>"
 
+
+    # PC-specific actions first #
 
 # pickup
 # grab an item from the game world, removing it from the grid
@@ -259,17 +259,21 @@ def rest_pc(pc):
 ##                rog.alert("It's too wet.")
                 
 
-################################################
+
+
+
+#######################################################################
+                    # Non-PC-specific actions #
+#######################################################################
+
 
 #wait
 #just stand still and do nothing
 #recover your Action Points to their maximum
 def wait(ent):
-    rog.world().component_for_entity(ent, cmp.Actor).ap = 0
+    rog.setAP(ent, 0)
     rog.metabolize(ent, CALCOST_REST)
-
-def eat(ent, item): # entity ent begins the eating action
-    pass
+# end def
 
 def cough(ent):
     world = rog.world()
@@ -279,6 +283,7 @@ def cough(ent):
     rog.event_sound(pos.x,pos.y, SND_COUGH)
     rog.event_sight(pos.x,pos.y, "{t}{n} doubles over coughing.".format(
         t=entn.title,n=entn.name))
+# end def
 
 def intimidate(ent):
     world=rog.world()
@@ -290,6 +295,7 @@ def intimidate(ent):
     rog.event_sound(pos.x,pos.y,SND_ROAR)
     rog.event_sight(pos.x,pos.y,"{t}{n} makes an intimidating display.".format(
         t=entn.title,n=entn.name))
+# end def
 
 #use
 #"use" an item, whatever that means for the specific item
@@ -673,6 +679,136 @@ def fight(attkr,dfndr,adv=0,power=0):
 #
 
 
+
+#######################################################################
+            # Multi-turn actions / delayed actions #
+#######################################################################
+
+
+
+# eat
+# initialize eating action
+def eat(ent, item): # entity ent begins the eating action, eating food item
+    world = rog.world()
+    edible = world.component_for_entity(item, cmp.Edible)
+    nrgCost = max(100, int(NRG_EAT*edible.satiation/1000) + edible.extraAP)
+    world.add_component(ent, cmp.QueuedAction(
+        nrgCost, _eat_finishFunc, data=item, cancelFunc=_eat_cancelFunc ))
+# end def
+def _eat_finishFunc(ent, item): # helper func for eat action
+    edible = world.component_for_entity(item, cmp.Edible)
+    foodmeter = world.component_for_entity(item, cmp.Meters)
+    entmeter = world.component_for_entity(ent, cmp.Meters)
+    
+    # begin digesting the nutrients from the food
+    rog.feed(ent, edible.satiation, edible.hydration)
+    
+    # stamina cost
+    rog.sap(STA_EAT * qa.elapsed, exhaustOnZero=False)
+    
+    # heat up or cool down based on food's temperature
+    # TODO: fix bug: the temperature of the food at the time you finish eating it is what affects your temperature, rather than the temperature of the food during the act of eating it...
+##    tempdiff = (foodmeter.temp - entmeter.temp)
+##    tempg = (tempdiff * rog.getms(item,'mass') / rog.getms(ent,'mass'))
+##    if tempg > 0:
+##        rog.burn(ent, tempg)
+##    else:
+##        rog.cool(ent, -tempg)
+    
+    # function -- what happens when entity ent eats the item?
+    if edible.func: # pass in 1 to indicate we ate the entire thing
+        edible.func(ent, 1) #waste products to be handled by the function
+
+    # taste TODO
+##        edible.taste
+
+    # finally, delete the food item
+    rog.kill(item)
+# end def
+def _eat_cancelFunc(ent, qa): # helper func for eat action
+    item = qa.data
+    name = world.component_for_entity(item, cmp.Name)
+    edible = world.component_for_entity(item, cmp.Edible)
+    form = world.component_for_entity(item, cmp.Form)
+    draw = world.component_for_entity(item, cmp.Draw)
+    meters = world.component_for_entity(item, cmp.Meters)
+    pos = world.component_for_entity(ent, cmp.Position)
+    mass = rog.getms(item,'mass')
+    amountEaten = 1 - qa.ap // qa.apMax
+    newMass = int(mass * amountEaten) # food mass remaining
+    massdiff = mass - newMass # food mass eaten
+    
+    # satiation / hydration is only partial depending on how much you ate.
+    cald = int(edible.satiation * amountEaten) # TODO: lose some calories due to inefficiency in eating (only applies to messy eaters (those without the TABLEMANNERS flag(?)))
+    hydd = int(edible.hydration * amountEaten)
+    # fill 'er up
+    rog.feed(ent, cald, hydd)
+
+    # stamina cost
+    rog.sap(STA_EAT * qa.elapsed, exhaustOnZero=False)
+    
+    # heat up or cool down based on food's temperature
+    # TODO: fix bug: the temperature of the food at the time you finish eating it is what affects your temperature, rather than the temperature of the food during the act of eating it...
+##    tempdiff = (foodmeter.temp - entmeter.temp)
+##    tempg = (tempdiff * massdiff / rog.getms(ent,'mass')) # multiply heat by how much of the food you ate (massdiff)
+##    if tempg > 0:
+##        rog.burn(ent, tempg)
+##    else:
+##        rog.cool(ent, -tempg)
+    
+    
+    # function -- some foods call functions when you eat them
+    if edible.func: # pass in the entity that ate it, and the ratio of ...
+        edible.func(ent, amountEaten)#...how much it ate (same as finishFunc)
+    
+    # taste TODO
+##        edible.taste
+    
+    # create the new partially eaten food item
+    newitem = rog.world().create_entity(
+        rog.dupCmpMeters(meters), # duplicate old meters component
+        cmp.Edible(
+            edible.func,
+            edible.satiation - cald,
+            edible.hydration - hydd,
+            edible.taste,
+            edible.extraAP
+            ),
+        cmp.Name(name.name, title=name.title),
+        cmp.Form(mat=form.material, val=0, length=form.length, phase=form.phase),
+        cmp.Draw(draw.char, draw.fgcol, draw.bgcol),
+        cmp.Position(pos.x, pos.y),
+        cmp.Stats(hp=1, mass=newMass),
+        cmp.PartiallyEaten("partially eaten "), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
+        )
+    
+    # finally, delete the food item
+    rog.kill(item)
+# end def
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # other actions #
 
 #TODO: UPDATE THIS FUNCTION
@@ -714,30 +850,6 @@ def explosion(bomb):
                             and dist <= bomb.r/2 ):
                         thing.timer=0
                         '''
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #use
 #"use" an item, whatever that means for the specific item

@@ -242,6 +242,7 @@ MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all t
 MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
+EXP_LEVEL           = 100   # experience needed to level up skills
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
@@ -534,6 +535,38 @@ ENCUMBERANCE_MODIFIERS = {
 
 # body #
 
+# calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
+CALCOST_SLEEP           = 25        # metabolism while asleep
+CALCOST_REST            = 40        # metabolism at rest (awake, alert)
+CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
+CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
+CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
+CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
+CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
+METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
+METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
+HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
+
+
+# body plans:
+#   body part coverage, for targeting specific body parts
+i=0;
+BODYPLAN_HUMANOID   = i; i+=1; # torso 45% head 5% legs 30% arms 20%
+BODYPLAN_INSECTOID  = i; i+=1; # torso 75% head 10% legs 15%
+BODYPLAN_4LEGGED    = i; i+=1; # torso 45% head 5% legs 50%
+BODYPLAN_CUSTOM     = i; i+=1; # for special cases, body plan built up manually
+#
+
+# body plan data #
+
+#formerly: BODYPLANS
+BODY_COVERAGE={ # for targeting with ranged weapons
+BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
+BODYPLAN_INSECTOID  : {"core":75, "head":10, "legs":15,},
+BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
+BODYPLAN_CUSTOM     : {"core":50,},
+    }
+
 BODY_TEMP = {
 BODYPLAN_HUMANOID   : (37, 3, -9,),
 BODYPLAN_4LEGGED    : (39, 6, -9,),
@@ -555,35 +588,6 @@ METABOLIC_RATE_WATER = { # how fast you metabolize water
 BODYPLAN_HUMANOID   : 10000,
 BODYPLAN_4LEGGED    : 10000,
 BODYPLAN_INSECTOID  : 50000,
-    }
-
-# calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
-CALCOST_SLEEP           = 25        # metabolism while asleep
-CALCOST_REST            = 40        # metabolism at rest (awake, alert)
-CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
-CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
-CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
-CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
-CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
-METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
-METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
-HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
-
-
-# body plans:
-#   body part coverage, for targeting specific body parts
-i=0;
-BODYPLAN_HUMANOID   = i; i+=1; # torso 45% head 5% legs 30% arms 20%
-BODYPLAN_INSECTOID  = i; i+=1; # torso 75% head 10% legs 15%
-BODYPLAN_4LEGGED    = i; i+=1; # torso 45% head 5% legs 50%
-BODYPLAN_CUSTOM     = i; i+=1; # for special cases, body plan built up manually
-
-#formerly: BODYPLANS
-BODYPLANS_COVERAGE={ # for targeting with ranged weapons
-BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
-BODYPLAN_INSECTOID  : {"core":75, "head":10, "legs":15,},
-BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
-BODYPLAN_CUSTOM     : {"core":50,},
     }
 
 # statuses of bodies / body parts

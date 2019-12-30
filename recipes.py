@@ -1304,8 +1304,8 @@ RECIPES={
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,),),
     'construct' : 2000,
-    'components': ( [ ('twig', 16,), ], ),
-    'tools'     : (), 
+    'components': ( [ ('twig', 16,), ], ), # ('frond', 16,),
+    'tools'     : (),
     'byproducts': (),
     'recycling' : (),
     },
@@ -2442,7 +2442,7 @@ RECIPES={
     'skills'    : ((SKL_STONE,15,),),
     'construct' : 7200,
     'components': (
-        [ ('cuboid of stone', 1,), ('boulder', 1,), ],
+        [ ('slab of stone', 1,), ('cuboid of stone', 1,), ('boulder', 1,), ],
         ),
     'tools'     : (
         [ (cmp.Tool_Chisel, 3,), ],
@@ -2463,7 +2463,6 @@ RECIPES={
         [ (cmp.Tool_Furnace, 3,), ],
         [ (cmp.Tool_Crucible, 3,), ],
         [ (cmp.Tool_Tongs, 3,), ],
-        [ (cmp.Mold_AnvilSmall, 1,), ],
         ),
     'byproducts': (),
     },
@@ -2480,7 +2479,6 @@ RECIPES={
         [ (cmp.Tool_Furnace, 4,), ],
         [ (cmp.Tool_Crucible, 3,), ],
         [ (cmp.Tool_Tongs, 3,), ],
-        [ (cmp.Mold_Anvil, 1,), ],
         ),
     'byproducts': (),
     },
@@ -2497,7 +2495,6 @@ RECIPES={
         [ (cmp.Tool_Furnace, 4,), ],
         [ (cmp.Tool_Crucible, 3,), ],
         [ (cmp.Tool_Tongs, 3,), ],
-        [ (cmp.Mold_AnvilLarge, 1,), ],
         ),
     'byproducts': (),
     },
@@ -3033,28 +3030,7 @@ RECIPES={
     },
 
     # molds
-'earthenware mold, anvil, small':{
-    'quantity'  : 1,
-    'table'     : CRT_TOOLS,
-    'skills'    : ((SKL_ASSEMBLY,10,),),
-    'construct' : 4800,
-    'components': (
-        [ ('slab of clay', 1,), ],
-        ),
-    'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
-    'byproducts': (),
-    },
-'earthenware mold, anvil':{
-    'quantity'  : 1,
-    'table'     : CRT_TOOLS,
-    'skills'    : ((SKL_ASSEMBLY,15,),),
-    'construct' : 4800,
-    'components': (
-        [ ('cuboid of clay', 1,), ],
-        ),
-    'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
-    'byproducts': (),
-    },
+# staff molds
 'earthenware mold, metal staff':{
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
@@ -3066,6 +3042,7 @@ RECIPES={
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
     },
+# sword molds
 'earthenware mold, plastic sword':{
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
@@ -3088,6 +3065,7 @@ RECIPES={
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
     },
+# dagger molds
 'earthenware mold, metal dagger':{
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
@@ -3099,6 +3077,7 @@ RECIPES={
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
     },
+# ammunition molds
 'earthenware mold, bullet, small':{
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
@@ -3145,7 +3124,7 @@ RECIPES={
     },
 
     # pliers
-'pliers':{ # pliers level 1
+'pliers':{ # pliers level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,8,),),
@@ -3163,7 +3142,7 @@ RECIPES={
         ),
     'byproducts': ( ('scrap metal', 2,), ),
     },
-'needle-nose pliers':{ # pliers level 2, also can cut as well as wire cutters
+'needle-nose pliers':{ # pliers level 3, also can cut as well as wire cutters
     # should the needle-nose property be an additional Tool component? Only if it's a unique property not fulfilled by any other tool...
     'quantity'  : 1,
     'table'     : CRT_TOOLS,

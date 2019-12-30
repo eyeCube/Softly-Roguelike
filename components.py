@@ -92,7 +92,7 @@ class Targetable:
 class Meters:
     __slots__=[
         'temp','rads','sick','expo','pain','bleed',
-        'rust','rot','wet','fear','dirt',
+        'rust','rot','wet','fear',#'dirt',
         ]
     def __init__(self):
         # all floating point values, no need for hyper precision
@@ -106,7 +106,7 @@ class Meters:
         self.rust=0 # amount of rustedness
         self.rot=0 # amount of rot
         self.wet=0 # amount of water it's taken on
-        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
+##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
 class Stats: #base stats
     def __init__(self, hp=1,mp=1, mass=1,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,luck=0,
@@ -163,8 +163,8 @@ class Stats: #base stats
         self.bal=int(bal)    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
-        self.intimidation=int(scary)
-        self.beauty=int(beauty)
+        self.scary=int(scary) # intimidation / scariness
+        self.beauty=int(beauty) # factors into persuasion / love
 
 
 class ModdedStats: # stores the modified stat values for an entity
@@ -202,7 +202,13 @@ class Mutable:
     __slots__=['mutations']
     def __init__(self):
         self.mutations=0
-
+        
+class Flags:
+    __slots__=['flags']
+    def __init__(self, *args):
+        self.flags=set()
+        for arg in args:
+            self.flags.add(arg)
 class Skills:
     __slots__=['skills']
     def __init__(self, skills=None):
@@ -225,27 +231,29 @@ class Skills:
 # (func) or cancelled (cancelfunc). Interrupted means task is cancelled
 # and is pending its cancellation being processed by ActionQueueProcessor.
 class QueuedAction:
-    __slots__=['ap','func','data','cancelfunc','interrupted']
+    __slots__=['ap','apMax','func','data','cancelfunc',
+               'interrupted','elapsed' ]
     def __init__(self, totalAP, func, data=None, cancelfunc=None):
         self.ap=totalAP
+        self.apMax=totalAP
         self.func=func # function that runs when action completed. Two parameters: ent, which is the entity calling the function, and data, which is special data about the job e.g. the item being crafted.
         self.data=data
         self.cancelfunc = cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
+        self.elapsed=0 # number of turns elapsed since the job began
         self.interrupted=False # set to True when/if action is interrupted
 class PausedAction: # QueuedAction that has been put on pause
-    __slots__=['ap','func','data','cancelfunc']
+    __slots__=['ap','func','data','cancelfunc','elapsed']
     def __init__(self, queuedAction):
         self.ap         = queuedAction.ap
         self.func       = queuedAction.func
         self.data       = queuedAction.data
         self.cancelfunc = queuedAction.cancelfunc
-        
-class Flags:
-    __slots__=['flags']
-    def __init__(self, *args):
-        self.flags=set()
-        for arg in args:
-            self.flags.add(arg)
+        self.elapsed    = queuedAction.elapsed
+
+class PartiallyEaten:
+    __slots__=['string']
+    def __init__(self, string=""):
+        self.string = string # string to add to the prefix of the name
 
 class CountersRemaining:
     __slots__=['quantity']
@@ -281,7 +289,7 @@ class Body:
     sleep       int, units of sleep satisfaction / maximum
     '''
     __slots__=[
-        'plan','slot','core','parts','position',
+        'plan','slot','core','parts','height','position',
         'blood','bloodMax','bodyfat',
         'hydration','hydrationMax',
         'satiation','satiationMax',
@@ -623,7 +631,7 @@ class BPP_GustatorySystem:
     def __init__(self, quality=20):
         self.quality=quality
 class BPP_FacialFeatures:
-    __slots__=['beauty','scariness']
+    __slots__=['beauty','scary']
     def __init__(self, beauty=32, scary=32):
         self.beauty=beauty
         self.scary=scary
@@ -783,12 +791,13 @@ class Pushable:
         self.slides=slides  # how well it slides
         self.rolls=rolls    # how well it rolls
 class Edible:
-    __slots__=['func','satiation','taste','apCost']
-    def __init__(self, func=None, sat=0, taste=0, ap=1):
+    __slots__=['func','satiation','hydration','taste','apCost']
+    def __init__(self, func=None, sat=0, hyd=0, taste=0, ap=100):
         self.func=func
         self.satiation=sat
+        self.hydration=hyd
         self.taste=taste
-        self.apCost=ap
+        self.extraAP=ap # extra AP cost to consume it
 class Quaffable:
     __slots__=['func','hydration','taste','apCost']
     def __init__(self, func=None, hyd=0, taste=0, ap=1):
@@ -993,15 +1002,15 @@ class Tool_LockPick:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
+class Tool_Screwdriver:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
 class Tool_CrossbowReloader:
     __slots__=['quality','kind']
     def __init__(self, quality: int, kind: int):
         self.quality=quality
         self.kind=kind
-class Tool_Fuller: # for forging rounded shapes into iron
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
 class Tool_Brush:
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1011,6 +1020,10 @@ class Tool_Mandril:
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_Swage:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Fuller: # for forging rounded shapes into iron
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1369,6 +1382,7 @@ class StatusDigest:
     def __init__(self, s=1, h=1):
         self.satiation=c # potential maximum satiation points available
         self.hydration=h # potential maximum hydration points available
+        # TODO: add mass of the food(?)
 
 
 # GLOBAL LISTS OF COMPONENTS #
