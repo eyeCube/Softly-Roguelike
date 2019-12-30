@@ -218,6 +218,27 @@ class Skills:
 ##    def __init__(self, level=0, experience=0):
 ##        self.level = level # int level
 ##        self.experience = experience # int experience CURRENT LEVEL
+
+# Queued Actions / Delayed Actions / multi-turn actions / queued jobs / queued tasks / action queue / ActionQueueProcessor
+# Actions that take multiple turns to complete use these components
+# to keep track of the progress and to finish up the task when complete
+# (func) or cancelled (cancelfunc). Interrupted means task is cancelled
+# and is pending its cancellation being processed by ActionQueueProcessor.
+class QueuedAction:
+    __slots__=['ap','func','data','cancelfunc','interrupted']
+    def __init__(self, totalAP, func, data=None, cancelfunc=None):
+        self.ap=totalAP
+        self.func=func # function that runs when action completed. Two parameters: ent, which is the entity calling the function, and data, which is special data about the job e.g. the item being crafted.
+        self.data=data
+        self.cancelfunc = cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
+        self.interrupted=False # set to True when/if action is interrupted
+class PausedAction: # QueuedAction that has been put on pause
+    __slots__=['ap','func','data','cancelfunc']
+    def __init__(self, queuedAction):
+        self.ap         = queuedAction.ap
+        self.func       = queuedAction.func
+        self.data       = queuedAction.data
+        self.cancelfunc = queuedAction.cancelfunc
         
 class Flags:
     __slots__=['flags']

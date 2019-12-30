@@ -42,6 +42,23 @@ import dice
 # Processors all run one after another. This is important!              *
 #************************************************************************
 
+###
+### in action.py:
+###
+##def finishFunc(ent, data):
+##    pass
+##def cancelFunc(ent, data, apRemaining):
+##    # create a useless pile of junk, remove some components from inventory,
+##    # etc.
+##    pass
+##ActionQueue.queue(
+##    pc,
+##    nrgCost,
+##    finishFunc,
+##    data=ActionCraftingItem(),
+##    cancelfunc=cancelFunc
+##    )
+###
 
 
 ##class GUI:
@@ -88,27 +105,45 @@ class FOVProcessor(esper.Processor):
 #   "pay" to spend a certain number of AP towards finishing the task
 
 class ActionQueue:
-    ID=0
-    queue={}
     
     @classmethod
-    def get(cls, _id):
-        return cls.queue.get(_id, None)
+    def get(cls, ent):
+        assert(rog.world().has_component(ent, cmp.QueuedAction))
+        return rog.world().component_for_entity(ent, cmp.QueuedAction)
+    
     @classmethod
-    def queue(cls, totalAP, func):
+    def queue(cls, ent, totalAP, func, data=None, cancelfunc=None):
         '''
-            queue a new Action, return the id
+            queue a new job
             Parameters:
+                ent     : entity performing the job
                 totalAP : total Action Points required to complete the job
                 func    : the function that will be executed when the job
                           is completed
+                data    : additional data needed by the job to be completed
+                          e.g. the item entity being crafted
         '''
-        cls.ID += 1
-        newAction = _Action(totalAP, func)
-        cls.queue[cls.ID] = newAction
-        return cls.ID
+        rog.world().add_component(ent, cmp.QueuedAction(
+            totalAP, func, data=data, cancelfunc=cancelfunc ))
+
     @classmethod
-    def pay(cls, _id, ap):
+    def interrupt(cls, ent):  # set QueuedAction.interrupted = True
+        assert(rog.world().has_component(ent, cmp.QueuedAction))
+        rog.world().component_for_entity(
+            ent, cmp.QueuedAction).interrupted = True
+        
+    @classmethod
+    def resume(cls, ent): # turn a PausedAction into a QueuedAction
+        world = rog.world()
+        assert(world.has_component(ent, cmp.PausedAction))
+        compo = world.component_for_entity(ent, cmp.PausedAction)
+        world.add_component(ent, cmp.QueuedAction(  # copy all vars/
+            compo.ap, compo.func, data=compo.data,  #/from one component/
+            cancelfunc=compo.cancelfunc ))          #/to the other
+        world.remove_component(ent, cmp.PausedAction)
+        
+    @classmethod
+    def _pay(cls, ent, qa, actor, points):
         '''
             pay towards the AP debt to make progress in completing
                 the action.
@@ -117,58 +152,52 @@ class ActionQueue:
                 _id : the id of the Action to pay for
                 ap  : the amount of Action Points to pay towards the job
         '''
-        cls.queue[_id].ap -= ap
-        if cls.queue[_id].ap <= 0:
-            cls.finish(_id)
-            return True
-        return False
+        qa.ap -= points
+        actor.ap -= points
+        if qa.ap <=0: # finished job
+            cls._finish(ent, qa)
+        else:
+            assert(actor.ap == 0) # TEST (should have spent all available AP towards this job if we got this far)
+    
     @classmethod
-    def finish(cls, _id):
-        ''' call the function and remove the Action '''
-        cls.queue[_id].func()
-        del cls.queue[_id]
-# end class
-# private class for use by ActionQueue
-class _Action:
-    def __init__(self, totalAP, func):
-        self.ap = totalAP
-        self.func = func
+    def _finish(cls, ent, qa): # successfully completed job
+        ''' call the Action's function and remove the Action '''
+        qa.func(ent, qa.data)
+        self.world.remove_component(ent, cmp.QueuedAction)
+        
+    @classmethod
+    def _interrupt(cls, ent, qa): # prematurely terminated job
+        '''
+            - give entity a PausedAction component with the qa info
+                so that the information is not lost
+            - the entity AI can decide what to do about this component
+        '''
+        # what happens when job is unfinished? Maybe makes a
+        # half-finished crafting item? Half-eaten food object?
+        if qa.cancelfunc:  #pass in qa.data, qa.ap; possibly modify qa ...
+            qa.cancelfunc(ent, qa)  # ... before copying into PausedAction
+        self.world.add_component(ent, cmp.PausedAction(qa))
+        self.world.remove_component(ent, cmp.QueuedAction)
 # end class
 #
-class ActionQueueProcessor(esper.Processor):
+class ActionQueueProcessor(esper.Processor): # run this once per turn
     def process(self):
-        pass
-
-
-# TODO: make this, consolidate with ActionQueueProcessor
-#   - ...what is the need for this again...?
-
-##class DelayedActionProcessor(esper.Processor):
-##    
-##    def __init__(self): 
-##        super(DelayedActionProcessor, self).__init__()
-##
-##        self.actors={}
-##
-##    def process(self):
-##        newDic = {}
-##        for actor,turns in self.actors.items():
-##            turns = turns - 1
-##            if turns:
-##                newDic.update({actor : turns})
-##            else:
-##                #finish task
-##                self.remove(actor)
-##        self.actors = newDic
-##
-##    def add(self, actor, turns):
-##        #rog.busy(actor)
-##        self.actors.update({actor : turns})
-##
-##    def remove(self, actor):
-##        #rog.free(actor)
-##        del self.actors[actor]
-    
+        for ent, (qa, actor) in self.world.get_components(
+            cmp.QueuedAction, cmp.Actor ):
+            
+            # process interruptions and cancelled / paused jobs
+            if qa.interrupted:
+                ActionQueue._interrupt(ent, qa)
+                continue
+            if actor.ap <= 0:
+                continue
+            
+            # proceed with the job
+            # spend as much AP as we can / as we need
+            # automatically finishes the job if applicable
+            points = min(actor.ap, qa.ap)
+            ActionQueue._pay(ent, qa, actor, points)
+# end class    
 
 
 #
