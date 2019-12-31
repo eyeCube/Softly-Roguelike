@@ -20,30 +20,54 @@ HIGHLIGHT PC        = 0
 
 HIGHLIGHT COLOR     = TRUEBLUE
 
-COLORED STRINGS     = __see__,green;__hear__,blue;fire,red;
+SLEEP TIME          = 1
+
+COLORED STRINGS     = 
+
+#WHITE              = 255,255,255
+
+#BLACK              = 0,0,0
+
+#GRAY               = 128,128,128
+
+#LTGRAY             = 200,200,200
+
+#DKGRAY             = 80,80,80
+
+#VDKGRAY            = 50,50,50
 
 // Colors. RGB Values 0-255. Feel free to change!
 #DEEP               = 20,20,0
 
-#ACCENT             = 255,215,128
+#ACCENT             = 250,230,168
 
 #NEUTRAL            = 138,100,0
 
-#BLUE               = 26,125,160
+#OFFWHITE           = 245,231,209
 
-#TRUEBLUE           = 16,25,255
+#PUREMETAL          = 103,120,146
 
-#LTBLUE             = 140,183,217
+#METAL              = 190,131,118
 
-#GREEN              = 0,170,30
+#SILVER             = 152,180,212
 
-#DKGREEN            = 0,95,17
+#MITHRIL            = 192,216,235
 
-#VDKGREEN           = 20,37,9
+#CRYSTAL            = 146,235,248
 
-#DKMAGENTA          = 150,0,60
+#BONE               = 239,222,182
+
+#RED                = 242,5,50
+
+#TRUERED            = 255,0,0
+
+#DKRED              = 50,0,0
+
+#SCARLET            = 223,61,32
 
 #ORANGE             = 255,177,0
+
+#LTORANGE           = 255,215,128
 
 #GOLD               = 255,200,60
 
@@ -51,29 +75,49 @@ COLORED STRINGS     = __see__,green;__hear__,blue;fire,red;
 
 #DKBROWN            = 55,36,6
 
-#SCARLET            = 255,40,0
+#LTBROWN            = 204,150,38
 
-#RED                = 242,5,50
+#TAN                = 235,192,150
 
-#DKRED              = 50,0,0
-
-#TRUERED            = 255,0,0
-
-#PURPLE             = 180,60,120
-
-#YELLOW             = 115,190,60
+#YELLOW             = 172,222,20
 
 #TRUEYELLOW         = 255,255,0
 
-#WHITE              = 255,255,255
+#LIME               = 153,255,0
 
-#BLACK              = 0,0,0
+#BIO                = 205,236,162
 
-#LTGRAY             = 200,200,200
+#YELLOWGREEN        = 115,190,60
 
-#GRAY               = 128,128,128
+#GREEN              = 0,170,30
 
-#DKGRAY             = 80,80,80
+#TRUEGREEN          = 0,227,57
 
-#VDKGRAY            = 50,50,50
+#DKGREEN            = 0,95,17
+
+#VDKGREEN           = 20,37,9
+
+#GRAYGREEN          = 205,219,181
+
+#BLUE               = 26,125,160
+
+#TRUEBLUE           = 16,25,255
+
+#LTBLUE             = 140,183,217
+
+#DKBLUE             = 20,51,103
+
+#GRAYBLUE           = 99,126,173
+
+#PURPLE             = 180,60,120
+
+#TRUEPURPLE         = 172,0,255
+
+#GRAYPURPLE         = 216,137,176
+
+#PINK               = 255,136,77
+
+#MAGENTA            = 255,0,70
+
+#DKMAGENTA          = 150,0,60
 

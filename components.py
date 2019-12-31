@@ -1231,7 +1231,7 @@ class ReactsWithElectricity: # / powered by electricity
 ##        self.numParticles=numParticles # number of objects to create
 
 
-class Injured:
+class Injured: # may be obselete with new body system
     __slots__=['injuries']
     def __init__(self, _list):
         self.injuries=_list
@@ -1254,8 +1254,13 @@ class _Injury: # for use by Injured component
 ##            self.mods.append((k,w,))
 
 
-#status effects
+    #-----------------------#
+    #    status effects     #
+    #-----------------------#
+
     #owned by entities currently exhibiting status effect(s)
+    # NOTE: when you add a new status effect component,
+    #  you must add it into the list of statuses below.
 
 # some statuses have quality, which affects the degree to which
 #    you're affected by the status
@@ -1384,25 +1389,37 @@ class StatusDigest:
         self.hydration=h # potential maximum hydration points available
         # TODO: add mass of the food(?)
 
-
 # GLOBAL LISTS OF COMPONENTS #
 
-STATUSES = (
-    StatusFire,
-    StatusAcid,
-    StatusBlind,
-    StatusDeaf,
-    StatusIrritated,
-    StatusParalyzed,
-    StatusVomit,
-    StatusCough,
-    StatusSprint,
-    StatusHaste,
-    StatusSlow,
-    StatusDrunk,
-    StatusSprint,
-    StatusTired,
-    )
+STATUSES = { # dict of statuses that have a timer
+    # component : string that appears when you have the status
+    StatusFire      : 'burning',
+    StatusFrozen    : 'frozen',
+    StatusAcid      : 'corroding',
+    StatusBlind     : 'blinded',
+    StatusDeaf      : 'deafened',
+    StatusIrritated : 'irritated',
+    StatusPain      : 'overwhelmed by pain',
+    StatusParalyzed : 'paralyzed',
+    StatusSick      : 'sick',
+    StatusVomit     : 'nauseous',
+    StatusCough     : 'coughing fit',
+    StatusSprint    : 'sprinting',
+    StatusFrightening:'intimidating',
+    StatusPanic     : 'panicking',
+    StatusHaste     : 'hyper',
+    StatusSlow      : 'sluggish',
+    StatusDrunk     : 'inebriated',
+    StatusHazy      : 'hazy',
+    StatusSweat     : 'sweating',
+    StatusShiver    : 'shivering',
+    StatusEmaciated : 'emaciated',
+    StatusDehydrated: 'dehydrated',
+    StatusTired     : 'sleepy',
+    StatusFull      : 'full (overeating)',
+##    StatusBleed, # removed b/c it has quality
+    }
+##StatusDigest
 
 
 

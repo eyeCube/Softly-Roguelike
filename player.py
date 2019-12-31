@@ -575,11 +575,14 @@ def chargen(sx, sy):
                 respain=BASE_RESPAIN, resbleed=BASE_RESBLEED,
                 resrust=BASE_RESRUST, resrot=BASE_RESROT,
                 reslight=BASE_RESLIGHT, ressound=BASE_RESSOUND,
-                _str=BASE_STR, _con=BASE_CON, _int=BASE_INT,
-                _agi=BASE_AGI, _dex=BASE_DEX, _end=BASE_END,
-                gra=BASE_GRA, bal=BASE_BAL, ctr=BASE_CTR,
-                atk=BASE_ATK, dmg=BASE_DMG, pen=BASE_PEN,
-                dfn=BASE_DFN, arm=BASE_ARM, pro=BASE_PRO,
+                _str=BASE_STR*MULT_ATT, _con=BASE_CON*MULT_ATT,
+                _int=BASE_INT*MULT_ATT, _agi=BASE_AGI*MULT_ATT,
+                _dex=BASE_DEX*MULT_ATT, _end=BASE_END*MULT_ATT,
+                atk=BASE_ATK*MULT_STATS, dmg=BASE_DMG*MULT_STATS,
+                pen=BASE_PEN*MULT_STATS, dfn=BASE_DFN*MULT_STATS,
+                arm=BASE_ARM*MULT_STATS, pro=BASE_PRO*MULT_STATS,
+                gra=BASE_GRA*MULT_STATS, bal=BASE_BAL*MULT_STATS,
+                ctr=BASE_CTR*MULT_STATS,
                 spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
                 sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
                 courage=BASE_COURAGE, scary=BASE_SCARY
@@ -598,10 +601,10 @@ def chargen(sx, sy):
 ##            world.component_for_entity(pc, compo).__dict__[_var] += _value
         #add specific class skills
         for sk_id in _skills:
-            rog.train(pc, sk_id, 25 * EXP_LEVEL)
+            rog.setskill(pc, sk_id, 25)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.train(pc, sk_id, 5 * EXP_LEVEL) # 15 * EXP_LEVEL
+            rog.setskill(pc, sk_id, 5) # 15
     # init
     rog.register_creature(pc)
     init(pc)

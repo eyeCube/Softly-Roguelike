@@ -192,6 +192,7 @@ class GlobalSettings:
         # colors #
         for k,v in self.colors.items():
             colors.COLORS.update({k:v})
+            print("updating color {} with {}".format(k,v))
         # colored strings
         colors.colored_strings=[]
         for item in self._colored_strings:
@@ -304,9 +305,9 @@ class Window:
     '''
     def __init__(self, w, h):
         # HUD
-        HUD_X       = 0
         HUD_W       = w
         HUD_H       = 2
+        HUD_X       = 0
         HUD_Y       = h - HUD_H
         # Msgs
         MSGS_X      = 0
@@ -445,12 +446,12 @@ class Update:
     def update(self):
         clearMsg = False
         #activate_all_necessary_updates()
-        if self.updates[Update.U_HUD]:
-            rog.render_hud(rog.pc());
-##            print('updating hud')
         if self.updates[Update.U_GAME]:
             rog.render_gameArea(rog.pc());
 ##            print('updating game')
+        if self.updates[Update.U_HUD]:
+            rog.render_hud(rog.pc());
+##            print('updating hud')
         if self.updates[Update.U_MSG]:
             rog.logNewEntry();
             clearMsg=True;

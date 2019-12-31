@@ -240,9 +240,10 @@ DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
 MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
-MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
+MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 EXP_LEVEL           = 100   # experience needed to level up skills
+EXP_DIMINISH_RATE   = 2     # higher -> steeper experience curve 
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)

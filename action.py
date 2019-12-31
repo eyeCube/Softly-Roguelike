@@ -691,9 +691,9 @@ def fight(attkr,dfndr,adv=0,power=0):
 def eat(ent, item): # entity ent begins the eating action, eating food item
     world = rog.world()
     edible = world.component_for_entity(item, cmp.Edible)
-    nrgCost = max(100, int(NRG_EAT*edible.satiation/1000) + edible.extraAP)
+    apCost = max(100, int(NRG_EAT*edible.satiation/1000) + edible.extraAP)
     world.add_component(ent, cmp.QueuedAction(
-        nrgCost, _eat_finishFunc, data=item, cancelFunc=_eat_cancelFunc ))
+        apCost, _eat_finishFunc, data=item, cancelFunc=_eat_cancelFunc ))
 # end def
 def _eat_finishFunc(ent, item): # helper func for eat action
     edible = world.component_for_entity(item, cmp.Edible)

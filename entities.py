@@ -3292,25 +3292,37 @@ def create_monster(_type, x, y, col=None, mutate=0):
     _agi = getMonAgi(_type)*MULT_ATT
     _int = getMonInt(_type)*MULT_ATT
     _end = getMonEnd(_type)*MULT_ATT
-    hp = getMonLo(_type)*MULT_STATS
-    mp = getMonHi(_type)*MULT_STATS
+    hp = getMonLo(_type)
+    mp = getMonHi(_type)
     atk = getMonAtk(_type)*MULT_STATS
     dmg = getMonDmg(_type)*MULT_STATS
     pen = getMonPen(_type)*MULT_STATS
     pro = getMonPro(_type)*MULT_STATS
     dv = getMonDV(_type)*MULT_STATS
     av = getMonAV(_type)*MULT_STATS
+    gra = getMonGra(_type)*MULT_STATS
+    ctr = getMonCtr(_type)*MULT_STATS
+    bal = getMonBal(_type)*MULT_STATS
     spd = getMonSpd(_type)
     asp = getMonAsp(_type)
     msp = getMonMsp(_type)
-    resfire = getMonFir(_type)
-    reselec = getMonElc(_type)
-    resbio = getMonBio(_type)
+    fir = getMonResFire(_type) # TODO: make all the get resistance functions
+    ice = getMonResCold(_type)
+    elc = getMonResElec(_type)
+    bio = getMonResBio(_type)
+    bld = getMonResBleed(_type)
+    pai = getMonResPain(_type)
+    phs = getMonResPhys(_type)
+    rus = getMonResRust(_type)
+    rot = getMonResRot(_type)
+    wet = getMonResWet(_type)
+    lgt = getMonResLight(_type)
+    snd = getMonResSound(_type)
     sight = getMonSight(_type)
     hear = getMonHear(_type)
     encmax = getMonCarry(_type)
-    kg = getMonKG(_type)
-    money = getMonMoney(_type)
+    kg = round(getMonKG(_type)*MULT_MASS)
+    money = getMonMoney(_type)*MULT_VALUE
     flags = getMonFlags(_type)
     script = getMonScript(_type)
 
@@ -3324,11 +3336,13 @@ def create_monster(_type, x, y, col=None, mutate=0):
         cmp.Name(name),
         cmp.Creature(faction=FACT_MONSTERS),
         cmp.Stats(
-            mass=round(kg*MULT_MASS),
-            hp=hp,mp=mp,resfire=resfire,resbio=resbio,reselec=reselec,
-            atk=atk,dmg=dmg,pen=pen,pro=pro,dfn=dv,arm=av,
-            spd=spd,asp=asp,msp=msp,
-            encmax=encmax
+            mass=kg,encmax=encmax,
+            hp=hp,mp=mp,
+            resfire=fir,resbio=bio,reselec=elc,resphys=phs,
+            rescold=ice,resbleed=bld,respain=pai,resrust=rus,
+            resrot=rot,reswet=wet,reslight=lgt,ressound=snd,
+            atk=atk,dmg=dmg,dfn=dv,arm=av,pen=pen,pro=pro,
+            spd=spd,asp=asp,msp=msp
             ),
         cmp.Inventory(money=money),
         cmp.Skills(),

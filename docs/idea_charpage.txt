@@ -1,0 +1,97 @@
+
+-------------------------------- Character ------------------------------------
+				   Name....Jake
+				Faction....Rogue
+					Job....Acrobat
+				   Mass....86 kg........(+)(76)
+				 Height....180 cm.......(=)(180)
+		   Encumberance....44.1% (16.754 / 38.000) <slightly encumbered>
+
+					   -- Status --
+			   (Life)----HP------13 /  24---------
+			(Stamina)----SP-----267 / 312---------
+	Effects:
+		* bleeding (rate: 5g/turn) <severe bleeding>
+		* right leg bone: fractured (ATK:-1, DV:-1, GRA:-2, PAI:-5)
+		* right leg skin: major abrasion (BIO:-10; PAI:-10; BLD:-10; FIR:-6)
+	Gauge:        # ordered by highest value -> lowest (except temperature)
+		* temperature: 35 (37) <cold>
+		* pain +26
+		* bleed +13
+		* rads +3
+
+					  -- Attributes --
+			(strength)..STR.....12......(=)(12)   # SCIADE? SADICE? 
+		(constitution)..CON.....14......(=)(14)
+		(intelligence)..INT.....16......(+)(15)
+			 (agility)..AGI.....9.......(-)(11)
+		   (dexterity)..DEX.....9.......(-)(10)
+		   (endurance)..END.....11......(+)(10)
+					  -- Statistics --
+			  (Attack)..ATK.....9.......(+)(4)
+			  (Damage)..DMG.....8.......(+)(2)
+		 (Penetration)..PEN.....12......(+)(4)
+		 (Dodge Value)..DV......12......(+)(10)
+		 (Armor Value)..AV......10......(+)(2)
+		  (Protection)..PRO.....14......(+)(6)
+			 (Balance)..BAL.....6.......(=)(6)
+		   (Grappling)..GRA.....4.......(-)(12)
+	  (Counter-Strike)..CTR.....3.......(+)(0)
+			 (Courage)..CRG.....32......(=)(32)
+		(Intimidation)..IDN.....32......(=)(32)	 
+		      (Beauty)..BEA.....32......(=)(32)
+			  (Visual)  VIS     20      (+)(0)
+			(Auditory)  AUD     60      (+)(0)
+			
+			# should these be displayed in stats or only at top of char page?
+			    (Mass)..KG......86......(+)(76)
+		      (Height)..CM......180.....(=)(180)
+		(Encumberance)..ENC.....16.754..(=)(32) 44.1% <slightly encumbered>
+	 (EncumberanceMax)..ENCMAX..38......(=)(32)
+	 
+                   -- Resistances --
+			Resistance......Value...........Base Value
+            (Heat)..FIR.....12..............(-)(50)   
+            (Cold)..ICE.....62..............(+)(50)
+     (Bio-Hazards)..BIO.....27..............(+)(100)
+     (Electricity)..ELC.....6...............(+)(0)
+            (Pain)..PAI.....93..............(-)(100)
+           (Bleed)..BLD.....6...............(+)(50)
+           (Water)..WET.....0...............(=)(0)
+        (Physical)..PHS.....3...............(+)(0)
+           (Light)..LGT.....0...............(=)(0)
+           (Sound)..SND.....0...............(=)(0)	
+         (Rusting)..RUS.....0.....IMMUNE....(=)(0) 
+         (Rotting)..ROT.....0.....IMMUNE....(=)(0) 
+# color the value and the symbol in parens green if the symbol is + (the value > base value or else color it red if it's less, or white if equal.)
+
+    -- Body --
+    Hydration 48502 / 51247 g (Hydrated)
+    Satiation   996 / 3230 Cal (Hungry)
+    Blood      5312 / 5496 g BLEEDING
+
+    -- Skills --        #( ordered by highest -> lowest skill with Talents on top)
+    Swords          43      (Talent)
+    Music           33      (Talent)
+    Medicine        6
+    Sewing          6
+    Bows            5
+    Unarmored       5
+	Lockpick		2
+
+
+
+                    # Hidden
+
+       (Olfactory)  Olf     5       (=)(5)
+
+
+    <+ body...>			# body status and gear (do on a separate page to make it easier to program the UI)
+		<a: heads...>
+		<b: torso...>
+		<c: legs...>
+		<d: arms...>
+
+
+
+

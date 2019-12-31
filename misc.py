@@ -51,37 +51,52 @@ def color_invert(rgb):
 '''
 # func render_hud
 '''
+class _HUD_Stat(): # helper classes/ functions for the render functions
+    def __init__(self, x,y, text,color):
+        self.x=x
+        self.y=y
+        self.text=text
+        self.color=color
+def _HUD_get_color(stat):
+    col=COL['white']
+    if stat[:3] == 'HP:':
+        col=COL['crystal']
+    elif stat[:3] == 'SP:':
+        col=COL['magenta']
+    elif stat[:4] == 'Atk:':
+        col=COL['scarlet']
+    elif stat[:4] == 'Dmg:':
+        col=COL['scarlet']
+    elif stat[:4] == 'Pen:':
+        col=COL['scarlet']
+    elif stat[:3] == 'DV:':
+        col=COL['ltblue']
+    elif stat[:3] == 'AV:':
+        col=COL['ltblue']
+    elif stat[:4] == 'Pro:':
+        col=COL['ltblue']
+    return col
+def _get(stat): return rog.getms(pc, stat)
+def _gets(stat): return rog.getms(pc, stat)//MULT_STATS
+def _geta(att): return rog.getms(pc, att)//MULT_ATT
+def _getb(stat): return rog.world().component_for_entity(pc, cmp.Stats).__dict__[stat]//MULT_ATT
+# render the regular abridged in-game HUD that only shows vitals
 def render_hud(w,h,pc,turn,level):
-    
-    def get_color(stat):
-        col=COL['white']
-        if stat[:3] == 'Lo:':
-            col=COL['blue']
-        if stat[:3] == 'Hi:':
-            col=COL['red']
-        return col
-
-    class Stat():
-        def __init__(self, x,y, text,color):
-            self.x=x
-            self.y=y
-            self.text=text
-            self.color=color
-
     # Setup #
-
-    def get(stat):
-        return rog.getms(pc, stat)
+    
+    # TODO: minimum display values (but only after debugging stats/HUD!!!)
     con = libtcod.console_new(w,h)
     name = rog.world().component_for_entity(pc, cmp.Name)
-    strngStats = "__{name}__|Lo: {hp}|Hi: {mp}|Speed: {spd}/{asp}/{msp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
+    # TODO: update HUD:
+    #  change to show more relevant stats, resistances are less important
+    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{asp}/{msp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
         name=name.name,
-        hp=get('hp'),mp=get('mp'),
-        spd=get('spd'),asp=get('asp'),msp=get('msp'),
+        hp=_get('hp'),mp=_get('mp'),
+        spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
         dlv=level,t=turn,
-        hit=get('atk'),dmg=get('dmg'),pen=get('pen'),
-        dfn=get('dfn'),arm=get('arm'),pro=get('pro'),
-        fir=get('resfire'),bio=get('resbio'),elc=get('reselec'),
+        hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
+        dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
+        fir=_get('resfire'),bio=_get('resbio'),elc=_get('reselec'),
     )
     stats=strngStats.split('|')
     statLines=[[]]
@@ -89,12 +104,12 @@ def render_hud(w,h,pc,turn,level):
     y=0
     for stat in stats:
         lenStat=len(stat) + 1
-        col=get_color(stat)
-        new=Stat(tot, y, stat, col)
+        col=_HUD_get_color(stat)
+        new=_HUD_Stat(tot, y, stat, col)
         tot += lenStat
         if tot >= rog.window_w():
             tot=lenStat
-            y += 1
+            y += 1 # draw on next line
             new.x=0; new.y=y
             statLines.append([new])
             continue
@@ -104,6 +119,203 @@ def render_hud(w,h,pc,turn,level):
     # Print #
     for line in statLines:
         for stat in line:
+            if stat.y > h-1: continue
+            libtcod.console_set_default_foreground(con, stat.color)
+            libtcod.console_print(con, stat.x,stat.y, stat.text)
+    #
+    
+    return con
+#
+
+# render the entire character info page(s), with page scrolling if necessary
+def render_charpage(w,h,pc,turn,level):
+    # Setup #
+    world = rog.world()
+    con = libtcod.console_new(w,h)
+    name = world.component_for_entity(pc, cmp.Name)
+    meters = world.component_for_entity(pc, cmp.Meters)
+    
+    # status effects
+    effects=""
+    for k,v in STATUSES.items():
+        clsname=type(k).__name__
+        if world.has_component(pc, clsname):
+            compo=world.component_for_entity(pc, clsname)
+            effects += "{v:>32} : {t:<6}\n".format(
+                v="* {}".format(v), t=compo.timer )
+    if effects: effects=effects[:-1] # remove final '\n'
+    #
+    
+    # gauges (meters)
+    lgauges=[]
+    if meters.rads > 0:
+        lgauges.append( (meters.rads, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('radiation'), a=meters.rads ),) )
+    if meters.sick > 0:
+        lgauges.append( (meters.sick, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('sickness'), a=meters.sick ),) )
+    if meters.expo > 0:
+        lgauges.append( (meters.expo, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('exposure'), a=meters.expo ),) )
+    if meters.pain > 0:
+        lgauges.append( (meters.pain, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('pain'), a=meters.pain ),) )
+    if meters.fear > 0:
+        lgauges.append( (meters.fear, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('fear'), a=meters.fear ),) )
+    if meters.bleed > 0:
+        lgauges.append( (meters.bleed, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('bleed'), a=meters.bleed ),) )
+    if meters.rust > 0:
+        lgauges.append( (meters.rust, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('rust'), a=meters.rust ),) )
+    if meters.rot > 0:
+        lgauges.append( (meters.rot, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('rot'), a=meters.rot ),) )
+    if meters.wet > 0:
+        lgauges.append( (meters.wet, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('wetness'), a=meters.wet ),) )
+    # sort
+    lgauges.sort(key = lambda x: x[0], reverse=True)
+    # get all in one string
+    gauges=""
+    for gauge in lgauges:
+        gauges += gauge[1]
+    if gauges: gauges=gauges[:-1] # remove final '\n'
+    #
+    
+    # create the display format string
+    # TODO: minimum display values (but only after debugging stats/HUD!!!)
+    strngStats = '''
+{titledelim} character {titledelim}
+                    name{delim}{name}
+                 faction{delim}{fact}
+                     job{delim}{job}
+                    mass{delim}{kg} kg
+                  height{delim}{cm} cm
+            encumberance{delim}{encpc}% (enc / encmax) <encstr>
+
+                        {subdelim} status {subdelim}
+                (life)----HP{statline}{hp:>5} / {hpmax:<5}
+             (stamina)----SP{statline}{sp:>5} / {spmax:<5}
+    effects:
+        {effects}
+    gauge:
+        temperature: {temp} ({normalbodytemp})
+        {gauges}
+        
+                            {subdelim} attribute {subdelim}
+             (agility)---AGI{attdelim}{_agi:<2}{attdelim}(bagi)
+            (strength)---STR{attdelim}{_str:<2}{attdelim}(bstr)
+           (endurance)---END{attdelim}{_end:<2}{attdelim}(bend)
+           (dexterity)---DEX{attdelim}{_dex:<2}{attdelim}(bdex)
+        (intelligence)---INT{attdelim}{_int:<2}{attdelim}(bint)
+        (constitution)---CON{attdelim}{_con:<2}{attdelim}(bcon)
+       
+                            {subdelim} statistic {subdelim}
+          (protection)---PRO{attdelim}{pro:<4}{statdelim}(bpro)
+         (dodge value)----DV{attdelim}{dv:<4}{statdelim}(bdv)
+         (armor value)----AV{attdelim}{av:<4}{statdelim}(bav)
+         (penetration)---PEN{attdelim}{pen:<4}{statdelim}(bpen)
+              (attack)---ATK{attdelim}{atk:<4}{statdelim}(batk)
+              (damage)---DMG{attdelim}{dmg:<4}{statdelim}(bdmg)
+             (balance)---BAL{attdelim}{bal:<4}{statdelim}(bbal)
+           (grappling)---GRA{attdelim}{gra:<4}{statdelim}(bgra)
+      (counter-strike)---CTR{attdelim}{ctr:<4}{statdelim}(bctr)
+             (courage)---CRG{attdelim}{crg:<4}{statdelim}(bcrg)
+        (intimidation)---IDN{attdelim}{idn:<4}{statdelim}(bidn)
+              (beauty)---BEA{attdelim}{bea:<4}{statdelim}(bbea)
+              (vision)---VIS{attdelim}{vis:<4}{statdelim}(bvis)
+             (hearing)---AUD{attdelim}{aud:<4}{statdelim}(baud)
+                (mass)----KG{attdelim}{kg:<4}{statdelim}(bkg)
+              (height)----CM{attdelim}{cm:<4}{statdelim}(bcm)
+        (encumberance)---ENC{attdelim}{enc:<4}{statdelim}
+    (max.encumberance)ENCMAX{attdelim}{encmax:<4}{statdelim}(bencmax)
+       
+                            {subdelim} resistance {subdelim}
+                (heat)---FIR{attdelim}{fir:<4}{resdelim}{bfir}
+                (cold)---ICE{attdelim}{ice:<4}{resdelim}{bice}
+          (bio-hazard)---BIO{attdelim}{bio:<4}{resdelim}{bbio}
+         (electricity)---ELC{attdelim}{elc:<4}{resdelim}{belc}
+            (physical)---PHS{attdelim}{phs:<4}{resdelim}{bphs}
+                (pain)---PAI{attdelim}{pai:<4}{resdelim}{bpai}
+               (bleed)---BLD{attdelim}{bld:<4}{resdelim}{bbld}
+               (light)---LGT{attdelim}{lgt:<4}{resdelim}{blgt}
+               (sound)---SND{attdelim}{snd:<4}{resdelim}{bsnd}
+                (rust)---RUS{attdelim}{rus:<4}{resdelim}{brus}
+                 (rot)---ROT{attdelim}{rot:<4}{resdelim}{brot}
+               (water)---WET{attdelim}{wet:<4}{resdelim}{bwet}
+'''.format(
+        titledelim="--------------------------------",
+        subdelim ="--",
+        statline ="------------",
+        delim    ="........",
+        attdelim ="........",
+        statdelim="......",
+        resdelim ="......",
+        effects=effects,gauges=gauges,
+        dlv=level,t=turn,
+        name=name.name,
+        temp=meters.temp,
+        normalbodytemp=37, #TEMPORARY
+        hp=_get('hp'),hpmax=_get('hpmax'),sp=_get('mp'),spmax=_get('mpmax'),
+        # attributes
+        _str=_gets('str'),_agi=_gets('agi'),_dex=_gets('dex'),
+        _end=_gets('end'),_int=_gets('int'),_con=_gets('con'),
+        # base attributes
+        bstr=_getb('str'),bagi=_getb('agi'),bdex=_getb('dex'),
+        bend=_getb('end'),bint=_getb('int'),bcon=_getb('con'),
+        # stats
+        spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
+        hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
+        dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
+        ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
+        crg=_gets('courage'),idn=_gets('intimidation'),
+        bea=_gets('beauty'),
+        vis=_gets('vision'),aud=_gets('hearing'),
+        enc=_gets('enc'),encmax=_gets('encmax'),
+        # base stats
+        bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
+        bhit=_getb('atk'),bdmg=_getb('dmg'),bpen=_getb('pen'),
+        bdfn=_getb('dfn'),barm=_getb('arm'),bpro=_getb('pro'),
+        bctr=_getb('ctr'),bgra=_getb('gra'),bbal=_getb('bal'),
+        bcrg=_getb('courage'),bidn=_getb('intimidation'),
+        bbea=_getb('beauty'),
+        bvis=_getb('vision'),baud=_getb('hearing'),
+        bencmax=_getb('encmax'),
+        # res
+        fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
+        bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
+        pai=_get('respain'),lgt=_get('reslight'),snd=_get('ressound'),
+        rus=_get('resrust'),rot=_get('resrot'),wet=_get('reswet'),
+        # base res
+        bfir=_getb('resfire'),bice=_getb('rescold'),bphs=_getb('resphys'),
+        bbld=_getb('resbleed'),bbio=_getb('resbio'),belc=_getb('reselec'),
+        bpai=_getb('respain'),blgt=_getb('reslight'),bsnd=_getb('ressound'),
+        brus=_getb('resrust'),brot=_getb('resrot'),bwet=_getb('reswet'),
+    )
+    stats=strngStats.split('|')
+    statLines=[[]]
+    tot=0
+    y=0
+    for stat in stats:
+        lenStat=len(stat) + 1
+        col=_HUD_get_color(stat)
+        new=_HUD_Stat(tot, y, stat, col)
+        tot += lenStat
+        if tot >= rog.window_w():
+            tot=lenStat
+            y += 1 # draw on next line
+            new.x=0; new.y=y
+            statLines.append([new])
+            continue
+        statLines[-1].append(new)
+    
+    
+    # Print #
+    for line in statLines:
+        for stat in line:
+            if stat.y > h-1: continue
             libtcod.console_set_default_foreground(con, stat.color)
             libtcod.console_print(con, stat.x,stat.y, stat.text)
     #
@@ -221,7 +433,7 @@ def put_text_special_colors(con, txt, offset):
                 xx=-1
                 yy += 1
                 continue
-            col=string_colors.get(ch,None)
+            col=string_colors._get(ch,None)
             if col:
                 libtcod.console_set_char_foreground(
                     con, offset + xx, offset + yy, COL[col])
@@ -358,7 +570,7 @@ def get_num_from_char(char):
     base = {}
     for k in lis:
         attr = getattr(stats,k)
-        if not (attr==get(k)):
+        if not (attr==_get(k)):
             base.update({k : " ({})".format(attr)})
         else: base.update({k : ""})
 '''
@@ -401,12 +613,12 @@ Turn : {turn}
 GameTime: 
 v_0.15.format(
 nam= pc.name,
-hp= get('hp'), hpmax= get('hpmax'), mp= get('mp'), mpmax= get('mpmax'),
+hp= _get('hp'), hpmax= _get('hpmax'), mp= _get('mp'), mpmax= _get('mpmax'),
 nrg= pc.stats.nrg,
-asps= ('+' if get('asp') >=0 else ''), asp= get('asp'),
-msps= ('+' if get('msp') >=0 else ''), msp= get('msp'),
-atk= get('atk'), dfn= get('dfn'), dmg= get('dmg'), arm= get('arm'),
-spd= get('spd'),
+asps= ('+' if _get('asp') >=0 else ''), asp= _get('asp'),
+msps= ('+' if _get('msp') >=0 else ''), msp= _get('msp'),
+atk= _get('atk'), dfn= _get('dfn'), dmg= _get('dmg'), arm= _get('arm'),
+spd= _get('spd'),
 turn= turn,
 Spd= base['spd'], Asp= base['asp'], Msp= base['msp'],
 Atk= base['atk'], Dfn= base['dfn'], Dmg= base['dmg'], Arm= base['arm'],
@@ -416,8 +628,8 @@ Atk= base['atk'], Dfn= base['dfn'], Dmg= base['dmg'], Arm= base['arm'],
 req=exp_req,
 '''
 '''
-stg= get('str'), agi= get('agi'), dex= get('dex'),
-mnd= get('mnd'), end= get('end'), chm= get('chr'),
+stg= _get('str'), agi= _get('agi'), dex= _get('dex'),
+mnd= _get('mnd'), end= _get('end'), chm= _get('chr'),
 Str= base['str'], Agi= base['agi'], Dex= base['dex'],
 Mnd= base['mnd'], End= base['end'], Chr= base['chr'],
 '''

@@ -39,7 +39,7 @@ import dice
 
 
 @dataclass
-class Tile():
+class Tile:
     '''
     Tiles are simple objects that can be minimally interacted with
        without much overhead.
@@ -84,7 +84,7 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     #DEEPWATER   : Tile(DEEPWATER, 'dkblue', 'deep',     100,100,  True,2,),
      
 
-class TileMap():
+class TileMap:
     '''
 The grid class that stores data about:
     terrain, things, lights,   -fluids?? -fires??

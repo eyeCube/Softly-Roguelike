@@ -96,7 +96,8 @@ class Rogue:
             cls.settings.window_width, cls.settings.window_height
             )
     @classmethod
-    def create_consoles(cls):   cls.con = game.Console(window_w(),window_h())
+    def create_consoles(cls):
+        cls.con = game.Console(window_w(),window_h())
     @classmethod
     def create_data(cls):       cls.data = game.GameData()
     @classmethod
@@ -362,8 +363,7 @@ def refresh():  # final to root and flush
 #@debug.printr
 def render_gameArea(pc) :
     con = Rogue.map.render_gameArea(pc, view_x(),view_y(),view_w(),view_h() )
-    #libtcod.console_clear(con_game())
-    libtcod.console_clear(con_game())
+    libtcod.console_clear(con_game()) # WHY ARE WE DOING THIS?
     libtcod.console_blit(con, view_x(),view_y(),view_w(),view_h(),
                          con_game(), view_port_x(),view_port_y())
 #@debug.printr
@@ -488,24 +488,28 @@ def spendAP(ent, amt):
 
 # skills
 def getskill(ent, skill): # return skill level in a given skill
-    if not Rogue.world.has_component(ent, cmp.Skills):
-        return 0
+    assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    return skills.skills.get(skill, 0)
+    return skills.skills.get(skill, 0) // EXP_LEVEL
+def setskill(ent, skill, lvl): # set skill level
+    assert(Rogue.world.has_component(ent, cmp.Skills))
+    make(ent,DIRTY_STATS)
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    skills.skills[skill] = lvl*EXP_LEVEL
 def train(ent, skill, pts): # train (improve) skill
-    if not Rogue.world.has_component(ent, cmp.Skills):
-        return False
-    make(ent,DIRTY_STATS)
-    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.skills[skill] = skills.skills.get(skill, 0) + pts
-    return True
+    assert(Rogue.world.has_component(ent, cmp.Skills))
+    # diminishing returns on skill gainz
+    pts = pts - getskill(ent)*EXP_DIMINISH_RATE
+    while pts > 0:
+        make(ent,DIRTY_STATS)
+        skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+        skills.skills[skill] = skills.skills.get(skill, 0) + min(pts,EXP_LEVEL)
+        pts -= EXP_LEVEL
 def forget(ent, skill, pts): # lose skill experience
-    if not Rogue.world.has_component(ent, cmp.Skills):
-        return False
+    assert(Rogue.world.has_component(ent, cmp.Skills))
     make(ent,DIRTY_STATS)
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    skills.skills[skill] = skills.skills.get(skill, pts) - pts
-    return True
+    skills.skills[skill] = max(0, skills.skills.get(skill, pts) - pts)
 
 # flags
 def on(ent, flag):

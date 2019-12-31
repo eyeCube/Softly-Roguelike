@@ -1,0 +1,79 @@
+// settings.txt
+
+WINDOW WIDTH        = 80
+
+WINDOW HEIGHT       = 50
+
+TILESET             = tileset_12x16.png
+
+// Renderer 0, 1, or 2; 2 is slowest, but most compatible.
+// 0 - GLSL
+// 1 - OPENGL
+// 2 - SDL
+RENDERER            = 2
+
+FPS MAX             = 60
+
+SHOW FPS            = 0
+
+HIGHLIGHT PC        = 0
+
+HIGHLIGHT COLOR     = TRUEBLUE
+
+COLORED STRINGS     = __see__,green;__hear__,blue;fire,red;
+
+// Colors. RGB Values 0-255. Feel free to change!
+#DEEP               = 20,20,0
+
+#ACCENT             = 255,215,128
+
+#NEUTRAL            = 138,100,0
+
+#BLUE               = 26,125,160
+
+#TRUEBLUE           = 16,25,255
+
+#LTBLUE             = 140,183,217
+
+#GREEN              = 0,170,30
+
+#DKGREEN            = 0,95,17
+
+#VDKGREEN           = 20,37,9
+
+#DKMAGENTA          = 150,0,60
+
+#ORANGE             = 255,177,0
+
+#GOLD               = 255,200,60
+
+#BROWN              = 125,91,0
+
+#DKBROWN            = 55,36,6
+
+#SCARLET            = 255,40,0
+
+#RED                = 242,5,50
+
+#DKRED              = 50,0,0
+
+#TRUERED            = 255,0,0
+
+#PURPLE             = 180,60,120
+
+#YELLOW             = 115,190,60
+
+#TRUEYELLOW         = 255,255,0
+
+#WHITE              = 255,255,255
+
+#BLACK              = 0,0,0
+
+#LTGRAY             = 200,200,200
+
+#GRAY               = 128,128,128
+
+#DKGRAY             = 80,80,80
+
+#VDKGRAY            = 50,50,50
+

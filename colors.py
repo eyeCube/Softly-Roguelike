@@ -57,7 +57,7 @@ COLORS={
     'ltbrown'       : '204,150,38',
     'tan'           : '235,192,150',
     'yellow'        : '172,222,20', #'115,190,60'
-    'trueyellow'    : '245,255,172', #'255,255,0'
+    'trueyellow'    : '255,255,0', #'255,255,0'
     'lime'          : '153,255,0', # vibrant yellow-green
     'bio'           : '205,236,162', #light yellow-green
     'yellowgreen'   : '115,190,60', #darker yellow-green
