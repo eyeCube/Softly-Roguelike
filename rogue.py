@@ -1192,22 +1192,22 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # These only improve stats by adding some value to them.
 
     # Strength
-    _str = modded.str
+    _str = modded.str/MULT_ATT
     modded.encmax += _str * ATT_STR_ENCUMBERANCE
     modded.force += _str * ATT_STR_FORCE
     modded.gra += _str * ATT_STR_GRAPPLING
 
     # Agility
-    _agi = modded.agi
+    _agi = modded.agi/MULT_ATT
     modded.msp += _agi * ATT_AGI_MOVESPEED
     modded.asp += _agi * ATT_AGI_ATTACKSPEED
 
     # Dexterity
-    _dex = modded.dex
+    _dex = modded.dex/MULT_ATT
     modded.atk += _dex * ATT_DEX_ATTACK
 
     # Endurance
-    _end = modded.end
+    _end = modded.end/MULT_ATT
     modded.resfire += _end * ATT_END_RESHEAT
     modded.rescold += _end * ATT_END_RESCOLD
     modded.resphys += _end * ATT_END_RESPHYS
@@ -1216,10 +1216,10 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded.resbleed += _end * ATT_END_RESBLEED
 
     # Intelligence
-    _int = modded.int
+    _int = modded.int/MULT_ATT
 
     # Constitution
-    _con = modded.con
+    _con = modded.con/MULT_ATT
     modded.hpmax += _con * ATT_CON_HP
     modded.encmax += _con * ATT_CON_ENCUMBERANCE
 
@@ -1503,7 +1503,21 @@ def routine_print_msgHistory():
     hud1h   = 3
     hud2h   = 3
     scroll  = makeConBox(width,1000,strng)
-    top     = makeConBox(width,hud1h,"Message History:")
+    top     = makeConBox(width,hud1h,"message history")
+    bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
+    Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+
+def routine_print_charPage():
+    clear_active_manager()
+    game_set_state("character page")
+    width   = window_w()
+    height  = window_h()
+    strng   = misc.render_charpage_string(width,height,pc(),get_turn(),dlvl())
+    nlines  = 1 + strng.count('\n')
+    hud1h   = 3
+    hud2h   = 3
+    scroll  = makeConBox(width,200,strng)
+    top     = makeConBox(width,hud1h,"character")
     bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
     Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
 

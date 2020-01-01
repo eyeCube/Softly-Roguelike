@@ -25,6 +25,7 @@ import components as cmp
 import orangio as IO
 import ai
 import misc
+import maths
 
 
 '''
@@ -552,7 +553,8 @@ class Manager_Look(Manager_SelectTile):
 
 class Manager_PrintScroll(GameStateManager):
 
-    def __init__(self,con_mid,width,height, con_top,con_bot,h1=3,h2=4,maxy=0):
+    def __init__(self, con_mid, width,height, con_top=None,con_bot=None,
+                 h1=3,h2=4,maxy=0 ):
         super(Manager_PrintScroll, self).__init__()
         
         self.con_mid    = con_mid#dle
@@ -582,7 +584,7 @@ class Manager_PrintScroll(GameStateManager):
     
     def user_input(self, pcAct):
         for act, arg in pcAct:
-            if act=="target":
+            if (act=="context-dir" or act=="move"):
                 self.y += arg[1]*self.scrollspd
                 self.y=maths.restrict(self.y,0,self.maxy)
             elif act=="page up":    self.y = max(0,         self.y -int(self.pagescroll))

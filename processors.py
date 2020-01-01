@@ -475,7 +475,7 @@ class FireProcessor(esper.Processor):
         dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())
         Fires.heat += Fires.heat_sources # heat sources radiating heat
         Fires.heat += Fires.fires * Fires.fuel # fires creating heat
-        Fires.heat += ENVIRONMENT_DELTA_HEAT # passive heat loss (or gain)
+        Fires.heat += ENV_DELTA_HEAT # passive heat loss (or gain)
         Fires.heat = scipy.signal.convolve2d( # Spread heat to adjacent cells.
             Fires.heat, dispersion, mode='same', boundary='fill', fillvalue=0
         )
@@ -876,7 +876,7 @@ class StatusProcessor(esper.Processor):
         
 class MetersProcessor(esper.Processor):
     def process(self):
-        for ent,stats in self.world.get_component(cmp.Meters):
+        for ent,meters in self.world.get_component(cmp.Meters):
             '''
                 interface with environment
                     (e.g. in cases of heat exchange with the air)
@@ -895,29 +895,27 @@ class MetersProcessor(esper.Processor):
             
             #print(thing.name," is getting cooled down") #TESTING
             # cool down temperature meter if not currently burning
-            if (abs(stats.temp - ambient_temp) >= 1):
+            if (abs(meters.temp - ambient_temp) >= 1):
                 # TODO: take insulation into account for deltatemp
                 #   as well as the actual difference in temperature
-                deltatemp = rog.sign(ambient_temp - stats.temp)
-                stats.temp = stats.temp + deltatemp
+                deltatemp = rog.sign(ambient_temp - meters.temp)
+                meters.temp = meters.temp + deltatemp
                 ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
                 Fires.add_heat(pos.x, pos.y, ambientdelta)
 ##                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
                 if (not rog.get_status(ent, cmp.StatusFire) and
-                    stats.temp >= FIRE_THRESHOLD):
+                    meters.temp >= FIRE_THRESHOLD):
                     rog.set_status(ent, cmp.StatusFire)
                 elif (not rog.get_status(ent, cmp.StatusFrozen) and
-                    stats.temp <= FREEZE_THRESHOLD):
+                    meters.temp <= FREEZE_THRESHOLD):
                     rog.set_status(ent, cmp.StatusFrozen)
             # sickness meter
-            if (stats.sick > 0):
-                stats.sick = max(0, stats.sick - BIO_METERLOSS)
+            if (meters.sick > 0):
+                meters.sick = max(0, meters.sick - BIO_METERLOSS)
             # exposure meter
-            if (stats.expo > 0):
-                stats.expo = max(0, stats.expo - CHEM_METERLOSS)
+            if (meters.expo > 0):
+                meters.expo = max(0, meters.expo - CHEM_METERLOSS)
             # rads meter
-            #if (thing.stats.rads > 0):
-            #    thing.stats.rads -= 1
 # end class
 
 

@@ -216,6 +216,7 @@ def main():
                 or gameState == "look"
                 or gameState == "busy"
                 or gameState == "message history"
+                or gameState == "character page"
                 ):
             manager=rog.get_active_manager()
             manager.run(pcAct)

@@ -242,12 +242,13 @@ MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all t
 MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
+MULT_HYD            = 1000  # finer scale for hydration control
 EXP_LEVEL           = 100   # experience needed to level up skills
 EXP_DIMINISH_RATE   = 2     # higher -> steeper experience curve 
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
-ENVIRONMENT_DELTA_HEAT = -0.1 # global change in heat each iteration of heat dispersion
+ENV_DELTA_HEAT  = -0.1 # global change in heat each iteration of heat dispersion
 HEATMIN         = -300 # minimum temperature
 HEATMAX         = 16000 # maximum temperature
 FREEZE_THRESHOLD= -30
@@ -319,8 +320,8 @@ BASE_DFN        = 10
 BASE_ARM        = 2
 BASE_PRO        = 6
 BASE_SPD        = 100
-BASE_MSP        = 100
-BASE_ASP        = 100
+BASE_MSP        = 40
+BASE_ASP        = 40
 BASE_HP         = 20
 BASE_MP         = 200
 BASE_ENCMAX     = 10
@@ -546,7 +547,6 @@ CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
 CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
-HYDRATION_MULTIPLIER    = 1000      # finer scale for hydration control
 
 
 # body plans:

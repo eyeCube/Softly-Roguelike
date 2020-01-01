@@ -81,7 +81,7 @@ class Actor:
 
 class Player: # the player has some unique stats that only apply to them
     __slots__=['identify']
-    def __init__(self, identify):
+    def __init__(self, identify=0):
         self.identify=int(identify)
 
 class Targetable:
@@ -147,7 +147,7 @@ class Stats: #base stats
         self.mpmax=int(mp)          # stamina
         self.mp=self.mpmax
         self.encmax=int(encmax)     # encumberance
-        self.enc=self.encmax        # " maximum
+        self.enc=0                  # " maximum
         self.force=int(force)       # how much force its attack has (knockback)
         self.atk=int(atk)    #Attack -- accuracy
         self.dmg=int(dmg)    #Damage, physical (melee)
@@ -1391,7 +1391,7 @@ class StatusDigest:
 
 # GLOBAL LISTS OF COMPONENTS #
 
-STATUSES = { # dict of statuses that have a timer
+STATUSES={ # dict of statuses that have a timer
     # component : string that appears when you have the status
     StatusFire      : 'burning',
     StatusFrozen    : 'frozen',

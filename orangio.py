@@ -170,7 +170,7 @@ KEYBINDINGS_TEXT_DEFAULT = '''//file name: {filename}
 // Bindings |
 //---------//
 
-// Display Help Menu
+// display help menu
 Shift+/
 NONE
 NONE
@@ -220,93 +220,98 @@ NONE
 KP5
 NONE
 
-// Up
+// up
 Shift+,
 NONE
 NONE
 
-// Down
+// down
 Shift+.
 NONE
 NONE
 
-// Context-sensitive action
+// context-sensitive action
 c
 SPACE
 NONE
 
-// Get
+// get
 g
 ,
 NONE
 
-// Open/Close
+// open/Close
 o
 Shift+=
 NONE
 
-// Sprint
+// sprint
 s
 NONE
 NONE
 
-// Target entity (+ target limbs) to fire / throw / attack
+// target entity (+ target limbs) to fire / throw / attack
 t
 NONE
 NONE
 
-// Examine or Look
+// examine or Look
 x
 /
 Shift+L
 
-// Wait
+// wait
 w
 Ctrl+t
 NONE
 
-// Rest
+// rest
 r
 Shift+t
 NONE
 
-// Move view
-v
-NONE
-NONE
-
-// Fixed view mode
-Ctrl+v
-NONE
-NONE
-
-// Show player location (find player)
-Ctrl+f
-NONE
-NONE
-
-// Quit Game
-Alt+q
-NONE
-NONE
-
-// Inventory
-i
-NONE
-NONE
-
-// show Message History
-Shift+h
-NONE
-NONE
-
-// Move prompt
+// move prompt
 m
 NONE
 NONE
 
-// Attack prompt
+// attack prompt
 f
+NONE
+NONE
+
+// move view
+v
+NONE
+NONE
+
+// fixed view mode
+Ctrl+v
+NONE
+NONE
+
+// show player location (find player)
+Ctrl+f
+NONE
+NONE
+
+// quit game
+Alt+q
+NONE
+NONE
+
+// inventory
+i
+NONE
+NONE
+
+// show message history
+Shift+h
+NONE
+NONE
+
+// show character page
+a
 NONE
 NONE
 
@@ -404,14 +409,15 @@ COMMANDS = {        # translate commands into actions
     'look'          : {'look': True},
     'wait'          : {'wait': True},
     'rest'          : {'rest': True},
+    'move-prompt'   : {'move-prompt': True},
+    'attack-prompt' : {'attack-prompt': True},
     'move view'     : {'move view': True},
     'fixed view'    : {'fixed view': True},
     'find player'   : {'find player': True},
     'quit'          : {'quit game': True},
     'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
-    'move-prompt'   : {'move-prompt': True},
-    'attack-prompt' : {'attack-prompt': True},
+    'char page'     : {'character page': True},
     
     'select'        : {'select': True},
     'exit'          : {'exit': True},

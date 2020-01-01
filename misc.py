@@ -76,10 +76,20 @@ def _HUD_get_color(stat):
     elif stat[:4] == 'Pro:':
         col=COL['ltblue']
     return col
-def _get(stat): return rog.getms(pc, stat)
-def _gets(stat): return rog.getms(pc, stat)//MULT_STATS
-def _geta(att): return rog.getms(pc, att)//MULT_ATT
-def _getb(stat): return rog.world().component_for_entity(pc, cmp.Stats).__dict__[stat]//MULT_ATT
+def _get(stat):
+    return rog.getms(rog.pc(), stat)
+def _gets(stat): # get stat
+    return rog.getms(rog.pc(), stat)//MULT_STATS
+def _geta(att): # get attribute
+    return rog.getms(rog.pc(), att)//MULT_ATT
+def _getheight():
+    return rog.world().component_for_entity(rog.pc(), cmp.Body).height
+def _getb(stat): # get base
+    return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]
+def _getba(stat): # get base att
+    return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_ATT
+def _getbs(stat): # get base stat
+    return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_STATS
 # render the regular abridged in-game HUD that only shows vitals
 def render_hud(w,h,pc,turn,level):
     # Setup #
@@ -127,17 +137,18 @@ def render_hud(w,h,pc,turn,level):
     return con
 #
 
-# render the entire character info page(s), with page scrolling if necessary
-def render_charpage(w,h,pc,turn,level):
+# render the entire character info page in one big string
+def render_charpage_string(w,h,pc,turn,level):
     # Setup #
     world = rog.world()
     con = libtcod.console_new(w,h)
     name = world.component_for_entity(pc, cmp.Name)
     meters = world.component_for_entity(pc, cmp.Meters)
+    creature = world.component_for_entity(pc, cmp.Creature)
     
     # status effects
     effects=""
-    for k,v in STATUSES.items():
+    for k,v in cmp.STATUSES.items():
         clsname=type(k).__name__
         if world.has_component(pc, clsname):
             compo=world.component_for_entity(pc, clsname)
@@ -186,14 +197,13 @@ def render_charpage(w,h,pc,turn,level):
     
     # create the display format string
     # TODO: minimum display values (but only after debugging stats/HUD!!!)
-    strngStats = '''
-{titledelim} character {titledelim}
+    strng = '''{titledelim} character {titledelim}
                     name{delim}{name}
                  faction{delim}{fact}
                      job{delim}{job}
                     mass{delim}{kg} kg
                   height{delim}{cm} cm
-            encumberance{delim}{encpc}% (enc / encmax) <encstr>
+            encumberance{delim}{encpc:.2f}% ({enc} / {encmax})
 
                         {subdelim} status {subdelim}
                 (life)----HP{statline}{hp:>5} / {hpmax:<5}
@@ -205,83 +215,90 @@ def render_charpage(w,h,pc,turn,level):
         {gauges}
         
                             {subdelim} attribute {subdelim}
-             (agility)---AGI{attdelim}{_agi:<2}{attdelim}(bagi)
-            (strength)---STR{attdelim}{_str:<2}{attdelim}(bstr)
-           (endurance)---END{attdelim}{_end:<2}{attdelim}(bend)
-           (dexterity)---DEX{attdelim}{_dex:<2}{attdelim}(bdex)
-        (intelligence)---INT{attdelim}{_int:<2}{attdelim}(bint)
-        (constitution)---CON{attdelim}{_con:<2}{attdelim}(bcon)
+             (agility)---AGI{predelim}{_agi:<2}{attdelim}({bagi})
+            (strength)---STR{predelim}{_str:<2}{attdelim}({bstr})
+           (endurance)---END{predelim}{_end:<2}{attdelim}({bend})
+           (dexterity)---DEX{predelim}{_dex:<2}{attdelim}({bdex})
+        (intelligence)---INT{predelim}{_int:<2}{attdelim}({bint})
+        (constitution)---CON{predelim}{_con:<2}{attdelim}({bcon})
        
                             {subdelim} statistic {subdelim}
-          (protection)---PRO{attdelim}{pro:<4}{statdelim}(bpro)
-         (dodge value)----DV{attdelim}{dv:<4}{statdelim}(bdv)
-         (armor value)----AV{attdelim}{av:<4}{statdelim}(bav)
-         (penetration)---PEN{attdelim}{pen:<4}{statdelim}(bpen)
-              (attack)---ATK{attdelim}{atk:<4}{statdelim}(batk)
-              (damage)---DMG{attdelim}{dmg:<4}{statdelim}(bdmg)
-             (balance)---BAL{attdelim}{bal:<4}{statdelim}(bbal)
-           (grappling)---GRA{attdelim}{gra:<4}{statdelim}(bgra)
-      (counter-strike)---CTR{attdelim}{ctr:<4}{statdelim}(bctr)
-             (courage)---CRG{attdelim}{crg:<4}{statdelim}(bcrg)
-        (intimidation)---IDN{attdelim}{idn:<4}{statdelim}(bidn)
-              (beauty)---BEA{attdelim}{bea:<4}{statdelim}(bbea)
-              (vision)---VIS{attdelim}{vis:<4}{statdelim}(bvis)
-             (hearing)---AUD{attdelim}{aud:<4}{statdelim}(baud)
-                (mass)----KG{attdelim}{kg:<4}{statdelim}(bkg)
-              (height)----CM{attdelim}{cm:<4}{statdelim}(bcm)
-        (encumberance)---ENC{attdelim}{enc:<4}{statdelim}
-    (max.encumberance)ENCMAX{attdelim}{encmax:<4}{statdelim}(bencmax)
+          (protection)---PRO{predelim}{pro:<4}{statdelim}({bpro})
+         (dodge value)----DV{predelim}{dv:<4}{statdelim}({bdv})
+         (armor value)----AV{predelim}{av:<4}{statdelim}({bav})
+         (penetration)---PEN{predelim}{pen:<4}{statdelim}({bpen})
+     (attack / to-hit)---ATK{predelim}{atk:<4}{statdelim}({batk})
+              (damage)---DMG{predelim}{dmg:<4}{statdelim}({bdmg})
+               (speed)---SPD{predelim}{spd:<4}{statdelim}({bspd})
+        (attack speed)---ASP{predelim}{asp:<4}{statdelim}({basp})
+      (movement speed)---MSP{predelim}{msp:<4}{statdelim}({bmsp})
+             (balance)---BAL{predelim}{bal:<4}{statdelim}({bbal})
+           (grappling)---GRA{predelim}{gra:<4}{statdelim}({bgra})
+      (counter-strike)---CTR{predelim}{ctr:<4}{statdelim}({bctr})
+             (courage)---CRG{predelim}{crg:<4}{statdelim}({bcrg})
+        (intimidation)---IDN{predelim}{idn:<4}{statdelim}({bidn})
+              (beauty)---BEA{predelim}{bea:<4}{statdelim}({bbea})
+              (vision)---VIS{predelim}{vis:<4}{statdelim}({bvis})
+             (hearing)---AUD{predelim}{aud:<4}{statdelim}({baud})
+                (mass)----KG{predelim}{kg:<4}{statdelim}({bkg})
+              (height)----CM{predelim}{cm:<4}
+        (encumberance)---ENC{predelim}{enc:<4}
+    (max.encumberance)ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
        
                             {subdelim} resistance {subdelim}
-                (heat)---FIR{attdelim}{fir:<4}{resdelim}{bfir}
-                (cold)---ICE{attdelim}{ice:<4}{resdelim}{bice}
-          (bio-hazard)---BIO{attdelim}{bio:<4}{resdelim}{bbio}
-         (electricity)---ELC{attdelim}{elc:<4}{resdelim}{belc}
-            (physical)---PHS{attdelim}{phs:<4}{resdelim}{bphs}
-                (pain)---PAI{attdelim}{pai:<4}{resdelim}{bpai}
-               (bleed)---BLD{attdelim}{bld:<4}{resdelim}{bbld}
-               (light)---LGT{attdelim}{lgt:<4}{resdelim}{blgt}
-               (sound)---SND{attdelim}{snd:<4}{resdelim}{bsnd}
-                (rust)---RUS{attdelim}{rus:<4}{resdelim}{brus}
-                 (rot)---ROT{attdelim}{rot:<4}{resdelim}{brot}
-               (water)---WET{attdelim}{wet:<4}{resdelim}{bwet}
+                (heat)---FIR{predelim}{fir:<4}{resdelim}({bfir})
+                (cold)---ICE{predelim}{ice:<4}{resdelim}({bice})
+          (bio-hazard)---BIO{predelim}{bio:<4}{resdelim}({bbio})
+         (electricity)---ELC{predelim}{elc:<4}{resdelim}({belc})
+            (physical)---PHS{predelim}{phs:<4}{resdelim}({bphs})
+                (pain)---PAI{predelim}{pai:<4}{resdelim}({bpai})
+               (bleed)---BLD{predelim}{bld:<4}{resdelim}({bbld})
+               (light)---LGT{predelim}{lgt:<4}{resdelim}({blgt})
+               (sound)---SND{predelim}{snd:<4}{resdelim}({bsnd})
+                (rust)---RUS{predelim}{rus:<4}{resdelim}({brus})
+                 (rot)---ROT{predelim}{rot:<4}{resdelim}({brot})
+               (water)---WET{predelim}{wet:<4}{resdelim}({bwet})
 '''.format(
         titledelim="--------------------------------",
         subdelim ="--",
         statline ="------------",
         delim    ="........",
+        predelim ="....",
         attdelim ="........",
         statdelim="......",
         resdelim ="......",
         effects=effects,gauges=gauges,
         dlv=level,t=turn,
         name=name.name,
+        fact=creature.faction,job=creature.job,
         temp=meters.temp,
         normalbodytemp=37, #TEMPORARY
+        kg=_get('mass'),bkg=_getb('mass'),cm=int(_getheight()),
         hp=_get('hp'),hpmax=_get('hpmax'),sp=_get('mp'),spmax=_get('mpmax'),
         # attributes
-        _str=_gets('str'),_agi=_gets('agi'),_dex=_gets('dex'),
-        _end=_gets('end'),_int=_gets('int'),_con=_gets('con'),
+        _str=_geta('str'),_agi=_geta('agi'),_dex=_geta('dex'),
+        _end=_geta('end'),_int=_geta('int'),_con=_geta('con'),
         # base attributes
-        bstr=_getb('str'),bagi=_getb('agi'),bdex=_getb('dex'),
-        bend=_getb('end'),bint=_getb('int'),bcon=_getb('con'),
+        bstr=_getba('str'),bagi=_getba('agi'),bdex=_getba('dex'),
+        bend=_getba('end'),bint=_getba('int'),bcon=_getba('con'),
         # stats
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
-        dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
+        atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
+        dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
-        crg=_gets('courage'),idn=_gets('intimidation'),
-        bea=_gets('beauty'),
-        vis=_gets('vision'),aud=_gets('hearing'),
-        enc=_gets('enc'),encmax=_gets('encmax'),
+        crg=_get('courage'),idn=_get('scary'),
+        bea=_get('beauty'),
+        vis=_get('sight'),aud=_get('hearing'),
+        enc=_get('enc'),encmax=_get('encmax'),
+        encpc=(_get('enc') / _get('encmax') * 100),
         # base stats
         bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
-        bhit=_getb('atk'),bdmg=_getb('dmg'),bpen=_getb('pen'),
-        bdfn=_getb('dfn'),barm=_getb('arm'),bpro=_getb('pro'),
-        bctr=_getb('ctr'),bgra=_getb('gra'),bbal=_getb('bal'),
-        bcrg=_getb('courage'),bidn=_getb('intimidation'),
+        batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
+        bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
+        bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
+        bcrg=_getb('courage'),bidn=_getb('scary'),
         bbea=_getb('beauty'),
-        bvis=_getb('vision'),baud=_getb('hearing'),
+        bvis=_getb('sight'),baud=_getb('hearing'),
         bencmax=_getb('encmax'),
         # res
         fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
@@ -294,33 +311,7 @@ def render_charpage(w,h,pc,turn,level):
         bpai=_getb('respain'),blgt=_getb('reslight'),bsnd=_getb('ressound'),
         brus=_getb('resrust'),brot=_getb('resrot'),bwet=_getb('reswet'),
     )
-    stats=strngStats.split('|')
-    statLines=[[]]
-    tot=0
-    y=0
-    for stat in stats:
-        lenStat=len(stat) + 1
-        col=_HUD_get_color(stat)
-        new=_HUD_Stat(tot, y, stat, col)
-        tot += lenStat
-        if tot >= rog.window_w():
-            tot=lenStat
-            y += 1 # draw on next line
-            new.x=0; new.y=y
-            statLines.append([new])
-            continue
-        statLines[-1].append(new)
-    
-    
-    # Print #
-    for line in statLines:
-        for stat in line:
-            if stat.y > h-1: continue
-            libtcod.console_set_default_foreground(con, stat.color)
-            libtcod.console_print(con, stat.x,stat.y, stat.text)
-    #
-    
-    return con
+    return strng
 #
 
 
@@ -433,7 +424,7 @@ def put_text_special_colors(con, txt, offset):
                 xx=-1
                 yy += 1
                 continue
-            col=string_colors._get(ch,None)
+            col=string_colors.get(ch,None)
             if col:
                 libtcod.console_set_char_foreground(
                     con, offset + xx, offset + yy, COL[col])

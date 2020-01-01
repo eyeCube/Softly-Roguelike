@@ -3457,7 +3457,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
         height=int(height),
         blood=int(mass*0.07),
         fat=fat, # total fat mass in the body (can be stored as a float, no problem)
-        hydration=int(HYDRATION_MULTIPLIER*mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
+        hydration=int(MULT_HYD*mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
         satiation=int(mass*50), # how many calories (not KiloCalories) you have available at maximum satiation w/o resorting to burning fat / muscle
         sleep=86400 # 24h * 60m * 60s
         )
@@ -3467,7 +3467,9 @@ def create_body_humanoid(mass=75, height=175, female=False):
     head.ears.auditorySystem.quality = BASE_HEARING
 
     # calculate the base mass stat
-    massleft = mass - body.bodyfat - body.hydration - body.blood
+    massleft = mass - body.bodyfat - body.blood - body.hydration//MULT_HYD
+    print("entities.py: Yo bro, mass = ", mass)
+    print("entities.py: Yo bro, massleft = ", massleft)
     
     return (body, massleft,)
 # end def

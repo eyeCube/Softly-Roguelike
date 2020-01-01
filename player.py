@@ -64,13 +64,15 @@ def commands_const(pc, pcAct):
 def commands_pages(pc, pcAct):
     for act,arg in pcAct:
         if act == "message history" :
-            rog.routine_print_msgHistory()  
+            rog.routine_print_msgHistory()
+            return
+        if act == "character page" :
+            rog.routine_print_charPage()
             return
         if act == "inventory" :
             print("INVENTORY ACCESS (TODO: FIX)")
 ##            action.inventory_pc(pc)
             return
-
 
 #
 #   commands
@@ -554,10 +556,15 @@ def chargen(sx, sy):
         body, newmass = rog.create_body_humanoid(
             mass=mass, height=height, female=(_genderName=="female") )
         
+        meters = cmp.Meters()
+        meters.temp = BODY_TEMP[BODYPLAN_HUMANOID]
+        
         #create pc object from the data given in chargen
         
         # create entity
         pc = world.create_entity(
+            body,meters,
+            cmp.Player(),
             cmp.Name(_name, title=_title),
             cmp.Draw('@', COL['white'], COL['deep']),
             cmp.Position(sx, sy),
@@ -591,7 +598,6 @@ def chargen(sx, sy):
             cmp.SenseSight(), cmp.SenseHearing(),
             cmp.Mutable(),
             cmp.Inventory(),
-            body,
         )
         
         
