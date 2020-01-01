@@ -893,22 +893,25 @@ class MetersProcessor(esper.Processor):
             pos = self.world.component_for_entity(ent, cmp.Position)
             ambient_temp = Fires.tempat(pos.x, pos.y)
             
-            #print(thing.name," is getting cooled down") #TESTING
+            # TODO: FIX THIS!!!!!!!
+            #print(thing.name," is exchanging heat with the environment...") #TESTING
             # cool down temperature meter if not currently burning
-            if (abs(meters.temp - ambient_temp) >= 1):
-                # TODO: take insulation into account for deltatemp
-                #   as well as the actual difference in temperature
-                deltatemp = rog.sign(ambient_temp - meters.temp)
-                meters.temp = meters.temp + deltatemp
-                ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
-                Fires.add_heat(pos.x, pos.y, ambientdelta)
-##                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
-                if (not rog.get_status(ent, cmp.StatusFire) and
-                    meters.temp >= FIRE_THRESHOLD):
-                    rog.set_status(ent, cmp.StatusFire)
-                elif (not rog.get_status(ent, cmp.StatusFrozen) and
-                    meters.temp <= FREEZE_THRESHOLD):
-                    rog.set_status(ent, cmp.StatusFrozen)
+##            if (abs(meters.temp - ambient_temp) >= 1):
+##                # TODO: take insulation into account for deltatemp
+##                #   as well as the actual difference in temperature
+##                deltatemp = rog.sign(ambient_temp - meters.temp)
+##                meters.temp = meters.temp + deltatemp
+##                ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
+##                Fires.add_heat(pos.x, pos.y, ambientdelta)
+####                print("adding heat {} to pos {} {} (mass {}) (heat={})".format(ambientdelta, pos.x, pos.y, rog.getms(ent,"mass"), Fires.tempat(pos.x,pos.y)))
+##                if (not rog.get_status(ent, cmp.StatusFire) and
+##                    meters.temp >= FIRE_THRESHOLD):
+##                    rog.set_status(ent, cmp.StatusFire)
+##                elif (not rog.get_status(ent, cmp.StatusFrozen) and
+##                    meters.temp <= FREEZE_THRESHOLD):
+##                    rog.set_status(ent, cmp.StatusFrozen)
+            #
+            
             # sickness meter
             if (meters.sick > 0):
                 meters.sick = max(0, meters.sick - BIO_METERLOSS)

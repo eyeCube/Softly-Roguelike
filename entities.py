@@ -3445,7 +3445,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
             bool female : is the creature female?
     '''
     mass = int(mass * MULT_MASS)
-    fat = mass*0.1 if female else mass*0.05
+    fat = mass*0.075 #mass*0.1 if female else mass*0.05
     body = cmp.Body(
         BODYPLAN_HUMANOID,
         cmp.BPC_Torso(),
@@ -3468,8 +3468,6 @@ def create_body_humanoid(mass=75, height=175, female=False):
 
     # calculate the base mass stat
     massleft = mass - body.bodyfat - body.blood - body.hydration//MULT_HYD
-    print("entities.py: Yo bro, mass = ", mass)
-    print("entities.py: Yo bro, massleft = ", massleft)
     
     return (body, massleft,)
 # end def

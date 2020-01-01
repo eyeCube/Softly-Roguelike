@@ -273,7 +273,8 @@ def render_charpage_string(w,h,pc,turn,level):
         fact=creature.faction,job=creature.job,
         temp=meters.temp,
         normalbodytemp=37, #TEMPORARY
-        kg=_get('mass'),bkg=_getb('mass'),cm=int(_getheight()),
+        kg=_get('mass')/MULT_MASS,bkg=_getb('mass')/MULT_MASS,
+        cm=int(_getheight()),
         hp=_get('hp'),hpmax=_get('hpmax'),sp=_get('mp'),spmax=_get('mpmax'),
         # attributes
         _str=_geta('str'),_agi=_geta('agi'),_dex=_geta('dex'),

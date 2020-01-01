@@ -1108,6 +1108,11 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         body=None
     if body:
         keys = body.parts.keys()
+
+        modded.mass += body.blood
+        modded.mass += body.hydration//MULT_HYD
+        modded.mass += body.bodyfat
+        
         if cmp.BPC_Torso in keys:
             entities._update_from_bpc_torso(
                 addMods,multMods,

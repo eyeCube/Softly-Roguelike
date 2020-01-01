@@ -296,8 +296,8 @@ ROTTEDNESS={
 
 
 # base stats for player
-BASE_RESFIRE    = 50
-BASE_RESCOLD    = 50
+BASE_RESFIRE    = 0
+BASE_RESCOLD    = 0
 BASE_RESBIO     = 100
 BASE_RESPHYS    = 20
 BASE_RESELEC    = 0
@@ -358,8 +358,8 @@ ATT_DEX_ATTACK          = 0.75
 ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
 
 # Endurance
-ATT_END_RESHEAT         = 5
-ATT_END_RESCOLD         = 5
+ATT_END_RESHEAT         = 3
+ATT_END_RESCOLD         = 3
 ATT_END_RESPHYS         = 1
 ATT_END_RESPAIN         = 2
 ATT_END_RESBIO          = 1

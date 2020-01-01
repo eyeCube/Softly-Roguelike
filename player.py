@@ -557,7 +557,7 @@ def chargen(sx, sy):
             mass=mass, height=height, female=(_genderName=="female") )
         
         meters = cmp.Meters()
-        meters.temp = BODY_TEMP[BODYPLAN_HUMANOID]
+        meters.temp = BODY_TEMP[BODYPLAN_HUMANOID][0]
         
         #create pc object from the data given in chargen
         
@@ -575,7 +575,7 @@ def chargen(sx, sy):
             cmp.Stats(
                 hp=BASE_HP, mp=BASE_MP,
                 mass=newmass, # base mass before weight of water and blood and fat is added
-                encmax=BASE_ENCMAX*MULT_MASS,
+                encmax=BASE_ENCMAX,
                 resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
                 resbio=BASE_RESBIO, reselec=BASE_RESELEC,
                 resphys=BASE_RESPHYS, reswet=BASE_RESWET,
