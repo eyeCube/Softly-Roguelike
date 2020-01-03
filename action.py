@@ -36,6 +36,43 @@ import maths
 dirStr=" <hjklyubn.>"
 
 
+def _get_eq_data(equipType):
+    if equipType == EQ_MAINHAND:
+        return (wield_main, "wield", "hand",)
+    elif equipType == EQ_OFFHAND:
+        return (wield_off, "wield", "hand",)
+    elif equipType == EQ_MAINARM:
+        return (wear_arm_main, "wear", "arm",)
+    elif equipType == EQ_OFFARM:
+        return (wear_arm_off, "wear", "arm",)
+    elif equipType == EQ_MAINFOOT:
+        return (wear_foot_main, "wear", "foot",)
+    elif equipType == EQ_OFFFOOT:
+        return (wear_foot_off, "wear", "foot",)
+    elif equipType == EQ_MAINLEG:
+        return (wear_leg_main, "wear", "leg",)
+    elif equipType == EQ_OFFLEG:
+        return (wear_leg_off, "wear", "leg",)
+    elif equipType == EQ_CORE:
+        return (wear_core, "wear", "core",)
+    elif equipType == EQ_FRONT:
+        return (wear_front, "wear", "front",)
+    elif equipType == EQ_BACK:
+        return (wear_back, "wear", "back",)
+    elif equipType == EQ_HIPS:
+        return (wear_hips, "wear", "hips",)
+    elif equipType == EQ_MAINHEAD:
+        return (wear_head, "wear", "head",)
+    elif equipType == EQ_MAINNECK:
+        return (wear_neck, "wear", "neck",)
+    elif equipType == EQ_MAINFACE:
+        return (wear_face, "wear", "face",)
+    elif equipType == EQ_MAINEYES:
+        return (wear_eyes, "wear", "eyes",)
+    elif equipType == EQ_MAINEARS:
+        return (wear_ears, "wear", "ears",)
+    
+
     # PC-specific actions first #
 
 # pickup
@@ -187,7 +224,7 @@ def open_pc(pc):
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed
-    if not rog.world().has_component(pc, cmp.StatusTired):
+    if rog.getms(pc,"mp") > 20:#not rog.world().has_component(pc, cmp.StatusTired):
         sprint(pc)
     else:
         rog.alert("You're too tired to sprint.")
@@ -203,16 +240,21 @@ def examine_self_pc(pc):
     ans=rog.menu(item=rog.menu("Examine what?".format(
         pcn.title,pcn.name), x,y, choices))
 
-def equip_pc(pc,item):
-    pass
-    #fornow, just wield it THIS SCRIPT NEEDS SERIOUS WORK*****>>>>...
-    '''
-    rog.drain(pc, 'nrg', NRG_RUMMAGE + NRG_WIELD)
-    if rog.has_equip(pc, item):
-        if rog.deequip(pc, item.equipType):
-            rog.msg("{t}{n} wields {i}.".format(t=pc.title,n=pc.name,i=item.name))
-        else: rog.alert("You are already wielding something in that hand.")
-    else: rog.wield(pc,item)'''
+def equip_pc(pc, item, equipType):
+    func, str1, str2 = _get_eq_data(equipType)
+    result = func(pc, item) # try to equip
+    
+    # messages / alerts
+    if result == 1:
+        pass
+    else:
+        if result == -100:
+            rog.alert("You can't {} that.".format(str1))
+        elif result == -101:
+            rog.alert("You can't {} that.".format(str1))
+        elif result == -102:
+            rog.alert("You are already {w}ing something in that {bp} slot.".format(w=str1, bp=str2))
+# end def
 
 def examine_pc(pc, item):
     rog.drain(pc, 'nrg', NRG_EXAMINE)
@@ -266,6 +308,44 @@ def rest_pc(pc):
                     # Non-PC-specific actions #
 #######################################################################
 
+
+# equip
+# try to put item in a specific slot; spend AP for success
+def _equip(ent, item, equipType):
+    result, compo = rog.equip(ent, item, equipType)
+    if result == 1: # successfully equipped
+        rog.spendAP(ent, compo.ap)
+
+        # TODO: message
+            # w and bp should be gotten from the type of equip function used, but how?
+        entname = rog.world().component_for_entity(ent, cmp.Name)
+        itemname = rog.world().component_for_entity(item, cmp.Name)
+        rog.msg("{t}{n} {w}s {i} in {prn} {bp}".format(
+            t=entname.title, n=entname.name, i=itemname.name, w="wield",
+            prn=gender.pronouns[0], bp="hand"))
+        
+    return result
+# end def
+
+# specific equip functions (wrappers)
+def wield_main(ent, item):      return _equip(ent, item, EQ_MAINHAND)
+def wield_off(ent, item):       return _equip(ent, item, EQ_OFFHAND)
+def wear_arm_main(ent, item):   return _equip(ent, item, EQ_MAINARM)
+def wear_arm_off(ent, item):    return _equip(ent, item, EQ_OFFARM)
+def wear_leg_main(ent, item):   return _equip(ent, item, EQ_MAINLEG)
+def wear_leg_off(ent, item):    return _equip(ent, item, EQ_OFFLEG)
+def wear_foot_main(ent, item):  return _equip(ent, item, EQ_MAINFOOT)
+def wear_foot_off(ent, item):   return _equip(ent, item, EQ_OFFFOOT)
+def wear_front(ent, item):      return _equip(ent, item, EQ_FRONT)
+def wear_back(ent, item):       return _equip(ent, item, EQ_BACK)
+def wear_hips(ent, item):       return _equip(ent, item, EQ_HIPS)
+def wear_core(ent, item):       return _equip(ent, item, EQ_CORE)
+def wear_head(ent, item):       return _equip(ent, item, EQ_MAINHEAD)
+def wear_face(ent, item):       return _equip(ent, item, EQ_MAINFACE)
+def wear_neck(ent, item):       return _equip(ent, item, EQ_MAINNECK)
+def wear_eyes(ent, item):       return _equip(ent, item, EQ_MAINEYES)
+def wear_ears(ent, item):       return _equip(ent, item, EQ_MAINEARS)
+#
 
 #wait
 #just stand still and do nothing

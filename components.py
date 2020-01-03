@@ -724,13 +724,18 @@ class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cl
         self.mods=mods
         self.fit=fit
 class EquipableInHeadSlot:
-    __slots__=['ap','mods','fit','coversFace','coversEyes']
-    def __init__(self, ap, mods, fit=0, coversFace=False, coversEyes=False): #{component : {var : modf,}}
+    __slots__=['ap','mods','fit',
+               'coversFace','coversEyes','coversEars','coversNeck']
+    def __init__(self, ap, mods, fit=0,
+                 coversFace=False, coversEyes=False,
+                 coversEars=False, coversNeck=False ): #{component : {var : modf,}}
         self.ap=ap
-        self.mods=mods        
+        self.mods=mods
         self.fit=fit
         self.coversFace=coversFace
         self.coversEyes=coversEyes
+        self.coversEars=coversEars
+        self.coversNeck=coversNeck
 class EquipableInFaceSlot:
     __slots__=['ap','mods','fit','coversEyes']
     def __init__(self, ap, mods, fit=0, coversEyes=False): #{component : {var : modf,}}
@@ -744,12 +749,41 @@ class EquipableInEyesSlot:
         self.ap=ap
         self.mods=mods
         self.fit=fit
-# weapon classes
-class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
+class EquipableInEarsSlot:
     __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+class EquipableInNeckSlot:
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
+    __slots__=['ap','mods','stamina','fit',]
     def __init__(self, ap, sta, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.stamina=sta # stamina cost of attacking with this weapon
+        self.mods=mods
+        self.fit=fit
+class EquipableInFootSlot: #shoe / boot
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+class EquipableInArmSlot:
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+class EquipableInLegSlot:
+    __slots__=['ap','mods','fit',]
+    def __init__(self, ap, mods, fit=0): #{var : modf,}
+        self.ap=ap
         self.mods=mods
         self.fit=fit
         
@@ -911,6 +945,10 @@ class Tool_Cut: # cutting pushes material aside, requires a sharp edge. Whittlin
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_Chop: # chopping is the quickest way to remove massive amount of material or break flexible things into many pieces.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Machete: # clearing shrubs, dense brush and jungle
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality

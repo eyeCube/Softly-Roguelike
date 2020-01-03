@@ -243,8 +243,8 @@ MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all 
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
-EXP_LEVEL           = 100   # experience needed to level up skills
-EXP_DIMINISH_RATE   = 2     # higher -> steeper experience curve 
+EXP_LEVEL           = 1000  # experience needed to level up skills
+EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
@@ -554,7 +554,10 @@ ENCUMBERANCE_MODIFIERS = {
 
 
 
-# body #
+
+    #-------------------#
+    #       body        #
+    #-------------------#
 
 # calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
 CALCOST_SLEEP           = 25        # metabolism while asleep
@@ -610,7 +613,13 @@ BODYPLAN_4LEGGED    : 10000,
 BODYPLAN_INSECTOID  : 50000,
     }
 
-# statuses of bodies / body parts
+
+    #---------------------------------#
+    # statuses of bodies / body parts #
+    #---------------------------------#
+
+# rule: the higher the value of the constant, the higher priority it has
+#   when deciding whether to overwrite a status with another
 
 i=0;
 BODYPOS_UPRIGHT     = i; i+=1;
@@ -618,6 +627,16 @@ BODYPOS_CROUCHED    = i; i+=1;
 BODYPOS_SEATED      = i; i+=1;
 BODYPOS_SUPINE      = i; i+=1;
 BODYPOS_PRONE       = i; i+=1;
+
+BODYPOSITIONS={
+BODYPOS_UPRIGHT     : "upright",
+BODYPOS_CROUCHED    : "crouched",
+BODYPOS_SEATED      : "seated",
+BODYPOS_SUPINE      : "supine",
+BODYPOS_PRONE       : "prone",
+    }
+
+# body part statuses
 
 i=0;
 BONESTATUS_NORMAL       = i; i+=1;
@@ -650,6 +669,7 @@ ARTERYSTATUS_MANGLED    = i; i+=1; # fully ruined
 i=0;
 SKINSTATUS_NORMAL       = i; i+=1;
 SKINSTATUS_RASH         = i; i+=1; # irritation / inflammation
+SKINSTATUS_BLISTER      = i; i+=1; # UNUSED, severe inflammation / sore or pus/fluid sac
 SKINSTATUS_SCRAPED      = i; i+=1; # very mild abrasion (a boo-boo)
 SKINSTATUS_MINORABRASION= i; i+=1; # mild abrasion
 SKINSTATUS_CUT          = i; i+=1; # cut open
@@ -677,7 +697,6 @@ HAIRSTATUS_SINGED       = i; i+=1; # minor burn
 HAIRSTATUS_BURNED       = i; i+=1; # badly burned
 HAIRSTATUS_DAMAGE       = i; i+=1; # minor damage to hair
 HAIRSTATUS_PERMDAMAGE   = i; i+=1; # permanent follicle damage
-HAIRSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent follicle damage
 HAIRSTATUS_MANGLED      = i; i+=1; # ruined
 # removed hair == no hair (status==NORMAL and length==0)
 
@@ -708,9 +727,90 @@ GUTSSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
 GUTSSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
 GUTSSTATUS_MANGLED      = i; i+=1; # ruined
 
-    #----------------------------#
+# string names for body part statuses
+
+BONESTATUSES={
+BONESTATUS_DAMAGED      : "minor damage",
+BONESTATUS_FRACTURED    : "fractured",
+BONESTATUS_CRACKED      : "cracked",
+BONESTATUS_BROKEN       : "broken",
+BONESTATUS_MULTIBREAKS  : "multiple breaks",
+BONESTATUS_SHATTERED    : "shattered",
+BONESTATUS_MANGLED      : "mutilated",
+    }
+MUSCLESTATUSES={
+MUSCLESTATUS_SORE       : "sore",
+MUSCLESTATUS_KNOTTED    : "knotted",
+MUSCLESTATUS_CONTUSION  : "contusion",
+MUSCLESTATUS_STRAINED   : "strained",
+MUSCLESTATUS_TORN       : "minor tear",
+MUSCLESTATUS_RIPPED     : "major tear",
+MUSCLESTATUS_RUPTURED   : "ruptured",
+MUSCLESTATUS_MANGLED    : "mutilated",
+}
+ARTERYSTATUSES={
+ARTERYSTATUS_CLOGGED    : "clogged",
+ARTERYSTATUS_OPEN       : "opened",
+ARTERYSTATUS_CUT        : "severed",
+ARTERYSTATUS_MANGLED    : "mutilated",
+    }
+SKINSTATUSES={
+SKINSTATUS_RASH         : "mild inflammation",
+SKINSTATUS_BLISTER      : "lesion or vesicle",
+SKINSTATUS_SCRAPED      : "open wound",
+SKINSTATUS_MINORABRASION: "minor abrasion",
+SKINSTATUS_CUT          : "minor laceration",
+SKINSTATUS_MAJORABRASION: "major abrasion",
+SKINSTATUS_BURNED       : "minor burn",
+SKINSTATUS_DEEPCUT      : "major laceration",
+SKINSTATUS_SKINNED      : "localized dermectomy",
+SKINSTATUS_DEEPBURNED   : "major burn",
+SKINSTATUS_FULLYSKINNED : "widespread dermectomy",
+SKINSTATUS_MANGLED      : "mutilated",
+    }
+BRAINSTATUSES={
+BRAINSTATUS_CONTUSION   : "contusion",
+BRAINSTATUS_CONCUSSION  : "concussion",
+BRAINSTATUS_DAMAGE      : "temporary brain damage",
+BRAINSTATUS_PERMDAMAGE  : "permanent brain damage",
+BRAINSTATUS_MAJORDAMAGE : "major permanent brain damage",
+BRAINSTATUS_DEAD        : "braindead",
+BRAINSTATUS_MANGLED     : "mutilated",
+    }
+HAIRSTATUSES={
+HAIRSTATUS_SINGED       : "singed or shaved",
+HAIRSTATUS_BURNED       : "burned",
+HAIRSTATUS_DAMAGE       : "temporary follicle damage",
+HAIRSTATUS_PERMDAMAGE   : "permanent follicle damage",
+HAIRSTATUS_MANGLED      : "mutilated",
+    }
+HEARTSTATUSES={
+HEARTSTATUS_SCARRED     : "scarred",
+HEARTSTATUS_DAMAGE      : "damaged",
+HEARTSTATUS_PERMDAMAGE  : "permanent damage",
+HEARTSTATUS_MAJORDAMAGE : "major permanent damage",
+HEARTSTATUS_MANGLED     : "mutilated",
+    }
+LUNGSTATUSES={
+LUNGSTATUS_IRRITATED    : "irritated",
+LUNGSTATUS_CLOGGED      : "major inflammation",
+LUNGSTATUS_DAMAGE       : "damaged",
+LUNGSTATUS_PERMDAMAGE   : "permanent damage",
+LUNGSTATUS_MAJORDAMAGE  : "major permanent damage",
+LUNGSTATUS_MANGLED      : "mutilated",
+    }
+GUTSSTATUSES={
+GUTSSTATUS_UPSET        : "slightly upset",
+GUTSSTATUS_SICK         : "sick",
+GUTSSTATUS_ILL          : "severely sick",
+GUTSSTATUS_DAMAGE       : "damaged",
+GUTSSTATUS_PERMDAMAGE   : "permanent damage",
+GUTSSTATUS_MAJORDAMAGE  : "major permanent damage",
+GUTSSTATUS_MANGLED      : "mutilated",
+    }
+
+
     # Penalties for BPP statuses #
-    #----------------------------#
 
 # skin
 ADDMODS_BPP_SKINSTATUS = { # stat : value
@@ -891,10 +991,7 @@ MUSCLESTATUS_RUPTURED   :{'bal':-4,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain
 MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16,'bal':-5,},
     }
 
-
-    #--------------------------#
     # BPP statuses alt effects #
-    #--------------------------#
     
 LUNGSTATUS_CAPACITY={
 LUNGSTATUS_NORMAL       : 1,

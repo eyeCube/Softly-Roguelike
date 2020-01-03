@@ -276,8 +276,8 @@ Reason: entity has no position component.'''.format(ent))
         if ent in grid:
             grid.remove(ent)
             return True
-        print('''Error: failed to remove entity {} from grid.
-Reason: entity not in grid.'''.format(ent))
+##        print('''Error: failed to remove entity {} from grid.
+##Reason: entity not in grid.'''.format(ent))
         return False #thing was not in the grid.
     
     def countNeighbors(self, x,y, char):

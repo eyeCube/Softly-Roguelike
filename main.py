@@ -71,8 +71,11 @@ def main():
     rog.map(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
     rog.map(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
     rog.map(rog.dlvl()).generate_dlvl(rog.dlvl())
+
     
     # init player
+
+    # TESTING THIS IS ALL TEMPORARY!!!
     # temporary: find a position to place the player
     xpos = 15
     ypos = 15
@@ -85,19 +88,28 @@ def main():
         if ypos >= ROOMH:
             print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
-    rog.Rogue.create_player(xpos, ypos)
+        
+    rog.Rogue.create_player(xpos, ypos) # create player
+    
     rog.make(rog.pc(), NVISION)
     rog.equip(
         rog.pc(),
         entities.create_weapon("metal sword", 0,0),
-        EQ_HAND
+        EQ_MAINHAND
         )
+    
+    # test body part statuses
+    import components as cmp
+    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
+    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
+    #
     
     # create light so player can see
     log=rog.create_rawmat("log", 18,18)
     rog.burn(log,500)
-
-    # DEBUG: why is everything still black around the player?
+    #
+    # /TESTING /TEMPORARY
+    #
 
     # TODO: heat dispersion with walls?? How to???
     #   no wind indoors where there are walls/roofs

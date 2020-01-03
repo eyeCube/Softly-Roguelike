@@ -93,6 +93,7 @@ def _getba(stat): # get base att
 def _getbs(stat): # get base stat
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_STATS
 
+# _get_equipment
 def __add_eq(equipment, name, slot):
     if slot:
         covers = ""
@@ -138,32 +139,23 @@ def _get_gauges(meters):
     lgauges=[]
     gauges=""
     if meters.rads > 0:
-        lgauges.append( (meters.rads, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('radiation'), a=meters.rads ),) )
+        lgauges.append( (meters.rads, "* {v:>32}: {a:<6}\n".format(v='radiation',a=meters.rads),) )
     if meters.sick > 0:
-        lgauges.append( (meters.sick, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('sickness'), a=meters.sick ),) )
+        lgauges.append( (meters.sick, "* {v:>32}: {a:<6}\n".format(v='sickness',a=meters.sick),) )
     if meters.expo > 0:
-        lgauges.append( (meters.expo, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('exposure'), a=meters.expo ),) )
+        lgauges.append( (meters.expo, "* {v:>32}: {a:<6}\n".format(v='exposure',a=meters.expo),) )
     if meters.pain > 0:
-        lgauges.append( (meters.pain, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('pain'), a=meters.pain ),) )
+        lgauges.append( (meters.pain, "* {v:>32}: {a:<6}\n".format(v='pain',a=meters.pain),) )
     if meters.fear > 0:
-        lgauges.append( (meters.fear, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('fear'), a=meters.fear ),) )
+        lgauges.append( (meters.fear, "* {v:>32}: {a:<6}\n".format(v='fear',a=meters.fear),) )
     if meters.bleed > 0:
-        lgauges.append( (meters.bleed, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('bleed'), a=meters.bleed ),) )
+        lgauges.append( (meters.bleed, "* {v:>32}: {a:<6}\n".format(v='bleed',a=meters.bleed),) )
     if meters.rust > 0:
-        lgauges.append( (meters.rust, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('rust'), a=meters.rust ),) )
+        lgauges.append( (meters.rust, "* {v:>32}: {a:<6}\n".format(v='rust',a=meters.rust),) )
     if meters.rot > 0:
-        lgauges.append( (meters.rot, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('rot'), a=meters.rot ),) )
+        lgauges.append( (meters.rot, "* {v:>32}: {a:<6}\n".format(v='rot',a=meters.rot),) )
     if meters.wet > 0:
-        lgauges.append( (meters.wet, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('wetness'), a=meters.wet ),) )
+        lgauges.append( (meters.wet, "* {v:>32}: {a:<6}\n".format(v='wetness',a=meters.wet),) )
     # sort
     lgauges.sort(key = lambda x: x[0], reverse=True)
     # get all in one string
@@ -177,15 +169,53 @@ def _get_effects(world, pc):
         clsname=type(k).__name__
         if world.has_component(pc, clsname):
             compo=world.component_for_entity(pc, clsname)
-            effects += "{v:>32} : {t:<6}\n".format(
-                v="* {}".format(v), t=compo.timer )
+            effects += "\t\t* {v:>32}: {t}\n".format(
+                v=v, t=compo.timer )
     if effects: effects=effects[:-1] # remove final '\n'
     return effects
+
+# _get_body_effects
+def __gdadd(_dict, status):
+    string=""
+    for k, v in _dict.items():
+        sign = "+" if v > 0 else ""
+        string += "{k}: {sign}{v}".format(k=k, v=v, sign=sign)
+    return string
+def __gdmul(_dict, status):
+    string=""
+    for k, v in _dict.items():
+        string += "{k}: *{v}".format(k=k, v=v)
+    return string
+def _get_body_effects(world, pc): # TODO: finish all of these for each body part, and each BPP for each body part
+    fxlist=[] # [ (priority, string,), ... ]
+    body = world.component_for_entity(pc, cmp.Body)
+    
+    # what body type are we?
+    # humanoid
+    if body.plan == BODYPLAN_HUMANOID:
+        
+        if body.core.core.muscle.status: # TODO: test this before duplicating
+            status = body.core.core.muscle.status
+            fxlist.append( (status,"\t\t* {bp:>32}: {eff} {am}\n".format(
+                bp="core muscle", eff=MUSCLESTATUSES[status],
+                am=__gdadd(ADDMODS_BPP_TORSO_MUSCLESTATUS,status)) ) )
+        
+    # end if
+    
+    # get the return string
+    effects = ""
+    fxlist.sort(key=lambda x: x[0], reverse=True) # sort by priority
+    for eff in fxlist:
+        priority, string = eff
+        effects += string
+    if effects: effects=effects[:-1] # remove final '\n'
+    return effects
+
 def _get_skills(compo):
     skills=""
     for const,lvl in compo.items():
         skillname=SKILLS[const]
-        skills += "\t*{n:>32}: {lv}\n".format(n=skillname, lv=lvl)
+        skills += "\t\t*{n:>32}: {lv}\n".format(n=skillname, lv=lvl)
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
 
@@ -199,6 +229,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     meters = world.component_for_entity(pc, cmp.Meters)
     creature = world.component_for_entity(pc, cmp.Creature)
     effects = _get_effects(world, pc)
+    bodystatus = _get_body_effects(world, pc)
     gauges = _get_gauges(world.component_for_entity(pc, cmp.Meters))
     equipment=_get_equipment(world.component_for_entity(pc, cmp.Body))
     skills = _get_skills(world.component_for_entity(pc, cmp.Skills))
@@ -223,6 +254,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%
     effects:
         {effects}
+    body status:
+        {bodystatus}
     gauge:
         * temperature: {temp} ({normalbodytemp})
         {gauges}
@@ -302,7 +335,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         immpain ="IMMUNE" if rog.on(pc, IMMUNEPAIN) else "",
         # component data
         effects=effects,gauges=gauges,augs=augs,
-        equipment=equipment,skills=skills,
+        equipment=equipment,skills=skills,bodystatus=bodystatus,
         name=name.name,
         species=SPECIES.get(creature.species, "unknown"),
         fact=FACTIONS.get(creature.faction, "unknown"),

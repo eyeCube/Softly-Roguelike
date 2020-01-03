@@ -506,7 +506,7 @@ def chargen(sx, sy):
         _skillNames=[]
         _skillIDs=[]
         skilldict={}
-        ptsRemaining=30
+        ptsRemaining=0#30
         cancel=False
         
         for k, sk in SKILLS.items():
@@ -642,6 +642,7 @@ wrap=False,con=rog.con_final(),disp='mono'
     
     # init
     rog.register_creature(pc)
+    rog.grid_insert(pc)
     init(pc)
     return pc
 #

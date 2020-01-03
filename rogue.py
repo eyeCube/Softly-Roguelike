@@ -45,9 +45,21 @@ import tilemap
 EQUIPABLE_CONSTS={
 EQ_MAINHAND : cmp.EquipableInHandSlot,
 EQ_OFFHAND  : cmp.EquipableInHandSlot,
-EQ_BODY     : cmp.EquipableInFrontSlot,
+EQ_MAINARM  : cmp.EquipableInArmSlot,
+EQ_OFFARM   : cmp.EquipableInArmSlot,
+EQ_MAINLEG  : cmp.EquipableInLegSlot,
+EQ_OFFLEG   : cmp.EquipableInLegSlot,
+EQ_MAINFOOT : cmp.EquipableInFootSlot,
+EQ_OFFFOOT  : cmp.EquipableInFootSlot,
+EQ_FRONT    : cmp.EquipableInFrontSlot,
 EQ_BACK     : cmp.EquipableInBackSlot,
-EQ_HEAD     : cmp.EquipableInHeadSlot,
+EQ_CORE     : cmp.EquipableInCoreSlot,
+EQ_HIPS     : cmp.EquipableInHipsSlot,
+EQ_MAINHEAD : cmp.EquipableInHeadSlot,
+EQ_MAINFACE : cmp.EquipableInFaceSlot,
+EQ_MAINNECK : cmp.EquipableInNeckSlot,
+EQ_MAINEYES : cmp.EquipableInEyesSlot,
+EQ_MAINEARS : cmp.EquipableInEarsSlot,
 EQ_AMMO     : cmp.EquipableInAmmoSlot,
     }
 
@@ -484,7 +496,8 @@ def spendAP(ent, amt):
 def getskill(ent, skill): # return skill level in a given skill
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-    return skills.skills.get(skill, 0) // EXP_LEVEL
+    return _getskill(skills.skills.get(skill, 0))
+def _getskill(lv): return lv // EXP_LEVEL
 def setskill(ent, skill, lvl): # set skill level
     assert(Rogue.world.has_component(ent, cmp.Skills))
     make(ent,DIRTY_STATS)
@@ -494,11 +507,14 @@ def train(ent, skill, pts): # train (improve) skill
     assert(Rogue.world.has_component(ent, cmp.Skills))
     # diminishing returns on skill gainz
     pts = pts - getskill(ent)*EXP_DIMINISH_RATE
-    while pts > 0:
+    if pts > 0:
         make(ent,DIRTY_STATS)
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-        skills.skills[skill] = skills.skills.get(skill, 0) + min(pts,EXP_LEVEL)
-        pts -= EXP_LEVEL
+        _train(skills, skill, pts)
+def _train(skills, skill, pts):
+    skills.skills[skill] = skills.skills.get(skill, 0) + min(pts,EXP_LEVEL)
+    pts = pts - EXP_LEVEL - EXP_DIMINISH_RATE
+    if pts > 0: _train(ent, skill, pts)
 def forget(ent, skill, pts): # lose skill experience
     assert(Rogue.world.has_component(ent, cmp.Skills))
     make(ent,DIRTY_STATS)
@@ -852,12 +868,11 @@ def path_step(path):
     #     Things     #
     #----------------#
 
-def register_entity(ent):
-    grid_insert(ent)
+def register_entity(ent): # NOTE!! this no longer adds to grid.
     create_moddedStats(ent) # is there a place this would belong better?
     make(ent,DIRTY_STATS)
 def release_entity(ent):
-    grid_remove(ent)
+    grid_remove(ent) # precautionary ... this may be a bad place to have this
     delete_entity(ent)
 def delete_entity(ent):
     Rogue.world.delete_entity(ent)
@@ -1029,8 +1044,9 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
 def equip(ent,item,equipType): # equip an item in 'equipType' slot
     '''
         equip ent with item in the slot designated by equipType const
-        return the effect ID for the stat modifier if successful
-        return a negative error value otherwise
+        return tuple: (result, compo,)
+            where result is a negative value for failure, or 1 for success
+            and compo is None or the item's equipable component if success
         
 ##                #TODO: add special effects; light, etc. How to??
     '''
@@ -1056,13 +1072,13 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
                     
                 compo.slot.item = item
                 
-                return 1 # yey
+                return (1,compo,) # yey success
             else:
-                return -102 # already have something equipped there
+                return (-102,None,) # already have something equipped there
         else:
-            return -101 # something weird happened
+            return (-101,None,) # something weird happened
     else:
-        return -100 # item can't be equipped in this slot
+        return (-100,None,) # item can't be equipped in this slot
 # end def
 
 def deequip(ent,equipType): # remove equipment from slot 'equipType'
@@ -1090,10 +1106,10 @@ def deequip(ent,equipType): # remove equipment from slot 'equipType'
 
 # build equipment and place in the world
 def create_weapon(name,x,y):
-    weap=entities.create_weapon(name,x,y)
-    givehp(weap) #give random quality based on dlvl?
-    register_entity(weap)
-    return weap
+    ent=entities.create_weapon(name,x,y)
+    givehp(ent) #give random quality based on dlvl?
+    register_entity(ent)
+    return ent
 def create_gear(name,x,y):
     ent=entities.create_gear(name,x,y)
     givehp(ent) #give random quality based on dlvl?
@@ -1103,18 +1119,18 @@ def create_gear(name,x,y):
 def create_body_humanoid(mass=70, height=175, female=False):
     return entities.create_body_humanoid(mass=mass, height=height, female=female)
 
-def dominant_arm(ent): # get a BPM object
-    assert(Rogue.world.has_component(ent, cmp.BPC_Arms))
-    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Arms)
-    return bpc.arms[0] # dominant is always in slot 0
+def dominant_arm(ent): # get a BPM object (assumes you have the necessary components / parts)
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    bpc = body.parts[cmp.BPC_Arms]
+    return bpc.arms[0] # dominant is always in slot 0 as a rule
 def dominant_leg(ent): # get a BPM object
-    assert(Rogue.world.has_component(ent, cmp.BPC_Legs))
-    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Legs)
-    return bpc.legs[0] # dominant is always in slot 0
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    bpc = body.parts[cmp.BPC_Legs]
+    return bpc.legs[0] # dominant is always in slot 0 as a rule
 def dominant_head(ent): # get a BPM object
-    assert(Rogue.world.has_component(ent, cmp.BPC_Heads))
-    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Heads)
-    return bpc.heads[0] # dominant is always in slot 0
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    bpc = body.parts[cmp.BPC_Heads]
+    return bpc.heads[0] # dominant is always in slot 0 as a rule
 
 def homeostasis(ent): entities.homeostasis(ent)
 def metabolism(ent, hunger, thirst=0): entities.metabolism(ent, hunger, thirst)

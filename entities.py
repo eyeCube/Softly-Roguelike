@@ -130,6 +130,7 @@ def get_gear_mat(gData):            return gData[4]
 def get_gear_dv(gData):             return gData[5][0]
 def get_gear_av(gData):             return gData[5][1]
 def get_gear_pro(gData):            return gData[5][2]
+##def get_gear_bal(gData):            return gData[5][3] # TODO: make balance a relevant stat, add it to all gear
 def get_gear_enc(gData):            return gData[5][3]
 def get_gear_resfire(gData):        return gData[5][4]
 def get_gear_rescold(gData):        return gData[5][5]
@@ -150,7 +151,9 @@ def get_facewear_script(gData):     return gData[7]
     # headwear
 def get_headwear_face(gData):       return gData[6] # covers face?
 def get_headwear_eyes(gData):       return gData[7] # covers eyes?
-def get_headwear_script(gData):     return gData[8]
+def get_headwear_ears(gData):       return gData[8] # covers ears?
+def get_headwear_neck(gData):       return gData[9] # covers neck?
+def get_headwear_script(gData):     return gData[10]
     #weapons
 #    $$$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV, AV, Pro,Asp,Enc),script
 def get_weapon_value(gData):        return gData[0]
@@ -158,20 +161,23 @@ def get_weapon_mass(gData):         return gData[1]
 def get_weapon_hpmax(gData):        return gData[2]
 def get_weapon_mat(gData):          return gData[3]
 def get_weapon_strReq(gData):       return gData[4]
-def get_weapon_atk(gData):          return gData[5][0]
-def get_weapon_dmg(gData):          return round(MULT_DMG_AV_HP*gData[5][1])
-def get_weapon_pen(gData):          return round(MULT_PEN_PRO*gData[5][2])
-def get_weapon_dv(gData):           return gData[5][3]
-def get_weapon_av(gData):           return round(MULT_DMG_AV_HP*gData[5][4])
-def get_weapon_pro(gData):          return round(MULT_PEN_PRO*gData[5][5])
-def get_weapon_asp(gData):          return gData[5][6]
-def get_weapon_enc(gData):          return gData[5][7]
-def get_weapon_gra(gData):          return gData[5][8]
-def get_weapon_ctr(gData):          return gData[5][9]
-def get_weapon_staminacost(gData):  return gData[5][10]
-def get_weapon_grip(gData):         return gData[5][11]
-def get_weapon_skill(gData):        return gData[6]
-def get_weapon_script(gData):       return gData[7]
+def get_weapon_dexReq(gData):       return gData[5]
+def get_weapon_atk(gData):          return gData[6][0]
+def get_weapon_dmg(gData):          return gData[6][1]
+def get_weapon_pen(gData):          return gData[6][2]
+def get_weapon_dv(gData):           return gData[6][3]
+def get_weapon_av(gData):           return gData[6][4]
+def get_weapon_pro(gData):          return gData[6][5]
+def get_weapon_asp(gData):          return gData[6][6]
+def get_weapon_enc(gData):          return gData[6][7]
+def get_weapon_gra(gData):          return gData[6][8]
+def get_weapon_ctr(gData):          return gData[6][9]
+def get_weapon_staminacost(gData):  return gData[6][10]
+def get_weapon_force(gData):        return gData[6][11] # knockback / knockdown / off-balance / stagger
+def get_weapon_bal(gData):          return gData[6][12] # how much balance the weapon gives you
+def get_weapon_grip(gData):         return gData[6][13]
+def get_weapon_skill(gData):        return gData[7]
+def get_weapon_script(gData):       return gData[8]
 
 # JOBS #
 def getJobs():
@@ -257,7 +263,7 @@ def _canThrow(item, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None,elem=None,elemDmg=
     if rng <= 0: return
     if skill is None: skill=SKL_THROWING
     world.add_component(item, cmp.Throwable(
-        rng=rng,atk=acc,dmg=dmg,pen=pen,asp=asp,skill=skill
+        rng=rng,atk=acc,dmg=dmg,pen=pen,asp=asp #,skill=skill
         ))
     if elem: # thrown elemental damage
         # for now, just overwrite existing elemental damage if applicable
@@ -2540,8 +2546,10 @@ def _update_from_bpc_legs(addMods, multMods, ent, bpc, armorSkill, unarmored):
 # end def
 
 def _update_from_bpc_arms(addMods, multMods, ent, bpc, armorSkill, unarmored):
+    i = 0
     for bpm in bpc.arms: # for each arm you possess,
-        isOffhand = (not bpm.dominant)
+        isOffhand = (i>0)
+        i += 1
         # hand
         dadd,dmul=_update_from_bp_hand(ent, bpm.hand, isOffhand)
         append_mods(addMods, multMods, dadd, dmul)
@@ -2571,6 +2579,7 @@ def _update_from_bpc_torso(addMods, multMods, ent, bpc, armorSkill, unarmored):
 
 # arm
 def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2607,7 +2616,8 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
 # end def
 
 # hand
-def _update_from_bp_hand(ent, hand, isOffhand=False):
+def _update_from_bp_hand(ent, hand, isOffhand=True):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2622,11 +2632,11 @@ def _update_from_bp_hand(ent, hand, isOffhand=False):
         _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # weapon skill bonus
-        if rog.world().has_component(item, cmp.WeaponSkill):
-            weapClass = rog.world().component_for_entity(item, cmp.WeaponSkill).skill
+        if world.has_component(item, cmp.WeaponSkill):
+            weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
         else:
             weapClass = -1
-        weaponSkill = rog.world().component_for_entity(ent, cmp.Skills).skills.get(weapClass, 0)
+        weaponSkill = world.component_for_entity(ent, cmp.Skills).skills.get(weapClass, 0)
         _apply_skill_bonus_weapon(dadd, weaponSkill)
         
         # durability penalty multiplier for the stats
@@ -2645,6 +2655,7 @@ def _update_from_bp_hand(ent, hand, isOffhand=False):
 
 # leg
 def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2682,6 +2693,7 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
 
 # foot
 def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2715,6 +2727,7 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
 
 # head  
 def _update_from_bp_head(ent, head, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2753,6 +2766,7 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
 
 # face
 def _update_from_bp_face(ent, face, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2783,6 +2797,7 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
 
 # neck
 def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2816,6 +2831,7 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
 
 # eyes
 def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2840,6 +2856,7 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
 
 # ears
 def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
     # equipment (earplugs, earbuds, etc.)
@@ -2885,6 +2902,7 @@ def _update_from_bp_mouth(ent, mouth, armorSkill, unarmored):
 
 # torso core
 def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2921,6 +2939,7 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
 
 # torso front
 def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2958,6 +2977,7 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
 
 # torso back
 def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -2995,6 +3015,7 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
 
 # hips
 def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
+    world = rog.world()
     dadd={}
     dmul={}
 
@@ -3253,6 +3274,7 @@ def create_weapon(name, x,y, quality=0):
     ent = world.create_entity()
     # get weapon data from table
     data = WEAPONS[name]
+    print("weapon data is ", data)
     _type       = T_MELEEWEAPON
     value       = int(get_weapon_value(data)*MULT_VALUE)
     mass        = int(get_weapon_mass(data)*MULT_MASS)
@@ -3260,14 +3282,14 @@ def create_weapon(name, x,y, quality=0):
     material    = get_weapon_mat(data)
     atk         = rog.around(get_weapon_atk(data)*MULT_STATS)
     dmg         = rog.around(get_weapon_dmg(data)*MULT_STATS)
-    pen         = rog.around(get_weapon_pen(data))
-    dfn         = rog.around(get_weapon_dfn(data))
-    arm         = rog.around(get_weapon_arm(data))
-    pro         = rog.around(get_weapon_pro(data))
+    pen         = rog.around(get_weapon_pen(data)*MULT_STATS)
+    dfn         = rog.around(get_weapon_dv(data)*MULT_STATS)
+    arm         = rog.around(get_weapon_av(data)*MULT_STATS)
+    pro         = rog.around(get_weapon_pro(data)*MULT_STATS)
     asp         = get_weapon_asp(data)
     enc         = get_weapon_enc(data)
-    ctr         = rog.around(get_weapon_ctr(data))
-    gra         = rog.around(get_weapon_gra(data))
+    ctr         = rog.around(get_weapon_ctr(data)*MULT_STATS)
+    gra         = rog.around(get_weapon_gra(data)*MULT_STATS)
     stamina_cost= get_weapon_staminacost(data)
 ##    grp         = get_weapon_grip(data)
     skill       = get_weapon_skill(data)
@@ -3277,18 +3299,12 @@ def create_weapon(name, x,y, quality=0):
     fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
     bgcol = COL['deep']
     # build entity
-    resfire=0
-    resbio=0
-    reseles=0
-    resphys=0
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
-    world.add_component(ent, cmp.Draw( char=_type, fgcol=fgcol, bgcol=bgcol ))
-    world.add_component(ent, cmp.Form(
-        mass=mass, material=material, value=value ))
+    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
+    world.add_component(ent, cmp.Form(mat=material,val=value))
     world.add_component(ent, cmp.Stats(
-        hp=hpmax,mp=hpmax,
-        resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
+        hp=hpmax,mp=hpmax, mass=mass
         ))
     world.add_component(ent, cmp.Flags())
     world.add_component(ent, cmp.Meters())
@@ -3314,8 +3330,8 @@ def create_weapon(name, x,y, quality=0):
     maxGrind=MAXGRIND_FROM_MATERIAL[material]
     world.add_component(ent,cmp.Quality(quality, minGrind, maxGrind))
     # script
-    if script: script(weap)
-    return weap
+    if script: script(ent)
+    return ent
 #
 
 def create_monster(_type, x, y, col=None, mutate=0):
@@ -3405,6 +3421,7 @@ def create_monster(_type, x, y, col=None, mutate=0):
         rog.make(ent, flag)
     if script: script(ent)
     rog.fov_init(ent) # TODO: update fov code... is this the right place to put this???
+    rog.grid_insert(ent) # TODO: test this
     return ent
 
 def convertTo_corpse(ent):
@@ -4395,32 +4412,34 @@ HEADWEAR={
 # Per : perception (vision AND hearing) (multiplier modifier)
 # F: covers face? bool (0 or 1)
 # E: covers eyes? bool (0 or 1)
-#--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV,  Pro, Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,)F,E,script
-"flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5, 0.9, 2,  -6, 5,  0,  0,  0,  3,  0,  0,  1,),0,0,_fCap,),
-"padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1, 1.9, 1,  -3, 3,  3,  0,  0,  3,  0,  0,  1,),0,0,_cCoif,),
-"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2, 2.2, 1,  -6, 6,  6,  3,  3,  3,  0,  0,  1,),0,0,_cCoif,),
-"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9, 1.1, 2,  -9, 0,  0,  6,  0,  0,  0,  0,  1,),0,0,_pCap,),
-"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0, 2.0, 3,  -12,2,  6,  9,  0,  0,  20, 0,  0.9,),0,0,_pHelm,),
-"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2, 3.0, 6,  -18,3,  12, 12, 0,  0,  50, 0,  0.5,),1,1,_pHelm,),
-"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6, 2.5, 12, -24,5,  39, 18, 0,  0,  10, 0,  0.8,),1,1,_pHelm,),
-"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5, 2.5, 9,  -12,6,  78, 18, 0,  0,  10, 0,  0.8,),1,1,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
-"kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0, 2.2, 1,  3,  0,  0,  3,  5,  1,  0,  0,  1,),0,0,_kCap,),
-"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6, 1.0, 2,  -6, 2,  0,  6,  0,  1,  0,  0,  1,),0,0,_lCap,),
-"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8, 1.2, 2,  -3, 2,  0,  9,  0,  1,  0,  0,  1,),0,0,_lCap,),
-"skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2, 1.2, 2,  0,  1,  0,  6,  0,  0,  0,  0,  1,),0,0,_bCap,),
-"bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2, 2.0, 6,  3,  2,  3,  9,  0,  0,  10, 0,  0.9,),0,0,_bHelm,),
-"pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5, 2.2, 2,  -3, 0,  3,  -6, 1,  3,  0,  0,  1,),0,0,_mCoif,),
-"metal mail coif"       :(220,  2.9, 245, 200, METL,(1,  4.1, 2.4, 2,  -3, 0,  3,  -6, 1,  3,  0,  0,  1,),0,0,_mCoif,),
-"metal cap"             :(145,  2.4, 750, 100, METL,(0,  5.0, 1.4, 2,  -6, -2, 0,  -6, 0,  1,  0,  0,  1,),0,0,_mCap,),
-"metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10,  2.0, 12, -9, -15,0,  -9, 0,  1,  0,  0,  0.9,),0,0,_mCap,),
-"metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2, 3.2, 3,  -18,-3, 3,  -12,0,  2,  20, 0,  0.9,),0,0,_mHelm,),
-"metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5, 4.0, 6,  -24,-6, 6,  -15,3,  2,  50, 0,  0.5,),1,1,_mHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; 
-"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5, 2.8, 12, -36,0,  45, -9, 0,  2,  10, 0,  0.8,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
-"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3, 2.6, 9,  -24,2,  90, -6, 0,  2,  10, 0,  0.8,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
-"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8, 5.2, 9,  -24,-9, 18, -18,3,  3,  100,0,  0.2,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
-"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0, 1.0, 15, -6, -6, 30, -12,0,  2,  400,0,  0.1,),1,1,_mHelm,),
-"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(1,  2.4, 3.5, 3,  -3, 3,  24, 9,  3,  1,  50, 30, 0.8,),0,1,_motorcycleHelm,),
-"graphene helm"         :(18000,1.3, 560, 500, CARB,(2.5,8.0, 6.0, 1,  18, 12, 36, 15, 3,  6,  50, 60, 0.8,),1,1,_grHelm,),
+# R: covers ears? bool (0 or 1)
+# N: covers neck? bool (0 or 1)
+#--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV,  Pro, Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,),F,E,R,N,script
+"flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5, 0.9, 2,  -6, 5,  0,  0,  0,  3,  0,  0,  1,  ),0,0,0,0,_fCap,),
+"padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1, 1.9, 1,  -3, 3,  3,  0,  0,  3,  0,  20, 1,  ),0,0,1,0,_cCoif,),
+"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2, 2.2, 1,  -6, 6,  6,  3,  3,  3,  0,  40, 1,  ),0,0,1,0,_cCoif,),
+"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9, 1.1, 2,  -9, 0,  0,  6,  0,  0,  0,  0,  1,  ),0,0,0,0,_pCap,),
+"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0, 2.0, 3,  -12,2,  6,  9,  0,  0,  20, 10, 0.9,),0,0,1,0,_pHelm,),
+"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2, 3.0, 6,  -18,3,  12, 12, 0,  0,  50, 10, 0.5,),1,1,1,0,_pHelm,),
+"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6, 2.5, 12, -24,5,  39, 18, 0,  0,  10, 10, 0.8,),1,1,1,0,_pHelm,),
+"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5, 2.5, 9,  -12,6,  78, 18, 0,  0,  10, 10, 0.8,),1,1,1,0,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
+"kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0, 2.2, 1,  3,  0,  0,  3,  5,  1,  0,  0,  1,  ),0,0,0,0,_kCap,),
+"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6, 1.0, 2,  -6, 2,  0,  6,  0,  1,  0,  0,  1,  ),0,0,0,0,_lCap,),
+"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8, 1.2, 2,  -3, 2,  0,  9,  0,  1,  0,  0,  1,  ),0,0,0,0,_lCap,),
+"skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2, 1.2, 2,  0,  1,  0,  6,  0,  0,  0,  0,  1,  ),0,0,0,0,_bCap,),
+"bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2, 2.0, 6,  3,  2,  3,  9,  0,  0,  10, 10, 0.9,),0,0,1,0,_bHelm,),
+"pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5, 2.2, 2,  -3, 0,  3,  -6, 1,  3,  0,  20, 1,  ),0,0,1,0,_mCoif,),
+"metal mail coif"       :(220,  2.9, 245, 200, METL,(1,  4.1, 2.4, 2,  -3, 0,  3,  -6, 1,  3,  0,  20, 1,  ),0,0,1,0,_mCoif,),
+"metal cap"             :(145,  2.4, 750, 100, METL,(0,  5.0, 1.4, 2,  -6, -2, 0,  -6, 0,  1,  0,  0,  1,  ),0,0,0,0,_mCap,),
+"metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10,  2.0, 12, -9, -15,0,  -9, 0,  1,  0,  100,0.9,),0,0,1,0,_mCap,),
+"metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2, 3.2, 3,  -18,-3, 3,  -12,0,  2,  20, 0,  0.9,),0,0,1,0,_mHelm,),
+"metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5, 4.0, 6,  -24,-6, 6,  -15,3,  2,  50, 0,  0.5,),1,1,1,0,_mHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; 
+"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5, 2.8, 12, -36,0,  45, -9, 0,  2,  10, 0,  0.8,),1,1,1,0,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
+"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3, 2.6, 9,  -24,2,  90, -6, 0,  2,  10, 0,  0.8,),1,1,1,0,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
+"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8, 5.2, 9,  -24,-9, 18, -18,3,  3,  100,0,  0.2,),1,1,1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
+"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0, 1.0, 15, -6, -6, 30, -12,0,  2,  400,0,  0.1,),1,1,0,0,_mHelm,),
+"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(1,  2.4, 3.5, 3,  -3, 3,  24, 9,  3,  1,  50, 30, 0.8,),1,1,1,0,_motorcycleHelm,),
+"graphene helm"         :(18000,1.3, 560, 500, CARB,(2.5,8.0, 6.0, 1,  18, 12, 36, 15, 3,  6,  50, 60, 0.8,),1,1,1,0,_grHelm,),
 }
      
 '''
