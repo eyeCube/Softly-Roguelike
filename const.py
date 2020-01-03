@@ -296,85 +296,104 @@ ROTTEDNESS={
 
 
 # base stats for player
+BASE_HP         = 0
+BASE_MP         = 0
+BASE_MPREGEN    = 10
+BASE_ENCMAX     = 10
+BASE_FORCE      = 10
+BASE_VIT        = 12 # vitality
+BASE_STR        = 12 # strength
+BASE_CON        = 12 # constitution
+BASE_INT        = 12 # intelligence
+BASE_DEX        = 12 # dexterity
+BASE_AGI        = 12 # agility
+BASE_END        = 12 # endurance
+BASE_LUCK       = 0
+BASE_ATK        = 0
+BASE_DMG        = 0
+BASE_PEN        = 0
+BASE_DFN        = 10
+BASE_ARM        = 0
+BASE_PRO        = 6
+BASE_SPD        = 100
+BASE_MSP        = 40
+BASE_ASP        = 0
+BASE_BAL        = 0
+BASE_GRA        = 0
+BASE_CTR        = 0
+BASE_SIGHT      = 20
+BASE_HEARING    = 40
+BASE_COURAGE    = 32
+BASE_SCARY      = 32
+BASE_BEAUTY     = 32
 BASE_RESFIRE    = 0
 BASE_RESCOLD    = 0
-BASE_RESBIO     = 100
+BASE_RESBIO     = 50
 BASE_RESPHYS    = 20
 BASE_RESELEC    = 0
-BASE_RESPAIN    = 100
-BASE_RESBLEED   = 100
+BASE_RESPAIN    = 0
+BASE_RESBLEED   = 0
 BASE_RESRUST    = 0
 BASE_RESROT     = 0
 BASE_RESWET     = 0
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
-BASE_COURAGE    = 32
-BASE_SCARY      = 32
-BASE_BAL        = 12
-BASE_GRA        = 6
-BASE_CTR        = 0
-BASE_ATK        = 4
-BASE_DMG        = 0
-BASE_PEN        = 2
-BASE_DFN        = 10
-BASE_ARM        = 2
-BASE_PRO        = 6
-BASE_SPD        = 100
-BASE_MSP        = 40
-BASE_ASP        = 40
-BASE_HP         = 20
-BASE_MP         = 200
-BASE_ENCMAX     = 10
-BASE_FORCE      = 10
-BASE_STR        = 12
-BASE_CON        = 12
-BASE_INT        = 12
-BASE_DEX        = 12
-BASE_AGI        = 12
-BASE_END        = 12
-BASE_LUCK       = 0
-BASE_SIGHT      = 40
-BASE_HEARING    = 80
 
 
 
 # attributes
 
 # Strength
-ATT_STR_THROW_RNG       = 1
-ATT_STR_MELEE_DMG       = 0.5
-ATT_STR_MELEE_ATK       = 0.4
-ATT_STR_MELEE_PEN       = 0.2
-ATT_STR_ENCUMBERANCE    = 5 # * MASS_MULT
+ATT_STR_THROW_RNG       = 1 # throwing range bonus
+ATT_STR_DMG             = 0.33334 # melee damage bonus
+ATT_STR_ATK             = 0.15 # melee attack bonus (how to apply only to melee? Should we bother?)
+ATT_STR_PEN             = 0.2 # melee penetration bonus
+ATT_STR_ENCMAX          = 5
 ATT_STR_FORCE           = 1
-ATT_STR_GRAPPLING       = 1
+ATT_STR_GRA             = 1
 
 # Agility
-ATT_AGI_MOVESPEED       = 5
-ATT_AGI_ATTACKSPEED     = 5 # melee attack speed
+ATT_AGI_DV              = 0.5
+ATT_AGI_PRO             = 0.25
+ATT_AGI_BAL             = 1
+ATT_AGI_MSP             = 5
+ATT_AGI_ASP             = 3 #should it be melee only?
 
 # Dexterity
-ATT_DEX_ATTACK          = 0.75
+ATT_DEX_PEN             = 0.33334
+ATT_DEX_ATK             = 0.5
+ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
 
 # Endurance
+ATT_END_HP              = 2
+ATT_END_SP              = 15
+ATT_END_SPREGEN         = 0.25
 ATT_END_RESHEAT         = 3
 ATT_END_RESCOLD         = 3
 ATT_END_RESPHYS         = 1
-ATT_END_RESPAIN         = 2
-ATT_END_RESBIO          = 1
-ATT_END_RESBLEED        = 2
+ATT_END_RESPAIN         = 4
+ATT_END_RESBIO          = 2
+ATT_END_RESBLEED        = 3
 
 # Intelligence
-ATT_INT_AUGMENTATIONS   = 0.25
-ATT_INT_PERSUASION      = 1
+ATT_INT_AUGS            = 0.33334
+ATT_INT_PERSUASION      = 0.5
 ATT_INT_IDENTIFY        = 1
 
 # Constitution
-ATT_CON_AUGMENTATIONS   = 0.25
-ATT_CON_HP              = 2
-ATT_CON_STAMINA         = 10
-ATT_CON_ENCUMBERANCE    = 5 # * MASS_MULT
+ATT_CON_AUGS            = 0.33334
+ATT_CON_AV              = 0.2
+ATT_CON_HP              = 1
+ATT_CON_ENCMAX          = 5 # * MASS_MULT
+ATT_CON_RESELEC         = 2
+
+### Vitality
+##ATT_VIT_HP              = 2
+##ATT_VIT_SPREGEN         = 0.1
+##ATT_VIT_RESBIO          = 1
+##ATT_END_RESBLEED        = 1
+##ATT_END_RESPAIN         = 1
 
 
 
@@ -440,7 +459,7 @@ CMB_ROLL_ATK        = 20    # dice roll for to-hit bonus (Attack)
 CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 STRIKE_AIR_IMBALANCE_AMOUNT = 8 # balance penalty for attacking nothing
-
+BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
 
 #sounds
 VOLUME_DEAFEN       = 500
@@ -1110,10 +1129,22 @@ CH_TRC      = [191, 184, 187] # top-right corner
 #
 i=1;
 EQ_MAINHAND =i; i+=1;
+EQ_MAINARM  =i; i+=1;
 EQ_OFFHAND  =i; i+=1;
-EQ_BODY     =i; i+=1;
+EQ_OFFARM   =i; i+=1;
+EQ_MAINFOOT =i; i+=1;
+EQ_MAINLEG  =i; i+=1;
+EQ_OFFFOOT  =i; i+=1;
+EQ_OFFLEG   =i; i+=1;
+EQ_FRONT    =i; i+=1;
 EQ_BACK     =i; i+=1;
-EQ_HEAD     =i; i+=1;
+EQ_HIPS     =i; i+=1;
+EQ_CORE     =i; i+=1;
+EQ_MAINHEAD =i; i+=1;
+EQ_MAINFACE =i; i+=1;
+EQ_MAINNECK =i; i+=1;
+EQ_MAINEYES =i; i+=1;
+EQ_MAINEARS =i; i+=1;
 EQ_AMMO     =i; i+=1;
 
 
@@ -1538,81 +1569,70 @@ SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 # Skills data skill data
 #
 
-SKILLS_COMBAT={ # ID : (SP,name,)
+SKILLS={ # ID : (SP,name,)
     # SP = skill points required to learn (in chargen)
-SKL_ARMOR       :(2,'armored combat',),
-SKL_UNARMORED   :(2,'unarmored combat',),
+SKL_ARMOR       :(3,'armored combat',),
+SKL_UNARMORED   :(3,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
 SKL_BOXING      :(3,'boxing',),
 SKL_WRESTLING   :(3,'wrestling',),
-SKL_AXES        :(2,'1-handed axes',),
-SKL_GREATAXES   :(2,'2-handed axes',),
-SKL_HAMMERS     :(2,'1-handed hammers',),
-SKL_MALLETS     :(2,'2-handed hammers',),
+SKL_AXES        :(1,'1-handed axes',),
+SKL_GREATAXES   :(1,'2-handed axes',),
+SKL_HAMMERS     :(1,'1-handed hammers',),
+SKL_MALLETS     :(1,'2-handed hammers',),
 SKL_JAVELINS    :(1,'1-handed spears',),
 SKL_SPEARS      :(1,'2-handed spears',),
 SKL_SWORDS      :(2,'1-handed swords',),
 SKL_LONGSWORDS  :(2,'2-handed swords',),
 SKL_POLEARMS    :(2,'polearms',),
 SKL_GREATSWORDS :(3,'greatswords',),
-SKL_KNIVES      :(3,'knives',),
+SKL_KNIVES      :(2,'knives',),
 SKL_BLUDGEONS   :(1,'bludgeons',),
 SKL_STAVES      :(1,'staves',),
 SKL_BULLWHIPS   :(3,'bullwhips',),
-SKL_THROWING    :(1,'throwing',),
+SKL_THROWING    :(2,'throwing',),
 SKL_IEDS        :(3,'IEDs',),
 SKL_EMPS        :(3,'EMPs',),
 SKL_MINES       :(3,'mines',),
-SKL_SLINGS      :(3,'slings',),
+SKL_SLINGS      :(2,'slings',),
 SKL_BOWS        :(3,'bows',),
 SKL_CROSSBOWS   :(1,'crossbows',),
-SKL_CANNONS     :(1,'cannons',),
-SKL_PISTOLS     :(1,'pistols',),
-SKL_RIFLES      :(1,'rifles',),
-SKL_SHOTGUNS    :(1,'shotguns',),
-SKL_SMGS        :(1,'SMGs',),
-SKL_MACHINEGUNS :(1,'machine guns',),
-SKL_HEAVY       :(1,'big guns',),
-SKL_ENERGY      :(2,'energy weapons',),
-##SKL_PITCHING    :(1,'pitching',),
-##SKL_ENDOVEREND  :(1,'throwing end-over-end',),
-##SKL_SPINNING    :(1,'throwing with the wrist',),
-##SKL_TIPFIRST    :(2,'throwing tip-first',),
-    }
-
+SKL_CANNONS     :(2,'cannons',),
+SKL_PISTOLS     :(2,'pistols',),
+SKL_RIFLES      :(2,'rifles',),
+SKL_SHOTGUNS    :(2,'shotguns',),
+SKL_SMGS        :(2,'SMGs',),
+SKL_MACHINEGUNS :(2,'machine guns',),
+SKL_HEAVY       :(2,'big guns',),
+SKL_ENERGY      :(3,'energy weapons',),
 # Physical / Technical Skills
-SKILLS_PHYSTECH={ # ID : (SP,name,)
-    # SP = skill points required to learn (in chargen)
 SKL_ATHLETE     :(2,'athleticism',),
 SKL_STEALTH     :(1,'stealth',),
-SKL_COMPUTERS   :(2,'computers',),
+SKL_COMPUTERS   :(3,'computers',),
 SKL_PILOT       :(1,'pilot',),
-SKL_PERSUASION  :(3,'speech',),
-SKL_CHEMISTRY   :(4,'chemistry',),
-SKL_SURVIVAL    :(1,'survival',),
+SKL_PERSUASION  :(2,'speech',),
+SKL_CHEMISTRY   :(5,'chemistry',),
+SKL_SURVIVAL    :(2,'survival',),
 SKL_LOCKPICK    :(1,'lockpick',),
-SKL_MEDICINE    :(2,'medicine',),
-SKL_SURGERY     :(4,'surgery',),
-    }
-
+SKL_MEDICINE    :(3,'medicine',),
+SKL_SURGERY     :(5,'surgery',),
 # Crafting Skills
-SKILLS_CRAFTING={ # ID : (SP,name,)
-    # SP = skill points required to learn (in chargen)
-SKL_ASSEMBLY    :(1,'crafting',),
+SKL_ASSEMBLY    :(1,'assembly',),
 SKL_COOKING     :(1,'cooking',),
 SKL_WOOD        :(1,'woodworking',),
 SKL_BONE        :(2,'boneworking',),
 SKL_LEATHER     :(2,'leatherworking',),
 SKL_PLASTIC     :(1,'plasticworking',),
 SKL_STONE       :(2,'stoneworking',),
-SKL_GLASS       :(3,'glassworking',),
+SKL_GLASS       :(4,'glassworking',),
 SKL_METAL       :(3,'metalworking',),
-SKL_BOWYER      :(3,'bowyer',),
-SKL_FLETCHER    :(2,'fletcher',),
+SKL_BOWYER      :(2,'bowyer',),
+SKL_FLETCHER    :(1,'fletcher',),
 SKL_BLADESMITH  :(3,'bladesmith',),
 SKL_GUNSMITH    :(3,'gunsmith',),
 SKL_HARDWARE    :(2,'technosmith',),
 SKL_ARMORSMITH  :(3,'armorsmith',),
+0               :(0,'no skill',),
     }
     
 
@@ -1679,6 +1699,29 @@ CLS_WRESTLER    = i; i+=1;
 
 
 #
+# Species
+#
+i=1;
+SPECIE_HUMAN    = i; i+=1;
+SPECIE_MUTANT   = i; i+=1;
+SPECIE_CHIMERA  = i; i+=1;
+SPECIE_DOG      = i; i+=1;
+SPECIE_CAT      = i; i+=1;
+SPECIE_HORSE    = i; i+=1;
+SPECIE_MANTIS   = i; i+=1;
+
+SPECIES={
+SPECIE_HUMAN    :"human",
+SPECIE_MUTANT   :"mutant",
+SPECIE_CHIMERA  :"chimera",
+SPECIE_DOG      :"dog",
+SPECIE_CAT      :"cat",
+SPECIE_HORSE    :"horse",
+SPECIE_MANTIS   :"mantis",
+    }
+
+
+#
 # Factions
 # flags used for diplomacy
 #
@@ -1690,6 +1733,15 @@ FACT_ELITE      = i; i+=1;
 FACT_WATCH      = i; i+=1;
 FACT_MONSTERS   = i; i+=1;
 #FACT_      = i; i+=1;
+
+FACTIONS={
+FACT_ROGUE      : "rogue",
+FACT_CITIZENS   : "neutral",
+FACT_DEPRIVED   : "deprived",
+FACT_ELITE      : "elite",
+FACT_WATCH      : "watch",
+FACT_MONSTERS   : "unaligned",
+    }
 
 
 

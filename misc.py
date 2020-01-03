@@ -49,7 +49,9 @@ def color_invert(rgb):
 
 
 '''
+# func render_charpage_string
 # func render_hud
+    (and helper functions for those functions)
 '''
 class _HUD_Stat(): # helper classes/ functions for the render functions
     def __init__(self, x,y, text,color):
@@ -76,22 +78,289 @@ def _HUD_get_color(stat):
     elif stat[:4] == 'Pro:':
         col=COL['ltblue']
     return col
+def _getheight():
+    return rog.world().component_for_entity(rog.pc(), cmp.Body).height
 def _get(stat):
     return rog.getms(rog.pc(), stat)
 def _gets(stat): # get stat
     return rog.getms(rog.pc(), stat)//MULT_STATS
 def _geta(att): # get attribute
     return rog.getms(rog.pc(), att)//MULT_ATT
-def _getheight():
-    return rog.world().component_for_entity(rog.pc(), cmp.Body).height
 def _getb(stat): # get base
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]
 def _getba(stat): # get base att
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_ATT
 def _getbs(stat): # get base stat
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_STATS
+
+def __add_eq(equipment, name, slot):
+    if slot:
+        covers = ""
+        for cover in slot.covers:
+            covers += "| {} ".format(cmp.NAMES[cover])
+        equipment += "\t< {bp} {cov}>\n\t\t{n} ({hp} / {hpmax})".format(
+            bp=name,
+            n=slot.item.name,
+            hp=rog.getms(slot.item, "hp"),
+            hpmax=rog.getms(slot.item, "hpmax"),
+            cov=covers
+            )
+    return equipment
+def _get_equipment(body):
+    equipment=""
+        
+    # human / humanoid shape bodies
+    if body.plan==BODYPLAN_HUMANOID:
+        # core
+        equipment=__add_eq(equipment,"core",body.core.core.slot)
+        equipment=__add_eq(equipment,"front",body.core.front.slot)
+        equipment=__add_eq(equipment,"back",body.core.back.slot)
+        equipment=__add_eq(equipment,"hips",body.core.hips.slot)
+        # parts
+        for head in body.parts[cmp.BPC_Heads].heads:
+            equipment=__add_eq(equipment,"head",head.head.slot)
+            equipment=__add_eq(equipment,"face",head.face.slot)
+            equipment=__add_eq(equipment,"neck",head.neck.slot)
+            equipment=__add_eq(equipment,"eyes",head.eyes.slot)
+            equipment=__add_eq(equipment,"ears",head.ears.slot)
+        for arm in body.parts[cmp.BPC_Arms].arms:
+            a="dominant " if arm.dominant else ""
+            equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot)
+            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot)
+        for leg in body.parts[cmp.BPC_Legs].legs:
+            a="dominant " if leg.dominant else ""
+            equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot)
+            equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot)
+    #
+    
+    return equipment
+def _get_gauges(meters):
+    lgauges=[]
+    gauges=""
+    if meters.rads > 0:
+        lgauges.append( (meters.rads, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('radiation'), a=meters.rads ),) )
+    if meters.sick > 0:
+        lgauges.append( (meters.sick, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('sickness'), a=meters.sick ),) )
+    if meters.expo > 0:
+        lgauges.append( (meters.expo, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('exposure'), a=meters.expo ),) )
+    if meters.pain > 0:
+        lgauges.append( (meters.pain, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('pain'), a=meters.pain ),) )
+    if meters.fear > 0:
+        lgauges.append( (meters.fear, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('fear'), a=meters.fear ),) )
+    if meters.bleed > 0:
+        lgauges.append( (meters.bleed, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('bleed'), a=meters.bleed ),) )
+    if meters.rust > 0:
+        lgauges.append( (meters.rust, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('rust'), a=meters.rust ),) )
+    if meters.rot > 0:
+        lgauges.append( (meters.rot, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('rot'), a=meters.rot ),) )
+    if meters.wet > 0:
+        lgauges.append( (meters.wet, "{v:>32} : {a:<6}\n".format(
+                v="* {}".format('wetness'), a=meters.wet ),) )
+    # sort
+    lgauges.sort(key = lambda x: x[0], reverse=True)
+    # get all in one string
+    for gauge in lgauges:
+        gauges += gauge[1]
+    if gauges: gauges=gauges[:-1] # remove final '\n'
+    return gauges
+def _get_effects(world, pc):
+    effects=""
+    for k,v in cmp.STATUSES.items():
+        clsname=type(k).__name__
+        if world.has_component(pc, clsname):
+            compo=world.component_for_entity(pc, clsname)
+            effects += "{v:>32} : {t:<6}\n".format(
+                v="* {}".format(v), t=compo.timer )
+    if effects: effects=effects[:-1] # remove final '\n'
+    return effects
+def _get_skills(compo):
+    skills=""
+    for const,lvl in compo.items():
+        skillname=SKILLS[const]
+        skills += "\t*{n:>32}: {lv}\n".format(n=skillname, lv=lvl)
+    if skills: skills=skills[:-1] # remove final '\n'
+    return skills
+
+# render character page / render char page / render charpage
+# render the entire character info page in one big string
+def render_charpage_string(w, h, pc, turn, dlvl):
+    # Setup #
+    world = rog.world()
+    con = libtcod.console_new(w,h)
+    name = world.component_for_entity(pc, cmp.Name)
+    meters = world.component_for_entity(pc, cmp.Meters)
+    creature = world.component_for_entity(pc, cmp.Creature)
+    effects = _get_effects(world, pc)
+    gauges = _get_gauges(world.component_for_entity(pc, cmp.Meters))
+    equipment=_get_equipment(world.component_for_entity(pc, cmp.Body))
+    skills = _get_skills(world.component_for_entity(pc, cmp.Skills))
+    augs=""
+    npaugs=0
+    nmaugs=0
+    
+    # create the display format string
+    strng = '''{titledelim} character {titledelim}
+
+                        {subdelim} identification {subdelim}
+                    name{delim}{name}
+                 species{delim}{species}
+                 faction{delim}{fact}
+                     job{delim}{job}
+                    mass{delim}{kg} kg
+                  height{delim}{cm} cm
+
+                        {subdelim} status {subdelim}
+                (life)----HP{predelim}{hp:>5} / {hpmax:<5}
+             (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
+        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%
+    effects:
+        {effects}
+    gauge:
+        * temperature: {temp} ({normalbodytemp})
+        {gauges}
+        
+                        {subdelim} attribute {subdelim}
+        (constitution)---CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
+        (intelligence)---INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
+            (strength)---STR{predelim}{_str:<2}{attdelim}({bstr})
+             (agility)---AGI{predelim}{_agi:<2}{attdelim}({bagi})
+           (dexterity)---DEX{predelim}{_dex:<2}{attdelim}({bdex})
+           (endurance)---END{predelim}{_end:<2}{attdelim}({bend})
+       
+                        {subdelim} statistic {subdelim}
+               (speed)---SPD{predelim}{spd:<4}{statdelim}({bspd})
+        (attack speed)---ASP{predelim}{asp:<4}{statdelim}({basp})
+      (movement speed)---MSP{predelim}{msp:<4}{statdelim}({bmsp})
+          (protection)---PRO{predelim}{pro:<4}{statdelim}({bpro})
+         (dodge value)----DV{predelim}{dv:<4}{statdelim}({bdv})
+         (armor value)----AV{predelim}{av:<4}{statdelim}({bav})
+         (penetration)---PEN{predelim}{pen:<4}{statdelim}({bpen})
+     (attack / to-hit)---ATK{predelim}{atk:<4}{statdelim}({batk})
+              (damage)---DMG{predelim}{dmg:<4}{statdelim}({bdmg})
+    (stamina recovery)---SPR{predelim}{spr:<4}{statdelim}({bspr})
+             (balance)---BAL{predelim}{bal:<4}{statdelim}({bbal})
+           (grappling)---GRA{predelim}{gra:<4}{statdelim}({bgra})
+      (counter-strike)---CTR{predelim}{ctr:<4}{statdelim}({bctr})
+             (courage)---CRG{predelim}{crg:<4}{statdelim}({bcrg})
+        (intimidation)---IDN{predelim}{idn:<4}{statdelim}({bidn})
+              (beauty)---BEA{predelim}{bea:<4}{statdelim}({bbea})
+   (visual perception)---VIS{predelim}{vis:<4}{statdelim}({bvis})
+ (auditory perception)---AUD{predelim}{aud:<4}{statdelim}({baud})
+                (mass)----KG{predelim}{kg:<6}{shortdelim}({bkg})
+              (height)----CM{predelim}{cm:<4}
+        (encumberance)---ENC{predelim}{enc:<4}
+    (max.encumberance)ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
+       
+                        {subdelim} resistance {subdelim}
+                (heat)---FIR{predelim}{fir:<4}{resdelim}({bfir})
+                (cold)---ICE{predelim}{ice:<4}{resdelim}({bice})
+          (bio-hazard)---BIO{predelim}{bio:<4}{resdelim}({bbio}){tab}{immbio}
+         (electricity)---ELC{predelim}{elc:<4}{resdelim}({belc})
+            (physical)---PHS{predelim}{phs:<4}{resdelim}({bphs})
+                (pain)---PAI{predelim}{pai:<4}{resdelim}({bpai}){tab}{immpain}
+               (bleed)---BLD{predelim}{bld:<4}{resdelim}({bbld}){tab}{immbleed}
+               (light)---LGT{predelim}{lgt:<4}{resdelim}({blgt})
+               (sound)---SND{predelim}{snd:<4}{resdelim}({bsnd})
+                (rust)---RUS{predelim}{rus:<4}{resdelim}({brus}){tab}{immrust}
+                 (rot)---ROT{predelim}{rot:<4}{resdelim}({brot}){tab}{immrot}
+               (water)---WET{predelim}{wet:<4}{resdelim}({bwet}){tab}{immwater}
+
+                        {subdelim} equipment {subdelim}
+{equipment}
+
+                        {subdelim} skill {subdelim}
+{skills}
+
+                        {subdelim} augmentation {subdelim}
+{augs}
+
+'''.format(
+        titledelim="--------------------------------",
+        tab="    ",
+        delim    ="........",
+        subdelim ="--",
+        predelim =": ",
+        attdelim ="........",
+        statdelim="......",
+        resdelim ="......",
+        shortdelim ="....",
+        dlv=dlvl,t=turn,
+        # flags
+        immbio  ="IMMUNE" if rog.on(pc, IMMUNEBIO) else "",
+        immrust ="IMMUNE" if rog.on(pc, IMMUNERUST) else "",
+        immrot  ="IMMUNE" if rog.on(pc, IMMUNEROT) else "",
+        immwater="IMMUNE" if rog.on(pc, IMMUNEWATER) else "",
+        immbleed="IMMUNE" if rog.on(pc, IMMUNEBLEED) else "",
+        immpain ="IMMUNE" if rog.on(pc, IMMUNEPAIN) else "",
+        # component data
+        effects=effects,gauges=gauges,augs=augs,
+        equipment=equipment,skills=skills,
+        name=name.name,
+        species=SPECIES.get(creature.species, "unknown"),
+        fact=FACTIONS.get(creature.faction, "unknown"),
+        job=creature.job,
+        temp=meters.temp,
+        normalbodytemp=37, #TEMPORARY
+        kg=_get('mass')/MULT_MASS,bkg=_getb('mass')/MULT_MASS,
+        cm=int(_getheight()),
+        hp=_getb('hp'),hpmax=_get('hpmax'),
+        sp=_getb('mp'),spmax=_get('mpmax'),
+        hppc=(_getb('hp')/_get('hpmax')*100),
+        sppc=(_getb('mp')/_get('mpmax')*100),
+        # attributes
+        _str=_geta('str'),_agi=_geta('agi'),_dex=_geta('dex'),
+        _end=_geta('end'),_int=_geta('int'),_con=_geta('con'),
+        # base attributes
+        bstr=_getba('str'),bagi=_getba('agi'),bdex=_getba('dex'),
+        bend=_getba('end'),bint=_getba('int'),bcon=_getba('con'),
+        # augmentations
+        paugs=npaugs, paugsmax=int(_geta('con') * ATT_CON_AUGS),
+        maugs=nmaugs, maugsmax=int(_geta('int') * ATT_INT_AUGS),
+        # stats
+            # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
+        atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
+        dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
+        ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
+        spr=_gets('mpregen'),
+        spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
+        crg=_get('courage'),idn=_get('scary'),bea=_get('beauty'),
+        vis=_get('sight'),aud=_get('hearing'),
+        enc=_get('enc'),encmax=_get('encmax'),
+        encpc=(_get('enc') / _get('encmax') * 100),
+        # base stats
+        batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
+        bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
+        bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
+        bspr=_getbs('mpregen'),
+        bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
+        bcrg=_getb('courage'),bidn=_getb('scary'),bbea=_getb('beauty'),
+        bvis=_getb('sight'),baud=_getb('hearing'),
+        bencmax=_getb('encmax'),
+        # res
+        fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
+        bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
+        pai=_get('respain'),lgt=_get('reslight'),snd=_get('ressound'),
+        rus=_get('resrust'),rot=_get('resrot'),wet=_get('reswet'),
+        # base res
+        bfir=_getb('resfire'),bice=_getb('rescold'),bphs=_getb('resphys'),
+        bbld=_getb('resbleed'),bbio=_getb('resbio'),belc=_getb('reselec'),
+        bpai=_getb('respain'),blgt=_getb('reslight'),bsnd=_getb('ressound'),
+        brus=_getb('resrust'),brot=_getb('resrot'),bwet=_getb('reswet'),
+    )
+    return strng
+# end def
+
+# render HUD
 # render the regular abridged in-game HUD that only shows vitals
-def render_hud(w,h,pc,turn,level):
+def render_hud(w,h,pc,turn,dlvl):
     # Setup #
     
     # TODO: minimum display values (but only after debugging stats/HUD!!!)
@@ -103,7 +372,7 @@ def render_hud(w,h,pc,turn,level):
         name=name.name,
         hp=_get('hp'),mp=_get('mp'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        dlv=level,t=turn,
+        dlv=dlvl,t=turn,
         hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
         fir=_get('resfire'),bio=_get('resbio'),elc=_get('reselec'),
@@ -135,185 +404,7 @@ def render_hud(w,h,pc,turn,level):
     #
     
     return con
-#
-
-# render the entire character info page in one big string
-def render_charpage_string(w,h,pc,turn,level):
-    # Setup #
-    world = rog.world()
-    con = libtcod.console_new(w,h)
-    name = world.component_for_entity(pc, cmp.Name)
-    meters = world.component_for_entity(pc, cmp.Meters)
-    creature = world.component_for_entity(pc, cmp.Creature)
-    
-    # status effects
-    effects=""
-    for k,v in cmp.STATUSES.items():
-        clsname=type(k).__name__
-        if world.has_component(pc, clsname):
-            compo=world.component_for_entity(pc, clsname)
-            effects += "{v:>32} : {t:<6}\n".format(
-                v="* {}".format(v), t=compo.timer )
-    if effects: effects=effects[:-1] # remove final '\n'
-    #
-    
-    # gauges (meters)
-    lgauges=[]
-    if meters.rads > 0:
-        lgauges.append( (meters.rads, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('radiation'), a=meters.rads ),) )
-    if meters.sick > 0:
-        lgauges.append( (meters.sick, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('sickness'), a=meters.sick ),) )
-    if meters.expo > 0:
-        lgauges.append( (meters.expo, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('exposure'), a=meters.expo ),) )
-    if meters.pain > 0:
-        lgauges.append( (meters.pain, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('pain'), a=meters.pain ),) )
-    if meters.fear > 0:
-        lgauges.append( (meters.fear, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('fear'), a=meters.fear ),) )
-    if meters.bleed > 0:
-        lgauges.append( (meters.bleed, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('bleed'), a=meters.bleed ),) )
-    if meters.rust > 0:
-        lgauges.append( (meters.rust, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('rust'), a=meters.rust ),) )
-    if meters.rot > 0:
-        lgauges.append( (meters.rot, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('rot'), a=meters.rot ),) )
-    if meters.wet > 0:
-        lgauges.append( (meters.wet, "{v:>32} : {a:<6}\n".format(
-                v="* {}".format('wetness'), a=meters.wet ),) )
-    # sort
-    lgauges.sort(key = lambda x: x[0], reverse=True)
-    # get all in one string
-    gauges=""
-    for gauge in lgauges:
-        gauges += gauge[1]
-    if gauges: gauges=gauges[:-1] # remove final '\n'
-    #
-    
-    # create the display format string
-    # TODO: minimum display values (but only after debugging stats/HUD!!!)
-    strng = '''{titledelim} character {titledelim}
-                    name{delim}{name}
-                 faction{delim}{fact}
-                     job{delim}{job}
-                    mass{delim}{kg} kg
-                  height{delim}{cm} cm
-            encumberance{delim}{encpc:.2f}% ({enc} / {encmax})
-
-                        {subdelim} status {subdelim}
-                (life)----HP{statline}{hp:>5} / {hpmax:<5}
-             (stamina)----SP{statline}{sp:>5} / {spmax:<5}
-    effects:
-        {effects}
-    gauge:
-        temperature: {temp} ({normalbodytemp})
-        {gauges}
-        
-                            {subdelim} attribute {subdelim}
-             (agility)---AGI{predelim}{_agi:<2}{attdelim}({bagi})
-            (strength)---STR{predelim}{_str:<2}{attdelim}({bstr})
-           (endurance)---END{predelim}{_end:<2}{attdelim}({bend})
-           (dexterity)---DEX{predelim}{_dex:<2}{attdelim}({bdex})
-        (intelligence)---INT{predelim}{_int:<2}{attdelim}({bint})
-        (constitution)---CON{predelim}{_con:<2}{attdelim}({bcon})
-       
-                            {subdelim} statistic {subdelim}
-          (protection)---PRO{predelim}{pro:<4}{statdelim}({bpro})
-         (dodge value)----DV{predelim}{dv:<4}{statdelim}({bdv})
-         (armor value)----AV{predelim}{av:<4}{statdelim}({bav})
-         (penetration)---PEN{predelim}{pen:<4}{statdelim}({bpen})
-     (attack / to-hit)---ATK{predelim}{atk:<4}{statdelim}({batk})
-              (damage)---DMG{predelim}{dmg:<4}{statdelim}({bdmg})
-               (speed)---SPD{predelim}{spd:<4}{statdelim}({bspd})
-        (attack speed)---ASP{predelim}{asp:<4}{statdelim}({basp})
-      (movement speed)---MSP{predelim}{msp:<4}{statdelim}({bmsp})
-             (balance)---BAL{predelim}{bal:<4}{statdelim}({bbal})
-           (grappling)---GRA{predelim}{gra:<4}{statdelim}({bgra})
-      (counter-strike)---CTR{predelim}{ctr:<4}{statdelim}({bctr})
-             (courage)---CRG{predelim}{crg:<4}{statdelim}({bcrg})
-        (intimidation)---IDN{predelim}{idn:<4}{statdelim}({bidn})
-              (beauty)---BEA{predelim}{bea:<4}{statdelim}({bbea})
-              (vision)---VIS{predelim}{vis:<4}{statdelim}({bvis})
-             (hearing)---AUD{predelim}{aud:<4}{statdelim}({baud})
-                (mass)----KG{predelim}{kg:<4}{statdelim}({bkg})
-              (height)----CM{predelim}{cm:<4}
-        (encumberance)---ENC{predelim}{enc:<4}
-    (max.encumberance)ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
-       
-                            {subdelim} resistance {subdelim}
-                (heat)---FIR{predelim}{fir:<4}{resdelim}({bfir})
-                (cold)---ICE{predelim}{ice:<4}{resdelim}({bice})
-          (bio-hazard)---BIO{predelim}{bio:<4}{resdelim}({bbio})
-         (electricity)---ELC{predelim}{elc:<4}{resdelim}({belc})
-            (physical)---PHS{predelim}{phs:<4}{resdelim}({bphs})
-                (pain)---PAI{predelim}{pai:<4}{resdelim}({bpai})
-               (bleed)---BLD{predelim}{bld:<4}{resdelim}({bbld})
-               (light)---LGT{predelim}{lgt:<4}{resdelim}({blgt})
-               (sound)---SND{predelim}{snd:<4}{resdelim}({bsnd})
-                (rust)---RUS{predelim}{rus:<4}{resdelim}({brus})
-                 (rot)---ROT{predelim}{rot:<4}{resdelim}({brot})
-               (water)---WET{predelim}{wet:<4}{resdelim}({bwet})
-'''.format(
-        titledelim="--------------------------------",
-        subdelim ="--",
-        statline ="------------",
-        delim    ="........",
-        predelim ="....",
-        attdelim ="........",
-        statdelim="......",
-        resdelim ="......",
-        effects=effects,gauges=gauges,
-        dlv=level,t=turn,
-        name=name.name,
-        fact=creature.faction,job=creature.job,
-        temp=meters.temp,
-        normalbodytemp=37, #TEMPORARY
-        kg=_get('mass')/MULT_MASS,bkg=_getb('mass')/MULT_MASS,
-        cm=int(_getheight()),
-        hp=_get('hp'),hpmax=_get('hpmax'),sp=_get('mp'),spmax=_get('mpmax'),
-        # attributes
-        _str=_geta('str'),_agi=_geta('agi'),_dex=_geta('dex'),
-        _end=_geta('end'),_int=_geta('int'),_con=_geta('con'),
-        # base attributes
-        bstr=_getba('str'),bagi=_getba('agi'),bdex=_getba('dex'),
-        bend=_getba('end'),bint=_getba('int'),bcon=_getba('con'),
-        # stats
-        spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
-        dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
-        ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
-        crg=_get('courage'),idn=_get('scary'),
-        bea=_get('beauty'),
-        vis=_get('sight'),aud=_get('hearing'),
-        enc=_get('enc'),encmax=_get('encmax'),
-        encpc=(_get('enc') / _get('encmax') * 100),
-        # base stats
-        bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
-        batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
-        bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
-        bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
-        bcrg=_getb('courage'),bidn=_getb('scary'),
-        bbea=_getb('beauty'),
-        bvis=_getb('sight'),baud=_getb('hearing'),
-        bencmax=_getb('encmax'),
-        # res
-        fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
-        bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
-        pai=_get('respain'),lgt=_get('reslight'),snd=_get('ressound'),
-        rus=_get('resrust'),rot=_get('resrot'),wet=_get('reswet'),
-        # base res
-        bfir=_getb('resfire'),bice=_getb('rescold'),bphs=_getb('resphys'),
-        bbld=_getb('resbleed'),bbio=_getb('resbio'),belc=_getb('reselec'),
-        bpai=_getb('respain'),blgt=_getb('reslight'),bsnd=_getb('ressound'),
-        brus=_getb('resrust'),brot=_getb('resrot'),bwet=_getb('reswet'),
-    )
-    return strng
-#
+# end def
 
 
 

@@ -270,8 +270,6 @@ Reason: entity has no position component.'''.format(ent))
     def remove_thing(self, ent):
         ''' try to remove an entity from the grid, return success/failure '''
         if not rog.world().has_component(ent, cmp.Position):
-            print('''Failed to remove entity {} from grid.
-Reason: entity has no position component.'''.format(ent))
             return False
         pos = rog.world().component_for_entity(ent, cmp.Position)
         grid = self.grid_things[pos.x][pos.y]

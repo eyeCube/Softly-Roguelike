@@ -69,10 +69,11 @@ class AI:
         self.func=func
 
 class Creature:
-    __slots__=['job','faction']
-    def __init__(self, job=None, faction=None):
+    __slots__=['job','faction','species']
+    def __init__(self, job=None, faction=None, species=None):
         self.job=job
         self.faction=faction
+        self.species=species
        
 class Actor:
     __slots__=['ap']
@@ -106,10 +107,10 @@ class Meters:
         self.rust=0 # amount of rustedness
         self.rot=0 # amount of rot
         self.wet=0 # amount of water it's taken on
-##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
+##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity. Dirtiness can be a component or something...
 class Stats: #base stats
-    def __init__(self, hp=1,mp=1, mass=1,
-                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,luck=0,
+    def __init__(self, hp=1,mp=1, mpregen=1, mass=1,
+                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,#_vit=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
                  respain=100,resbleed=100,reslight=100,ressound=100,
@@ -125,7 +126,7 @@ class Stats: #base stats
         self.agi=int(_agi)
         self.dex=int(_dex)
         self.end=int(_end)
-        self.luck=int(luck)
+##        self.vit=int(_vit)
         # resistances
         self.resfire=int(resfire)   # FIR
         self.rescold=int(rescold)   # ICE
@@ -146,6 +147,7 @@ class Stats: #base stats
         self.hp=self.hpmax
         self.mpmax=int(mp)          # stamina
         self.mp=self.mpmax
+        self.mpregen=mpregen
         self.encmax=int(encmax)     # encumberance
         self.enc=0                  # " maximum
         self.force=int(force)       # how much force its attack has (knockback)
@@ -342,15 +344,15 @@ class BPC_Heads:
         for arg in args:
             self.heads.append(arg)
 class BPC_Arms:
-    __slots__=['arms']
+    __slots__=['arms'] # expected to have at least 2 items. Use None for N/A
     def __init__(self, *args):
-        self.arms=[]
-        for arg in args:
+        self.arms=[] if args else [None,None,] # None == No arm
+        for arg in args: # the arm in slot 0 is dominant. If only one arm exists and it is the off-arm, then it should go in slot 1, and slot 0 should be None.
             self.arms.append(arg)
-class BPC_Legs:
+class BPC_Legs: # see BPC_Arms
     __slots__=['legs']
     def __init__(self, *args):
-        self.legs=[]
+        self.legs=[] if args else [None,None,]
         for arg in args:
             self.legs.append(arg)
 class BPC_Pseudopods:
@@ -387,23 +389,21 @@ class BPM_Head:
     def __init__(self):
         self.head=BP_Head()
         self.face=BP_Face()
+        self.neck=BP_Neck()
         self.eyes=BP_Eyes()
         self.ears=BP_Ears()
         self.nose=BP_Nose()
-        self.neck=BP_Neck()
         self.mouth=BP_Mouth()
 class BPM_Arm:
-    __slots__=['hand','arm','dominant']
-    def __init__(self, dominant=False):
+    __slots__=['hand','arm']
+    def __init__(self):
         self.arm=BP_Arm()
         self.hand=BP_Hand()
-        self.dominant=dominant # the dominant arm?
 class BPM_Leg:
-    __slots__=['leg','foot','dominant']
-    def __init__(self, dominant=False):
+    __slots__=['leg','foot']
+    def __init__(self):
         self.leg=BP_Leg()
         self.foot=BP_Foot()
-        self.dominant=dominant # the dominant leg?
 class BPM_Lungs:
     __slots__=['lungs']
     def __init__(self):
@@ -1280,30 +1280,19 @@ class StatusAcid: # damage over time, can cause deep wounds
         self.timer=t
 class StatusBlind: # vision -90%
     __slots__=['timer']
-    def __init__(self, t=30):
+    def __init__(self, t=32):
         self.timer=t
 class StatusDeaf: # hearing -96%
     __slots__=['timer']
-    def __init__(self, t=300):
+    def __init__(self, t=256):
         self.timer=t
 class StatusIrritated: # vision -25%, hearing -25%
     __slots__=['timer']
-    def __init__(self, t=200):
+    def __init__(self, t=196):
         self.timer=t
-class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
-    __slots__=['timer','quality']
-    def __init__(self, t=128, q=1):
-        '''
-            quality == how many g of blood you lose per turn
-            minor: 1
-            major arterial bleeding: 15
-        '''
-        self.timer=t
-        self.quality=q
-# NOTE: arterial bleed is handled by the BPP artery component having its status set to SEVERED or w/e.
 class StatusPain: # in overwhelming pain
     __slots__=['timer']
-    def __init__(self, t=6):
+    def __init__(self, t=60):
         self.timer=t
 class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
     __slots__=['timer']
@@ -1311,7 +1300,7 @@ class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
         self.timer=t
 class StatusSick: # low chance to vomit, cough, sneeze; general fatigue, pain, etc.
     __slots__=['timer']
-    def __init__(self, t=600):
+    def __init__(self, t=640):
         self.timer=t
 class StatusVomit: # chance to vomit uncontrollably each turn
     __slots__=['timer']
@@ -1377,7 +1366,20 @@ class StatusFull: # overeat
     __slots__=['timer']
     def __init__(self, t=384):
         self.timer=t
-        
+
+# quality statuses
+class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
+    __slots__=['timer','quality']
+    def __init__(self, t=128, q=1):
+        self.timer=t
+        self.quality=q # g of blood you lose per turn (1==minor, 15==major arterial bleeding)
+class StatusOffBalance: # off-balance or staggered temporarily
+    __slots__=['timer','quality']
+    def __init__(self, t=4, q=1):
+        self.timer=t
+        self.quality=q # how much balance you lost
+#
+
 # quantity (non-timed) statuses #
 # - statuses for which it would NEVER make sense for it to have a timer,
 #   and it has some other quantity indicator of when it will run out.
@@ -1388,8 +1390,28 @@ class StatusDigest:
         self.satiation=c # potential maximum satiation points available
         self.hydration=h # potential maximum hydration points available
         # TODO: add mass of the food(?)
+#
+
 
 # GLOBAL LISTS OF COMPONENTS #
+
+NAMES={ # body part names
+BP_TorsoCore    : "core",
+BP_TorsoFront   : "chest",
+BP_TorsoBack    : "back",
+BP_Hips         : "hips",
+BP_Head         : "head",
+BP_Neck         : "neck",
+BP_Face         : "face",
+BP_Mouth        : "mouth",
+BP_Eyes         : "eyes",
+BP_Ears         : "ears",
+BP_Nose         : "nose",
+BP_Arm          : "arm",
+BP_Hand         : "hand",
+BP_Leg          : "leg",
+BP_Foot         : "foot",
+    }
 
 STATUSES={ # dict of statuses that have a timer
     # component : string that appears when you have the status
@@ -1420,6 +1442,7 @@ STATUSES={ # dict of statuses that have a timer
 ##    StatusBleed, # removed b/c it has quality
     }
 ##StatusDigest
+
 
 
 

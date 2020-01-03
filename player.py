@@ -47,6 +47,8 @@ def init(pc):
     compo=rog.world().component_for_entity(pc, cmp.SenseSight)
     compo.fov_map=rog.fov_init()
     rog.view_center(pc)
+    rog.givehp(pc)
+    rog.givemp(pc)
 #
 
 
@@ -381,24 +383,28 @@ def chargen(sx, sy):
 
     # load saved game
     loadedGame = False
-    savedir=os.listdir(os.path.join(os.path.curdir,"save"))
-    for filedir in savedir:
-        if ".save" != filedir[-5:] :
-            continue #wrong filetype
-        try:
-            with open(filedir, "r") as save:
-                line = save.readline()
-                if ("name:{}\n".format(_name) == line):
-                    #found a match. Begin reading data
-                    pc=loadFromSaveFile(save)                    
-                    return pc
-        except FileNotFoundError:
-            pass
-        except:
-            print("ERROR: Corrupted save file detected.")
-            print("Continuing chargen...")
-            break
 
+        # TODO: forget this -- use Pickle or similar
+    
+##    savedir=os.listdir(os.path.join(os.path.curdir,"save"))
+##    for filedir in savedir:
+##        if ".save" != filedir[-5:] :
+##            continue #wrong filetype
+##        try:
+##            with open(filedir, "r") as save:
+##                line = save.readline()
+##                if ("name:{}\n".format(_name) == line):
+##                    #found a match. Begin reading data
+##                    pc=loadFromSaveFile(save)                    
+##                    return pc
+##        except FileNotFoundError:
+##            pass
+##        except:
+##            print("ERROR: Corrupted save file detected.")
+##            print("Continuing chargen...")
+##            break
+    # end for
+    
     # make a new character
     if not loadedGame:
         #continue chargen...
@@ -489,59 +495,77 @@ def chargen(sx, sy):
         _classID = _classList[_className][1]
         _mass = entities.getJobMass(_classID)
         _stats = entities.getJobStats(_classID).items()
-        _skills = entities.getJobSkills(_classID)
+        _jobskills = entities.getJobSkills(_classID)
         
         #grant stats / abilities of your chosen class
         
         print("class chosen: ", _className)
 ##        iy+=1
 
-        # skills
-        _data=(("combat",SKILLS_COMBAT,),
-               ("physical/technical",SKILLS_PHYSTECH,),
-               ("crafting",SKILLS_CRAFTING,), )
+        # skills (TODO: test new system of skills -- only one dict of skills, and you can pick up to 6(?) of them...
         _skillNames=[]
         _skillIDs=[]
-        for _str,_st in _data:
+        skilldict={}
+        ptsRemaining=30
+        cancel=False
+        
+        for k, sk in SKILLS.items():
+            string = "{}: {}".format(sk[0], sk[1])
+            skilldict.update({string : k})
+            
+        while ptsRemaining:
             rog.dbox(x1,y1+iy,ww,3,
-                     text="choose 1 {} skill".format(_str),
+                     text="choose a skill",
                      wrap=True,border=None, con=rog.con_final(), disp='mono'
                      )
-            #rog.refresh()
-                #get list of all skills
-            # TODO: remove all skills from this list that you already have from job
-            _skillName = rog.menu(
-                "{} skill select".format(_str), xx,yy+iy, _st.values()
-                )
+            _skill = rog.menu( "skill points: {}".format(ptsRemaining),
+                xx,yy,skilldict.keys() )
+            
             #get the skill ID
-            for skid,name in _st.items():
-                if name == _skillName:
-                    _skillID = skid
-                    break
-            print("{} skill chosen: {}".format(_str, _skillName))
-            #should show ALL skills you're skilled in, not just the one you pick
-            #for skill in jobs.getSkills(_skillID):
-##            iy+=1
+            _skillID = skilldict[_skill]
+            _skillName = SKILLS[_skillID][1]
+            _skillPts = SKILLS[_skillID][0]
+            if _skillPts==0: # "cancel"
+                break
+            if ptsRemaining < _skillPts:
+                # NOT ENOUGH SKILL POINTS REMAINING.
+                rog.dbox(0,0,rog.window_w(),5,
+                         text='''Not enough skill points remaining.
+Choose another skill.
+(Points remaining: {})'''.format(ptsRemaining),
+wrap=False,con=rog.con_final(),disp='mono'
+                         )
+                rog.refresh()
+                rog.Input(rog.window_w()-2,1,mode='wait')
+                continue
+            
+            # successfully selected skill
+            ptsRemaining -= _skillPts
+            print("skill chosen: {} (pts: {})".format(_skillName, ptsRemaining))
             _skillNames.append(_skillName)
             _skillIDs.append(_skillID)
-        #
+        # end while
         
         # confirmation
-        iy=_printElement("name: {}".format(_name),iy)
-        iy=_printElement("gender: {}".format(_genderName),iy)
-        iy=_printElement("class: {}".format(_className),iy)
-        iy=_printElement("{} skill: {}".format(_data[0][0], _skillNames[0]),iy)
-        iy=_printElement("{} skill: {}".format(_data[1][0], _skillNames[1]),iy)
-        iy=_printElement("{} skill: {}".format(_data[2][0], _skillNames[2]),iy)
+        iy=_printElement("name: {}".format(_name), iy)
+        iy=_printElement("gender: {}".format(_genderName), iy)
+        iy=_printElement("class: {}".format(_className), iy)
+        for sk in _skillNames:
+            iy=_printElement("skill: {}".format(sk), iy)
+            
         rog.blit_to_final(rog.con_game(),0,0)
         rog.refresh()
-        _ans=rog.prompt(x1,y1+7,ww,hh,maxw=20,
+        _ans=rog.prompt(x1,rog.window_h()-4,ww,4,maxw=20,
                         q="continue with this character? y/n",
                         mode="wait"
                         )
         if not _ans.lower()=='y':
             return chargen(sx,sy)
         #
+
+            #-------------------------#
+            # Create character entity #
+            #-------------------------#
             
         #stats?
         _stats = {}
@@ -570,10 +594,11 @@ def chargen(sx, sy):
             cmp.Position(sx, sy),
             cmp.Actor(),
             cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
-            cmp.Creature(job=_className, faction=FACT_ROGUE),
-            cmp.Gender(_genderName,_pronouns),
+            cmp.Creature(
+                job=_className, faction=FACT_ROGUE, species=SPECIE_HUMAN
+                ),
             cmp.Stats(
-                hp=BASE_HP, mp=BASE_MP,
+                hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN,
                 mass=newmass, # base mass before weight of water and blood and fat is added
                 encmax=BASE_ENCMAX,
                 resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
@@ -592,12 +617,14 @@ def chargen(sx, sy):
                 ctr=BASE_CTR*MULT_STATS,
                 spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
                 sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
-                courage=BASE_COURAGE, scary=BASE_SCARY
+                courage=BASE_COURAGE, scary=BASE_SCARY,
+                beauty=BASE_BEAUTY
                 ),
             cmp.Skills(), cmp.Flags(),
             cmp.SenseSight(), cmp.SenseHearing(),
             cmp.Mutable(),
             cmp.Inventory(),
+            cmp.Gender(_genderName,_pronouns),
         )
         
         
@@ -606,11 +633,13 @@ def chargen(sx, sy):
 ##            #compo= # get component somehow...
 ##            world.component_for_entity(pc, compo).__dict__[_var] += _value
         #add specific class skills
-        for sk_id in _skills:
+        for sk_id in _jobskills:
             rog.setskill(pc, sk_id, 25)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.setskill(pc, sk_id, 5) # 15
+            rog.setskill(pc, sk_id, 5)
+    # end if
+    
     # init
     rog.register_creature(pc)
     init(pc)

@@ -2299,7 +2299,7 @@ def hurt(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.pain += max(0, dmg )
     if meters.pain >= 100:
-        meters.pain = 0
+        meters.pain = 50 # leave some pain
         rog.set_status(ent, cmp.StatusPain)
         
 #   SICK METER
@@ -2345,7 +2345,7 @@ def exposure(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg )
     if meters.expo >= 100:
-        meters.expo = 0          #reset exposure meter
+        meters.expo = 50 #leave some exposure
         rog.damage(ent, CHEM_DAMAGE*MULT_STATS)  #instant damage when expo meter fills
         hurt(ent, CHEM_HURT)
         _random_chemical_effect(ent) #inflict chem status effect
@@ -2356,7 +2356,7 @@ def corrode(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
-        meters.expo = 0          #reset exposure meter
+        meters.expo = 50 #leave some exposure
         rog.set_status(ent, cmp.StatusAcid)
 #coughing
 def cough(ent, amt):
@@ -2365,7 +2365,7 @@ def cough(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
-        meters.expo = 0          #reset exposure meter
+        meters.expo = 50 #leave some exposure
         rog.set_status(ent, cmp.StatusCough)
 #vomiting
 def vomit(ent, amt):
@@ -2374,7 +2374,7 @@ def vomit(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
     if meters.expo >= 100:
-        meters.expo = 0          #reset exposure meter
+        meters.expo = 50 #leave some exposure
         rog.set_status(ent, cmp.StatusVomit)
 #irritating
 def irritate(ent, amt):
@@ -2485,6 +2485,11 @@ def _apply_skill_bonus_weapon(dadd, skill):
     dadd['gra'] = dadd.get('gra',0) * (1 + SKLMOD_WEAPON_GRA*sm)
     dadd['ctr'] = dadd.get('ctr',0) * (1 + SKLMOD_WEAPON_CTR*sm)
 # end def
+def _apply_mass_encumberance(ent, item, dadd, equipable):
+    mass=rog.getms(item, 'mass')
+    dadd['mass'] = dadd.get('mass', 0) + mass
+    dadd['enc'] = dadd.get('enc', 0) + equipable.enc*equipable.mass/MULT_MASS
+# end def
 
 '''
     Body
@@ -2572,9 +2577,13 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
     # equipment
     if arm.slot.item:
         item=arm.slot.item
+        
         equipable=world.component_for_entity(item, cmp.EquipableInArmSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2608,6 +2617,9 @@ def _update_from_bp_hand(ent, hand, isOffhand=False):
         equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # weapon skill bonus
         if rog.world().has_component(item, cmp.WeaponSkill):
@@ -2643,6 +2655,9 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2677,6 +2692,9 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2706,6 +2724,9 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2742,6 +2763,9 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2768,6 +2792,9 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2799,6 +2826,9 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
@@ -2818,6 +2848,9 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -2862,6 +2895,9 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2894,6 +2930,9 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInFrontSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2929,6 +2968,9 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
+        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2962,6 +3004,9 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInHipsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        
+        # apply mass and encumberance from item
+        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -3451,8 +3496,8 @@ def create_body_humanoid(mass=75, height=175, female=False):
         cmp.BPC_Torso(),
         parts={
             cmp.BPC_Heads : cmp.BPC_Heads(cmp.BPM_Head()),
-            cmp.BPC_Arms  : cmp.BPC_Arms(cmp.BPM_Arm(dominant=True), cmp.BPM_Arm()),
-            cmp.BPC_Legs  : cmp.BPC_Legs(cmp.BPM_Leg(dominant=True), cmp.BPM_Leg()),
+            cmp.BPC_Arms  : cmp.BPC_Arms(cmp.BPM_Arm(), cmp.BPM_Arm()),
+            cmp.BPC_Legs  : cmp.BPC_Legs(cmp.BPM_Leg(), cmp.BPM_Leg()),
             },
         height=int(height),
         blood=int(mass*0.07),
@@ -4311,12 +4356,11 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 
 EYEWEAR={
 #--Name-------------------$$$$$,KG,  Dur,AP,  Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis),script
-"plastic goggles"       :(15,   0.1, 12, 200, PLAS,(0,  0,  0.1,2,  0,  0,  15, 3,  0,  0,  10, 0,  0.9,),_pGoggles,),
-"glass goggles"         :(35,   0.15,3,  200, GLAS,(0,  0,  0.1,2,  0,  0,  15, 0,  0,  0,  5,  0,  1,),_gGoggles,),
-"glasses"               :(7,    0.04,10, 100, GLAS,(0,  0,  0,  12, 0,  0,  9,  0,  0,  0,  0,  0,  1,),_glasses,),
-"sunglasses"            :(2,    0.06,3,  100, PLAS,(0,  0,  0,  12, 0,  0,  12, 0,  0,  0,  100,0,  0.7,),_glasses,),
-"laser glasses lv.1"    :(205,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  12, 0,  0,  0,  800,0,  0.5,),_glasses,),
-"laser glasses lv.2"    :(460,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  12, 0,  0,  0,  3200,0, 0.2,),_glasses,),
+"safety goggles"        :(15,   0.1, 12, 200, PLAS,(0,  0,  0.1,2,  0,  0,  18, 3,  0,  0,  200,0,  0.9,),_pGoggles,),
+"glasses"               :(7,    0.04,10, 100, GLAS,(0,  0,  0,  12, 0,  0,  12, 0,  0,  0,  50, 0,  1,),_glasses,),
+"sunglasses"            :(2,    0.06,3,  100, PLAS,(0,  0,  0,  12, 0,  0,  15, 0,  0,  0,  400,0,  0.7,),_glasses,),
+"laser glasses lv.1"    :(105,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  15, 0,  0,  0,  800,0,  0.5,),_glasses,),
+"laser glasses lv.2"    :(260,  0.1, 12, 100, PLAS,(0,  0,  0,  6,  0,  0,  15, 0,  0,  0, 1600,0,  0.2,),_glasses,),
 }
 
 FACEWEAR={
@@ -4324,20 +4368,20 @@ FACEWEAR={
 # E: covers eyes? bool (0 or 1)
     
 #--Name-------------------$$$$$, KG,  Dur, AP,  Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,)E,script
-"flesh mask"            :(25,    0.9, 15,  200, FLSH,(0,  0.1,0.8,3,  0,  1,  3,  0,  0,  6,  10, 0,  0.9,),1,_fMask,),# grants intimidation when you wear any armor but esp. if you wear flesh armor and the flesh face is the scariest of all
-"bandana"               :(2,     0.05,10,  300, CLTH,(0,  0.0,0.1,1,  3,  0,  12, 0,  0,  0,  0,  0,  1,),0,_bandana,),
-"leather mask"          :(40,    0.8, 90,  200, LETH,(0,  0.6,1.2,3,  3,  1,  3,  6,  0,  3,  10, 0,  0.8,),1,_lMask,),
-"boiled leather mask"   :(62,    0.7, 150, 200, BOIL,(1,  1.0,1.6,3,  6,  1,  3,  9,  0,  3,  10, 0,  0.8,),1,_blMask,),
-"plastic mask"          :(1,     1.5, 30,  200, PLAS,(-1, 0.8,0.6,3,  -6, 0,  3,  3,  0,  0,  50, 0,  0.5,),1,_pMask,),#"made of a translucent plastic, this mask allows the wearer to see through it while providing some protection.
-"plastic respirator"    :(14,    1.4, 20,  400, PLAS,(-2, 0.8,0.7,6,  -6, 0,  30, 3,  0,  0,  50, 0,  0.5,),1,_respirator,),#mask with added breathing filter for added bio resistance.
-"plastic bio mask"      :(25,    1.5, 15,  400, PLAS,(-2, 0.8,0.8,9,  3,  1,  42, 3,  0,  0,  50, 0,  0.5,),1,_respirator,),#respirator with a plastic or glass eye-covering for added bio resistance.
-"plague mask"           :(95,    1.7, 60,  800, LETH,(-4, 0.8,1.0,12, 3,  3,  21, 9,  0,  3,  100,0,  0.2,),1,_plagueMask,),
-"gas mask"              :(1200,  2.5, 80,  400, PLAS,(-2, 0.5,1.8,6,  15, 3,  60, 6,  1,  0,  100,0,  0.5,),1,_gasMask,),#an ancient bio mask made of fire resistant material.
-"kevlar mask"           :(2750,  0.5, 200, 200, PLAS,(2,  1.4,2.4,1,  3,  0,  0,  3,  3,  3,  20, 0,  0.8,),1,_kMask,),
-"wooden mask"           :(20,    0.8, 50,  200, WOOD,(0,  0.5,1.0,3,  -6, 0,  3,  0,  0,  0,  50, 0,  0.5,),1,_wMask,),
-"metal mask"            :(130,   0.7, 320, 300, METL,(0,  1.7,2.0,3,  -6, -1, 3,  -9, 0,  0,  50, 0,  0.5,),1,_mMask,),
-"metal respirator"      :(160,   1.7, 120, 400, METL,(-2, 1.7,2.0,6,  0,  -1, 30, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),
-"metal bio mask"        :(175,   1.8, 100, 400, METL,(-2, 1.7,2.0,9,  6,  2,  42, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),#bio masks are respirators with a visor for eye protection
+"flesh mask"            :(25,    0.9, 15,  200, FLSH,(0,  0.1,0.8,3,  0,  1,  12, 0,  0,  6,  10, 0,  0.9,),1,_fMask,),# grants intimidation when you wear any armor but esp. if you wear flesh armor and the flesh face is the scariest of all
+"bandana"               :(2,     0.05,10,  300, CLTH,(0,  0.0,0.1,1,  3,  0,  33, 0,  0,  0,  0,  0,  1,),0,_bandana,),
+"leather mask"          :(40,    0.8, 90,  200, LETH,(0,  0.6,1.2,3,  3,  1,  6,  6,  0,  3,  20, 0,  0.8,),1,_lMask,),
+"boiled leather mask"   :(62,    0.7, 150, 200, BOIL,(1,  1.0,1.6,3,  6,  1,  6,  9,  0,  3,  20, 0,  0.8,),1,_blMask,),
+"plastic mask"          :(1,     1.5, 30,  200, PLAS,(-1, 0.8,0.6,3,  -6, 0,  3,  3,  0,  0,  30, 0,  0.5,),1,_pMask,),#"made of a translucent plastic, this mask allows the wearer to see through it while providing some protection.
+"plastic respirator"    :(14,    1.4, 20,  400, PLAS,(-2, 0.8,0.7,6,  -6, 0,  51, 3,  0,  0,  30, 0,  0.5,),1,_respirator,),#mask with added breathing filter for added bio resistance.
+"plastic bio mask"      :(25,    1.5, 15,  400, PLAS,(-2, 0.8,0.8,9,  3,  1,  90, 3,  0,  0,  30, 0,  0.5,),1,_respirator,),#respirator with a plastic or glass eye-covering for added bio resistance.
+"plague mask"           :(95,    1.7, 60,  800, LETH,(-4, 0.8,1.0,12, 3,  3,  180,9,  0,  3,  50, 0,  0.2,),1,_plagueMask,),
+"gas mask"              :(1200,  2.5, 80,  400, PLAS,(-2, 0.5,1.8,6,  15, 3,  300,6,  1,  0,  50, 0,  0.5,),1,_gasMask,),#a pre-apocalypse bio mask made of fire resistant material.
+"kevlar mask"           :(2750,  0.5, 200, 200, PLAS,(2,  1.4,2.4,1,  3,  0,  6,  3,  3,  3,  20, 0,  0.8,),1,_kMask,),
+"wooden mask"           :(20,    0.8, 50,  200, WOOD,(0,  0.5,1.0,3,  -6, 0,  6,  0,  0,  0,  40, 0,  0.5,),1,_wMask,),
+"metal mask"            :(130,   0.7, 320, 300, METL,(0,  1.7,2.0,3,  -6, -1, 6,  -9, 0,  0,  50, 0,  0.5,),1,_mMask,),
+"metal respirator"      :(160,   1.7, 120, 400, METL,(-2, 1.7,2.0,6,  0,  -1, 60, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),
+"metal bio mask"        :(175,   1.8, 100, 400, METL,(-2, 1.7,2.0,9,  6,  2,  99, 0,  1,  0,  50, 0,  0.5,),1,_mRespirator,),#bio masks are respirators with a visor for eye protection
 }
 
 HEADWEAR={
@@ -4354,15 +4398,15 @@ HEADWEAR={
 #--Name-------------------$$$$$,KG,  Dur, AP,  Mat, (DV, AV,  Pro, Enc,FIR,ICE,BIO,ELE,PHS,BLD,LGT,SND,Vis,)F,E,script
 "flesh cap"             :(6,    1.7, 20,  100, FLSH,(0,  0.5, 0.9, 2,  -6, 5,  0,  0,  0,  3,  0,  0,  1,),0,0,_fCap,),
 "padded coif"           :(18,   1.2, 100, 200, CLTH,(0,  1.1, 1.9, 1,  -3, 3,  3,  0,  0,  3,  0,  0,  1,),0,0,_cCoif,),
-"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2, 2.2, 1,  -6, 6,  3,  3,  3,  3,  0,  0,  1,),0,0,_cCoif,),
-"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9, 1.1, 2,  -9, 0,  -3, 6,  0,  0,  0,  0,  1,),0,0,_pCap,),
-"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0, 2.0, 3,  -12,2,  -3, 9,  0,  0,  20, 0,  0.9,),0,0,_pHelm,),
-"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2, 3.0, 6,  -18,3,  0,  12, 0,  0,  50, 0,  0.5,),1,1,_pHelm,),
-"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6, 2.5, 12, -24,5,  12, 18, 0,  0,  10, 0,  0.8,),1,1,_pHelm,),
-"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5, 2.5, 9,  -12,6,  24, 18, 0,  0,  10, 0,  0.8,),1,1,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
+"thick padded coif"     :(32,   2.0, 180, 200, CLTH,(1,  2.2, 2.2, 1,  -6, 6,  6,  3,  3,  3,  0,  0,  1,),0,0,_cCoif,),
+"plastic cap"           :(2,    2.1, 50,  100, PLAS,(0,  1.9, 1.1, 2,  -9, 0,  0,  6,  0,  0,  0,  0,  1,),0,0,_pCap,),
+"plastic helmet"        :(4,    3.2, 80,  200, PLAS,(-1, 2.0, 2.0, 3,  -12,2,  6,  9,  0,  0,  20, 0,  0.9,),0,0,_pHelm,),
+"plastic helm"          :(12,   4.2, 100, 400, PLAS,(-2, 2.2, 3.0, 6,  -18,3,  12, 12, 0,  0,  50, 0,  0.5,),1,1,_pHelm,),
+"plastic globe helm"    :(14,   3.7, 60,  800, PLAS,(-3, 1.6, 2.5, 12, -24,5,  39, 18, 0,  0,  10, 0,  0.8,),1,1,_pHelm,),
+"plastic bio helm"      :(30,   4.0, 30,  500, PLAS,(-4, 1.5, 2.5, 9,  -12,6,  78, 18, 0,  0,  10, 0,  0.8,),1,1,_bioHelm,), # may not fuck up your heat res that much but it can catch fire while on your face, which will definitely fuck you up pretty much regardless of your heat res.
 "kevlar cap"            :(4550, 1.0, 300, 100, PLAS,(2,  3.0, 2.2, 1,  3,  0,  0,  3,  5,  1,  0,  0,  1,),0,0,_kCap,),
-"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6, 1.0, 2,  -6, 2,  3,  6,  0,  1,  0,  0,  1,),0,0,_lCap,),
-"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8, 1.2, 2,  -3, 2,  3,  9,  0,  1,  0,  0,  1,),0,0,_lCap,),
+"leather cap"           :(32,   2.0, 60,  100, LETH,(1,  1.6, 1.0, 2,  -6, 2,  0,  6,  0,  1,  0,  0,  1,),0,0,_lCap,),
+"boiled leather cap"    :(46,   1.8, 120, 100, LETH,(1,  2.8, 1.2, 2,  -3, 2,  0,  9,  0,  1,  0,  0,  1,),0,0,_lCap,),
 "skull cap"             :(26,   2.3, 110, 100, BONE,(-1, 3.2, 1.2, 2,  0,  1,  0,  6,  0,  0,  0,  0,  1,),0,0,_bCap,),
 "bone helmet"           :(35,   2.8, 125, 300, BONE,(-2, 3.2, 2.0, 6,  3,  2,  3,  9,  0,  0,  10, 0,  0.9,),0,0,_bHelm,),
 "pop tab mail coif"     :(95,   2.1, 175, 200, METL,(0,  3.5, 2.2, 2,  -3, 0,  3,  -6, 1,  3,  0,  0,  1,),0,0,_mCoif,),
@@ -4371,12 +4415,12 @@ HEADWEAR={
 "metal blast cap"       :(385,  6.2, 1400,100, METL,(-4, 10,  2.0, 12, -9, -15,0,  -9, 0,  1,  0,  0,  0.9,),0,0,_mCap,),
 "metal helmet"          :(255,  3.6, 400, 200, METL,(-1, 5.2, 3.2, 3,  -18,-3, 3,  -12,0,  2,  20, 0,  0.9,),0,0,_mHelm,),
 "metal helm"            :(420,  4.5, 500, 400, METL,(-2, 5.5, 4.0, 6,  -24,-6, 6,  -15,3,  2,  50, 0,  0.5,),1,1,_mHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; 
-"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5, 2.8, 12, -36,0,  18, -9, 0,  2,  10, 0,  0.8,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
-"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3, 2.6, 9,  -24,2,  30, -6, 0,  2,  10, 0,  0.8,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
-"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8, 5.2, 9,  -24,-9, 9,  -18,3,  3,  100,0,  0.2,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
-"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0, 1.0, 15, -6, -6, 12, -12,0,  2,  400,0,  0.1,),1,1,_mHelm,),
-"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(1,  2.4, 3.5, 3,  -3, 3,  15, 9,  3,  1,  50, 30, 0.8,),0,1,_motorcycleHelm,),
-"graphene helm"         :(18000,1.3, 560, 500, CARB,(2.5,8.0, 6.0, 1,  18, 12, 24, 15, 3,  6,  50, 60, 0.8,),1,1,_grHelm,),
+"metal globe helm"      :(475,  4.0, 320, 800, METL,(-3, 4.5, 2.8, 12, -36,0,  45, -9, 0,  2,  10, 0,  0.8,),1,1,_mHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio"
+"metal bio helm"        :(400,  4.4, 250, 1000,METL,(-4, 4.3, 2.6, 9,  -24,2,  90, -6, 0,  2,  10, 0,  0.8,),1,1,_mBioHelm,),#"the globe hat has a see-through plastic visor that provides decent protection to vision ratio. This globe helm has an attached respirator for increased BIO and FIR resistance."
+"metal full helm"       :(750,  5.0, 600, 1000,METL,(-6, 5.8, 5.2, 9,  -24,-9, 18, -18,3,  3,  100,0,  0.2,),1,1,_mFullHelm,),#can lower the visor for -2 protection, +1 DV, +3 FIR, Perception penalty cut to 1/4; exchangeable/removable visor
+"metal welding mask"    :(85,   1.2, 80,  200, METL,(-2, 3.0, 1.0, 15, -6, -6, 30, -12,0,  2,  400,0,  0.1,),1,1,_mHelm,),
+"motorcycle helmet"     :(830,  1.0, 50,  300, PLAS,(1,  2.4, 3.5, 3,  -3, 3,  24, 9,  3,  1,  50, 30, 0.8,),0,1,_motorcycleHelm,),
+"graphene helm"         :(18000,1.3, 560, 500, CARB,(2.5,8.0, 6.0, 1,  18, 12, 36, 15, 3,  6,  50, 60, 0.8,),1,1,_grHelm,),
 }
      
 '''
@@ -4406,8 +4450,8 @@ armor type:
 ARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
     # ceramics (ceramic armor is DIFFICULT to make)
-"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  2,  -6, 0,  3,  3,  3,  9,),None,),
-"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  2,  -6, 0,  6,  3,  3,  9,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
+"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  2,  -9, 0,  3,  3,  3,  9,),None,),
+"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  2,  -9, 0,  6,  3,  3,  9,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
     # cloth
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  2,  -30,1,  3,  0,  0,  1,),None,),
@@ -4428,69 +4472,69 @@ ARMOR={
     # leather and boiled leather
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "leather jacket"        :(100,   4.0,  60,  200,  LETH,(1,  1,  10, 2,  -12,12, 12, 15, 5,  8,),None,),
-"leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, 2,  -21,18, 12, 18, 10, 14,),None,),
-"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 3,  9,  24, 3,  5,),None,),
-"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  5,  2,  -9, 3,  9,  21, 3,  5,),None,),
-"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  3,  -36,21, 15, -6, 3,  15,),None,),
+"leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, 2,  -21,18, 12, 18, 10, 15,),None,),
+"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 3,  9,  33, 3,  5,),None,),
+"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  5,  2,  -9, 3,  9,  36, 3,  5,),None,),
+"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  3,  -36,21, 15, -6, 3,  21,),None,),
     # plastic
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "plastic cuirass"       :(42,    20.2, 80,  1200, PLAS,(-1, 4,  3,  3,  -36,0,  -6, 21, 0,  3,),None,),
 "plastic gear"          :(35,    13.5, 60,  2200, PLAS,(0,  3,  4,  3,  -51,0,  -9, 21, 0,  3,),None,),
 "disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  6,  -60,9,  30, 9,  0,  0,),None,),
 "hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-4, 1,  2,  6,  -75,18, 45, 12, 3,  0,),None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
-"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1,  6,  2,  6,  6,  20, 5,),None,),
+"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1,  3,  2,  6,  6,  20, 5,),None,),
     # wood
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  3,  4,  -45,0,  3,  0,  0,  0,),None,),
-"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  3,  -30,0,  6,  0,  0,  3,),None,),
+"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  3,  4,  -45,0,  3,  3,  0,  0,),None,),
+"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  3,  -30,0,  6,  6,  0,  3,),None,),
     # bone
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"bone cuirass"          :(380,   25.3, 80,  1200, BONE,(0,  6,  3,  4,  12, 3,  15, 15, 0,  5,),None,),
-"bone gear"             :(100,   16.8, 160, 1500, BONE,(2,  4,  4,  3,  9,  3,  12, 12, 0,  5,),None,),
+"bone cuirass"          :(380,   25.3, 80,  1200, BONE,(0,  6,  3,  4,  3,  3,  15, 21, 0,  5,),None,),
+"bone gear"             :(100,   16.8, 160, 1500, BONE,(2,  4,  4,  3,  6,  3,  12, 18, 0,  5,),None,),
     # metal
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "pop tab mail vest"     :(635,   12.3, 175, 800,  METL,(2,  6,  5,  2,  -3, 0,  9,  0,  3,  15,),None,),
-"pop tab mail shirt"    :(745,   14.7, 225, 800,  METL,(2,  6,  7,  2,  -3, 0,  9,  -3, 3,  15,),None,),
+"pop tab mail shirt"    :(745,   14.7, 225, 800,  METL,(2,  6,  7,  2,  -3, 0,  9,  -3, 3,  18,),None,),
 "metal mail vest"       :(675,   11.2, 320, 800,  METL,(2,  7,  6,  2,  -12,0,  9,  -3, 3,  15,),None,),
-"metal mail shirt"      :(905,   15.6, 360, 800,  METL,(3,  7,  8,  2,  -21,0,  9,  -6, 5,  15,),None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
+"metal mail shirt"      :(905,   15.6, 360, 800,  METL,(3,  7,  8,  2,  -21,0,  9,  -6, 5,  18,),None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
 "metal gear"            :(830,   14.4, 460, 2400, METL,(0,  8,  4,  2,  -30,-12,12, -12,3,  12,),None,),
-"brigandine"            :(975,   13.5, 550, 2400, METL,(1,  9,  5,  2,  -27,-21,9,  -6, 3,  8,),None,),
+"brigandine"            :(975,   13.5, 550, 2400, METL,(1,  9,  5,  2,  -27,-21,9,  -6, 3,  9,),None,),
 "metal cuirass"         :(1270,  22.9, 600, 1500, METL,(0,  12, 6,  3,  -30,-30,9,  -21,3,  12,),None,),
-"metal blast plate"     :(1950,  34.0, 990, 2000, METL,(-2, 20, 4,  5,  -42,-45,9,  -33,5,  12,),None,),
+"metal blast plate"     :(1950,  34.0, 990, 2000, METL,(-2, 20, 4,  5,  -42,-60,9,  -33,5,  12,),None,),
     # carbon
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1,  33, 24, 30, 30, 3,  20,),None,),
+"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1,  30, 21, 36, 60, 3,  30,),None,),
 }
 
 ARMARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wooden vambrace"       :(6,     0.8,  20,  200,  WOOD,(1,  0.1,0.2,3,  -9, 0,  0,  0,  0,  0,),None,),
-"leather vambrace"      :(15,    0.7,  50,  200,  LETH,(1,  0.2,0.2,2,  -3, 0,  0,  1,  0,  0,),None,),
-"metal vambrace"        :(70,    1.0,  80,  200,  METL,(1,  0.4,0.8,3,  -6, 0,  0,  -6, 0,  0,),None,),
+"wooden vambrace"       :(6,     0.8,  20,  200,  WOOD,(1,  0.1,0.2,3,  -9, 0,  0,  0,  0,  1,),None,),
+"leather vambrace"      :(15,    0.7,  50,  200,  LETH,(1,  0.2,0.2,2,  -3, 0,  0,  1,  0,  1,),None,),
+"metal vambrace"        :(70,    1.0,  80,  200,  METL,(1,  0.4,0.8,3,  -6, 0,  0,  -6, 0,  2,),None,),
 }
 
 LEGARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wooden greave"         :(8,     1.0,  30,  200,  WOOD,(0,  0.1,0.4,3,  -9, 0,  0,  0,  0,  0,),None,),
-"leather greave"        :(20,    1.1,  65,  200,  LETH,(0,  0.2,0.5,2,  -3, 0,  0,  1,  0,  0,),None,),
-"metal greave"          :(95,    1.5,  120, 200,  METL,(-1, 0.5,0.8,3,  -6, -3, 0,  -6, 0,  0,),None,),
-"padded legging"        :(15,    0.8,  75,  300,  CLTH,(1,  0.3,1.0,1,  -9, 0,  0,  3,  0,  0,),None,),
-"metal mail legging"    :(155,   1.0,  100, 300,  METL,(1,  0.4,1.3,2,  -9, 0,  0,  -3, 0,  0,),None,),
+"wooden greave"         :(8,     1.0,  30,  200,  WOOD,(0,  0.1,0.4,3,  -9, 0,  0,  0,  0,  1,),None,),
+"leather greave"        :(20,    1.1,  65,  200,  LETH,(0,  0.2,0.5,2,  -3, 0,  0,  1,  0,  1,),None,),
+"metal greave"          :(95,    1.5,  120, 200,  METL,(-1, 0.5,0.8,3,  -6, -3, 0,  -6, 0,  2,),None,),
+"padded legging"        :(15,    0.8,  75,  300,  CLTH,(1,  0.3,1.0,1,  -9, 0,  0,  3,  0,  1,),None,),
+"metal mail legging"    :(155,   1.0,  100, 300,  METL,(1,  0.4,1.3,2,  -9, 0,  0,  -3, 0,  2,),None,),
 }
 
 HANDARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"leather glove"         :(3,     0.1,  10,  100,  LETH,(0,  0,  0.1,2,  -2, 2,  2,  1,  1,  0,),None,),
-"plastic gauntlet"      :(1,     0.45, 20,  200,  PLAS,(0,  0.1,0.2,3,  -5, 0,  2,  1,  2,  0,),None,),
-"metal gauntlet"        :(26,    0.4,  100, 200,  METL,(0,  0.2,0.4,4,  -3, 0,  2,  -1, 2,  0,),None,),
+"leather glove"         :(3,     0.1,  10,  100,  LETH,(0,  0,  0.1,2,  -2, 2,  2,  1,  1,  1,),None,),
+"plastic gauntlet"      :(1,     0.45, 20,  200,  PLAS,(0,  0.1,0.2,3,  -5, 0,  2,  1,  2,  1,),None,),
+"metal gauntlet"        :(26,    0.4,  100, 200,  METL,(0,  0.2,0.4,4,  -3, 0,  2,  -1, 2,  1,),None,),
 }
 
 FOOTARMOR={ # boot +3. metal +3. inherint +3. bad fit +3 (matters more for shoes.) Wooden shoes are very encumbering due to being super uncomfortable and/or not ergonomic
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  18, -2, 0,  0,  0,  0,  0,),None,),
-"leather shoe"          :(3,     0.15, 25,  300,  LETH,(0,  0,  0.1,6,  -3, 2,  0,  1,  0,  0,),None,),
-"leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,9,  -5, 3,  0,  2,  0,  0,),None,),
-"metal boot"            :(20,    0.45, 125, 500,  LETH,(0,  0.1,0.5,12, -6, 3,  0,  2,  0,  0,),None,),
+"leather shoe"          :(3,     0.15, 25,  300,  LETH,(0,  0,  0.1,6,  -3, 2,  0,  1,  0,  1,),None,),
+"leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,9,  -5, 3,  0,  2,  0,  1,),None,),
+"metal boot"            :(20,    0.45, 125, 500,  LETH,(0,  0.1,0.5,12, -6, 3,  0,  2,  0,  1,),None,),
 }
 
 ABOUTARMOR={ # Actual Encumberance == encumberance * mass

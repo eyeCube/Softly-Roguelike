@@ -1,20 +1,69 @@
 
 todo list (what needs to get done before Softly Into the Night is playable?)
 
-	test existing mechanics, finish implementing: - 2 weeks
-		crafting + new items
-		combat
-	AI, enemies and enemy variety - 1 week
-	level design (map gen algo) - 1 week
-	using items - 1 week
-		eating, drinking
-	Inventory w/ weight limits - 24 hours
-	goal / end game - 24 hours
-	story or setting finalized - 24 hours
-	fires - 24 hours
-	throwing, shooting / ammo, etc. - 24 hours
+	ranged combat
+	targeting specific body parts
+	menu (SEE EXAMPLES)
+	skills
+	crafting
+	augmentations
 	
-	total: 6 weeks to get a playable game with a decent amount of content.
+	implement stats:
+		grappling
+		balance
+		intimidation, courage, beauty
+		
+		
+		
+	augmentations:
+		physical:
+			metal jaw:
+				* bite attack has +4 pen, +2 dmg, +50 bleed,
+				* eating speed 500%
+			dense bones:
+				* bone material becomes densebone, which is much stronger and tougher
+				* mass *110%
+				* Atk -2
+				* Dmg +2 with hand-to-hand attacks
+				
+			dense fiber muscle:
+				WIPdescription: the number of muscle cells doubles as each becomes thinner and stronger, making the muscle fibers very dense.
+				* str +6
+			hyperoxygenated muscle:
+				WIPdescription: muscle cells store oxygen much more efficiently, allowing them to work much longer without fatigue.
+				* stamina max 200%
+			enhanced blood flow: 
+				
+			antifreeze blood: ResCold +100
+			
+		mental:
+			cyber awareness:
+				vision 400%
+				hearing 400%
+				identify 400%
+			skill chip:
+				set skill level in a given skill (any chosen skill) to some value (25, 50, 75, 100, etc.)
+				some skills may be more expensive to purchase than others
+				the higher the level the chip sets the skill, the higher the cost
+			
+				
+			
+				
+	
+	
+	test existing mechanics:
+		all item systems
+		getms
+		combat
+	AI, enemies and enemy variety
+	level design (map gen algo)
+	using items
+		eating, drinking
+	Inventory w/ weight limits
+	goal / end game
+	story or setting finalized
+	fires 
+	throwing, shooting / ammo, etc.
 	
 	
 extras:
@@ -34,3 +83,46 @@ How to fix slow Python:
 	numpy/scipy - for dealing with arrays faster without loops
 
 		
+		
+		
+		EXAMPLES:
+		
+	menu:
+		lowercase on top (rn capitals appear first)
+		scrolling or some other method of showing large menus
+			scrolling:
+				Up/Down/PgUp/PgDown/Home/End, same as typical menu navigation
+				clicking takes scrolling into account
+				actual size of menu box never exceeds window height
+					the items in the menu just scroll up and down
+	like this:
+				____________________
+				| pick up what?		|
+				|-------------------|
+			1	|(a) corpse of zom	|
+			2	|(b) corpse of vom	|
+			3	|(c) thingamabob	|
+			4	|(d) whatsihoosit	|
+			5	|(e) thingamajig	|
+			6	|(f) doofuswanker	|
+			7	| < 6 more ... >	|
+				---------------------
+	moved up one:
+				____________________
+				| pick up what?		|
+				|-------------------|
+			1	| < 2 more ... >	|
+			2	|(c) thingamabob	|
+			3	|(d) whatsihoosit	|
+			4	|(e) thingamajig	|
+			5	|(f) doofuswanker	|
+			6	|(g) penisbob		|
+			7	| < 5 more ... >	|
+				---------------------
+	line 6 is now showing a new item, like 1 is obscured (obscuring two items at the top of the list), and every item has been moved up one tile. The top now shows "2 more" and the bottom shows "5 more" instead of "6 more" since only 5 more items remain below the visible portion of the menu. Notice the letters for each menu item DO NOT CHANGE so as to provide a pleasant scrolling experience.
+				
+				
+				
+				
+				
+				

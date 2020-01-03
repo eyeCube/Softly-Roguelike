@@ -86,7 +86,12 @@ def main():
             print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
     rog.Rogue.create_player(xpos, ypos)
-    rog.make(rog.pc(), NVISION)    
+    rog.make(rog.pc(), NVISION)
+    rog.equip(
+        rog.pc(),
+        entities.create_weapon("metal sword", 0,0),
+        EQ_HAND
+        )
     
     # create light so player can see
     log=rog.create_rawmat("log", 18,18)

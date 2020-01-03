@@ -51,15 +51,6 @@ EQ_HEAD     : cmp.EquipableInHeadSlot,
 EQ_AMMO     : cmp.EquipableInAmmoSlot,
     }
 
-EQUIP_CONSTS={
-EQ_MAINHAND : cmp.BP_Hand,
-EQ_OFFHAND  : cmp.BP_Hand,
-EQ_BODY     : cmp.BP_TorsoFront,
-EQ_BACK     : cmp.BP_TorsoBack,
-EQ_HEAD     : cmp.BP_Head,
-EQ_AMMO     : cmp.BP_Hips,
-    }
-
 
     #----------------#
     # global objects #
@@ -121,6 +112,7 @@ class Rogue:
         #Processor class, priority (higher = processed first)
         cls.world.add_processor(proc.MetersProcessor(), 31)
         cls.world.add_processor(proc.StatusProcessor(), 30)
+        cls.world.add_processor(proc.SPRegenProcessor(), 23)
         cls.world.add_processor(proc.FluidProcessor(), 22)
         cls.world.add_processor(proc.FireProcessor(), 21)
         cls.world.add_processor(proc.TimersProcessor(), 20)
@@ -468,13 +460,15 @@ def dupCmpMeters(meters):
             
     # entity functions #
 
-# GET Modified Statistic (base stat + modifiers (permanent and conditional))
+# getms: GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
     if on(ent, DIRTY_STATS): # dirty; re-calculate the stats first.
         makenot(ent, DIRTY_STATS)
         modded=_update_stats(ent)
         return modded.__dict__[_var]
     return Rogue.world.component_for_entity(ent, cmp.ModdedStats).__dict__[_var]
+def getbase(ent, _var): # get Base statistic
+    return Rogue.world.component_for_entity(ent, cmp.Stats).__dict__[_var]
 # ALTer Stat -- change stat stat by value val
 def alts(ent, stat, val):
     make(ent, DIRTY_STATS)
@@ -558,11 +552,11 @@ def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
     grid_insert(ent)
 def givehp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
-    stats.hp = min(stats.hpmax, stats.hp + val)
+    stats.hp = min(getms(ent, 'hpmax'), stats.hp + val)
     make(ent,DIRTY_STATS)
 def givemp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
-    stats.mp = min(stats.mpmax, stats.mp + val)
+    stats.mp = min(getms(ent, 'mpmax'), stats.mp + val)
     make(ent,DIRTY_STATS)
 def caphp (ent):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
@@ -572,6 +566,23 @@ def capmp (ent):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp = min(stats.mp, stats.mpmax)
     make(ent,DIRTY_STATS)
+
+
+# these aren't tested, nor are they well thought-out
+def knock(ent, amt): # apply force to an entity
+    mass = getms(ent, 'mass')
+    bal = getms(ent, 'bal')
+    effmass = mass * bal / BAL_MASS_MULT # effective mass
+    dmg = amt // effmass
+    stagger(ent, dmg)
+def stagger(ent, dmg): # reduce balance by dmg
+    if Rogue.world.has_component(ent, cmp.StatusOffBalance):
+        compo=Rogue.world.component_for_entity(ent, cmp.StatusOffBalance)
+        dmg = dmg + compo.quality
+    set_status(ent, cmp.StatusOffBalance(
+        t = min(8, 1 + dmg//4), q=dmg) )
+
+    
 #damage hp
 def damage(ent, dmg: int):
 ##    assert isinstance(dmg, int)
@@ -639,6 +650,10 @@ def electrify(ent, dmg):
     return entities.electrify(ent, dmg)
 def paralyze(ent, dur):
     return entities.paralyze(ent, dur)
+def wet(ent, g):
+    return entities.wet(ent, g)
+def dirty(ent, g):
+    return entities.dirty(ent, g)
 def mutate(ent):
     return entities.mutate(ent)
     
@@ -945,6 +960,70 @@ def init_fluidContainer(ent, size):
     #   Equipment / Body  #
     #---------------------#
 
+def _get_eq_compo(ent, equipType): # equipType Const -> component
+    compo = None
+    
+    # main hand
+    if equipType==EQ_MAINHAND:
+        compo = dominant_arm(ent).hand
+    # main arm
+    elif equipType==EQ_MAINARM:
+        compo = dominant_arm(ent).arm
+    # off hand
+    elif equipType==EQ_OFFHAND:
+        body = world.component_for_entity(ent, cmp.Body)
+        arm = body.parts[cmp.BPC_Arms].arms[1]
+        if arm: compo = arm.hand
+    # off arm
+    elif equipType==EQ_OFFARM:
+        body = world.component_for_entity(ent, cmp.Body)
+        arm = body.parts[cmp.BPC_Arms].arms[1]
+        if arm: compo = arm.arm
+    # main foot
+    elif equipType==EQ_MAINFOOT:
+        compo = dominant_leg(ent).foot
+    # main leg
+    elif equipType==EQ_MAINLEG:
+        compo = dominant_leg(ent).leg
+    # off foot
+    elif equipType==EQ_OFFFOOT:
+        body = world.component_for_entity(ent, cmp.Body)
+        leg = body.parts[cmp.BPC_Legs].legs[1]
+        if leg: compo = leg.foot
+    # off leg
+    elif equipType==EQ_OFFLEG:
+        body = world.component_for_entity(ent, cmp.Body)
+        leg = body.parts[cmp.BPC_Legs].legs[1]
+        if leg: compo = leg.leg
+    # head 1
+    elif equipType==EQ_MAINHEAD:
+        compo = dominant_head(ent).head
+    # face 1
+    elif equipType==EQ_MAINFACE:
+        compo = dominant_head(ent).face
+    # neck 1
+    elif equipType==EQ_MAINNECK:
+        compo = dominant_head(ent).neck
+    # eyes 1
+    elif equipType==EQ_MAINEYES:
+        compo = dominant_head(ent).eyes
+    # ears 1
+    elif equipType==EQ_MAINEARS:
+        compo = dominant_head(ent).ears
+    # torso core
+    elif equipType==EQ_CORE:
+        compo = world.component_for_entity(ent, cmp.Body).core.core
+    # torso front chest
+    elif equipType==EQ_FRONT:
+        compo = world.component_for_entity(ent, cmp.Body).core.front
+    # torso back
+    elif equipType==EQ_BACK:
+        compo = world.component_for_entity(ent, cmp.Body).core.back
+    # torso hips
+    elif equipType==EQ_HIPS:
+        compo = world.component_for_entity(ent, cmp.Body).core.hips
+    return compo
+#end def
 
 #equipping things
 def equip(ent,item,equipType): # equip an item in 'equipType' slot
@@ -952,53 +1031,52 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         equip ent with item in the slot designated by equipType const
         return the effect ID for the stat modifier if successful
         return a negative error value otherwise
+        
+##                #TODO: add special effects; light, etc. How to??
     '''
     world = Rogue.world
     equipableConst = EQUIPABLE_CONSTS[equipType]
-    equipConst = EQUIP_CONSTS[equipType]
     if world.has_component(item, equipableConst):
-        if world.has_component(ent, equipConst):
-            slot=world.component_for_entity(ent, equipConst)
-            if slot.item==None:
+        
+        # ensure body type indicates presence of this body part
+        # (TODO)
+        
+        compo = _get_eq_compo(ent, equipType)
+        
+        # component selected. Does this component exist?
+        if compo:
+            if compo.slot.item is None:
+                
+                # success! Equip the item
+                make(ent, DIRTY_STATS)
+                
+                grid_remove(item)
                 if world.has_component(item, cmp.Position):
                     world.remove_component(item, cmp.Position)
-                slot.item = item
-                make(ent, DIRTY_STATS)
-                return 1
+                    
+                compo.slot.item = item
+                
+                return 1 # yey
             else:
                 return -102 # already have something equipped there
         else:
-            return -101 # entity doesn't have the slot necessary
+            return -101 # something weird happened
     else:
         return -100 # item can't be equipped in this slot
-    
-##                if world.has_component(item, cmp.Stats):
-##                    stats=world.component_for_entity(item, cmp.Stats)
-##                    world.add_component(item, cmp._Stats(
-##                        hp=stats.hp, hpmax=stats.hpmax
-##                        mp=stats.mp, mpmax=stats.mpmax
-##                        resfire=stats.resfire,
-##                        resbio=stats.resbio,
-##                        reselec=stats.reselec,
-##                        resphys=stats.resphys
-##                        )
-##                    world.remove_component(item, cmp.Stats)
-    
-##                world.add_component(item, cmp.Equipped(ent, equipType))
-##                equipData=world.component_for_entity(item, equipableConst)
-##                modID = effect_add(ent, equipData.mods)
-##                slot.modID = modID
-##                #TODO: add special effects; light, etc.
+# end def
 
 def deequip(ent,equipType): # remove equipment from slot 'equipType'
-    equipConst = EQUIP_CONSTS[equipType]
-    slot=world.component_for_entity(ent, equipConst)
-    if not slot.item: #nothing equipped here
+    compo = _get_eq_compo(ent, equipType)
+    if not compo: return None
+    if not compo.slot.item: #nothing equipped here
         return None
-    item = slot.item
-    slot.item = None
+    
+    # remove the item
     make(ent, DIRTY_STATS)
+    item = compo.slot.item
+    compo.slot.item = None
     return item
+# end def
 
 ##    equipableConst = EQUIPABLE_CONSTS[equipType]
 ##    #TODO: remove any special effects; light, etc.
@@ -1025,18 +1103,18 @@ def create_gear(name,x,y):
 def create_body_humanoid(mass=70, height=175, female=False):
     return entities.create_body_humanoid(mass=mass, height=height, female=female)
 
-def dominant_arm(ent):
+def dominant_arm(ent): # get a BPM object
     assert(Rogue.world.has_component(ent, cmp.BPC_Arms))
-    for arm in Rogue.world.component_for_entity(ent, cmp.BPC_Arms).arms:
-        if arm.dominant:
-            return arm
-    return None
-def dominant_leg(ent):
+    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Arms)
+    return bpc.arms[0] # dominant is always in slot 0
+def dominant_leg(ent): # get a BPM object
     assert(Rogue.world.has_component(ent, cmp.BPC_Legs))
-    for leg in Rogue.world.component_for_entity(ent, cmp.BPC_Legs).legs:
-        if leg.dominant:
-            return leg
-    return None
+    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Legs)
+    return bpc.legs[0] # dominant is always in slot 0
+def dominant_head(ent): # get a BPM object
+    assert(Rogue.world.has_component(ent, cmp.BPC_Heads))
+    bpc = Rogue.world.component_for_entity(ent, cmp.BPC_Heads)
+    return bpc.heads[0] # dominant is always in slot 0
 
 def homeostasis(ent): entities.homeostasis(ent)
 def metabolism(ent, hunger, thirst=0): entities.metabolism(ent, hunger, thirst)
@@ -1198,39 +1276,48 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 
     # Strength
     _str = modded.str/MULT_ATT
-    modded.encmax += _str * ATT_STR_ENCUMBERANCE
+    modded.atk += _str * ATT_STR_ATK*MULT_STATS
+    modded.pen += _str * ATT_STR_PEN*MULT_STATS
+    modded.dmg += _str * ATT_STR_DMG*MULT_STATS
+    modded.gra += _str * ATT_STR_GRA*MULT_STATS
+    modded.encmax += _str * ATT_STR_ENCMAX
     modded.force += _str * ATT_STR_FORCE
-    modded.gra += _str * ATT_STR_GRAPPLING
-
+    
     # Agility
     _agi = modded.agi/MULT_ATT
-    modded.msp += _agi * ATT_AGI_MOVESPEED
-    modded.asp += _agi * ATT_AGI_ATTACKSPEED
-
+    modded.dfn += _agi * ATT_AGI_DV*MULT_STATS
+    modded.pro += _agi * ATT_AGI_PRO*MULT_STATS
+    modded.bal += _agi * ATT_AGI_BAL*MULT_STATS
+    modded.msp += _agi * ATT_AGI_MSP
+    modded.asp += _agi * ATT_AGI_ASP
+    
     # Dexterity
     _dex = modded.dex/MULT_ATT
-    modded.atk += _dex * ATT_DEX_ATTACK
-
+    modded.pen += _dex * ATT_DEX_PEN*MULT_STATS
+    modded.atk += _dex * ATT_DEX_ATK*MULT_STATS
+    modded.asp += _dex * ATT_DEX_SPEED
+    
     # Endurance
     _end = modded.end/MULT_ATT
+    modded.hpmax += _end * ATT_END_HP
+    modded.mpmax += _end * ATT_END_SP
+    modded.mpregen += _end * ATT_END_SPREGEN*MULT_STATS
     modded.resfire += _end * ATT_END_RESHEAT
     modded.rescold += _end * ATT_END_RESCOLD
     modded.resphys += _end * ATT_END_RESPHYS
     modded.respain += _end * ATT_END_RESPAIN
     modded.resbio += _end * ATT_END_RESBIO
     modded.resbleed += _end * ATT_END_RESBLEED
-
+    
     # Intelligence
     _int = modded.int/MULT_ATT
-
+    
     # Constitution
     _con = modded.con/MULT_ATT
+    modded.arm += _con * ATT_CON_AV*MULT_STATS
     modded.hpmax += _con * ATT_CON_HP
-    modded.encmax += _con * ATT_CON_ENCUMBERANCE
-
-    # Luck
-    luck = modded.luck
-    #
+    modded.encmax += _con * ATT_CON_ENCMAX
+    modded.reselec += _con * ATT_CON_RESELEC
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 

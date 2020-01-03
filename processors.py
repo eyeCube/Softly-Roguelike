@@ -551,6 +551,7 @@ class Status:
     @classmethod
     def add(self, ent, component, t=-1):
         if rog.world().has_component(ent, component): return False
+        rog.make(ent, DIRTY_STATS)
         status_str = ""
         #attribute modifiers, aux. effects, message (based on status type)
         if component is cmp.StatusFire:
@@ -626,6 +627,20 @@ class Status:
             #message
             rog.world().remove_component(ent, component)
 # end class
+
+
+#
+# Stamina regen processor
+#
+
+class SPRegenProcessor(esper.Processor): # TODO: test this
+    def process(self):
+        for ent, (stats, creat) in self.world.get_components(
+            cmp.Stats, cmp.Creature ):
+            # just query some components that match entities
+            # that will be needing stamina regen
+            rog.givemp(ent, rog.getms(ent, 'mpregen'))
+
 
 
 #

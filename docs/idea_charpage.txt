@@ -65,21 +65,28 @@
          (Rotting)..ROT.....0.....IMMUNE....(=)(0) 
 # color the value and the symbol in parens green if the symbol is + (the value > base value or else color it red if it's less, or white if equal.)
 
-    -- Body --
-    Hydration 48502 / 51247 g (Hydrated)
+				-- Body --
     Satiation   996 / 3230 Cal (Hungry)
-    Blood      5312 / 5496 g BLEEDING
+    Hydration 48502 / 51247 g (Hydrated)
+    Blood      5312 / 5496 g 			BLEEDING -5g/t
 
-    -- Skills --        #( ordered by highest -> lowest skill with Talents on top)
+				-- Skills --        #( highest -> lowest with Talents on top)
     Swords          43      (Talent)
-    Music           33      (Talent)
-    Medicine        6
+    Speech          33      (Talent)
+    Medicine        16
+    Unarmored       9
     Sewing          6
     Bows            5
-    Unarmored       5
 	Lockpick		2
-
-
+	
+				-- Equipment --
+	< head | face | neck | eyes | ears >
+		fitted greased metal helm (404/500)
+	< dominant hand >
+		ceramic boomerang (1/1)
+	< hand >
+		bone buckler +1 (21/40)
+	
 
                     # Hidden
 
