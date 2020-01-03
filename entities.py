@@ -2278,8 +2278,7 @@ def burn(ent, amt, maxTemp):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.temp = min( maxTemp, max(0, meters.temp + dmg ) )
     #set burning status
-    if (not rog.get_status(ent, cmp.StatusFire)
-            and meters.temp >= FIRE_THRESHOLD): #should depend on material?
+    if (meters.temp >= FIRE_THRESHOLD): #should depend on material?
         rog.set_status(ent, cmp.StatusFire)
 def normalizeTemperature(ent, roomTemp=0): # normalize to room temp
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -2305,7 +2304,6 @@ def hurt(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.pain += max(0, dmg )
     if meters.pain >= 100:
-        meters.pain = 50 # leave some pain
         rog.set_status(ent, cmp.StatusPain)
         
 #   SICK METER
@@ -2491,10 +2489,10 @@ def _apply_skill_bonus_weapon(dadd, skill):
     dadd['gra'] = dadd.get('gra',0) * (1 + SKLMOD_WEAPON_GRA*sm)
     dadd['ctr'] = dadd.get('ctr',0) * (1 + SKLMOD_WEAPON_CTR*sm)
 # end def
-def _apply_mass_encumberance(ent, item, dadd, equipable):
-    mass=rog.getms(item, 'mass')
-    dadd['mass'] = dadd.get('mass', 0) + mass
-    dadd['enc'] = dadd.get('enc', 0) + equipable.enc*equipable.mass/MULT_MASS
+##def _apply_mass(ent, item, dadd, equipable):
+##    mass=rog.getms(item, 'mass')
+##    dadd['mass'] = dadd.get('mass', 0) + mass
+##    dadd['enc'] = dadd.get('enc', 0) + equipable.enc*mass/MULT_MASS
 # end def
 
 '''
@@ -2591,9 +2589,6 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2627,9 +2622,6 @@ def _update_from_bp_hand(ent, hand, isOffhand=True):
         equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # weapon skill bonus
         if world.has_component(item, cmp.WeaponSkill):
@@ -2666,9 +2658,6 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2704,9 +2693,6 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2737,9 +2723,6 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2777,9 +2760,6 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2807,9 +2787,6 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2842,9 +2819,6 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
@@ -2865,9 +2839,6 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -2913,9 +2884,6 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -2949,9 +2917,6 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInFrontSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2988,9 +2953,6 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
-        
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
         
@@ -3025,9 +2987,6 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInHipsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # apply mass and encumberance from item
-        _apply_mass_encumberance(ent, item, dadd, equipable)
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -3214,7 +3173,7 @@ def create_armor(name,x,y,quality):
     dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
     arm = rog.around(get_gear_av(gData)*MULT_STATS)
     pro = rog.around(get_gear_pro(gData)*MULT_STATS)
-    enc = get_gear_enc(gData)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
     resbio = get_gear_resbio(gData)
     resfire = get_gear_resfire(gData)
     rescold = get_gear_rescold(gData)
@@ -3244,7 +3203,7 @@ def create_armor(name,x,y,quality):
     
     #stat mod dictionaries
     #{var : modf}
-    statsDict = {}
+    statsDict={'mass':mass}
     if resbio!=0: statsDict.update({"resbio":resbio})
     if resfire!=0: statsDict.update({"resfire":resfire})
     if rescold!=0: statsDict.update({"rescold":rescold})
@@ -3265,6 +3224,7 @@ def create_armor(name,x,y,quality):
     #item resistances based on material??? How to do this?
 
     if script: script(ent)
+    rog.register_entity(ent)
     return ent
 #
 
@@ -3287,7 +3247,7 @@ def create_weapon(name, x,y, quality=0):
     arm         = rog.around(get_weapon_av(data)*MULT_STATS)
     pro         = rog.around(get_weapon_pro(data)*MULT_STATS)
     asp         = get_weapon_asp(data)
-    enc         = get_weapon_enc(data)
+    enc         = get_weapon_enc(data)*mass/MULT_MASS
     ctr         = rog.around(get_weapon_ctr(data)*MULT_STATS)
     gra         = rog.around(get_weapon_gra(data)*MULT_STATS)
     stamina_cost= get_weapon_staminacost(data)
@@ -3310,7 +3270,7 @@ def create_weapon(name, x,y, quality=0):
     world.add_component(ent, cmp.Meters())
     _setGenericData(ent, material=material)
     # equipable
-    modDict={}
+    modDict={'mass':mass} # equipable components need to have mass as a mod
     if not atk==0: modDict.update({'atk':atk})
     if not dmg==0: modDict.update({'dmg':dmg})
     if not pen==0: modDict.update({'pen':pen})
@@ -3331,6 +3291,7 @@ def create_weapon(name, x,y, quality=0):
     world.add_component(ent,cmp.Quality(quality, minGrind, maxGrind))
     # script
     if script: script(ent)
+    rog.register_entity(ent)
     return ent
 #
 

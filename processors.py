@@ -890,22 +890,25 @@ class StatusProcessor(esper.Processor):
     #Status Meters are the build-up counters for status effects like fire, sickness, etc.
         
 class MetersProcessor(esper.Processor):
+    def _getambd(dt, mass):
+        ''' get the amount of ambient temperature change
+            based on how much the entity's temperature changed.
+            The more massive, the greater the effect. '''
+        return -dt * mass / MULT_MASS
+    #
     def process(self):
-        for ent,meters in self.world.get_component(cmp.Meters):
-            '''
-                interface with environment
-                    (e.g. in cases of heat exchange with the air)
-                and take effects from internal state
-            '''
-            
-            def _getambd(dt, mass):
-                ''' get the amount of ambient temperature change
-                    based on how much the entity's temperature changed.
-                    The more massive, the greater the effect. '''
-                return -dt * mass / MULT_MASS
-            #
-            
-            pos = self.world.component_for_entity(ent, cmp.Position)
+
+        # TODO: interface heat exchange btn entities equipping or
+        #  holding items in inventory
+        #  I think we need a component for Equipped or InContainer to handle this.
+        
+        '''
+            interface with environment
+                (e.g. in cases of heat exchange with the air)
+            and take effects from internal state
+        '''
+        for ent,(meters,pos) in self.world.get_components(
+            cmp.Meters, cmp.Position ):
             ambient_temp = Fires.tempat(pos.x, pos.y)
             
             # TODO: FIX THIS!!!!!!!
@@ -914,6 +917,7 @@ class MetersProcessor(esper.Processor):
 ##            if (abs(meters.temp - ambient_temp) >= 1):
 ##                # TODO: take insulation into account for deltatemp
 ##                #   as well as the actual difference in temperature
+##            # TODO: also take into account the material of the entity (metal is faster to gain/lose heat)
 ##                deltatemp = rog.sign(ambient_temp - meters.temp)
 ##                meters.temp = meters.temp + deltatemp
 ##                ambientdelta = _getambd(deltatemp, rog.getms(ent,"mass"))
@@ -927,6 +931,8 @@ class MetersProcessor(esper.Processor):
 ##                    rog.set_status(ent, cmp.StatusFrozen)
             #
             
+        for ent,meters in self.world.get_component(
+            cmp.Meters ):
             # sickness meter
             if (meters.sick > 0):
                 meters.sick = max(0, meters.sick - BIO_METERLOSS)

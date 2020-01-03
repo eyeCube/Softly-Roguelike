@@ -1306,11 +1306,11 @@ class StatusFire: # too hot and taking constant damage from the heat
     # This status is unrelated to the fire phenomenon, light,
     #     heat production, etc. Just handles damage over time.
     __slots__=['timer']
-    def __init__(self, t=-1):
+    def __init__(self, t=2):
         self.timer=t
 class StatusFrozen: # too cold and taking constant damage from the cold
     __slots__=['timer']
-    def __init__(self, t=-1):
+    def __init__(self, t=2):
         self.timer=t
 class StatusAcid: # damage over time, can cause deep wounds
     __slots__=['timer']
@@ -1330,7 +1330,7 @@ class StatusIrritated: # vision -25%, hearing -25%
         self.timer=t
 class StatusPain: # in overwhelming pain
     __slots__=['timer']
-    def __init__(self, t=60):
+    def __init__(self, t=2): # only lasts as long as the pain lasts
         self.timer=t
 class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
     __slots__=['timer']
@@ -1390,11 +1390,11 @@ class StatusShiver: # shivering
         self.timer=t
 class StatusEmaciated: # starving famished starved emaciated
     __slots__=['timer']
-    def __init__(self, t=-1):
+    def __init__(self, t=2):
         self.timer=t
 class StatusDehydrated: # dehydrated
     __slots__=['timer']
-    def __init__(self, t=-1):
+    def __init__(self, t=2):
         self.timer=t
 class StatusTired: # sleepy (stamina is a separate thing)
     __slots__=['timer']

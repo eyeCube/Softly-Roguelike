@@ -136,6 +136,54 @@ DIRECTION_FROM_INT={
 ##    )
 
 
+STATS={
+'str' : 'STR', #,'strength'),
+'con' : 'CON',
+'int' : 'INT',
+'agi' : 'AGI',
+'dex' : 'DEX',
+'end' : 'END',
+'resfire' : 'FIR',
+'rescold' : 'ICE',
+'resbio' : 'BIO',
+'reselec' : 'ELC',
+'resphys' : 'PHS',
+'respain' : 'PAI',
+'resrust' : 'RUS',
+'resrot' : 'ROT',
+'reswet' : 'WET',
+'resbleed' : 'BLD',
+'reslight' : 'LGT',
+'ressound' : 'SND',
+'courage' : 'COU',
+'mass' : 'KG',
+'hpmax' : 'HPMAX',
+'hp' : 'HP',
+'mpmax' : 'SPMAX',
+'mp' : 'SP',
+'mpregen' : 'SPR',
+'encmax' : 'ENCMAX',
+'enc' : 'ENC',
+'force' : 'FOR',
+'atk' : 'ATK',
+'dmg' : 'DMG',
+'pen' : 'PEN',
+'dfn' : 'DV',
+'arm' : 'AV',
+'pro' : 'PRO',
+'spd' : 'SPD',
+'asp' : 'ASP',
+'msp' : 'MSP',
+'gra' : 'GRA',
+'ctr' : 'CTR',
+'bal' : 'BAL',
+'sight' : 'VIS',
+'hearing' : 'AUD',
+'scary' : 'IDN',
+'beauty' : 'BEA',
+    }
+
+
 # titles
 i=1;
 TITLE_NONE          = i;i+=1;
@@ -1871,8 +1919,8 @@ SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
 
 ##class Struct_Sound():
 ##    def __init__(self):
-##        self.textSee=textSee
-##        self.textHear=textHear
+##textSee=textSee
+##textHear=textHear
 
 
 ###
