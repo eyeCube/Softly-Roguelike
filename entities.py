@@ -62,7 +62,7 @@ EL = ELEM_ELEC
 RA = ELEM_RADS
 
 ARMR = T_ARMOR
-HELM = T_HELMET
+HELM = T_HEADWEAR
 BACK = T_CLOAK
 
 A_BULL = AMMO_BULLETS
@@ -121,7 +121,7 @@ SKL_TIPFIRST    = SKL_THROWING
 
 # GEAR #
     #armor/headwear/facewear/eyewear (share most of these)
-#--$$$$$, KG,  Dur, Mat, (DV, AV, Pro,Vis,Enc,FIR,BIO,ELE,PHS),script
+#$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,script
 def get_gear_value(gData):          return gData[0]
 def get_gear_mass(gData):           return gData[1]
 def get_gear_hpmax(gData):          return gData[2]
@@ -141,8 +141,13 @@ def get_gear_resbleed(gData):       return gData[5][9]
 def get_gear_reslight(gData):       return gData[5][10]
 def get_gear_ressound(gData):       return gData[5][11]
 def get_gear_sight(gData):          return gData[5][12]
+def get_gear_script(gData):         return gData[6]
     # armor only
-def get_armor_script(gData):        return gData[6] 
+def get_armor_coversBack(gData):    return gData[6] 
+def get_armor_coversCore(gData):    return gData[7]
+def get_armor_coversHips(gData):    return gData[8]
+def get_armor_coversArms(gData):    return gData[9]
+def get_armor_script(gData):        return gData[10] 
     # eyewear
 def get_eyewear_script(gData):      return gData[6]
     # facewear
@@ -2430,9 +2435,14 @@ def append_mods(addMods, multMods, dadd, dmul):
         addMods.append(dadd)
     if dmul:
         multMods.append(dmul)
+# stats that need to be multiplied by MULT_STATS
+__MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
+             'str','con','int','agi','dex','end',)#MULT_STATS==MULT_ATT
 # for adding just 1 mod dict into dadd or dmul
 def _add(dadd, modDict):
     for stat,val in modDict.items():
+        if stat in __MULTSTATS:
+            val = val * MULT_STATS
         dadd[stat] = dadd.get(stat, 0) + val
 def _mult(dmul, modDict):
     for stat,val in modDict.items():
@@ -2501,13 +2511,13 @@ def _apply_skill_bonus_weapon(dadd, skill):
 
 # BPC
 
-def _update_from_body_class(ent):
-    world=rog.world()
-    body = world.component_for_entity(ent, cmp.Body)
-    mass = 0
-    mass += body.blood
-    mass += body.hydration
-    mass += body.fat
+##def _update_from_body_class(ent):
+##    world=rog.world()
+##    body = world.component_for_entity(ent, cmp.Body)
+##    mass = 0
+##    mass += body.blood
+##    mass += body.hydration
+##    mass += body.fat
 
 def _update_from_bpc_heads(addMods, multMods, ent, bpc, armorSkill, unarmored):
     for bpm in bpc.heads: # for each head you possess,
@@ -2968,10 +2978,10 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
     if back.skin.status:
         _add(dadd, ADDMODS_BPP_SKINSTATUS.get(back.skin.status, {}))
     if back.muscle.status:
-        _add(dadd, ADDMODS_BPP_TORSO_MUSCLESTATUS.get(back.muscle.status, {}))
+        _add(dadd, ADDMODS_BPP_BACK_MUSCLESTATUS.get(back.muscle.status, {}))
     if back.bone.status:
-        _add(dadd, ADDMODS_BPP_TORSO_BONESTATUS.get(back.bone.status, {}))
-        _mult(dmul, MULTMODS_BPP_TORSO_BONESTATUS.get(back.bone.status, {}))
+        _add(dadd, ADDMODS_BPP_BACK_BONESTATUS.get(back.bone.status, {}))
+        _mult(dmul, MULTMODS_BPP_BACK_BONESTATUS.get(back.bone.status, {}))
     return dadd,dmul
 # end def
 
@@ -3069,6 +3079,10 @@ def metabolism(ent, hunger, thirst=0):
     '''
     body = rog.world().component_for_entity(ent, cmp.Body)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
+
+    status = rog.get_status(ent, cmp.StatusDehydrated)
+    if status: # dehydration stops metabolic processes
+        return False
     
     # hunger
     body.satiation -= hunger
@@ -3080,6 +3094,8 @@ def metabolism(ent, hunger, thirst=0):
     
     # heat generation that is unaffected by heat res
     meters.temp += hunger * METABOLISM_HEAT
+
+    return True
 # end def
 
 
@@ -3157,51 +3173,12 @@ def create_fluid(x,y,ID,volume):
     return ent
 
 
-#non-weapon gear
-#pass in the name of an armor item on ARMOR table
-#   quality = 0 to 1. Determines starting condition of the item
-def create_armor(name,x,y,quality):
-    world = rog.world()
-    ent = world.create_entity()
-    
-    gData = ARMOR[name]
-    value = int(get_gear_value(gData)*MULT_VALUE)
-    mass = round(get_gear_mass(gData)*MULT_MASS)
-    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
-    apCost = get_gear_apCost(gData)
-    material = get_gear_material(gData)
-    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
-    arm = rog.around(get_gear_av(gData)*MULT_STATS)
-    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
-    enc = get_gear_enc(gData)*mass/MULT_MASS
-    resbio = get_gear_resbio(gData)
-    resfire = get_gear_resfire(gData)
-    rescold = get_gear_rescold(gData)
-    reselec = get_gear_reselec(gData)
-    resphys = get_gear_resphys(gData)
-    resbleed = get_gear_resbleed(gData)
-    reslight = get_gear_reslight(gData)
-    ressound = get_gear_ressound(gData)
-    sight = get_gear_sight(gData)
-    script = get_armor_script(gData)
-    
-    fgcol = COL['accent']
-    bgcol = COL['deep']
-    
-    world.add_component(ent, cmp.Name(name))
-    world.add_component(ent, cmp.Position(x, y))
-    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol) )
-    world.add_component(ent, cmp.Form(
-        mass=mass, material=material, value=value ))
-    world.add_component(ent, cmp.Stats(
-        hp=hpmax,mp=hpmax,
-        resfire=resfire,resbio=resbio,reselec=reselec,resphys=resphys
-        ))
-    world.add_component(ent, cmp.Flags())
-    world.add_component(ent, cmp.Meters())
-    _setGenericData(ent, material=material)
-    
-    #stat mod dictionaries
+#-----------------#
+# non-weapon gear #
+#-----------------#
+
+def _getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight ):
     #{var : modf}
     statsDict={'mass':mass}
     if resbio!=0: statsDict.update({"resbio":resbio})
@@ -3217,24 +3194,289 @@ def create_armor(name,x,y,quality):
     if pro!=0: statsDict.update({"pro":pro})
     if enc!=0: statsDict.update({"enc":enc})
     if sight!=0: statsDict.update({"sight":sight})
-    world.add_component(ent, cmp.EquipableInFrontSlot(apCost, statsDict))
-##    elif _type == BACK:
-##        world.add_component(ent, cmp.EquipableInBackSlot(apCost, modDict))
-    
-    #item resistances based on material??? How to do this?
+    return statsDict
 
+#create_armor - create armor item on ARMOR table 
+def create_armor(name,x,y,quality=1):
+    '''
+        # Parameters:
+        #   name : name of item to create from the data table
+        #   quality = 0 to 1. Determines starting condition of the item
+    '''
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = ARMOR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = 0#get_gear_reslight(gData)
+    ressound = 0#get_gear_ressound(gData)
+    sight = 0#get_gear_sight(gData)
+    back = get_armor_coversBack(gData)
+    core = get_armor_coversCore(gData)
+    hips = get_armor_coversHips(gData)
+    arms = get_armor_coversArms(gData)
+    script = get_armor_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInFrontSlot(
+        apCost, statsDict, coversBack=back,coversCore=core,coversHips=hips,coversArms=arms) )
+    
     if script: script(ent)
-    rog.register_entity(ent)
     return ent
 #
 
+#create head armor - create armor item on HEADWEAR table 
+def create_headwear(name,x,y,quality=1):
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = HEADWEAR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = get_gear_reslight(gData)
+    ressound = get_gear_ressound(gData)
+    sight = get_gear_sight(gData)
+    neck = get_headwear_neck(gData)
+    eyes = get_headwear_eyes(gData)
+    ears = get_headwear_ears(gData)
+    face = get_headwear_face(gData)
+    script = get_headwear_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInHeadSlot(
+        apCost, statsDict, coversNeck=neck,coversFace=face,coversEyes=eyes,coversEars=ears) )
+    
+    if script: script(ent)
+    return ent
+#
 
-def create_weapon(name, x,y, quality=0):
+#create facewear - create armor item on FACEWEAR table 
+def create_facewear(name,x,y,quality=1):
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = ARMOR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = get_gear_reslight(gData)
+    ressound = get_gear_ressound(gData)
+    sight = get_gear_sight(gData)
+    eyes = get_facewear_eyes(gData)
+    script = get_facewear_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInFaceSlot(
+        apCost, statsDict, coversEyes=eyes) )
+    
+    if script: script(ent)
+    return ent
+#
+
+#create armwear - create armor item on ARMARMOR table | arm armor
+def create_armwear(name,x,y,quality=1):
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = ARMARMOR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = ressound = sight = 0
+    script = get_gear_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInArmSlot(
+        apCost, statsDict) )
+    
+    if script: script(ent)
+    return ent
+#
+
+#create legging - create armor item on LEGARMOR table | leg armor
+def create_legwear(name,x,y,quality=1):
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = LEGARMOR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = round(get_gear_hpmax(gData)*MULT_STATS)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = ressound = sight = 0
+    script = get_gear_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInLegSlot(
+        apCost, statsDict) )
+    
+    if script: script(ent)
+    return ent
+#
+
+# weapons
+def create_weapon(name, x,y, quality=1):
     world = rog.world()
     ent = world.create_entity()
     # get weapon data from table
     data = WEAPONS[name]
-    print("weapon data is ", data)
     _type       = T_MELEEWEAPON
     value       = int(get_weapon_value(data)*MULT_VALUE)
     mass        = int(get_weapon_mass(data)*MULT_MASS)
@@ -3262,12 +3504,16 @@ def create_weapon(name, x,y, quality=0):
     world.add_component(ent, cmp.Name(name))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
-    world.add_component(ent, cmp.Form(mat=material,val=value))
-    world.add_component(ent, cmp.Stats(
-        hp=hpmax,mp=hpmax, mass=mass
-        ))
+    world.add_component(ent, cmp.Form(mat=material,val=value))    
     world.add_component(ent, cmp.Flags())
     world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
     _setGenericData(ent, material=material)
     # equipable
     modDict={'mass':mass} # equipable components need to have mass as a mod
@@ -3291,10 +3537,10 @@ def create_weapon(name, x,y, quality=0):
     world.add_component(ent,cmp.Quality(quality, minGrind, maxGrind))
     # script
     if script: script(ent)
-    rog.register_entity(ent)
     return ent
 #
 
+# monsters
 def create_monster(_type, x, y, col=None, mutate=0):
 
               # THIS IS BROKEN AND NEEDS A LOT OF WORK
@@ -3385,6 +3631,9 @@ def create_monster(_type, x, y, col=None, mutate=0):
     rog.grid_insert(ent) # TODO: test this
     return ent
 
+
+# conversion functions #
+
 def convertTo_corpse(ent):
     '''
         TODO: change it so you don't delete the entity when you kill a creature,
@@ -3422,7 +3671,6 @@ def create_ashes(ent):
         )
     return ashes
 
-
 def create_steel_weapon(itemName, x, y):
     '''
         create a metal weapon and modify its values/name
@@ -3458,6 +3706,9 @@ def create_steel_weapon(itemName, x, y):
     return weap
 #
 
+
+# bodies #
+
 def create_body_humanoid(mass=75, height=175, female=False):
     '''
         create a generic humanoid body with everything a basic body needs
@@ -3478,8 +3729,8 @@ def create_body_humanoid(mass=75, height=175, female=False):
             cmp.BPC_Legs  : cmp.BPC_Legs(cmp.BPM_Leg(), cmp.BPM_Leg()),
             },
         height=int(height),
-        blood=int(mass*0.07),
-        fat=fat, # total fat mass in the body (can be stored as a float, no problem)
+        blood=int(mass*0.07), # 7% of body mass is blood
+        fat=fat, # total fat mass in the body (floating point -- precision doesn't matter)
         hydration=int(MULT_HYD*mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
         satiation=int(mass*50), # how many calories (not KiloCalories) you have available at maximum satiation w/o resorting to burning fat / muscle
         sleep=86400 # 24h * 60m * 60s
@@ -3494,6 +3745,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
     
     return (body, massleft,)
 # end def
+
 
 # generic components that can be applied depending on entity's data
 def _setGenericData(ent, material=0):
@@ -3862,64 +4114,65 @@ RANGEDWEAPONS={
     #   For: force multiplier when shooting (* mass of the projectile)
 
 # caplock guns      :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"caplock pistol"    :(A_BULL,90,   1.4, 60, METL,5, 4, (1, 1,900,1,  6,  1, 6, 3, 0,  -18,6,  100,),SKL_CANNONS,_caplockPistol),
-"caplock musketoon" :(A_BULL,235,  3.8, 120,WOOD,7, 3, (1, 1,750,2,  14, 2, 11,4, -2, -39,21, 200,),SKL_CANNONS,_musketoon),
-"caplock musket"    :(A_BULL,325,  5.15,180,WOOD,10,3, (1, 1,600,3,  25, 4, 16,5, -4, -60,39, 400,),SKL_CANNONS,_musket),
-"caplock arquebus"  :(A_BULL,450,  6.5, 240,WOOD,14,3, (1, 1,500,4,  36, 5, 22,6, -6, -75,51, 800,),SKL_CANNONS,_musket),
+"caplock pistol"    :(A_BULL,90,   1.4, 60, METL,8, 4, (1, 1,900,1,  6,  1, 6, 3, 0,  -18,2,  100,),SKL_CANNONS,_caplockPistol),
+"caplock musketoon" :(A_BULL,235,  3.8, 120,WOOD,12,3, (1, 1,750,2,  14, 2, 11,4, -2, -39,6,  200,),SKL_CANNONS,_musketoon),
+"caplock musket"    :(A_BULL,325,  5.15,180,WOOD,16,3, (1, 1,600,3,  25, 4, 16,5, -4, -60,9,  400,),SKL_CANNONS,_musket),
+"caplock arquebus"  :(A_BULL,450,  6.5, 240,WOOD,20,3, (1, 1,500,4,  36, 5, 22,6, -6, -75,10, 800,),SKL_CANNONS,_musket),
 # shotguns          :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"12ga shotgun"      :(A_12GA,450,  3.25,275,WOOD,6, 1, (1, 1,50, 1,  16, 8, 18,6, -2, -24,21, 200,),SKL_SHOTGUNS,_12GAshotgun),# double-barrel is a mod (for all single-capcity shotguns), adds +12% mass and +1 Capacity
-"10ga shotgun"      :(A_10GA,520,  4.2, 350,WOOD,8, 1, (1, 1,25, 1,  14, 7, 22,5, -3, -36,30, 350,),SKL_SHOTGUNS,_10GAshotgun),
-"8ga shotgun"       :(A_8GA, 640,  5.5, 420,WOOD,10,1, (1, 1,12, 2,  12, 6, 26,4, -4, -48,42, 600,),SKL_SHOTGUNS,_8GAshotgun),
-"6ga shotgun"       :(A_6GA, 745,  7.1, 500,WOOD,13,1, (1, 1,6,  2,  10, 5, 30,3, -6, -60,51, 1000,),SKL_SHOTGUNS,_6GAshotgun),
-"4ga shotgun"       :(A_4GA, 850,  8.6, 420,WOOD,16,1, (1, 1,3,  3,  8,  4, 35,2, -8, -72,60, 1600,),SKL_SHOTGUNS,_4GAshotgun),
-"3ga shotgun"       :(A_3GA, 980,  10.1,420,WOOD,20,1, (1, 1,2,  4,  7,  3, 40,1, -10,-84,69, 2400,),SKL_SHOTGUNS,_3GAshotgun),
-"2ga shotgun"       :(A_2GA, 1100, 12.0,420,WOOD,25,1, (1, 1,1,  5,  16, 2, 50,0, -12,-96,78, 4000,),SKL_SHOTGUNS,_2GAshotgun),
-"12ga combat shotgun":(A_12GA,6500,3.45,750,METL,5, 1, (7, 1,1,  2,  30, 10,24,9, -2, -15,18, 500,),SKL_SHOTGUNS,_combatShotgun),
+"12ga shotgun"      :(A_12GA,450,  3.25,275,WOOD,12,1, (1, 1,50, 1,  16, 8, 18,6, -2, -24,6,  200,),SKL_SHOTGUNS,_12GAshotgun),# double-barrel is a mod (for all single-capcity shotguns), adds +12% mass and +1 Capacity
+"10ga shotgun"      :(A_10GA,520,  4.2, 350,WOOD,14,1, (1, 1,25, 1,  14, 7, 22,5, -3, -36,8,  350,),SKL_SHOTGUNS,_10GAshotgun),
+"8ga shotgun"       :(A_8GA, 640,  5.5, 420,WOOD,16,1, (1, 1,12, 2,  12, 6, 26,4, -4, -48,9,  600,),SKL_SHOTGUNS,_8GAshotgun),
+"6ga shotgun"       :(A_6GA, 745,  7.1, 500,WOOD,19,1, (1, 1,6,  2,  10, 5, 30,3, -6, -60,10, 1000,),SKL_SHOTGUNS,_6GAshotgun),
+"4ga shotgun"       :(A_4GA, 850,  8.6, 420,WOOD,22,1, (1, 1,3,  3,  8,  4, 35,2, -8, -72,11, 1600,),SKL_SHOTGUNS,_4GAshotgun),
+"3ga shotgun"       :(A_3GA, 980,  10.1,420,WOOD,25,1, (1, 1,2,  4,  7,  3, 40,1, -10,-84,12, 2400,),SKL_SHOTGUNS,_3GAshotgun),
+"2ga shotgun"       :(A_2GA, 1100, 12.0,420,WOOD,28,1, (1, 1,1,  5,  16, 2, 50,0, -12,-96,13, 4000,),SKL_SHOTGUNS,_2GAshotgun),
+"12ga combat shotgun":(A_12GA,6500,3.45,750,METL,10,1, (7, 1,1,  2,  30, 10,24,9, -2, -15,4,  500,),SKL_SHOTGUNS,_combatShotgun),
     # pistols, SMGs (9mm, 45ACP, 10mm, .357 magnum, 22LR)
 # name              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"pea shooter"       :(A_22LR,90,   0.9, 40, METL,2, 5, (7, 1,950,1,  8,  4, 1, 3, 0,  -30,1,  10,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
-"derringer"         :(A_22LR,65,   0.8, 90, METL,2, 6, (1, 1,300,1,  12, 6, 2, 6, 0,  0,  1,  20,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
-"9mm revolver"      :(A_9MM, 740,  1.15,630,METL,6, 7, (6, 1,200,1,  24, 6, 3, 12,0,  15, 3,  200,),SKL_PISTOLS,_pistol),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
-"9mm handgun"       :(A_9MM, 3750, 0.9, 520,METL,4, 4, (13,1,50, 1,  46, 10,4, 14,0,  90, 1,  100,),SKL_PISTOLS,_pistolSmall),
-"machine pistol"    :(A_9MM, 11200,0.95,360,METL,3, 3, (16,3,50, 1,  16, 8, 3, 10,0,  24, 1,  50,),SKL_PISTOLS,_pistolSmall),#beretta
-"UMP"               :(A_9MM, 12960,2.3, 450,METL,4, 3, (31,3,10, 1,  36, 12,4, 13,-1, 0,  6,  100,),SKL_SMGS,_smgSmall),
-".357 magnum revolver":(A_357,2075,1.25,700,METL,9, 7, (6, 1,100,1,  24, 4, 3, 11,0,  9,  3,  400,),SKL_PISTOLS,_pistol),
-"10mm handgun"      :(A_10MM,4475, 1.2, 560,METL,6, 4, (10,1,20, 1,  42, 12,5, 13,0,  75, 1,  100,),SKL_PISTOLS,_pistol),
-"10mm SMG"          :(A_10MM,18850,2.5, 420,METL,2, 3, (31,3,20, 1,  30, 7, 5, 12,-1, 0,  9,  100,),SKL_SMGS,_smgSmall),
-"autogun"           :(A_45,  3100, 1.1, 300,METL,3, 6, (13,1,150,1,  24, 4, 5, 10,0,  15, 1,  200,),SKL_PISTOLS,_pistol),
-"grease gun"        :(A_45,  890,  3.7, 180,METL,6, 5, (31,3,300,1,  16, 4, 3, 5, -2, -3, 15, 200,),SKL_SMGS,_smg),#MODABLE TO SHOOT 9MM
-"tommy gun"         :(A_45,  1150, 4.5, 240,METL,8, 5, (51,5,150,1,  20, 6, 4, 7, -3, -9, 21, 250,),SKL_SMGS,_smgLarge),
-"cig sawyer"        :(A_45,  8750, 1.0, 420,METL,3, 5, (8, 1,10, 1,  35, 8, 6, 12,0,  66, 1,  150,),SKL_PISTOLS,_pistolSmall),
-"uzi"               :(A_45,  13650,2.2, 340,METL,6, 5, (33,3,20, 1,  26, 8, 6, 9, -1, 0,  3,  150,),SKL_PISTOLS,_smgSmall),
+"pea shooter"       :(A_22LR,90,   0.9, 40, METL,1, 5, (7, 1,950,1,  8,  4, 1, 3, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"derringer"         :(A_22LR,65,   0.8, 90, METL,2, 7, (1, 1,300,1,  12, 6, 2, 6, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"9mm revolver"      :(A_9MM, 740,  1.15,630,METL,10,8, (6, 1,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
+"9mm handgun"       :(A_9MM, 3750, 0.9, 520,METL,4, 5, (13,1,50, 1,  46, 10,4, 14,0,  90, 2,  100,),SKL_PISTOLS,_pistolSmall),
+"machine pistol"    :(A_9MM, 11200,0.95,360,METL,8, 12,(16,3,50, 1,  16, 8, 3, 10,0,  24, 2,  50,),SKL_PISTOLS,_pistolSmall),#beretta
+"UMP"               :(A_9MM, 12960,2.3, 450,METL,5, 8, (31,3,10, 1,  36, 12,4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall),
+".357 magnum revolver":(A_357,2075,1.25,700,METL,13,7, (6, 1,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_pistol),
+"10mm handgun"      :(A_10MM,4475, 1.2, 560,METL,6, 5, (10,1,20, 1,  42, 12,5, 13,0,  75, 2,  100,),SKL_PISTOLS,_pistol),
+"10mm SMG"          :(A_10MM,18850,2.5, 420,METL,6, 5, (31,3,20, 1,  30, 7, 5, 12,-1, 0,  5,  100,),SKL_SMGS,_smgSmall),
+"autogun"           :(A_45,  3100, 1.1, 300,METL,4, 6, (13,1,150,1,  24, 4, 5, 10,0,  15, 2,  200,),SKL_PISTOLS,_pistol),
+"grease gun"        :(A_45,  890,  3.7, 180,METL,8, 5, (31,3,300,1,  16, 4, 3, 5, -2, -3, 6,  200,),SKL_SMGS,_smg),#MODABLE TO SHOOT 9MM
+"tommy gun"         :(A_45,  1150, 4.5, 240,METL,10,5, (51,5,150,1,  20, 6, 4, 7, -3, -9, 6,  250,),SKL_SMGS,_smgLarge),
+"cig sawyer"        :(A_45,  8750, 1.0, 420,METL,3, 6, (8, 1,10, 1,  35, 8, 6, 12,0,  66, 2,  150,),SKL_PISTOLS,_pistolSmall),
+"uzi"               :(A_45,  13650,2.2, 340,METL,7, 10,(33,3,20, 1,  26, 8, 6, 9, -1, 0,  2,  150,),SKL_PISTOLS,_smgSmall),
     # rifles, carbines, and muskets (22LR, 5.56x39mm, .30 carbine, .308, .30-06)
 # name              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"pidgeon plinker"   :(A_22LR,240,  2.5, 110,WOOD,3, 2, (17,1,50, 3,  50, 10,3, 8, -1, -15,18, 5,),SKL_RIFLES,_rifleSmall),
-"assault rifle"     :(A_556, 1480, 3.0, 325,METL,7, 4, (21,3,100,3,  40, 12,7, 16,-2, -12,27, 30,),SKL_MACHINEGUNS,_rifle),
-"flemington rifle"  :(A_556, 1320, 3.9, 500,WOOD,12,2, (5, 1,10, 4,  140,14,10,22,-3, -18,33, 300,),SKL_RIFLES,_rifleLarge),
-"bullpup rifle"     :(A_556, 3650, 3.6, 260,METL,6, 5, (36,3,10, 2,  60, 16,9, 20,-2, 6,  24, 30,),SKL_MACHINEGUNS,_rifleSmall),#modable with a stock, scope, 
-"service rifle"     :(A_556, 4300, 3.2, 660,METL,7, 5, (21,1,1,  3,  120,14,12,24,-2, -6, 24, 30,),SKL_RIFLES,_rifle),
-"battle rifle"      :(A_556, 7450, 3.4, 450,METL,8, 4, (36,4,10, 3,  75, 12,12,23,-2, 0,  30, 30,),SKL_MACHINEGUNS,_rifle),#m16
-"paratrooper carbine":(A_30, 850,  2.1, 220,WOOD,5, 2, (11,1,75, 1,  30, 12,10,16,-2, 15, 15, 100,),SKL_MACHINEGUNS,_rifleSmall),
-"garand"            :(A_30,  880,  2.8, 730,WOOD,6, 3, (16,1,10, 2,  66, 10,8, 16,-2, -21,21, 100,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
-"tactical carbine"  :(A_30,  6620, 2.9, 900,METL,6, 5, (31,1,2,  2,  90, 12,10,24,-2, 24, 21, 100,),SKL_RIFLES,_rifleSmall),
-"skirmisher rifle"  :(A_762, 920,  2.4, 300,METL,5, 4, (25,1,50, 2,  50, 15,12,18,-2, 15, 24, 100,),SKL_RIFLES,_rifleSmall),#ak47 (semi, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
-"avtomat"           :(A_762, 1580, 2.7, 860,METL,6, 2, (31,2,30, 2,  30, 12,10,16,-2, 15, 27, 100,),SKL_MACHINEGUNS,_rifleSmall),#ak47 (auto, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
-"modular rifle system":(A_762,27500,3.0,990,METL,6, 6, (31,3,2,  2,  200,18,14,20,-2, 0,  27, 50,),SKL_MACHINEGUNS,_rifleSmall),#modable with anything you can think of, including grenade launcher, laser sight, scope, longer barrel, silencer, bipod, larger magazine (box of 100), flashlight, bayonet, etc. 
-"big game rifle"    :(A_308, 4600, 3.3, 550,WOOD,10,3, (9, 1,10, 5,  160,18,15,22,-2, -30,30, 500,),SKL_RIFLES,_rifle308),#TODO: add Rusts component to these scripts and ALL items that can rust...
-"field rifle"       :(A_3006,6800, 4.2, 610,WOOD,15,4, (6, 1,10, 6,  250,22,18,26,-3, -36,36, 600,),SKL_RIFLES,_rifle3006),
-"sniper rifle"      :(A_50, 165500,12.2,990,METL,30,6, (5, 1,1,  12, 500,30,36,32,-9, -51,75, 2400,),SKL_RIFLES,_rifleXLarge),
+"pidgeon plinker"   :(A_22LR,240,  2.5, 110,WOOD,3, 2, (17,1,50, 3,  50, 10,3, 8, -1, -15,6,  5,),SKL_RIFLES,_rifleSmall),
+"assault rifle"     :(A_556, 1480, 3.0, 325,METL,7, 4, (21,3,100,3,  40, 12,7, 16,-2, -12,9,  30,),SKL_MACHINEGUNS,_rifle),
+"flemington rifle"  :(A_556, 1320, 3.9, 500,WOOD,12,2, (5, 1,10, 4,  140,14,10,22,-3, -18,12, 300,),SKL_RIFLES,_rifleLarge),
+"bullpup rifle"     :(A_556, 3650, 3.6, 260,METL,6, 5, (36,3,10, 2,  60, 16,9, 20,-2, 6,  6,  30,),SKL_MACHINEGUNS,_rifleSmall),#modable with a stock, scope, 
+"service rifle"     :(A_556, 4300, 3.2, 660,METL,7, 5, (21,1,1,  3,  120,14,12,24,-2, -6, 9,  30,),SKL_RIFLES,_rifle),
+"battle rifle"      :(A_556, 7450, 3.4, 450,METL,8, 4, (36,4,10, 3,  75, 12,12,23,-2, 0,  11, 30,),SKL_MACHINEGUNS,_rifle),#m16
+"paratrooper carbine":(A_30, 850,  2.1, 220,WOOD,5, 2, (11,1,75, 1,  30, 12,10,16,-2, 15, 6,  100,),SKL_MACHINEGUNS,_rifleSmall),
+"garand"            :(A_30,  880,  2.8, 730,WOOD,6, 3, (16,1,10, 2,  66, 10,8, 16,-2, -21,7,  100,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
+"tactical carbine"  :(A_30,  6620, 2.9, 900,METL,6, 5, (31,1,2,  2,  90, 12,10,24,-2, 24, 7,  100,),SKL_RIFLES,_rifleSmall),
+"skirmisher rifle"  :(A_762, 920,  2.4, 300,METL,5, 4, (25,1,50, 2,  50, 15,12,18,-2, 15, 8,  100,),SKL_RIFLES,_rifleSmall),#ak47 (semi, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"avtomat"           :(A_762, 1580, 2.7, 860,METL,6, 2, (31,2,30, 2,  30, 12,10,16,-2, 15, 8,  100,),SKL_MACHINEGUNS,_rifleSmall),#ak47 (auto, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"modular rifle system":(A_762,27500,3.0,990,METL,6, 6, (31,3,2,  2,  200,18,14,20,-2, 0,  8,  50,),SKL_MACHINEGUNS,_rifleSmall),#modable with anything you can think of, including grenade launcher, laser sight, scope, longer barrel, silencer, bipod, larger magazine (box of 100), flashlight, bayonet, etc. 
+"big game rifle"    :(A_308, 4600, 3.3, 550,WOOD,10,3, (9, 1,10, 5,  160,18,15,22,-2, -30,12, 500,),SKL_RIFLES,_rifle308),#TODO: add Rusts component to these scripts and ALL items that can rust...
+"field rifle"       :(A_3006,6800, 4.2, 610,WOOD,15,4, (6, 1,10, 6,  250,22,18,26,-3, -36,12, 600,),SKL_RIFLES,_rifle3006),
+"sniper rifle"      :(A_50, 165500,12.2,990,METL,30,6, (5, 1,1,  12, 500,30,36,32,-9, -51,12, 2400,),SKL_RIFLES,_rifleXLarge),
 # bows              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,9,  0.3,),SKL_BOWS,_pBow),
+"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,6,  0.3,),SKL_BOWS,_pBow),
 "hunting bow"       :(A_ARRO,8,    0.8, 75, WOOD,12,8, (1, 1,0,  2,  30, 4, 2, 2, 0,  0,  6,  1.0,),SKL_BOWS,_wBow),
-"wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,9,  2.5,),SKL_BOWS,_wBow),
-"laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,9,  5,),SKL_BOWS,_wBow),
+"wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,6,  2.5,),SKL_BOWS,_wBow),
+"laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,6,  5,),SKL_BOWS,_wBow),
 "composite bow"     :(A_ARRO,85,   1.5, 320,BONE,16,10,(1, 1,0,  2,  60, 10,8, 6, 0,  -12,6,  10,),SKL_BOWS,_compositeBow),
-"wooden longbow"    :(A_ARRO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 8, 8, 0,  -36,15, 20,),SKL_BOWS,_longbow),
+"wooden longbow"    :(A_WARO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 8, 8, 0,  -36,9,  20,),SKL_BOWS,_longbow),
+"wooden warbow"     :(A_WARO,55,   2.0, 300,WOOD,24,12,(1, 1,0,  3,  100,8, 10,10,0,  -51,9,  20,),SKL_BOWS,_longbow),
 # HUGE variety in weight of bows (power) -- add a lot more types of bows. Also huge variety of arrows. Just like guns or any other weapons.
 # distinction: bows vs. warbows. War bows have more damage, are slower, have higher strength requirements, more encumbering and durable, higher penetration etc.
 # crossbows         :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"wooden crossbow"   :(A_BOLT,40,   3.0, 180,WOOD,5, 2, (1, 1,0,  2,  10, 10,6, 4, -3, 30, 24, 3,),SKL_CROSSBOWS,_crossbow),
-"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, -30,66, 6,),SKL_CROSSBOWS,_arbalest),
+"wooden crossbow"   :(A_BOLT,40,   3.0, 180,WOOD,5, 2, (1, 1,0,  2,  10, 10,6, 4, -3, 30, 15, 3,),SKL_CROSSBOWS,_crossbow),
+"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, -30,21, 6,),SKL_CROSSBOWS,_arbalest),
 # chu ko nu / magazine fed crossbows!
 # screw crossbow! Loaded by turning a screw. Small, light, weak cbows. Maybe stronger than hand span but takes a lot longer to reload. Fire small bolts (smaller than usual). Takes 30 secs to reload
 # BELLY BOW! Crossbow that needs nothing but your own weight to load and can be loaded at varying strengths (draw lengths). Fires regular sized arrows but is a crossbow.
@@ -3937,10 +4190,10 @@ RANGEDWEAPONS={
 #   linen string (basically a rope, just use rope. Yes linen is better than cotton but let's imagine in this world all cloth is made of linen or some similar strong fiber.)
 #       covered in wax to protect from water.
 # misc              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"hand cannon"       :(A_BALL,480,  8.75,900,METL,20,2, (1, 1,100,3,  8,  2, 24,2, -6, -60,60, 1600,),SKL_CANNONS,_handCannon),#grants +AV, Protection.
-"war arquebus"      :(A_BALL,1060,12.25,800,METL,24,2, (1, 1,20, 5,  32, 2, 30,9, -12,-96,87, 800,),SKL_HEAVY,_arquebus),
-"blowgun"           :(A_DART,2,    0.15,20, WOOD,1, 1, (1, 1,0,  2,  16, 2, 2, 2, 0,  -30,1,  0,),None,_blowGun),
-"atlatl"            :(A_SPEAR,6,   0.5, 60, WOOD,3, 3, (1, 1,0,  4,  20, 4, 4, 4, 0,  -30,60, 1.5,),SKL_TIPFIRST,_atlatl),
+"hand cannon"       :(A_BALL,480,  8.75,900,METL,20,2, (1, 1,100,3,  8,  2, 24,2, -6, -60,24, 1600,),SKL_CANNONS,_handCannon),#grants +AV, Protection.
+"war arquebus"      :(A_BALL,1060,12.25,800,METL,24,2, (1, 1,20, 5,  32, 2, 30,9, -12,-96,18, 800,),SKL_HEAVY,_arquebus),
+"blowgun"           :(A_DART,2,    0.15,20, WOOD,1, 1, (1, 1,0,  2,  16, 2, 2, 2, 0,  -30,1.5,0,),None,_blowGun),
+"atlatl"            :(A_SPEAR,6,   0.5, 60, WOOD,3, 3, (1, 1,0,  4,  20, 4, 4, 4, 0,  -30,5,  1.5,),SKL_TIPFIRST,_atlatl),
 ##"particle gun"      :(A_ELEC,785000,6.5,990,METL,8, 6, (1, 1,0,  1,  999,20,32,32,-6, 0,  40, 10,),SKL_ENERGY,_particleGun),#grants +AV, Protection.
 
 # TODO: make weapons moddable with magazine upgrade, then set their
@@ -4162,18 +4415,18 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "bone rotella"          :(49,   3.4, 75,  BONE,20,8, (3,  5,  3,  5,  2,  2,  -24,5,  -4, 6,  28,),SKL_SHIELDS,_rotella,),#made of one, two or three big pieces of bone glued together. The pieces of bone (esp. for 1 or 2-piece rotellas) are difficult to acquire and manufacture for shield use so this is a relatively expensive item.
 "metal rotella"         :(175,  3.0, 240, METL,18,8, (3,  7,  4,  6,  3,  2,  -18,6,  -4, 7,  26,),SKL_SHIELDS,_rotella,), # one stamina cost for each 100g, +2 for being metal. - some percentage b/c shields are easy to attack with. Encumbering non-weapons should get *1.5 stamina cost or some shit. Auto-generated of course.
     # shields             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"wicker shield"         :(20,   4.2, 35,  WOOD,18,6, (1,  2,  0,  4,  2,  2,  -36,10, -10,4,  44,),SKL_SHIELDS,_shield,),
-"plastic shield"        :(7,    6.5, 80,  PLAS,22,6, (1,  3,  0,  3,  2,  3,  -54,9,  -12,5,  52,),SKL_SHIELDS,_shield,),
-"wooden shield"         :(75,   5.25,180, WOOD,20,6, (3,  5,  1,  4,  3,  3,  -45,9,  -10,7,  44,),SKL_SHIELDS,_shield,),
-"bone shield"           :(145,  6.2, 100, BONE,22,6, (2,  7,  2,  4,  4,  2,  -48,9,  -8, 7,  52,),SKL_SHIELDS,_shield,),
+"wicker shield"         :(20,   4.2, 35,  WOOD,18,6, (1,  2,  0,  4,  2,  2,  -36,12, -10,4,  44,),SKL_SHIELDS,_shield,),
+"plastic shield"        :(7,    6.5, 80,  PLAS,22,6, (1,  3,  0,  3,  2,  3,  -54,10, -12,5,  52,),SKL_SHIELDS,_shield,),
+"wooden shield"         :(75,   5.25,180, WOOD,20,6, (3,  5,  1,  4,  3,  3,  -45,10, -10,7,  44,),SKL_SHIELDS,_shield,),
+"bone shield"           :(145,  6.2, 100, BONE,22,6, (2,  7,  2,  4,  4,  2,  -48,10, -8, 7,  52,),SKL_SHIELDS,_shield,),
 "boiled leather shield" :(190,  5.05,120, BOIL,20,6, (3,  4,  1,  5,  4,  3,  -42,9,  -12,6,  44,),SKL_SHIELDS,_shield,),
-"metal shield"          :(380,  6.0, 360, METL,22,6, (2,  9,  3,  4,  5,  3,  -51,9,  -6, 8,  48,),SKL_SHIELDS,_shield,),
+"metal shield"          :(380,  6.0, 360, METL,22,6, (2,  9,  3,  4,  5,  3,  -51,10, -6, 8,  48,),SKL_SHIELDS,_shield,),
     # scutums             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
 "plastic scutum"        :(10,   9.8, 80,  PLAS,29,4, (-1, 2,  -6, 2,  3,  3,  -69,13, -12,6,  76,),SKL_SHIELDS,_scutum,),
 "wooden scutum"         :(120,  8.7, 180, WOOD,27,4, (1,  4,  -5, 3,  4,  3,  -57,14, -10,7,  66,),SKL_SHIELDS,_scutum,),
 "bone scutum"           :(255,  9.3, 100, BONE,28,4, (0,  5,  -2, 3,  5,  2,  -60,14, -8, 8,  72,),SKL_SHIELDS,_scutum,),
 "boiled leather scutum" :(305,  7.7, 120, BOIL,24,4, (1,  4,  -3, 4,  5,  3,  -54,14, -12,8,  66,),SKL_SHIELDS,_scutum,),
-"metal scutum"          :(495,  8.1, 360, METL,26,4, (0,  6,  -1, 3,  6,  3,  -63,15, -6, 8,  72,),SKL_SHIELDS,_scutum,),
+"metal scutum"          :(495,  8.1, 360, METL,26,4, (0,  6,  -1, 3,  6,  3,  -63,14, -6, 8,  72,),SKL_SHIELDS,_scutum,),
     # tower shields       $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
 "plastic tower shield"  :(15,   13.5,140, PLAS,33,1, (-3, 2,  -12,-6, 4,  5,  -81,18, -32,7,  120,),SKL_SHIELDS,_towerShield,),
 "wooden tower shield"   :(165,  12.0,400, WOOD,31,1, (-2, 2,  -12,-5, 5,  6,  -72,18, -30,8,  100,),SKL_SHIELDS,_towerShield,),
@@ -4427,66 +4680,70 @@ armor type:
         adds protection and armor
         adds mass, value
 '''
+# B - covers back?
+# C - covers core?
+# H - covers hips?
+# A - covers arms?
 ARMOR={
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
     # ceramics (ceramic armor is DIFFICULT to make)
-"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  2,  -9, 0,  3,  3,  3,  9,),None,),
-"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  2,  -9, 0,  6,  3,  3,  9,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
+"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  1.5,-9, 0,  3,  3,  3,  9, ),1,1,1,0,None,),
+"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  1.5,-9, 0,  6,  3,  3,  9, ),1,1,1,0,None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
     # cloth
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  2,  -30,1,  3,  0,  0,  1,),None,),
-"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  2,  -36,4,  6,  0,  0,  2,),None,),
-"cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  1,  -12,2,  3,  0,  0,  3,),None,),
-"wool jacket"           :(75,    2.0,  160, 300,  CLTH,(1,  1,  3,  4,  -30,9,  6,  2,  0,  6,),None,),
-"padded vest"           :(98,    1.6,  120, 300,  CLTH,(2,  1,  2,  1,  -6, 3,  3,  1,  0,  3,),None,),
-"padded jacket"         :(35,    2.1,  150, 600,  CLTH,(2,  2,  5,  2,  -12,6,  6,  3,  1,  12,),None,),
-"padded jack"           :(51,    3.1,  275, 700,  CLTH,(3,  3,  6,  2,  -21,10, 9,  6,  3,  15,),None,),
-"gambeson"              :(67,    4.1,  400, 800,  CLTH,(4,  4,  8,  2,  -30,15, 9,  12, 5,  18,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  5,  -30,1,  3,  0,  0,  1, ),0,0,0,0,None,),
+"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  4,  -36,4,  6,  0,  0,  2, ),0,0,0,0,None,),
+"cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  2,  -12,2,  3,  0,  0,  3, ),1,0,0,0,None,),
+"wool jacket"           :(75,    2.0,  160, 300,  CLTH,(1,  1,  3,  3,  -30,9,  6,  2,  0,  6, ),1,1,0,0,None,),
+"padded vest"           :(98,    1.6,  120, 300,  CLTH,(2,  1,  2,  2,  -6, 3,  3,  1,  0,  3, ),1,0,0,0,None,),
+"padded jacket"         :(35,    2.1,  150, 600,  CLTH,(2,  2,  5,  2,  -12,6,  6,  3,  1,  12,),1,1,0,0,None,),
+"padded jack"           :(51,    3.1,  275, 700,  CLTH,(3,  3,  6,  1.8,-21,10, 9,  6,  3,  15,),1,1,0,0,None,),
+"gambeson"              :(67,    4.1,  400, 800,  CLTH,(4,  4,  8,  1.5,-30,15, 9,  12, 5,  18,),1,1,0,0,None,),
     # flesh and fur
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  2,  -6, 3,  6,  3,  0,  9,),None,),
-"flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  2,  -12,6,  9,  3,  3,  15,),None,),
-"fur coat"              :(95,    2.85, 25,  300,  FLSH,(-3, 0.6,2,  4,  -39,60, 9,  9,  0,  0,),None,),
-"fur cuirass"           :(265,   15.85,125, 600,  FLSH,(0,  3,  5,  3,  -33,9,  9,  9,  0,  9,),None,),
-"fur suit"              :(475,   21.5, 150, 4000, FLSH,(-2, 3,  7,  5,  -48,30, 12, 15, 0,  15,),None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  2.5,-6, 3,  6,  3,  0,  9, ),1,1,1,0,None,),
+"flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  2.5,-12,6,  9,  3,  3,  15,),1,1,1,1,None,),
+"fur coat"              :(95,    2.85, 25,  300,  FLSH,(-3, 0.6,2,  3.5,-39,60, 9,  9,  0,  0, ),1,0,0,1,None,),
+"fur cuirass"           :(265,   15.85,125, 600,  FLSH,(0,  3,  5,  2.5,-33,9,  9,  9,  0,  9, ),1,1,0,0,None,),
+"fur suit"              :(475,   21.5, 150, 4000, FLSH,(-2, 3,  7,  4,  -48,30, 12, 15, 0,  15,),1,1,1,1,None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
     # leather and boiled leather
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"leather jacket"        :(100,   4.0,  60,  200,  LETH,(1,  1,  10, 2,  -12,12, 12, 15, 5,  8,),None,),
-"leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, 2,  -21,18, 12, 18, 10, 15,),None,),
-"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 3,  9,  33, 3,  5,),None,),
-"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  5,  2,  -9, 3,  9,  36, 3,  5,),None,),
-"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  3,  -36,21, 15, -6, 3,  21,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"leather jacket"        :(100,   4.0,  60,  200,  LETH,(1,  1,  10, 1.5,-12,12, 12, 15, 5,  8, ),1,0,0,1,None,),
+"leather biker jacket"  :(220,   9.0,  120, 300,  LETH,(2,  2,  12, 1.5,-21,18, 12, 18, 10, 15,),1,0,0,1,None,),
+"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 3,  9,  33, 3,  5, ),1,1,0,0,None,),
+"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  6,  1.5,-9, 3,  9,  36, 3,  5, ),1,1,1,0,None,),
+"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  2.5,-36,21, 15, -6, 3,  21,),1,1,1,0,None,),
     # plastic
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"plastic cuirass"       :(42,    20.2, 80,  1200, PLAS,(-1, 4,  3,  3,  -36,0,  -6, 21, 0,  3,),None,),
-"plastic gear"          :(35,    13.5, 60,  2200, PLAS,(0,  3,  4,  3,  -51,0,  -9, 21, 0,  3,),None,),
-"disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  6,  -60,9,  30, 9,  0,  0,),None,),
-"hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-4, 1,  2,  6,  -75,18, 45, 12, 3,  0,),None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
-"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1,  3,  2,  6,  6,  20, 5,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"plastic cuirass"       :(42,    20.2, 80,  1200, PLAS,(-1, 4,  3,  2,  -36,0,  -6, 21, 0,  3, ),1,1,0,0,None,),
+"plastic gear"          :(35,    13.5, 60,  2200, PLAS,(0,  3,  4,  1.7,-51,0,  -9, 21, 0,  3, ),1,1,1,0,None,),
+"disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  3,  -30,9,  30, 9,  0,  0, ),1,1,1,1,None,),
+"hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-4, 1,  2,  3,  -60,18, 45, 12, 3,  0, ),1,1,1,1,None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
+"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1.3,3,  2,  6,  6,  20, 5, ),1,0,0,0,None,),
     # wood
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  3,  4,  -45,0,  3,  3,  0,  0,),None,),
-"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  3,  -30,0,  6,  6,  0,  3,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  2,  2.5,-45,0,  3,  3,  0,  0, ),1,1,1,0,None,),
+"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  1.6,-30,0,  6,  6,  0,  3, ),1,1,1,0,None,),
     # bone
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"bone cuirass"          :(380,   25.3, 80,  1200, BONE,(0,  6,  3,  4,  3,  3,  15, 21, 0,  5,),None,),
-"bone gear"             :(100,   16.8, 160, 1500, BONE,(2,  4,  4,  3,  6,  3,  12, 18, 0,  5,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"bone cuirass"          :(380,   25.3, 80,  1200, BONE,(0,  6,  3,  2,  3,  3,  15, 21, 0,  5, ),1,1,0,0,None,),
+"bone gear"             :(100,   16.8, 160, 1500, BONE,(2,  4,  5,  1.5,6,  3,  12, 18, 0,  5, ),1,1,1,0,None,),
     # metal
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"pop tab mail vest"     :(635,   12.3, 175, 800,  METL,(2,  6,  5,  2,  -3, 0,  9,  0,  3,  15,),None,),
-"pop tab mail shirt"    :(745,   14.7, 225, 800,  METL,(2,  6,  7,  2,  -3, 0,  9,  -3, 3,  18,),None,),
-"metal mail vest"       :(675,   11.2, 320, 800,  METL,(2,  7,  6,  2,  -12,0,  9,  -3, 3,  15,),None,),
-"metal mail shirt"      :(905,   15.6, 360, 800,  METL,(3,  7,  8,  2,  -21,0,  9,  -6, 5,  18,),None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
-"metal gear"            :(830,   14.4, 460, 2400, METL,(0,  8,  4,  2,  -30,-12,12, -12,3,  12,),None,),
-"brigandine"            :(975,   13.5, 550, 2400, METL,(1,  9,  5,  2,  -27,-21,9,  -6, 3,  9,),None,),
-"metal cuirass"         :(1270,  22.9, 600, 1500, METL,(0,  12, 6,  3,  -30,-30,9,  -21,3,  12,),None,),
-"metal blast plate"     :(1950,  34.0, 990, 2000, METL,(-2, 20, 4,  5,  -42,-60,9,  -33,5,  12,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"pop tab mail vest"     :(675,   12.3, 175, 800,  METL,(2,  6,  5,  1.5,-3, 0,  9,  0,  3,  15,),1,1,0,0,None,),
+"pop tab mail shirt"    :(795,   14.7, 225, 800,  METL,(2,  6,  7,  1.5,-3, 0,  9,  -3, 3,  18,),1,1,1,0,None,),
+"metal mail vest"       :(745,   11.2, 320, 800,  METL,(2,  7,  6,  1.5,-12,0,  9,  -3, 3,  15,),1,1,0,0,None,),
+"metal mail shirt"      :(1020,  15.6, 360, 800,  METL,(3,  7,  8,  1.5,-21,0,  9,  -6, 5,  18,),1,1,1,0,None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
+"metal gear"            :(860,   14.4, 460, 2400, METL,(0,  8,  4,  1.5,-30,-12,12, -12,3,  12,),1,1,1,0,None,),
+"brigandine"            :(895,   13.5, 550, 2400, METL,(1,  9,  5,  1.5,-27,-21,9,  -6, 3,  9, ),1,1,0,0,None,),
+"metal cuirass"         :(1370,  22.9, 600, 1500, METL,(0,  12, 6,  2,  -30,-30,9,  -21,3,  12,),1,1,0,0,None,),
+"metal blast plate"     :(2040,  34.0, 990, 2000, METL,(-2, 20, 4,  3,  -42,-60,9,  -33,5,  12,),1,1,0,0,None,),
     # carbon
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1,  30, 21, 36, 60, 3,  30,),None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
+"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1.3,30, 21, 36, 60, 3,  30,),1,1,1,0,None,),
 }
 
-ARMARMOR={
+ARMARMOR={ # TODO: update Enc values on all gear
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "wooden vambrace"       :(6,     0.8,  20,  200,  WOOD,(1,  0.1,0.2,3,  -9, 0,  0,  0,  0,  1,),None,),
 "leather vambrace"      :(15,    0.7,  50,  200,  LETH,(1,  0.2,0.2,2,  -3, 0,  0,  1,  0,  1,),None,),
@@ -4498,20 +4755,20 @@ LEGARMOR={
 "wooden greave"         :(8,     1.0,  30,  200,  WOOD,(0,  0.1,0.4,3,  -9, 0,  0,  0,  0,  1,),None,),
 "leather greave"        :(20,    1.1,  65,  200,  LETH,(0,  0.2,0.5,2,  -3, 0,  0,  1,  0,  1,),None,),
 "metal greave"          :(95,    1.5,  120, 200,  METL,(-1, 0.5,0.8,3,  -6, -3, 0,  -6, 0,  2,),None,),
-"padded legging"        :(15,    0.8,  75,  300,  CLTH,(1,  0.3,1.0,1,  -9, 0,  0,  3,  0,  1,),None,),
-"metal mail legging"    :(155,   1.0,  100, 300,  METL,(1,  0.4,1.3,2,  -9, 0,  0,  -3, 0,  2,),None,),
+"padded legging"        :(15,    0.8,  75,  300,  CLTH,(1,  0.3,1.0,2,  -9, 0,  0,  3,  0,  1,),None,),
+"metal mail legging"    :(85,    1.5,  100, 300,  METL,(1,  0.4,1.3,2.5,-9, 0,  0,  -3, 0,  2,),None,),
 }
 
 HANDARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
 "leather glove"         :(3,     0.1,  10,  100,  LETH,(0,  0,  0.1,2,  -2, 2,  2,  1,  1,  1,),None,),
 "plastic gauntlet"      :(1,     0.45, 20,  200,  PLAS,(0,  0.1,0.2,3,  -5, 0,  2,  1,  2,  1,),None,),
-"metal gauntlet"        :(26,    0.4,  100, 200,  METL,(0,  0.2,0.4,4,  -3, 0,  2,  -1, 2,  1,),None,),
+"metal gauntlet"        :(25,    0.4,  100, 200,  METL,(0,  0.2,0.4,4,  -3, 0,  2,  -1, 2,  1,),None,),
 }
 
-FOOTARMOR={ # boot +3. metal +3. inherint +3. bad fit +3 (matters more for shoes.) Wooden shoes are very encumbering due to being super uncomfortable and/or not ergonomic
+FOOTARMOR={ # enc- boot +3. metal +3. inherint +3. bad fit +3 (matters more for shoes.) Wooden shoes are very encumbering due to being super uncomfortable and/or not ergonomic
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  18, -2, 0,  0,  0,  0,  0,),None,),
+"wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  15, -2, 0,  0,  0,  0,  0,),None,),
 "leather shoe"          :(3,     0.15, 25,  300,  LETH,(0,  0,  0.1,6,  -3, 2,  0,  1,  0,  1,),None,),
 "leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,9,  -5, 3,  0,  2,  0,  1,),None,),
 "metal boot"            :(20,    0.45, 125, 500,  LETH,(0,  0.1,0.5,12, -6, 3,  0,  2,  0,  1,),None,),
@@ -4519,7 +4776,7 @@ FOOTARMOR={ # boot +3. metal +3. inherint +3. bad fit +3 (matters more for shoes
 
 ABOUTARMOR={ # Actual Encumberance == encumberance * mass
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"cloak"                 :(160,   2.5,  90,  200,  CLTH,(-1, 1.0,1.6,4,  -15,45, 0,  9,  6,  0,),_cloak,),#gives water resistance; can be wielded as a weapon;
+"cloak"                 :(160,   2.5,  90,  200,  CLTH,(-1, 1.0,1.6,6,  -15,45, 0,  9,  6,  0,),_cloak,),#gives water resistance; can be wielded as a weapon;
 }
 
 

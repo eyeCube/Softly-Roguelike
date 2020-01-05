@@ -94,53 +94,85 @@ def _getbs(stat): # get base stat
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_STATS
 
 # _get_equipment
-def __add_eq(equipment, bpname, slot):
+def __add_eq(equipment, bpname, slot, equipableCompo):
     if slot.item:
-        itemname = rog.world().component_for_entity(slot.item, cmp.Name)
+        world = rog.world()
+        equipable = world.component_for_entity(slot.item, equipableCompo)
+        itemname = world.component_for_entity(slot.item, cmp.Name)
+        mods=__eqdadd(equipable.mods)
+        # covers
         covers = ""
         for cover in slot.covers:
             covers += "| {} ".format(cmp.NAMES[cover])
-        equipment += "    < {bp} {cov}>\n        {n} ({hp} / {hpmax})".format(
+        #
+        equipment += '''    < {bp} {cov}>
+        {n} ({hp} / {hpmax})
+'''.format(
             bp=bpname,
             n=itemname.name,
             hp=rog.getms(slot.item, "hp"),
             hpmax=rog.getms(slot.item, "hpmax"),
-            cov=covers
+            cov=covers,
+            mods=mods
             )
     return equipment
+def __eqdadd(mods):
+    string=""
+    for k, v in mods.items():
+        sign = "+" if v > 0 else ""
+        name=STATS[k]
+        ww=rog.window_w() - 26
+        if len(string)-string.count('\n')*ww > ww:
+            string += "\n                "
+        string += "{n}: {sign}{v}, ".format(n=name, v=v, sign=sign)
+    if string: string = string[:-2] # remove final delim
+    return string
 def _get_equipment(body):
     equipment=""
         
     # human / humanoid shape bodies
     if body.plan==BODYPLAN_HUMANOID:
         # core
-        equipment=__add_eq(equipment,"core",body.core.core.slot)
-        equipment=__add_eq(equipment,"front",body.core.front.slot)
-        equipment=__add_eq(equipment,"back",body.core.back.slot)
-        equipment=__add_eq(equipment,"hips",body.core.hips.slot)
+        equipment=__add_eq(equipment,"core",body.core.core.slot,
+                           cmp.EquipableInCoreSlot)
+        equipment=__add_eq(equipment,"front",body.core.front.slot,
+                           cmp.EquipableInFrontSlot)
+        equipment=__add_eq(equipment,"back",body.core.back.slot,
+                           cmp.EquipableInBackSlot)
+        equipment=__add_eq(equipment,"hips",body.core.hips.slot,
+                           cmp.EquipableInHipsSlot)
         # parts
         for head in body.parts[cmp.BPC_Heads].heads:
-            equipment=__add_eq(equipment,"head",head.head.slot)
-            equipment=__add_eq(equipment,"face",head.face.slot)
-            equipment=__add_eq(equipment,"neck",head.neck.slot)
-            equipment=__add_eq(equipment,"eyes",head.eyes.slot)
-            equipment=__add_eq(equipment,"ears",head.ears.slot)
+            equipment=__add_eq(equipment,"head",head.head.slot,
+                           cmp.EquipableInHeadSlot)
+            equipment=__add_eq(equipment,"face",head.face.slot,
+                           cmp.EquipableInFaceSlot)
+            equipment=__add_eq(equipment,"neck",head.neck.slot,
+                           cmp.EquipableInNeckSlot)
+            equipment=__add_eq(equipment,"eyes",head.eyes.slot,
+                           cmp.EquipableInEyesSlot)
+            equipment=__add_eq(equipment,"ears",head.ears.slot,
+                           cmp.EquipableInEarsSlot)
         i=-1
         for arm in body.parts[cmp.BPC_Arms].arms:
             i+=1
             if arm is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot)
-            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot)
+            equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
+                           cmp.EquipableInArmSlot)
+            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
+                           cmp.EquipableInHandSlot)
         i=-1
         for leg in body.parts[cmp.BPC_Legs].legs:
             i+=1
             if leg is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot)
-            equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot)
+            equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot,
+                           cmp.EquipableInLegSlot)
+            equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot,
+                           cmp.EquipableInFootSlot)
     #
-    
+    if equipment: equipment = equipment[:-1]
     return equipment
 def _get_gauges(meters):
     lgauges=[]
@@ -196,7 +228,7 @@ def __gdmul(_dict, status):
     mods = _dict[status]
     for k, v in mods.items():
         name=STATS[k]
-        string += "{n}: *{v}, ".format(n=name, v=v)
+        string += "{n}: {v}%, ".format(n=name, v=int(v*100))
     if string: string = string[:-2] # remove final delim
     return string
 def _get_body_effects(world, pc): # TODO: finish all of these for each body part, and each BPP for each body part
@@ -207,11 +239,149 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
     # humanoid
     if body.plan == BODYPLAN_HUMANOID:
         
-        if body.core.core.muscle.status: # TODO: test this before duplicating
-            status = body.core.core.muscle.status
-            fxlist.append( (status,"{bp}: {eff}\n            [ {am} ]\n".format(
-                bp="core muscle", eff=MUSCLESTATUSES[status],
-                am=__gdadd(ADDMODS_BPP_TORSO_MUSCLESTATUS,status)) ) )
+        # function for showing a body part status
+        def __f(bppname,status, bpstatusdict, amd=None, mmd=None):
+            # amd : add mod dict
+            # mmd : mult. mod dict
+            if status:
+
+                # priority -- depending on status AND type of body part
+                priority = status
+                if "scalp" in bppname: # head skin higher priority than regular skin
+                    priority += 10
+                elif "muscle" in bppname: # muscles have higher priority than skin
+                    priority += 20
+                elif "bone" in bppname: # bones have high priority
+                    priority += 30 # a broken bone is no bueno
+                elif "skull" in bppname: # skull has very high priority
+                    priority += 40
+                elif "brain" in bppname: # brain has very highest priority
+                    priority += 50
+                    
+                mm=""
+                if mmd:
+                    mm = "\n            [ {} ]".format(
+                        __gdmul(mmd, status) )
+                am=""
+                if amd:
+                    am = "\n            [ {} ]".format(
+                        __gdadd(amd, status))
+                fxlist.append(
+                    (priority, "        {bpn}: {eff}{am}{mm}\n".format(
+                    bpn=bppname, eff=bpstatusdict[status], am=am, mm=mm ),)
+                    )
+        # end def
+
+        # for every body part in the plan, if it has a status,
+        # add the status
+
+        # core
+        
+        __f("core skin",body.core.core.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("core muscle",body.core.core.muscle.status,
+            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
+        
+        __f("chest skin",body.core.front.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("chest muscle",body.core.front.muscle.status,
+            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
+        __f("chest bone",body.core.front.bone.status,
+            BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
+            mmd=MULTMODS_BPP_TORSO_BONESTATUS)
+        
+        __f("hip skin",body.core.hips.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("hip muscle",body.core.hips.muscle.status,
+            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
+        __f("hip bone",body.core.hips.bone.status,
+            BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
+            mmd=MULTMODS_BPP_TORSO_BONESTATUS)
+        
+        __f("back skin",body.core.back.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("back muscle",body.core.back.muscle.status,
+            MUSCLESTATUSES, amd=ADDMODS_BPP_BACK_MUSCLESTATUS )
+        __f("back bone",body.core.back.bone.status,
+            BONESTATUSES, amd=ADDMODS_BPP_BACK_BONESTATUS,
+            mmd=MULTMODS_BPP_BACK_BONESTATUS)
+
+        # head
+        
+        __f("scalp",body.parts[cmp.BPC_Heads].heads[0].head.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("skull",body.parts[cmp.BPC_Heads].heads[0].head.bone.status,
+            BONESTATUSES, amd=ADDMODS_BPP_HEAD_BONESTATUS,
+            mmd=MULTMODS_BPP_HEAD_BONESTATUS)
+        __f("brain",body.parts[cmp.BPC_Heads].heads[0].head.brain.status,
+            BRAINSTATUSES, amd=ADDMODS_BPP_BRAINSTATUS,
+            mmd=MULTMODS_BPP_BRAINSTATUS)
+        
+        __f("face skin",body.parts[cmp.BPC_Heads].heads[0].face.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_FACE_SKINSTATUS )
+        
+        __f("neck skin",body.parts[cmp.BPC_Heads].heads[0].neck.skin.status,
+            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+        __f("neck muscle",body.parts[cmp.BPC_Heads].heads[0].neck.muscle.status,
+            MUSCLESTATUSES, amd=ADDMODS_BPP_NECK_MUSCLESTATUS)
+        __f("neck bone",body.parts[cmp.BPC_Heads].heads[0].neck.bone.status,
+            BONESTATUSES, amd=ADDMODS_BPP_NECK_BONESTATUS,
+            mmd=MULTMODS_BPP_NECK_BONESTATUS)
+
+        # arm 1
+        
+        index = 0
+        for arm in body.parts[cmp.BPC_Arms].arms:
+            index += 1
+            __f("arm {} skin".format(index),
+                arm.arm.skin.status,
+                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+            __f("arm {} muscle".format(index),
+                arm.arm.muscle.status,
+                MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
+            __f("arm {} bone".format(index),
+                arm.arm.bone.status,
+                BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
+            
+            __f("hand {} skin".format(index),
+                arm.hand.skin.status,
+                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+            __f("hand {} muscle".format(index),
+                arm.hand.muscle.status,
+                MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
+            __f("hand {} bone".format(index),
+                arm.hand.bone.status,
+                BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
+        # end for
+
+        # leg 1
+        
+        index = 0
+        for leg in body.parts[cmp.BPC_Legs].legs:
+            index += 1
+            __f("leg {} skin".format(index),
+                leg.leg.skin.status,
+                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+            __f("leg {} muscle".format(index),
+                leg.leg.muscle.status,
+                MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
+            __f("leg {} bone".format(index),
+                leg.leg.bone.status,
+                BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
+                mmd=MULTMODS_BPP_LEG_BONESTATUS)
+            
+            __f("foot {} skin".format(index),
+                leg.foot.skin.status,
+                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+            __f("foot {} muscle".format(index),
+                leg.foot.muscle.status,
+                MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
+            __f("foot {} bone".format(index),
+                leg.foot.bone.status,
+                BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
+                mmd=MULTMODS_BPP_LEG_BONESTATUS)
+        # end for
+
         
     # end if
     
@@ -229,9 +399,53 @@ def _get_skills(compo):
     for const,exp in compo.skills.items():
         skillname=SKILLS[const][1]
         lvl=exp//EXP_LEVEL
-        skills += "{n:>24}: {lv}\n".format(n=skillname, lv=lvl)
+        skills += "{n:>24}: lv. {lv} | xp. {xp}\n".format(
+            n=skillname, lv=lvl, xp=(exp%EXP_LEVEL))
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
+
+def _get_satiation(body):
+    string=""
+    satpc = body.satiation / body.satiationMax
+    if satpc >= 0.93:
+        return "full"
+    if satpc >= 0.75:
+        return "sated"
+    if satpc >= 0.6:
+        return "content"
+    if satpc >= 0.3:
+        return "hungry"
+    return "starving"
+
+def _get_hydration(body):
+    string=""
+    hydpc = body.hydration / body.hydrationMax
+    deathValue = 0.9
+    if hydpc >= deathValue + (1-deathValue)*0.8:
+        return "hydrated"
+    if hydpc >= deathValue + (1-deathValue)*0.6:
+        return "thirsty"
+    if hydpc >= deathValue + (1-deathValue)*0.4:
+        return "dehydrated"
+    return "severely dehydrated"
+def _get_encumberance_mods(pc):
+    mods = "\n    [ "
+    encbp = rog.get_encumberance_breakpoint(
+        rog.getms(pc,'enc'), rog.getms(pc,'encmax') )
+    if encbp > 0:
+        index = encbp - 1
+        mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
+        mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
+        mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))
+        mods += "DV {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['dfn'][index]))
+        mods += "PRO {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['pro'][index]))
+        mods += "GRA {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['gra'][index]))
+        mods += "BAL {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['bal'][index]))
+    else:
+        return ""
+    mods += "]"
+    return mods
+
 
 # render character page / render char page / render charpage
 # render the entire character info page in one big string
@@ -242,6 +456,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     name = world.component_for_entity(pc, cmp.Name)
     meters = world.component_for_entity(pc, cmp.Meters)
     creature = world.component_for_entity(pc, cmp.Creature)
+    body=world.component_for_entity(pc, cmp.Body)
     effects = _get_effects(world, pc)
     bodystatus = _get_body_effects(world, pc)
     gauges = _get_gauges(world.component_for_entity(pc, cmp.Meters))
@@ -250,6 +465,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     augs=""
     npaugs=0
     nmaugs=0
+    satstr=_get_satiation(body)
+    hydstr=_get_hydration(body)
+    encmods=_get_encumberance_mods(pc)
     
     # create the display format string
     strng = '''
@@ -262,19 +480,30 @@ def render_charpage_string(w, h, pc, turn, dlvl):
                   height{delim}{cm} cm
 
                         {subdelim} status {subdelim}
+                   satiation: {satstr}
+                   hydration: {hydstr}
                 (life)----HP{predelim}{hp:>5} / {hpmax:<5}
              (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
-        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%
+        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
 
     effects:
-        {effects}
+{effects}
 
     body status:
-        {bodystatus}
+{bodystatus}
 
     gauge:
              temperature: {temp} ({normalbodytemp})
-        {gauges}
+{gauges}
+
+                        {subdelim} equipment {subdelim}
+{equipment}
+
+                        {subdelim} skill {subdelim}
+{skills}
+
+                        {subdelim} augmentation {subdelim}
+{augs}
         
                         {subdelim} attribute {subdelim}
         (constitution)---CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
@@ -322,15 +551,6 @@ def render_charpage_string(w, h, pc, turn, dlvl):
                  (rot)---ROT{predelim}{rot:<4}{resdelim}({brot}){tab}{immrot}
                (water)---WET{predelim}{wet:<4}{resdelim}({bwet}){tab}{immwater}
 
-                        {subdelim} equipment {subdelim}
-{equipment}
-
-                        {subdelim} skill {subdelim}
-{skills}
-
-                        {subdelim} augmentation {subdelim}
-{augs}
-
 '''.format(
         titledelim="~~~~",
         tab="    ",
@@ -352,6 +572,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         # component data
         effects=effects,gauges=gauges,augs=augs,
         equipment=equipment,skills=skills,bodystatus=bodystatus,
+        satstr=satstr,hydstr=hydstr,encmods=encmods,
         name=name.name,
         species=SPECIES.get(creature.species, "unknown"),
         fact=FACTIONS.get(creature.faction, "unknown"),

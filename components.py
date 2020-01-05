@@ -110,13 +110,13 @@ class Meters:
 ##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity. Dirtiness can be a component or something...
 class Stats: #base stats
     def __init__(self, hp=1,mp=1, mpregen=1, mass=1,
-                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,#_vit=0,
+                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,#_vit=0,_cha=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
                  respain=100,resbleed=100,reslight=100,ressound=100,
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
                  spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
-                 encmax=0,force=0,sight=0,hearing=0,
+                 encmax=0,sight=0,hearing=0,#force=0,
                  courage=0,scary=0,beauty=0,
                  ):
         # attributes
@@ -126,7 +126,6 @@ class Stats: #base stats
         self.agi=int(_agi)
         self.dex=int(_dex)
         self.end=int(_end)
-##        self.vit=int(_vit)
         # resistances
         self.resfire=int(resfire)   # FIR
         self.rescold=int(rescold)   # ICE
@@ -148,9 +147,8 @@ class Stats: #base stats
         self.mpmax=int(mp)          # stamina
         self.mp=self.mpmax
         self.mpregen=mpregen
-        self.encmax=int(encmax)     # encumberance
-        self.enc=0                  # " maximum
-        self.force=int(force)       # how much force its attack has (knockback)
+        self.encmax=int(encmax)     # encumberance maximum
+        self.enc=0                  # encumberance
         self.atk=int(atk)    #Attack -- accuracy
         self.dmg=int(dmg)    #Damage, physical (melee)
         self.pen=int(pen)    #Penetration
@@ -162,7 +160,7 @@ class Stats: #base stats
         self.msp=int(msp)    #Move speed (affects AP cost of moving)
         self.gra=int(gra)    #Grappling (wrestling)
         self.ctr=int(ctr)    #Counter-attack chance
-        self.bal=int(bal)    #Maximum Balance (being off-balance can be handled by status effect like OffBalance with variable "amount" that determines how much reduced balance you have, this is very temporary
+        self.bal=int(bal)    #Maximum Balance
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
         self.scary=int(scary) # intimidation / scariness
@@ -691,14 +689,18 @@ class EquipableInAmmoSlot:
         self.mods=mods
         self.fit=fit
 class EquipableInFrontSlot: # breastplate
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit',
+               'coversBack','coversCore','coversHips','coversArms']
+    def __init__(self, ap, mods, fit=0,
+                 coversBack=False, coversCore=False,
+                 coversHips=False, coversArms=False): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
         self.coversBack=coversBack
         self.coversCore=coversCore
         self.coversHips=coversHips
+        self.coversArms=coversArms
 class EquipableInCoreSlot: # tummy area
     __slots__=['ap','mods','fit'] # ap = AP (Energy) cost to equip / take off
     def __init__(self, ap, mods, fit=0): #{var : modf,}
@@ -769,23 +771,24 @@ class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
         self.mods=mods
         self.fit=fit
 class EquipableInFootSlot: #shoe / boot
-    __slots__=['ap','mods','fit',]
+    __slots__=['ap','mods','fit']
     def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInArmSlot:
-    __slots__=['ap','mods','fit',]
+    __slots__=['ap','mods','fit']
     def __init__(self, ap, mods, fit=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
 class EquipableInLegSlot:
-    __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','coversBoth']
+    def __init__(self, ap, mods, fit=0, coversBoth=False): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.coversBoth=coversBoth # covers two legs?
         
 # unused
 ##
@@ -1390,11 +1393,11 @@ class StatusShiver: # shivering
         self.timer=t
 class StatusEmaciated: # starving famished starved emaciated
     __slots__=['timer']
-    def __init__(self, t=2):
+    def __init__(self, t=64):
         self.timer=t
 class StatusDehydrated: # dehydrated
     __slots__=['timer']
-    def __init__(self, t=2):
+    def __init__(self, t=8):
         self.timer=t
 class StatusTired: # sleepy (stamina is a separate thing)
     __slots__=['timer']

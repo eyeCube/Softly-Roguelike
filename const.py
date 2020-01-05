@@ -393,10 +393,10 @@ BASE_RESSOUND   = 0
 
 # Strength
 ATT_STR_THROW_RNG       = 1 # throwing range bonus
-ATT_STR_DMG             = 0.33334 # melee damage bonus
-ATT_STR_ATK             = 0.15 # melee attack bonus (how to apply only to melee? Should we bother?)
-ATT_STR_PEN             = 0.2 # melee penetration bonus
-ATT_STR_ENCMAX          = 5
+ATT_STR_DMG             = 0.33334 # melee damage bonus (damage from ranged weapons depends on the weapon used)
+ATT_STR_ATK             = 0.15 # should this be melee only?
+ATT_STR_PEN             = 0.2 # melee penetration bonus (pen from ranged weapons depends on the weapon used)
+ATT_STR_ENCMAX          = 3
 ATT_STR_FORCE           = 1
 ATT_STR_GRA             = 1
 
@@ -410,6 +410,7 @@ ATT_AGI_ASP             = 3 #should it be melee only?
 # Dexterity
 ATT_DEX_PEN             = 0.33334
 ATT_DEX_ATK             = 0.5
+ATT_DEX_ATK_RANGED      = 0.25 # extra bonus on top of the regular bonus, only applies to ranged attacks
 ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
 
@@ -863,23 +864,23 @@ GUTSSTATUS_MANGLED      : "mutilated",
 # skin
 ADDMODS_BPP_SKINSTATUS = { # stat : value
     # (intensity is the preference value: higher intensity overwrites lower intensity effects since only one can exist at a time.)
-SKINSTATUS_RASH         :{'resbio':-1, 'respain':-2, 'resbleed':-2, 'resfire':-2,},
-SKINSTATUS_SCRAPED      :{'resbio':-2, 'respain':-3, 'resbleed':-4, 'resfire':-3,},
-SKINSTATUS_MINORABRASION:{'resbio':-3, 'respain':-5, 'resbleed':-6, 'resfire':-4,},
-SKINSTATUS_CUT          :{'resbio':-10,'respain':-5, 'resbleed':-10,'resfire':-4,},
-SKINSTATUS_MAJORABRASION:{'resbio':-10,'respain':-10,'resbleed':-10,'resfire':-6,},
-SKINSTATUS_BURNED       :{'resbio':-10,'respain':-10,'resbleed':-10,'resfire':-10,},
-SKINSTATUS_DEEPCUT      :{'resbio':-20,'respain':-10,'resbleed':-20,'resfire':-6,},
-SKINSTATUS_SKINNED      :{'resbio':-20,'respain':-10,'resbleed':-20,'resfire':-10,},
-SKINSTATUS_DEEPBURNED   :{'resbio':-20,'respain':-20,'resbleed':-20,'resfire':-20,},
-SKINSTATUS_FULLYSKINNED :{'resbio':-30,'respain':-20,'resbleed':-25,'resfire':-20,},
+SKINSTATUS_RASH         :{'resbio':-1, 'respain':-2, 'resbleed':-1, 'resfire':-1,},
+SKINSTATUS_SCRAPED      :{'resbio':-2, 'respain':-3, 'resbleed':-2, 'resfire':-1,},
+SKINSTATUS_MINORABRASION:{'resbio':-3, 'respain':-5, 'resbleed':-3, 'resfire':-2,},
+SKINSTATUS_CUT          :{'resbio':-6, 'respain':-5, 'resbleed':-6, 'resfire':-2,},
+SKINSTATUS_MAJORABRASION:{'resbio':-6, 'respain':-10,'resbleed':-6, 'resfire':-3,},
+SKINSTATUS_BURNED       :{'resbio':-6, 'respain':-10,'resbleed':-6, 'resfire':-6,},
+SKINSTATUS_DEEPCUT      :{'resbio':-12,'respain':-10,'resbleed':-8, 'resfire':-6,},
+SKINSTATUS_SKINNED      :{'resbio':-15,'respain':-15,'resbleed':-10,'resfire':-10,},
+SKINSTATUS_DEEPBURNED   :{'resbio':-18,'respain':-15,'resbleed':-10,'resfire':-20,},
+SKINSTATUS_FULLYSKINNED :{'resbio':-20,'respain':-20,'resbleed':-15,'resfire':-20,},
     }
 
 # torso
 ADDMODS_BPP_TORSO_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-5,},
-MUSCLESTATUS_KNOTTED    :{'msp':-3,'asp':-3,'respain':-10,},
-MUSCLESTATUS_CONTUSION  :{'msp':-3,'asp':-3,'respain':-10,'resbleed':-4,},
+MUSCLESTATUS_SORE       :{'respain':-3,},
+MUSCLESTATUS_KNOTTED    :{'msp':-3,'asp':-3,'respain':-5,},
+MUSCLESTATUS_CONTUSION  :{'msp':-3,'asp':-3,'respain':-5,'resbleed':-4,},
 MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,  'msp':-3, 'asp':-3, 'gra':-1,'respain':-5, 'resbleed':-4,},
 MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-10,'resbleed':-8,},
 MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-15,'resbleed':-12,},
@@ -900,6 +901,31 @@ BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
     }
+# back
+ADDMODS_BPP_BACK_MUSCLESTATUS = { # stat : value
+MUSCLESTATUS_SORE       :{'respain':-5,},
+MUSCLESTATUS_KNOTTED    :{'str':-1,'msp':-3,'asp':-3,'respain':-10,},
+MUSCLESTATUS_CONTUSION  :{'str':-1,'msp':-3,'asp':-3,'respain':-10,'resbleed':-4,},
+MUSCLESTATUS_STRAINED   :{'con':-1,'str':-2,'atk':-1,'dfn':-1,  'msp':-3, 'asp':-3, 'gra':-1,'respain':-10, 'resbleed':-4,},
+MUSCLESTATUS_TORN       :{'con':-2,'str':-3,'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-10,'resbleed':-8,},
+MUSCLESTATUS_RIPPED     :{'con':-4,'str':-4,'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-15,'resbleed':-12,},
+MUSCLESTATUS_RUPTURED   :{'con':-5,'str':-5,'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'respain':-20,'resbleed':-16,},
+MUSCLESTATUS_MANGLED    :{'con':-6,'str':-6,'atk':-5,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
+    }
+ADDMODS_BPP_BACK_BONESTATUS = { # stat : value
+BONESTATUS_FRACTURED    :{'respain':-10,},
+BONESTATUS_CRACKED      :{'bal':-2,'respain':-20,},
+BONESTATUS_BROKEN       :{'bal':-4,'respain':-40,},
+BONESTATUS_MULTIBREAKS  :{'bal':-6,'respain':-80,},
+BONESTATUS_SHATTERED    :{'bal':-8,'respain':-100,},
+    }
+MULTMODS_BPP_BACK_BONESTATUS = { # stat : value
+BONESTATUS_FRACTURED    :{'agi':0.9,},
+BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.8,},
+BONESTATUS_BROKEN       :{'agi':0.6,'asp':0.8,'msp':0.6,},
+BONESTATUS_MULTIBREAKS  :{'agi':0.4,'asp':0.7,'msp':0.4,},
+BONESTATUS_SHATTERED    :{'agi':0.2,'asp':0.6,'msp':0.2,},
+    }
 
 # head
 ADDMODS_BPP_HEAD_BONESTATUS = { # stat : value
@@ -919,14 +945,14 @@ BONESTATUS_SHATTERED    :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,
 
 # neck
 ADDMODS_BPP_NECK_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-10,},
-MUSCLESTATUS_KNOTTED    :{'asp':-8,'respain':-20,},
-MUSCLESTATUS_CONTUSION  :{'asp':-4,'respain':-20,'resbleed':-8,},
-MUSCLESTATUS_STRAINED   :{'atk':-2,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-4,},
-MUSCLESTATUS_TORN       :{'atk':-4,'dfn':-2,'asp':-10,'gra':-2,'respain':-10,'resbleed':-8,},
-MUSCLESTATUS_RIPPED     :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-15,'resbleed':-12,},
-MUSCLESTATUS_RUPTURED   :{'atk':-8,'dfn':-4,'asp':-20,'gra':-4,'respain':-20,'resbleed':-16,},
-MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-25,'resbleed':-20,},
+MUSCLESTATUS_SORE       :{'respain':-8,},
+MUSCLESTATUS_KNOTTED    :{'asp':-8,'respain':-15,},
+MUSCLESTATUS_CONTUSION  :{'asp':-4,'respain':-15,'resbleed':-8,},
+MUSCLESTATUS_STRAINED   :{'atk':-2,'dfn':-1,'asp':-5,'gra':-1,'respain':-15,'resbleed':-4,},
+MUSCLESTATUS_TORN       :{'atk':-4,'dfn':-2,'asp':-10,'gra':-2,'respain':-20,'resbleed':-8,},
+MUSCLESTATUS_RIPPED     :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-25,'resbleed':-12,},
+MUSCLESTATUS_RUPTURED   :{'atk':-8,'dfn':-4,'asp':-20,'gra':-4,'respain':-30,'resbleed':-16,},
+MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'resbleed':-20,},
     }
 ADDMODS_BPP_NECK_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'respain':-20,},
@@ -965,13 +991,13 @@ BONESTATUS_SHATTERED    :{'respain':-96,'intimidation':-8,'beauty':-32,},
     }
 ADDMODS_BPP_FACE_MUSCLESTATUS = { # muscles around the face
 MUSCLESTATUS_SORE       :{'respain':-5,},
-MUSCLESTATUS_KNOTTED    :{'respain':-20,},
-MUSCLESTATUS_CONTUSION  :{'respain':-20,'resbleed':-5,},
+MUSCLESTATUS_KNOTTED    :{'respain':-15,},
+MUSCLESTATUS_CONTUSION  :{'respain':-15,'resbleed':-5,},
 MUSCLESTATUS_STRAINED   :{'respain':-20,'resbleed':-6,},
-MUSCLESTATUS_TORN       :{'respain':-20,'resbleed':-9,},
-MUSCLESTATUS_RIPPED     :{'respain':-20,'resbleed':-12,},
-MUSCLESTATUS_RUPTURED   :{'respain':-20,'resbleed':-15,},
-MUSCLESTATUS_MANGLED    :{'respain':-25,'resbleed':-18,},
+MUSCLESTATUS_TORN       :{'respain':-25,'resbleed':-9,},
+MUSCLESTATUS_RIPPED     :{'respain':-30,'resbleed':-12,},
+MUSCLESTATUS_RUPTURED   :{'respain':-35,'resbleed':-15,},
+MUSCLESTATUS_MANGLED    :{'respain':-40,'resbleed':-18,},
 }
 
 # brain
@@ -1003,9 +1029,9 @@ BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
     }
 ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-5,},
-MUSCLESTATUS_KNOTTED    :{'asp':-3,'respain':-10,},
-MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-10,'resbleed':-2,},
+MUSCLESTATUS_SORE       :{'respain':-1,},
+MUSCLESTATUS_KNOTTED    :{'asp':-3,'respain':-3,},
+MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-3,'resbleed':-2,},
 MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-3,},
 MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-2,'asp':-10,'gra':-2,'respain':-10,'resbleed':-6,},
 MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-3,'asp':-15,'gra':-3,'respain':-15,'resbleed':-9,},
@@ -1029,14 +1055,14 @@ BONESTATUS_MULTIBREAKS  :{'bal':0.5,'msp':0.5,},
 BONESTATUS_SHATTERED    :{'bal':0.3333333,'msp':0.4,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
-MUSCLESTATUS_SORE       :{'respain':-5,},
-MUSCLESTATUS_KNOTTED    :{'msp':-3,'respain':-5,},
-MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-5,'resbleed':-2,},
-MUSCLESTATUS_STRAINED   :{'bal':-1,'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'respain':-5,'resbleed':-2,'bal':-1,},
-MUSCLESTATUS_TORN       :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-10,'resbleed':-4,'bal':-2,},
-MUSCLESTATUS_RIPPED     :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6,'bal':-3,},
-MUSCLESTATUS_RUPTURED   :{'bal':-4,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-20,'resbleed':-8,'bal':-4,},
-MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16,'bal':-5,},
+MUSCLESTATUS_SORE       :{'respain':-1,},
+MUSCLESTATUS_KNOTTED    :{'msp':-3,'respain':-3,},
+MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-3,'resbleed':-2,},
+MUSCLESTATUS_STRAINED   :{'bal':-1,'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'respain':-5,'resbleed':-2},
+MUSCLESTATUS_TORN       :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-10,'resbleed':-4},
+MUSCLESTATUS_RIPPED     :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6},
+MUSCLESTATUS_RUPTURED   :{'bal':-4,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-20,'resbleed':-8},
+MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16},
     }
 
     # BPP statuses alt effects #
@@ -1066,6 +1092,7 @@ SHIVER_TEMP_GAIN = 0.1
 SWEAT_TEMP_LOSS  = 0.1
 
 # bleed
+BLEED_METERLOSS = 1
 BLEED_PLASTIC   = 6     # default bleed values for sharpened weapons of material types
 BLEED_WOOD      = 12
 BLEED_BONE      = 18
@@ -1113,7 +1140,7 @@ SICK_CONMOD     = 0.9
 SICK_RESPAINMOD = -50
 
 # chem (exposure)
-CHEM_METERLOSS  = 5     # exposure points lost per turn
+CHEM_METERLOSS  = 2     # exposure points lost per turn
 CHEM_HURT       = 20    # pain chem effect causes when exposure meter fills
 CHEM_DAMAGE     = 5     # damage chem effect causes when exposure meter fills
 
@@ -1123,7 +1150,6 @@ ACID_DAMAGE     = 1.0
 
 # irritation
 IRRIT_ATKMOD    = -10
-IRRIT_RANGEMOD  = -10
 IRRIT_SIGHTMOD  = 0.75
 IRRIT_HEARINGMOD= 0.75
 
@@ -1146,9 +1172,13 @@ BLIND_SIGHTMOD = 0.1 # multiplier
 DEAF_HEARINGMOD = 0.04 # multiplier
 
 # pain
+PAIN_METERLOSS = 1
 PAIN_STRMOD = 0.5
 PAIN_ENDMOD = 0.5
 PAIN_CONMOD = 0.75
+
+# fear
+FEAR_METERLOSS = 1
 
 # trauma
 #
@@ -1209,7 +1239,7 @@ T_EXPLOSIVE     = ord('*')
 T_BOW           = ord(')')
 T_SLING         = ord('(')
 T_ARMOR         = ord(']')
-T_HELMET        = ord('[')
+T_HEADWEAR      = ord('[')
 T_SHIELD        = ord('}')
 T_CLOAK         = ord('{')
 T_GAS           = ord('~')

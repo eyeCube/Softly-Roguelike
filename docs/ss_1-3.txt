@@ -1,0 +1,32 @@
+
+This week I did a lot of work but didn't get anything really flashy to show. But I got a lot of things working and fixed days worth of bugs that have been longstanding in the codebase.
+
+I'll talk about some features I worked on, which I haven't yet discussed here. But first I'll talk about one new thing I did make.
+
+New
+
+A character sheet and a command to show it. It uses the scrolling menu that the message history manager uses, allowing the sheet to extend beyond the length of the screen, which it does. The sheet displays a lot of information about the character, including status effects and body part statuses, buildup meters, base and modified stats (inc. attributes and resistances), equipment, skills (not yet fully implemented), and augmentations (not yet implemented).
+
+Right now the design is rather dull and straight to the point - I like the design but it's nothing special or really worth showing. Further, the scrolling manager I made does not allow for interactive text or custom colored text. But, I think this is fine for now, as the character page is meant to just show information. I will use other menus and pages to deal with interactive things such as managing inventory / equipping gear; maybe someday I'll make a better character page, too, but I figure there's much bigger fish to fry.
+
+An old feature I continued working on
+
+I haven't talked in much detail about the body part status system. It's rather simple -- each body part piece (arm bone, leg muscle, etc.) has a status, which is an integer that refers to a constant. The higher the integer value, the higher priority the status has; higher priority statuses may overwrite lower priority statuses since only one statuses is stored per body part piece.
+
+So if you have, for instance, a torn muscle in your leg, you will get a penalty of:
+
+BAL -2, ATK -2, DV -2, MSP -16, GRA -2, PAI -10, BLD -4 *
+
+*(that's balance, attack, dodge value, move speed, grappling, resistance to pain, and resistance to bleeding, respectively.)
+
+And that penalty is different from, say, the same status -- a torn muscle -- in your arm, or in your back, or in your neck, etc. Some statuses are reused, of course, and skin statuses (abrasions, lacerations, burns, etc.) largely result in the same stat mods across the board for all body parts. This is for simplicity, but the obvious ones have big differences, like a broken leg bone reduces movement speed drastically, etc.
+
+for reference, the torn muscle in arm stat mods:
+
+ATK -2, DV -2, ASP -10, GRA -2, PAI -10, BLD -6
+
+But the idea is that, with every body part working as intended, there is no special penalty or bonus to any stats. The nature of some of the effects is that higher level players will be more easily able to overcome the effects of say, a broken bone, as they will have better stats and so the subtraction modifiers won't have as much of an impact. Of course, there are also multiplier modifiers, which will always be a big deal no matter how high your stats, but, late-game players will have more to rely on than just their stats. But, I digress.
+
+Anyhow, for the most part, the only thing left in fully implementing the body part statuses is to have ways for the player to get his/her bones broken, skin lacerated, muscles torn, etc. The idea is that cutting weapons will cause lacerations and muscle tears (and artery severs) while blunt trauma weapons will cause contusions and broken bones.
+
+Thanks for reading. I'm really enjoying working on this game, which is a real passion project of mine. I'll be heading back to school very shortly for my busiest semester yet, and won't have nearly as much time to work on Softly. I'll still keep you all posted on any interesting developments.

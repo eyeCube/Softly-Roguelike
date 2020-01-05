@@ -544,6 +544,20 @@ class FluidProcessor(esper.Processor):
 
     
 #
+# Stats Upkeep processor
+#
+
+class UpkeepProcessor(esper.Processor): # TODO: test this
+    def process(self):
+        for ent, (stats, creat) in self.world.get_components(
+            cmp.Stats, cmp.Creature ):
+            # just query some components that match entities
+            # that will be needing stamina regen
+            rog.givemp(ent, rog.getms(ent, 'mpregen'))
+
+
+
+#
 # Status
 #
 
@@ -626,23 +640,6 @@ class Status:
             #auxiliary effects
             #message
             rog.world().remove_component(ent, component)
-# end class
-
-
-#
-# Stamina regen processor
-#
-
-class SPRegenProcessor(esper.Processor): # TODO: test this
-    def process(self):
-        for ent, (stats, creat) in self.world.get_components(
-            cmp.Stats, cmp.Creature ):
-            # just query some components that match entities
-            # that will be needing stamina regen
-            rog.givemp(ent, rog.getms(ent, 'mpregen'))
-
-
-
 #
 # Status Processor
 #
@@ -933,12 +930,18 @@ class MetersProcessor(esper.Processor):
             
         for ent,meters in self.world.get_component(
             cmp.Meters ):
-            # sickness meter
             if (meters.sick > 0):
                 meters.sick = max(0, meters.sick - BIO_METERLOSS)
-            # exposure meter
             if (meters.expo > 0):
                 meters.expo = max(0, meters.expo - CHEM_METERLOSS)
+            if (meters.pain > 0):
+                meters.pain = max(0, meters.pain - PAIN_METERLOSS)
+            if (meters.fear > 0):
+                meters.fear = max(0, meters.fear - FEAR_METERLOSS)
+            if (meters.bleed > 0):
+                meters.bleed = max(0, meters.bleed - BLEED_METERLOSS)
+            if (meters.rot > 0):
+                meters.rot = max(0, meters.rot - ROT_METERLOSS)
             # rads meter
 # end class
 

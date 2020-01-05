@@ -124,7 +124,7 @@ class Rogue:
         #Processor class, priority (higher = processed first)
         cls.world.add_processor(proc.MetersProcessor(), 31)
         cls.world.add_processor(proc.StatusProcessor(), 30)
-        cls.world.add_processor(proc.SPRegenProcessor(), 23)
+        cls.world.add_processor(proc.UpkeepProcessor(), 23)
         cls.world.add_processor(proc.FluidProcessor(), 22)
         cls.world.add_processor(proc.FireProcessor(), 21)
         cls.world.add_processor(proc.TimersProcessor(), 20)
@@ -474,6 +474,15 @@ def dupCmpMeters(meters):
 
 # getms: GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
+    # Error checking
+    if not Rogue.world.has_component(ent, cmp.ModdedStats):
+        entname=Rogue.world.component_for_entity(ent, cmp.Name)
+        entpos=Rogue.world.component_for_entity(ent, cmp.Position)
+        print("ERROR: rogue.py: function getms: entity {} with name '{}' at pos ({},{}) has no ModdedStats component.".format(
+            ent, entname.name, entpos.pos.x, entpos.pos.y))
+        raise
+    #
+    
     if on(ent, DIRTY_STATS): # dirty; re-calculate the stats first.
         makenot(ent, DIRTY_STATS)
         modded=_update_stats(ent)
@@ -574,14 +583,12 @@ def givemp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp = min(getms(ent, 'mpmax'), stats.mp + val)
     make(ent,DIRTY_STATS)
-def caphp (ent):
+def caphp(ent): # does not make stats dirty! Doing so is a huge glitch!
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
-    stats.hp = min(stats.hp, stats.hpmax)
-    make(ent,DIRTY_STATS)
-def capmp (ent):
+    stats.hp = min(stats.hp, getms(ent,'hpmax'))
+def capmp(ent): # does not make stats dirty! Doing so is a huge glitch!
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
-    stats.mp = min(stats.mp, stats.mpmax)
-    make(ent,DIRTY_STATS)
+    stats.mp = min(stats.mp, getms(ent,'mpmax'))
 
 
 # these aren't tested, nor are they well thought-out
@@ -623,7 +630,7 @@ def sap(ent, dmg: int, exhaustOnZero=True):
 # satiation / hydration
 def feed(ent, sat, hyd): # add satiation / hydration w/ Digest status
     if world.has_component(ent, cmp.StatusDigest):
-        compo = world.component_for_entity(ent, cmp.StatusDigest)
+        compo = Rogue.world.component_for_entity(ent, cmp.StatusDigest)
         compo.satiation += sat
         compo.hydration += hyd
     else:
@@ -713,8 +720,6 @@ def zombify(ent):
     kill(ent) # temporary
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
-def metabolize(ent, food=1, water=1):
-    entities.metabolism(ent, food, water)
 
 
 
@@ -986,12 +991,12 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
         compo = dominant_arm(ent).arm
     # off hand
     elif equipType==EQ_OFFHAND:
-        body = world.component_for_entity(ent, cmp.Body)
+        body = Rogue.world.component_for_entity(ent, cmp.Body)
         arm = body.parts[cmp.BPC_Arms].arms[1]
         if arm: compo = arm.hand
     # off arm
     elif equipType==EQ_OFFARM:
-        body = world.component_for_entity(ent, cmp.Body)
+        body = Rogue.world.component_for_entity(ent, cmp.Body)
         arm = body.parts[cmp.BPC_Arms].arms[1]
         if arm: compo = arm.arm
     # main foot
@@ -1002,12 +1007,12 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
         compo = dominant_leg(ent).leg
     # off foot
     elif equipType==EQ_OFFFOOT:
-        body = world.component_for_entity(ent, cmp.Body)
+        body = Rogue.world.component_for_entity(ent, cmp.Body)
         leg = body.parts[cmp.BPC_Legs].legs[1]
         if leg: compo = leg.foot
     # off leg
     elif equipType==EQ_OFFLEG:
-        body = world.component_for_entity(ent, cmp.Body)
+        body = Rogue.world.component_for_entity(ent, cmp.Body)
         leg = body.parts[cmp.BPC_Legs].legs[1]
         if leg: compo = leg.leg
     # head 1
@@ -1027,16 +1032,16 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
         compo = dominant_head(ent).ears
     # torso core
     elif equipType==EQ_CORE:
-        compo = world.component_for_entity(ent, cmp.Body).core.core
+        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.core
     # torso front chest
     elif equipType==EQ_FRONT:
-        compo = world.component_for_entity(ent, cmp.Body).core.front
+        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.front
     # torso back
     elif equipType==EQ_BACK:
-        compo = world.component_for_entity(ent, cmp.Body).core.back
+        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.back
     # torso hips
     elif equipType==EQ_HIPS:
-        compo = world.component_for_entity(ent, cmp.Body).core.hips
+        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.hips
     return compo
 #end def
 
@@ -1053,11 +1058,11 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     world = Rogue.world
     equipableConst = EQUIPABLE_CONSTS[equipType]
     if world.has_component(item, equipableConst):
+        equipable = world.component_for_entity(item, equipableConst)
+        compo = _get_eq_compo(ent, equipType)
         
         # ensure body type indicates presence of this body part
         # (TODO)
-        
-        compo = _get_eq_compo(ent, equipType)
         
         # component selected. Does this component exist?
         if compo:
@@ -1072,7 +1077,26 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
                     
                 compo.slot.item = item
                 
+                # covers
+                lis = []
+                if equipType==EQ_FRONT:
+                    # how to ensure this slot isn't covered by some gear?
+                    # Need to set a slot to be temporarily in use by
+                    # another gear item. Then in deequip we need to
+                    # undo that change to the slot(s).
+                    if equipable.coversBack: lis.append(cmp.BP_TorsoBack)
+                    if equipable.coversCore: lis.append(cmp.BP_TorsoCore)
+                    if equipable.coversHips: lis.append(cmp.BP_Hips)
+                    if equipable.coversArms: lis.append(cmp.BP_Arm) #how to apply this one? It's different since arms not part of torso bpc
+                if equipType==EQ_MAINHEAD:
+                    if equipable.coversFace: lis.append(cmp.BP_Face)
+                    if equipable.coversNeck: lis.append(cmp.BP_Neck)
+                    if equipable.coversEyes: lis.append(cmp.BP_Eyes)
+                    if equipable.coversEars: lis.append(cmp.BP_Ears)
+                compo.slot.covers = tuple(lis)
+                
                 return (1,compo,) # yey success
+            
             else:
                 return (-102,None,) # already have something equipped there
         else:
@@ -1091,6 +1115,7 @@ def deequip(ent,equipType): # remove equipment from slot 'equipType'
     make(ent, DIRTY_STATS)
     item = compo.slot.item
     compo.slot.item = None
+    compo.slot.covers = ()
     return item
 # end def
 
@@ -1105,15 +1130,48 @@ def deequip(ent,equipType): # remove equipment from slot 'equipType'
 ##    world.add_component(item, cmp.Position(pos.x,pos.y))
 
 # build equipment and place in the world
-def create_weapon(name,x,y):
+def _initThing(ent):
+    register_entity(ent)
+    givehp(ent) #give random quality based on dlvl?
+def create_weapon(name,x,y): #,quality=1
     ent=entities.create_weapon(name,x,y)
-    givehp(ent) #give random quality based on dlvl?
-    register_entity(ent)
+    _initThing(ent)
     return ent
-def create_gear(name,x,y):
-    ent=entities.create_gear(name,x,y)
-    givehp(ent) #give random quality based on dlvl?
-    register_entity(ent)
+def create_armor(name,x,y):
+    ent=entities.create_armor(name,x,y)
+    _initThing(ent)
+    return ent
+def create_legwear(name,x,y):
+    ent=entities.create_legwear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_armwear(name,x,y):
+    ent=entities.create_armwear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_footwear(name,x,y):
+    ent=entities.create_footwear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_headwear(name,x,y):
+    ent=entities.create_headwear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_neckwear(name,x,y):
+    ent=entities.create_neckwear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_facewear(name,x,y):
+    ent=entities.create_facewear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_eyewear(name,x,y):
+    ent=entities.create_eyewear(name,x,y)
+    _initThing(ent)
+    return ent
+def create_earwear(name,x,y):
+    ent=entities.create_earwear(name,x,y)
+    _initThing(ent)
     return ent
 
 def create_body_humanoid(mass=70, height=175, female=False):
@@ -1133,7 +1191,7 @@ def dominant_head(ent): # get a BPM object
     return bpc.heads[0] # dominant is always in slot 0 as a rule
 
 def homeostasis(ent): entities.homeostasis(ent)
-def metabolism(ent, hunger, thirst=0): entities.metabolism(ent, hunger, thirst)
+def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst)
 def stomach(ent): entities.stomach(ent)
 def starve(ent): entities.starve(ent)
 def dehydrate(ent): entities.dehydrate(ent)
@@ -1143,6 +1201,27 @@ def dehydrate(ent): entities.dehydrate(ent)
     #     Stats    #
     #--------------#
     
+def get_encumberance_breakpoint(enc, encmax):
+    erat = enc/max(1,encmax) # encumberance ratio
+    if erat < 0.05:     # 0: 0 - 5%
+        encbp = 0
+    elif erat < 0.12:   # 1: 5 - 12%
+        encbp = 1
+    elif erat < 0.25:   # 2: 12 - 25%
+        encbp = 2
+    elif erat < 0.5:    # 3: 25 - 50%
+        encbp = 3
+    elif erat < 0.75:   # 4: 50 - 75%
+        encbp = 4
+    elif erat < 0.87:   # 5: 75 - 87%
+        encbp = 5
+    elif erat < 0.95:   # 6: 87 - 95%
+        encbp = 6
+    elif erat < 1:      # 7: 95 - 100%
+        encbp = 7
+    else:               # 8: 100% or greater
+        encbp = 8
+    return encbp
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     '''
@@ -1252,7 +1331,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
                 ent, body.parts[cmp.BPC_Tails],
                 armorSkill, unarmored
                 )
-    #
+    # end if
     
     # apply mods -- addMods
     for mod in addMods:
@@ -1267,7 +1346,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # TODO
 
 
+#~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # statuses that affect attributes #
+        #---------------------------------#
         
     # pain
     if world.has_component(ent, cmp.StatusPain):
@@ -1300,7 +1381,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded.dmg += _str * ATT_STR_DMG*MULT_STATS
     modded.gra += _str * ATT_STR_GRA*MULT_STATS
     modded.encmax += _str * ATT_STR_ENCMAX
-    modded.force += _str * ATT_STR_FORCE
+##    modded.force += _str * ATT_STR_FORCE # force should be calculated on the fly based on how you apply it
     
     # Agility
     _agi = modded.agi/MULT_ATT
@@ -1373,26 +1454,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # encumberance #
         #--------------#
     
-    erat = modded.enc/max(1,modded.encmax) # encumberance ratio
-    if erat < 0.05:     # 0: 0 - 5%
-        encbp = 0
-    elif erat < 0.12:   # 1: 5 - 12%
-        encbp = 1
-    elif erat < 0.25:   # 2: 12 - 25%
-        encbp = 2
-    elif erat < 0.5:    # 3: 25 - 50%
-        encbp = 3
-    elif erat < 0.75:   # 4: 50 - 75%
-        encbp = 4
-    elif erat < 0.87:   # 5: 75 - 87%
-        encbp = 5
-    elif erat < 0.95:   # 6: 87 - 95%
-        encbp = 6
-    elif erat < 1:      # 7: 95 - 100%
-        encbp = 7
-    else:               # 8: 100% or greater
-        encbp = 8
-
+    encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1
         modded.asp = ENCUMBERANCE_MODIFIERS['asp'][index] * modded.asp
@@ -1418,13 +1480,18 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     for k,v in modded.__dict__.items():
         modded.__dict__[k] = around(v)
 
+    caphp(ent)
+    capmp(ent)
+
+    print(" ** ~~~~ ran _update_stats.")
+
     # NOTE: resulting values can be negative, but this can be
     #   checked for, depending on the individual uses for each stat
     #   e.g. MSp cannot be below 1-5 or so for purposes of movement,
     #   Spd cannot be below 1, Dmg cannot be below 0,
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-    
+    assert(not on(ent, DIRTY_STATS)) # MUST NOT BE DIRTY OR ELSE A MAJOR PROBLEM EXISTS IN THE CODE. Before this is called, dirty_stats flag is removed. If it got reset during this function then we get infinite recursion of this expensive function.
     return modded
 # end def
 
