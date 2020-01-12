@@ -562,15 +562,15 @@ wrap=False,con=rog.con_final(),disp='mono'
         if not _ans.lower()=='y':
             return chargen(sx,sy)
         #
-
-            #-------------------------#
-            # Create character entity #
-            #-------------------------#
             
         #stats?
         _stats = {}
         #gift?
         _gift = 0
+
+            #----------------------------------#
+            #  Roll character / Create entity  #
+            #----------------------------------#
         
         # mass, height
         mass = 70 # temporary
@@ -579,6 +579,8 @@ wrap=False,con=rog.con_final(),disp='mono'
         # create body
         body, newmass = rog.create_body_humanoid(
             mass=mass, height=height, female=(_genderName=="female") )
+        body.hydration = body.hydrationMax * 0.98
+        body.satiation = body.satiationMax * 0.85
         
         meters = cmp.Meters()
         meters.temp = BODY_TEMP[BODYPLAN_HUMANOID][0]
@@ -586,6 +588,7 @@ wrap=False,con=rog.con_final(),disp='mono'
         #create pc object from the data given in chargen
         
         # create entity
+        flags = cmp.Flags(IMMUNERUST, IMMUNEROT)
         pc = world.create_entity(
             body,meters,
             cmp.Player(),
@@ -598,7 +601,7 @@ wrap=False,con=rog.con_final(),disp='mono'
                 job=_className, faction=FACT_ROGUE, species=SPECIE_HUMAN
                 ),
             cmp.Stats(
-                hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN,
+                hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN*MULT_STATS,
                 mass=newmass, # base mass before weight of water and blood and fat is added
                 encmax=BASE_ENCMAX,
                 resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
@@ -620,7 +623,7 @@ wrap=False,con=rog.con_final(),disp='mono'
                 courage=BASE_COURAGE, scary=BASE_SCARY,
                 beauty=BASE_BEAUTY
                 ),
-            cmp.Skills(), cmp.Flags(),
+            cmp.Skills(), flags,
             cmp.SenseSight(), cmp.SenseHearing(),
             cmp.Mutable(),
             cmp.Inventory(),
@@ -638,6 +641,7 @@ wrap=False,con=rog.con_final(),disp='mono'
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
             rog.setskill(pc, sk_id, 5)
+        print("skills = ", rog.world().component_for_entity(pc, cmp.Skills).skills)
     # end if
     
     # init

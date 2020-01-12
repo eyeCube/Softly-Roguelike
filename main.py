@@ -97,24 +97,29 @@ def main():
     rog.equip(
         rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
         )
-##    rog.equip(
-##        rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_leggings("metal mail leggings", 0,0),EQ_MAINLEG
-##        )
+    rog.equip(
+        rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
+        )
+    rog.equip(
+        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+        )
     
     # test body part statuses
-    import components as cmp
-    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
-    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
-    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
-    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
-    body.parts[cmp.BPC_Legs].legs[0].leg.bone.status = BONESTATUS_BROKEN
-    body.parts[cmp.BPC_Legs].legs[0].leg.muscle.status = 3
-    body.parts[cmp.BPC_Heads].heads[0].head.bone.status = 3
-    body.parts[cmp.BPC_Heads].heads[0].head.brain.status = 3
-    body.parts[cmp.BPC_Heads].heads[0].head.skin.status = 6
+##    import components as cmp
+##    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
+##    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
+##    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_FRACTURED
+##    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
+##    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
+##    body.parts[cmp.BPC_Legs].legs[0].leg.bone.status = BONESTATUS_BROKEN
+##    body.parts[cmp.BPC_Legs].legs[1].leg.bone.status = BONESTATUS_DAMAGED
+##    body.parts[cmp.BPC_Legs].legs[0].leg.muscle.status = 3
+##    body.parts[cmp.BPC_Heads].heads[0].head.bone.status = 3
+##    body.parts[cmp.BPC_Heads].heads[0].head.brain.status = 3
+##    rog.damagebpp(body.parts[cmp.BPC_Heads].heads[0].head.skin,
+##                  BPP_SKIN, SKINSTATUS_BURNED)
+##    rog.damagebpp(body.parts[cmp.BPC_Heads].heads[0].head.skin,
+##                  BPP_SKIN, SKINSTATUS_BURNED)
     #
     
     # create light so player can see

@@ -1,0 +1,9 @@
+balance
+
+force and poise are not stats but are calculated on the fly based on conditions.
+
+force (during melee combat) is a function of attacker's mass, attacker's strength put into the force, and their weapons(?). Ranged combat -- based solely on the force of the missile (for guns this is static based on ammunition/type, for bows it depends on strength and draw weight of the bow).
+
+poise is a function of defender's mass and defender's balance.
+
+if force exceeds balance, the defender becomes staggered (gains the status effect OffBalance). The degree of the status (and the duration) are based on how much the force exceeds the balance (and the degree to which the entity is already off balance).

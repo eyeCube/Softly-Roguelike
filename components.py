@@ -84,6 +84,7 @@ class Player: # the player has some unique stats that only apply to them
     __slots__=['identify']
     def __init__(self, identify=0):
         self.identify=int(identify)
+##        self.luck=luck
 
 class Targetable:
     __slots__=['kind']
@@ -146,7 +147,7 @@ class Stats: #base stats
         self.hp=self.hpmax
         self.mpmax=int(mp)          # stamina
         self.mp=self.mpmax
-        self.mpregen=mpregen
+        self.mpregen=mpregen        # regeneration rate, MULT_STATS
         self.encmax=int(encmax)     # encumberance maximum
         self.enc=0                  # encumberance
         self.atk=int(atk)    #Attack -- accuracy
@@ -249,6 +250,18 @@ class PausedAction: # QueuedAction that has been put on pause
         self.data       = queuedAction.data
         self.cancelfunc = queuedAction.cancelfunc
         self.elapsed    = queuedAction.elapsed
+# Queued Job / Unfinished job / crafting item:
+# the subject of a PausedAction
+# when a crafting job is paused, a crafting result item may be created,
+# which is half-finished or 3/4 finished or w/e.
+# This item can then be finished to produce the final crafting product.
+# The entity with this component is that unfinished product of some kind.
+class QueuedJob:
+    __slots__=['ap','func','cancelfunc']
+    def __init__(self, ap, func, cancelfunc=None):
+        self.ap = ap
+        self.func = func
+        self.cancelfunc = cancelfunc
 
 class PartiallyEaten:
     __slots__=['string']
@@ -599,12 +612,10 @@ class BPP_Bone:
         self.material=mat # determines Strength of the bone
         self.status=0
 class BPP_Muscle:
-    __slots__=['status','str','fatigue','fatigueMax']
+    __slots__=['status','str']#,'fatigue','fatigueMax'
     def __init__(self, _str=1):
-        self.str=_str
+        self.str=_str # strength of muscle (as a ratio 0 to 1?)
         self.status=0
-        self.fatigue=0
-        self.fatigueMax=0
 class BPP_Brain:
     __slots__=['status','quality']
     def __init__(self, quality=1):
@@ -689,9 +700,9 @@ class EquipableInAmmoSlot:
         self.mods=mods
         self.fit=fit
 class EquipableInFrontSlot: # breastplate
-    __slots__=['ap','mods','fit',
+    __slots__=['ap','mods','fit','strReq',
                'coversBack','coversCore','coversHips','coversArms']
-    def __init__(self, ap, mods, fit=0,
+    def __init__(self, ap, mods, fit=0, strReq=0,
                  coversBack=False, coversCore=False,
                  coversHips=False, coversArms=False): #{var : modf,}
         self.ap=ap
@@ -701,34 +712,39 @@ class EquipableInFrontSlot: # breastplate
         self.coversCore=coversCore
         self.coversHips=coversHips
         self.coversArms=coversArms
+        self.strReq=strReq
 class EquipableInCoreSlot: # tummy area
-    __slots__=['ap','mods','fit'] # ap = AP (Energy) cost to equip / take off
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',] # ap = AP (Energy) cost to equip / take off
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq']
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInHipsSlot: #
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cloaks, capes, etc.)
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInHeadSlot:
-    __slots__=['ap','mods','fit',
+    __slots__=['ap','mods','fit','strReq',
                'coversFace','coversEyes','coversEars','coversNeck']
-    def __init__(self, ap, mods, fit=0,
+    def __init__(self, ap, mods, fit=0, strReq=0,
                  coversFace=False, coversEyes=False,
                  coversEars=False, coversNeck=False ): #{component : {var : modf,}}
         self.ap=ap
@@ -738,57 +754,71 @@ class EquipableInHeadSlot:
         self.coversEyes=coversEyes
         self.coversEars=coversEars
         self.coversNeck=coversNeck
+        self.strReq=strReq
 class EquipableInFaceSlot:
-    __slots__=['ap','mods','fit','coversEyes']
-    def __init__(self, ap, mods, fit=0, coversEyes=False): #{component : {var : modf,}}
+    __slots__=['ap','mods','fit','strReq',
+               'coversEyes']
+    def __init__(self, ap, mods, fit=0, strReq=0,
+                 coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods
         self.fit=fit
         self.coversEyes=coversEyes
+        self.strReq=strReq
 class EquipableInEyesSlot:
-    __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInEarsSlot:
-    __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInNeckSlot:
-    __slots__=['ap','mods','fit',]
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
-    __slots__=['ap','mods','stamina','fit',]
-    def __init__(self, ap, sta, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','stamina','fit','strReq','dexReq',]
+    def __init__(self, ap, sta, mods, fit=0, strReq=0, dexReq=0): #{var : modf,}
         self.ap=ap
         self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
+        self.dexReq=dexReq
 class EquipableInFootSlot: #shoe / boot
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInArmSlot:
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',]
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
+        self.strReq=strReq
 class EquipableInLegSlot:
-    __slots__=['ap','mods','fit','coversBoth']
-    def __init__(self, ap, mods, fit=0, coversBoth=False): #{var : modf,}
+    __slots__=['ap','mods','fit','strReq',
+               'coversBoth']
+    def __init__(self, ap, mods, fit=0, strReq=0,
+                 coversBoth=False): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
         self.coversBoth=coversBoth # covers two legs?
+        self.strReq=strReq
         
 # unused
 ##
@@ -1305,13 +1335,27 @@ class _Injury: # for use by Injured component
 
 # some statuses have quality, which affects the degree to which
 #    you're affected by the status
-class StatusFire: # too hot and taking constant damage from the heat
+class StatusHot: # too hot -> heat exhaustion
+    # This status is unrelated to the fire phenomenon, light,
+    #     heat production, etc. Just handles damage over time.
+    __slots__=['timer']
+    def __init__(self, t=8):
+        self.timer=t
+class StatusBurn: # way too hot and taking constant damage from smoldering/burning
     # This status is unrelated to the fire phenomenon, light,
     #     heat production, etc. Just handles damage over time.
     __slots__=['timer']
     def __init__(self, t=2):
         self.timer=t
-class StatusFrozen: # too cold and taking constant damage from the cold
+class StatusChilly: # too cold -> loss of motor functions / higher thought
+    __slots__=['timer']
+    def __init__(self, t=8):
+        self.timer=t
+class StatusCold: # way too cold -- greater severity of Chilly status
+    __slots__=['timer']
+    def __init__(self, t=8):
+        self.timer=t
+class StatusFrozen: # frozen solid
     __slots__=['timer']
     def __init__(self, t=2):
         self.timer=t
@@ -1327,7 +1371,12 @@ class StatusDeaf: # hearing -96%
     __slots__=['timer']
     def __init__(self, t=256):
         self.timer=t
-class StatusIrritated: # vision -25%, hearing -25%
+class StatusDisoriented: # perception down: vision -67%, hearing -67%
+    # less extreme version of blind/deaf
+    __slots__=['timer']
+    def __init__(self, t=8):
+        self.timer=t
+class StatusIrritated: # vision -25%, hearing -25%, respain -25%, 
     __slots__=['timer']
     def __init__(self, t=196):
         self.timer=t
@@ -1426,17 +1475,17 @@ class StatusOffBalance: # off-balance or staggered temporarily
 #   and it has some other quantity indicator of when it will run out.
 
 class StatusDigest:
-    __slots__=['satiation','hydration']
-    def __init__(self, s=1, h=1):
+    __slots__=['satiation','hydration','mass']
+    def __init__(self, s=1, h=1, g=1):
         self.satiation=c # potential maximum satiation points available
         self.hydration=h # potential maximum hydration points available
-        # TODO: add mass of the food(?)
+        self.mass=g # total mass of the food/drink TODO: implement mass
 #
 
 
 # GLOBAL LISTS OF COMPONENTS #
 
-NAMES={ # body part names
+BPNAMES={ # body part names
 BP_TorsoCore    : "core",
 BP_TorsoFront   : "chest",
 BP_TorsoBack    : "back",
@@ -1456,8 +1505,10 @@ BP_Foot         : "foot",
 
 STATUSES={ # dict of statuses that have a timer
     # component : string that appears when you have the status
-    StatusFire      : 'burning',
-    StatusFrozen    : 'frozen',
+    StatusHot       : 'hot',
+    StatusBurn      : 'burning',
+    StatusChilly    : 'cold',
+    StatusCold      : 'hypothermia',
     StatusAcid      : 'corroding',
     StatusBlind     : 'blinded',
     StatusDeaf      : 'deafened',

@@ -1210,11 +1210,13 @@ RECIPES={
     'sound'     : 30,
     'construct' : 4500,
     'components': (
-        [ ('stick of plastic', 16,), ('stick of wood', 16,), ],
-        [ ('pole of plastic', 4,), ('pole of wood', 4,), ],
-        [ ('foliage', 32,), ('moss clump', 64,),
+        [ ('stick of plastic', 16,), ('stick of wood', 16,), ], # frame walls
+        [ ('pole of plastic', 4,), ('pole of wood', 4,), ], # frame support
+        [ ('foliage', 64,), ], # insulation
+        [ ('foliage', 64,), ('moss clump', 64,), # water protection
           ('tarp', 4,), ('tarp, large', 1,), ],
-        [ ('cordage', 8,), ('rope', 8,), ('duct tape', 16,), ],
+        [ ('cordage', 8,), ('rope', 8,),  # connect
+          ('zip tie', 32,), ('duct tape', 64,), ],
         ),
     'tools'     : (
         [ (cmp.Tool_Hammer, 1,), ],

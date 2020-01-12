@@ -7,6 +7,9 @@ todo list (what needs to get done before Softly Into the Night is playable?)
 	skills
 	crafting
 	augmentations
+	inventory
+		item viewer manager
+		
 	
 	implement stats:
 		grappling

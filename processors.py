@@ -374,7 +374,7 @@ class Fires:
         cls.fires = np.full((ROOMW,ROOMH,), fill_value=False)
     @classmethod
     def fireat(cls, x,y): # fire present at pos x,y ?
-        return cls.fires[y][x]
+        return cls.fires[x][y]
     
     # heat
     @classmethod
@@ -382,21 +382,21 @@ class Fires:
         cls.heat = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.float64)
     @classmethod
     def tempat(cls, x,y): # get temperature at pos x,y
-        return cls.heat[y][x]
+        return cls.heat[x][y]
     @classmethod
-    def add_heat(cls,x,y,temp): cls.heat[y][x] += temp
+    def add_heat(cls,x,y,temp): cls.heat[x][y] += temp
     @classmethod
-    def remove_heat(cls,x,y,temp): cls.heat[y][x] -= temp
+    def remove_heat(cls,x,y,temp): cls.heat[x][y] -= temp
     
     # fuel
     @classmethod
     def init_fuel(cls):
         cls.fuel = np.full((ROOMW,ROOMH,), fill_value=0, dtype=np.int16)
     @classmethod
-    def add_fuel(cls,x,y,fuel): cls.fuel[y][x] += fuel
+    def add_fuel(cls,x,y,fuel): cls.fuel[x][y] += fuel
     @classmethod
     def remove_fuel(cls,x,y,fuel):
-        cls.fuel[y][x] = max(0, cls.fuel[y][x] - fuel)
+        cls.fuel[x][y] = max(0, cls.fuel[x][y] - fuel)
     
     # heat sources
     @classmethod
@@ -405,9 +405,9 @@ class Fires:
             (ROOMW,ROOMH,), fill_value=0, dtype=np.float64
             )
     @classmethod
-    def add_heat_source(cls,x,y,temp): cls.heat_sources[y][x] += temp
+    def add_heat_source(cls,x,y,temp): cls.heat_sources[x][y] += temp
     @classmethod
-    def remove_heat_source(cls,x,y,temp): cls.heat_sources[y][x] -= temp
+    def remove_heat_source(cls,x,y,temp): cls.heat_sources[x][y] -= temp
     
     # entity heat sources
     @classmethod
@@ -553,7 +553,8 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
             cmp.Stats, cmp.Creature ):
             # just query some components that match entities
             # that will be needing stamina regen
-            rog.givemp(ent, rog.getms(ent, 'mpregen'))
+##            print("mp regen ", rog.getms(ent, 'mpregen'))
+            rog.givemp(ent, rog.getms(ent, 'mpregen')//MULT_STATS)
 
 
 
@@ -568,11 +569,17 @@ class Status:
         rog.make(ent, DIRTY_STATS)
         status_str = ""
         #attribute modifiers, aux. effects, message (based on status type)
-        if component is cmp.StatusFire:
-            status_str = " catches fire"
+        if component is cmp.StatusHot:
+            status_str = " becomes hyperthermic"
+        elif component is cmp.StatusBurn:
+            status_str = " begins smoldering"
+        elif component is cmp.StatusChilly:
+            status_str = " becomes cold"
+        elif component is cmp.StatusCold:
+            status_str = " becomes hypothermic"
         elif component is cmp.StatusFrozen:
             status_str = " becomes frozen"
-            rog.damage(ent, FREEZE_INITIAL_DAMAGE)
+            rog.damage(ent, rog.getms(ent, 'hpmax') * FREEZE_DMG_PC)
         elif component is cmp.StatusAcid:
             status_str = " begins corroding"
         elif component is cmp.StatusBlind:
@@ -632,8 +639,8 @@ class Status:
         return True
     
     @classmethod
-    def remove_all(self, ent): # TODO: finish this and add STATUS_COMPONENTS constant to the class
-        for status, component in cmp.STATUS_COMPONENTS:
+    def remove_all(self, ent): # TODO: finish this
+        for status, component in cmp.STATUSES.items():
             if not rog.world().has_component(ent, component):
                 continue
             #attribute modifiers
@@ -652,19 +659,19 @@ class StatusProcessor(esper.Processor):
 
         # fire burning
         for ent, (status, meters) in world.get_components(
-            cmp.StatusFire, cmp.Meters):
+            cmp.StatusBurn, cmp.Meters):
             status.timer -= 1
             if (status.timer == 0 or meters.temp < FIRE_THRESHOLD): #temporary? When should fire go out?
-                Status.remove(ent, cmp.StatusFire)
+                Status.remove(ent, cmp.StatusBurn)
                 continue
             rog.damage(ent, 1)
 
         # frozen ice
         for ent, (status, meters) in world.get_components(
-            cmp.StatusFrozen, cmp.Meters):
+            cmp.StatusCold, cmp.Meters):
             status.timer -= 1
             if (status.timer == 0 or meters.temp > FREEZE_THRESHOLD):
-                Status.remove(ent, cmp.StatusFrozen)
+                Status.remove(ent, cmp.StatusCold)
                 continue
             
         # acid

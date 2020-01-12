@@ -65,8 +65,7 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 500,200,False,1,),
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen',1200,300,False,2,),
     JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen',1200,300,False,2,),
-    # TODO: change costEnter to 0 for WALL! This is TEMPORARY for TESTING LEVEL GEN
-    WALL        : Tile(WALL,      'dkred', 'orange',   110,  0,  True, 50,),
+    WALL        : Tile(WALL,      'dkred', 'orange',   0,  0,  True, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',  100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',   100,0,  False,1,),
@@ -248,6 +247,20 @@ Reason: out of bounds of grid array.'''.format(x,y,typ) )
 Reason: {}.'''.format(x,y,typ, e) )
             return False
     #
+
+    def fill_edges(self, tile=None):
+        '''
+            fill in the edges with a tile type
+            (default: WALL)
+        '''
+        if tile is None:
+            tile==WALL
+        for x in range(self.w):
+            self.tile_change(x,         0,  tile)
+            self.tile_change(x,  self.h-1,  tile)
+        for y in range(self.h):
+            self.tile_change(0,         y,  tile)
+            self.tile_change(self.w-1,  y,  tile)
         
     def add_thing(self, ent):
         ''' try to add a thing to the grid, return success/failure '''
@@ -374,19 +387,19 @@ Reason: entity has no position component.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-##                if not rog.in_range(pos.x,pos.y, x,y, sight):
-##                    continue
-##                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
-##                    continue
-##
+                if not rog.in_range(pos.x,pos.y, x,y, sight):
+                    continue
+                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+                    continue
+
                 ent=self.thingat(x, y)
 
-##                if (not (x==pos.x and y==pos.y)
-##                        and self.get_light_value(x,y) == 0
-##                        and not rog.on(pc,NVISION) ):
-##                    self._draw_silhouettes(pc, x,y, ent, sight)
-##                    continue
-##                
+                if (not (x==pos.x and y==pos.y)
+                        and self.get_light_value(x,y) == 0
+                        and not rog.on(pc,NVISION) ):
+                    self._draw_silhouettes(pc, x,y, ent, sight)
+                    continue
+                
                 if ent:
                     libtcod.console_put_char(
                         self.con_map_state, x,y,

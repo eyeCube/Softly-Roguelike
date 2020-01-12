@@ -19,15 +19,15 @@
 
 # !!! IMPORTANT NOTE ::: #
 
-# The values here are just used as the defaults,
-# for if the settings file is corrupted.
+# The values in COLORS are just used as the defaults,
+#  for if the settings file is corrupted.
 
-# Global Settings object modifies these values
-# at runtime, using the settings file.
+# Global Settings object modifies these values at runtime,
+#  using the settings file. The values for each key are
+#  converted from strings into libtcod Color objects,
+#  derived from the RGB string.
 
-# **The values for each key are converted from strings
-# into libtcod Color objects derived from the RGB string.
-
+colored_strings=[]
 COLORS={
     'white'         : '255,255,255',
     'black'         : '0,0,0',
@@ -78,5 +78,3 @@ COLORS={
     'magenta'       : '255,0,70',
     'dkmagenta'     : '150,0,60',
 }
-
-colored_strings=[]

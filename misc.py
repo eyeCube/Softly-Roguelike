@@ -88,6 +88,8 @@ def _geta(att): # get attribute
     return rog.getms(rog.pc(), att)//MULT_ATT
 def _getb(stat): # get base
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]
+def _getbr(stat): # get base resistance
+    return "({})".format(rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat])
 def _getba(stat): # get base att
     return rog.world().component_for_entity(rog.pc(), cmp.Stats).__dict__[stat]//MULT_ATT
 def _getbs(stat): # get base stat
@@ -99,21 +101,22 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
         world = rog.world()
         equipable = world.component_for_entity(slot.item, equipableCompo)
         itemname = world.component_for_entity(slot.item, cmp.Name)
-        mods=__eqdadd(equipable.mods)
+##        mods=__eqdadd(equipable.mods)
         # covers
         covers = ""
         for cover in slot.covers:
-            covers += "| {} ".format(cmp.NAMES[cover])
+            covers += "| {} ".format(cmp.BPNAMES[cover])
         #
         equipment += '''    < {bp} {cov}>
-        {n} ({hp} / {hpmax})
+        {n}  ({hp} / {hpmax})  (ENC: +{enc})
 '''.format(
             bp=bpname,
             n=itemname.name,
             hp=rog.getms(slot.item, "hp"),
             hpmax=rog.getms(slot.item, "hpmax"),
             cov=covers,
-            mods=mods
+            enc=int(equipable.mods['enc'])
+##            mods=mods,
             )
     return equipment
 def __eqdadd(mods):
@@ -214,23 +217,58 @@ def _get_effects(world, pc):
     return effects
 
 # _get_body_effects
-def __gdadd(_dict, status):
+def __gdadd(mods):
     string=""
-    mods = _dict[status]
     for k, v in mods.items():
         sign = "+" if v > 0 else ""
         name=STATS[k]
-        string += "{n}: {sign}{v}, ".format(n=name, v=v, sign=sign)
+        string += "{n} {sign}{v}, ".format(n=name, v=v, sign=sign)
     if string: string = string[:-2] # remove final delim
     return string
-def __gdmul(_dict, status):
+def __gdmul(mods):
     string=""
-    mods = _dict[status]
     for k, v in mods.items():
         name=STATS[k]
-        string += "{n}: {v}%, ".format(n=name, v=int(v*100))
+        string += "{n} {v}%, ".format(n=name, v=int(v*100))
     if string: string = string[:-2] # remove final delim
     return string
+
+# _get_body_effects 
+# function for showing a body part status, for use by _get_body_effects
+def __sbps(fxlist,bppname,status, bpstatusdict, amd=None, mmd=None):
+    # amd : add mod dict
+    # mmd : mult. mod dict
+    if status:
+        adict = amd.get(status, None) if amd else None
+        mdict = mmd.get(status, None) if mmd else None
+        if (not adict and not mdict):
+            return
+
+        # priority -- depending on status AND type of body part
+        priority = status
+        if "scalp" in bppname: # head skin higher priority than regular skin
+            priority += 10
+        elif "muscle" in bppname: # muscles have higher priority than skin
+            priority += 20
+        elif "bone" in bppname: # bones have high priority
+            priority += 30 # a broken bone is no bueno
+        elif "skull" in bppname: # skull has very high priority
+            priority += 40
+        elif "brain" in bppname: # brain has very highest priority
+            priority += 50
+            
+        am=""
+        if amd:
+            am = "\n            [ {} ]".format(
+                __gdadd(adict))
+        mm=""
+        if mmd:
+            mm = "\n            [ {} ]".format(
+                __gdmul(mdict) )
+        fxlist.append(
+            (priority, "        {bpn}: {eff}{am}{mm}\n".format(
+            bpn=bppname, eff=bpstatusdict[status], am=am, mm=mm ),)
+            )
 def _get_body_effects(world, pc): # TODO: finish all of these for each body part, and each BPP for each body part
     fxlist=[] # [ (priority, string,), ... ]
     body = world.component_for_entity(pc, cmp.Body)
@@ -238,93 +276,63 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
     # what body type are we?
     # humanoid
     if body.plan == BODYPLAN_HUMANOID:
-        
-        # function for showing a body part status
-        def __f(bppname,status, bpstatusdict, amd=None, mmd=None):
-            # amd : add mod dict
-            # mmd : mult. mod dict
-            if status:
-
-                # priority -- depending on status AND type of body part
-                priority = status
-                if "scalp" in bppname: # head skin higher priority than regular skin
-                    priority += 10
-                elif "muscle" in bppname: # muscles have higher priority than skin
-                    priority += 20
-                elif "bone" in bppname: # bones have high priority
-                    priority += 30 # a broken bone is no bueno
-                elif "skull" in bppname: # skull has very high priority
-                    priority += 40
-                elif "brain" in bppname: # brain has very highest priority
-                    priority += 50
-                    
-                mm=""
-                if mmd:
-                    mm = "\n            [ {} ]".format(
-                        __gdmul(mmd, status) )
-                am=""
-                if amd:
-                    am = "\n            [ {} ]".format(
-                        __gdadd(amd, status))
-                fxlist.append(
-                    (priority, "        {bpn}: {eff}{am}{mm}\n".format(
-                    bpn=bppname, eff=bpstatusdict[status], am=am, mm=mm ),)
-                    )
         # end def
 
         # for every body part in the plan, if it has a status,
         # add the status
 
+        # TODO:(?) guts, lungs, heart statuses???
+
         # core
         
-        __f("core skin",body.core.core.skin.status,
+        __sbps(fxlist,"core skin",body.core.core.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("core muscle",body.core.core.muscle.status,
+        __sbps(fxlist,"core muscle",body.core.core.muscle.status,
             MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
         
-        __f("chest skin",body.core.front.skin.status,
+        __sbps(fxlist,"chest skin",body.core.front.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("chest muscle",body.core.front.muscle.status,
+        __sbps(fxlist,"chest muscle",body.core.front.muscle.status,
             MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
-        __f("chest bone",body.core.front.bone.status,
+        __sbps(fxlist,"chest bone",body.core.front.bone.status,
             BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
             mmd=MULTMODS_BPP_TORSO_BONESTATUS)
         
-        __f("hip skin",body.core.hips.skin.status,
+        __sbps(fxlist,"hip skin",body.core.hips.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("hip muscle",body.core.hips.muscle.status,
+        __sbps(fxlist,"hip muscle",body.core.hips.muscle.status,
             MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
-        __f("hip bone",body.core.hips.bone.status,
+        __sbps(fxlist,"hip bone",body.core.hips.bone.status,
             BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
             mmd=MULTMODS_BPP_TORSO_BONESTATUS)
         
-        __f("back skin",body.core.back.skin.status,
+        __sbps(fxlist,"back skin",body.core.back.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("back muscle",body.core.back.muscle.status,
+        __sbps(fxlist,"back muscle",body.core.back.muscle.status,
             MUSCLESTATUSES, amd=ADDMODS_BPP_BACK_MUSCLESTATUS )
-        __f("back bone",body.core.back.bone.status,
+        __sbps(fxlist,"back bone",body.core.back.bone.status,
             BONESTATUSES, amd=ADDMODS_BPP_BACK_BONESTATUS,
             mmd=MULTMODS_BPP_BACK_BONESTATUS)
 
         # head
         
-        __f("scalp",body.parts[cmp.BPC_Heads].heads[0].head.skin.status,
+        __sbps(fxlist,"scalp",body.parts[cmp.BPC_Heads].heads[0].head.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("skull",body.parts[cmp.BPC_Heads].heads[0].head.bone.status,
+        __sbps(fxlist,"skull",body.parts[cmp.BPC_Heads].heads[0].head.bone.status,
             BONESTATUSES, amd=ADDMODS_BPP_HEAD_BONESTATUS,
             mmd=MULTMODS_BPP_HEAD_BONESTATUS)
-        __f("brain",body.parts[cmp.BPC_Heads].heads[0].head.brain.status,
+        __sbps(fxlist,"brain",body.parts[cmp.BPC_Heads].heads[0].head.brain.status,
             BRAINSTATUSES, amd=ADDMODS_BPP_BRAINSTATUS,
             mmd=MULTMODS_BPP_BRAINSTATUS)
         
-        __f("face skin",body.parts[cmp.BPC_Heads].heads[0].face.skin.status,
+        __sbps(fxlist,"face skin",body.parts[cmp.BPC_Heads].heads[0].face.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_FACE_SKINSTATUS )
         
-        __f("neck skin",body.parts[cmp.BPC_Heads].heads[0].neck.skin.status,
+        __sbps(fxlist,"neck skin",body.parts[cmp.BPC_Heads].heads[0].neck.skin.status,
             SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __f("neck muscle",body.parts[cmp.BPC_Heads].heads[0].neck.muscle.status,
+        __sbps(fxlist,"neck muscle",body.parts[cmp.BPC_Heads].heads[0].neck.muscle.status,
             MUSCLESTATUSES, amd=ADDMODS_BPP_NECK_MUSCLESTATUS)
-        __f("neck bone",body.parts[cmp.BPC_Heads].heads[0].neck.bone.status,
+        __sbps(fxlist,"neck bone",body.parts[cmp.BPC_Heads].heads[0].neck.bone.status,
             BONESTATUSES, amd=ADDMODS_BPP_NECK_BONESTATUS,
             mmd=MULTMODS_BPP_NECK_BONESTATUS)
 
@@ -333,23 +341,23 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
         index = 0
         for arm in body.parts[cmp.BPC_Arms].arms:
             index += 1
-            __f("arm {} skin".format(index),
+            __sbps(fxlist,"arm {} skin".format(index),
                 arm.arm.skin.status,
                 SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __f("arm {} muscle".format(index),
+            __sbps(fxlist,"arm {} muscle".format(index),
                 arm.arm.muscle.status,
                 MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
-            __f("arm {} bone".format(index),
+            __sbps(fxlist,"arm {} bone".format(index),
                 arm.arm.bone.status,
                 BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
             
-            __f("hand {} skin".format(index),
+            __sbps(fxlist,"hand {} skin".format(index),
                 arm.hand.skin.status,
                 SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __f("hand {} muscle".format(index),
+            __sbps(fxlist,"hand {} muscle".format(index),
                 arm.hand.muscle.status,
                 MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
-            __f("hand {} bone".format(index),
+            __sbps(fxlist,"hand {} bone".format(index),
                 arm.hand.bone.status,
                 BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
         # end for
@@ -359,24 +367,24 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
         index = 0
         for leg in body.parts[cmp.BPC_Legs].legs:
             index += 1
-            __f("leg {} skin".format(index),
+            __sbps(fxlist,"leg {} skin".format(index),
                 leg.leg.skin.status,
                 SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __f("leg {} muscle".format(index),
+            __sbps(fxlist,"leg {} muscle".format(index),
                 leg.leg.muscle.status,
                 MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
-            __f("leg {} bone".format(index),
+            __sbps(fxlist,"leg {} bone".format(index),
                 leg.leg.bone.status,
                 BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
                 mmd=MULTMODS_BPP_LEG_BONESTATUS)
             
-            __f("foot {} skin".format(index),
+            __sbps(fxlist,"foot {} skin".format(index),
                 leg.foot.skin.status,
                 SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __f("foot {} muscle".format(index),
+            __sbps(fxlist,"foot {} muscle".format(index),
                 leg.foot.muscle.status,
                 MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
-            __f("foot {} bone".format(index),
+            __sbps(fxlist,"foot {} bone".format(index),
                 leg.foot.bone.status,
                 BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
                 mmd=MULTMODS_BPP_LEG_BONESTATUS)
@@ -399,7 +407,7 @@ def _get_skills(compo):
     for const,exp in compo.skills.items():
         skillname=SKILLS[const][1]
         lvl=exp//EXP_LEVEL
-        skills += "{n:>24}: lv. {lv} | xp. {xp}\n".format(
+        skills += "{n:>28}: lv. {lv} | xp. {xp}\n".format(
             n=skillname, lv=lvl, xp=(exp%EXP_LEVEL))
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
@@ -407,20 +415,24 @@ def _get_skills(compo):
 def _get_satiation(body):
     string=""
     satpc = body.satiation / body.satiationMax
-    if satpc >= 0.93:
+    if satpc >= 0.95:
+        return "stuffed"
+    if satpc >= 0.9:
         return "full"
     if satpc >= 0.75:
         return "sated"
-    if satpc >= 0.6:
+    if satpc >= 0.5:
         return "content"
-    if satpc >= 0.3:
+    if satpc >= 0.25:
         return "hungry"
     return "starving"
 
 def _get_hydration(body):
     string=""
     hydpc = body.hydration / body.hydrationMax
-    deathValue = 0.9
+    deathValue = 0.9 # Lose 10% == fatal for humans.
+    if hydpc >= deathValue + (1-deathValue)*0.95:
+        return "fully hydrated"
     if hydpc >= deathValue + (1-deathValue)*0.8:
         return "hydrated"
     if hydpc >= deathValue + (1-deathValue)*0.6:
@@ -434,8 +446,9 @@ def _get_encumberance_mods(pc):
         rog.getms(pc,'enc'), rog.getms(pc,'encmax') )
     if encbp > 0:
         index = encbp - 1
-        mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
+##        mods += "AGI {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['agi'][index]))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
+        mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))
         mods += "DV {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['dfn'][index]))
         mods += "PRO {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['pro'][index]))
@@ -472,28 +485,76 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     # create the display format string
     strng = '''
                         {subdelim} identification {subdelim}
-                    name{delim}{name}
-                 species{delim}{species}
-                 faction{delim}{fact}
-                     job{delim}{job}
-                    mass{delim}{kg} kg
-                  height{delim}{cm} cm
-
-                        {subdelim} status {subdelim}
-                   satiation: {satstr}
-                   hydration: {hydstr}
+                        name{idelim}{name}
+                     species{idelim}{species}
+                     faction{idelim}{fact}
+                         job{idelim}{job}
+                        mass{idelim}{kg} kg
+                      height{idelim}{cm} cm
+                  
+                        {subdelim} condition {subdelim}
+                   satiation:{tab}{satstr}
+                   hydration:{tab}{hydstr}
                 (life)----HP{predelim}{hp:>5} / {hpmax:<5}
              (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
         (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
+        
+                        {subdelim} attribute {subdelim}
+       (constitution)----CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
+       (intelligence)----INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
+           (strength)----STR{predelim}{_str:<2}{attdelim}({bstr})
+            (agility)----AGI{predelim}{_agi:<2}{attdelim}({bagi})
+          (dexterity)----DEX{predelim}{_dex:<2}{attdelim}({bdex})
+          (endurance)----END{predelim}{_end:<2}{attdelim}({bend})
+       
+                        {subdelim} statistic {subdelim}
+              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
+     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
+       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
+         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
+        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
+        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
+        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
+    (attack / to-hit)----ATK{predelim}{atk:<4}{statdelim}({batk})
+             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
+   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
+            (balance)----BAL{predelim}{bal:<4}{statdelim}({bbal})
+          (grappling)----GRA{predelim}{gra:<4}{statdelim}({bgra})
+     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
+            (courage)----CRG{predelim}{crg:<4}{statdelim}({bcrg})
+       (intimidation)----IDN{predelim}{idn:<4}{statdelim}({bidn})
+             (beauty)----BEA{predelim}{bea:<4}{statdelim}({bbea})
+  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
+(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
+               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
+             (height)-----CM{predelim}{cm:<4}{statdelim}({cm})
+           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})
+        (max.stamina)--SPMAX{predelim}{spmax:<4}{statdelim}({bspmax})
+   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
+       
+                        {subdelim} resistance {subdelim}
+               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<8}
+               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<8}
+         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<8}{immbio:>8}
+        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<8}
+           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<8}
+               (pain)----PAI{predelim}{pai:<4}{resdelim}{bpai:<8}{immpain:>8}
+              (bleed)----BLD{predelim}{bld:<4}{resdelim}{bbld:<8}{immbleed:>8}
+              (light)----LGT{predelim}{lgt:<4}{resdelim}{blgt:<8}
+              (sound)----SND{predelim}{snd:<4}{resdelim}{bsnd:<8}
+               (rust)----RUS{predelim}{rus:<4}{resdelim}{brus:<8}{immrust:>8}
+                (rot)----ROT{predelim}{rot:<4}{resdelim}{brot:<8}{immrot:>8}
+              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<8}{immwater:>8}
 
-    effects:
+                        {subdelim} status {subdelim}
+    status effects:
 {effects}
 
     body status:
 {bodystatus}
 
     gauge:
-             temperature: {temp} ({normalbodytemp})
+             temperature: {temp:.3f} C ({normalbodytemp})
 {gauges}
 
                         {subdelim} equipment {subdelim}
@@ -504,63 +565,18 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 
                         {subdelim} augmentation {subdelim}
 {augs}
-        
-                        {subdelim} attribute {subdelim}
-        (constitution)---CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
-        (intelligence)---INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
-            (strength)---STR{predelim}{_str:<2}{attdelim}({bstr})
-             (agility)---AGI{predelim}{_agi:<2}{attdelim}({bagi})
-           (dexterity)---DEX{predelim}{_dex:<2}{attdelim}({bdex})
-           (endurance)---END{predelim}{_end:<2}{attdelim}({bend})
-       
-                        {subdelim} statistic {subdelim}
-               (speed)---SPD{predelim}{spd:<4}{statdelim}({bspd})
-        (attack speed)---ASP{predelim}{asp:<4}{statdelim}({basp})
-      (movement speed)---MSP{predelim}{msp:<4}{statdelim}({bmsp})
-          (protection)---PRO{predelim}{pro:<4}{statdelim}({bpro})
-         (dodge value)----DV{predelim}{dv:<4}{statdelim}({bdv})
-         (armor value)----AV{predelim}{av:<4}{statdelim}({bav})
-         (penetration)---PEN{predelim}{pen:<4}{statdelim}({bpen})
-     (attack / to-hit)---ATK{predelim}{atk:<4}{statdelim}({batk})
-              (damage)---DMG{predelim}{dmg:<4}{statdelim}({bdmg})
-    (stamina recovery)---SPR{predelim}{spr:<4}{statdelim}({bspr})
-             (balance)---BAL{predelim}{bal:<4}{statdelim}({bbal})
-           (grappling)---GRA{predelim}{gra:<4}{statdelim}({bgra})
-      (counter-strike)---CTR{predelim}{ctr:<4}{statdelim}({bctr})
-             (courage)---CRG{predelim}{crg:<4}{statdelim}({bcrg})
-        (intimidation)---IDN{predelim}{idn:<4}{statdelim}({bidn})
-              (beauty)---BEA{predelim}{bea:<4}{statdelim}({bbea})
-   (visual perception)---VIS{predelim}{vis:<4}{statdelim}({bvis})
- (auditory perception)---AUD{predelim}{aud:<4}{statdelim}({baud})
-                (mass)----KG{predelim}{kg:<6}{shortdelim}({bkg})
-              (height)----CM{predelim}{cm:<4}
-        (encumberance)---ENC{predelim}{enc:<4}
-    (max.encumberance)ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
-       
-                        {subdelim} resistance {subdelim}
-                (heat)---FIR{predelim}{fir:<4}{resdelim}({bfir})
-                (cold)---ICE{predelim}{ice:<4}{resdelim}({bice})
-          (bio-hazard)---BIO{predelim}{bio:<4}{resdelim}({bbio}){tab}{immbio}
-         (electricity)---ELC{predelim}{elc:<4}{resdelim}({belc})
-            (physical)---PHS{predelim}{phs:<4}{resdelim}({bphs})
-                (pain)---PAI{predelim}{pai:<4}{resdelim}({bpai}){tab}{immpain}
-               (bleed)---BLD{predelim}{bld:<4}{resdelim}({bbld}){tab}{immbleed}
-               (light)---LGT{predelim}{lgt:<4}{resdelim}({blgt})
-               (sound)---SND{predelim}{snd:<4}{resdelim}({bsnd})
-                (rust)---RUS{predelim}{rus:<4}{resdelim}({brus}){tab}{immrust}
-                 (rot)---ROT{predelim}{rot:<4}{resdelim}({brot}){tab}{immrot}
-               (water)---WET{predelim}{wet:<4}{resdelim}({bwet}){tab}{immwater}
 
 '''.format(
         titledelim="~~~~",
         tab="    ",
         delim    ="........",
+        idelim   =":.......",
         subdelim ="--",
         predelim =": ",
         attdelim ="........",
         statdelim="......",
         resdelim ="......",
-        shortdelim ="....",
+        shortdelim ="...",
         dlv=dlvl,t=turn,
         # flags
         immbio  ="IMMUNE" if rog.on(pc, IMMUNEBIO) else "",
@@ -579,7 +595,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         job=creature.job,
         temp=meters.temp,
         normalbodytemp=37, #TEMPORARY
-        kg=_get('mass')/MULT_MASS,bkg=_getb('mass')/MULT_MASS,
+        kg="{__:.3f}".format(__=_get('mass')/MULT_MASS),
+        bkg=_getb('mass')//MULT_MASS,
         cm=int(_getheight()),
         hp=_getb('hp'),hpmax=_get('hpmax'),
         sp=_getb('mp'),spmax=_get('mpmax'),
@@ -614,16 +631,17 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         bcrg=_getb('courage'),bidn=_getb('scary'),bbea=_getb('beauty'),
         bvis=_getb('sight'),baud=_getb('hearing'),
         bencmax=_getb('encmax'),
+        bhpmax=_getb('hpmax'),bspmax=_getb('mpmax'),
         # res
         fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
         bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
         pai=_get('respain'),lgt=_get('reslight'),snd=_get('ressound'),
         rus=_get('resrust'),rot=_get('resrot'),wet=_get('reswet'),
         # base res
-        bfir=_getb('resfire'),bice=_getb('rescold'),bphs=_getb('resphys'),
-        bbld=_getb('resbleed'),bbio=_getb('resbio'),belc=_getb('reselec'),
-        bpai=_getb('respain'),blgt=_getb('reslight'),bsnd=_getb('ressound'),
-        brus=_getb('resrust'),brot=_getb('resrot'),bwet=_getb('reswet'),
+        bfir=_getbr('resfire'),bice=_getbr('rescold'),bphs=_getbr('resphys'),
+        bbld=_getbr('resbleed'),bbio=_getbr('resbio'),belc=_getbr('reselec'),
+        bpai=_getbr('respain'),blgt=_getbr('reslight'),bsnd=_getbr('ressound'),
+        brus=_getbr('resrust'),brot=_getbr('resrot'),bwet=_getbr('reswet'),
     )
     return strng
 # end def
@@ -762,27 +780,32 @@ def dbox(x,y,w,h,text, wrap=True,border=0,margin=0,con=0,disp='poly') :
 
 def put_text_special_colors(con, txt, offset):
     #   make dictionaries
-        string_colors={
-            "B" : 'blue',
-            "R" : 'red',
-            "G" : 'gray',
-            "N" : 'green',
-            "Y" : 'yellow',
-        }
+        # for every colorName, get a temporary unique char to use
+        #  for replacing the colors
+        #  unique char -> colorName
+        string_colors={}
+        i=0
+        for colname in colors.COLORS.keys():
+            string_colors[i] = colname
+            i+=1
+
+        # colorName -> unique char
         color_strings={}
         for k,v in string_colors.items():
             color_strings.update({v : k})
-    #   get a string of color data
+            
+    #   get a string of color data to use for changing the color
         colorString=txt.lower()
         for replace,col in colors.colored_strings:
-            colChar=color_strings[col]
+            colChar=chr(color_strings[col])
             colorString=colorString.replace(replace, colChar*len(replace))
+            
     #   iterate through that string, changing color on con
         yy=0
         xx=-1
         for ch in colorString:
             xx += 1
-            if ch == '\n':
+            if ch == '\n': # newline -> move the position accordingly
                 xx=-1
                 yy += 1
                 continue

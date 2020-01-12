@@ -379,6 +379,7 @@ def intimidate(ent):
 
 #use
 #"use" an item, whatever that means for the specific item
+# context-sensitive use action
 def use(obj, item):
     pass
 
@@ -426,8 +427,9 @@ def quaff(ent, drink):
     quaffable.func(ent)
     
     # TODO: do delayed action instead of immediate action.
-    rog.drain(ent, 'nrg', quaffable.timeToConsume)
-    rog.givemp(ent, quaffable.hydration)
+    # OBSELETE:
+##    rog.drain(ent, 'nrg', quaffable.timeToConsume)
+##    rog.givemp(ent, quaffable.hydration)
 
     #events - sight
     if ent == rog.pc():
@@ -441,7 +443,7 @@ def quaff(ent, drink):
     world.delete_entity(drink)
 
 
-def move(ent,dx,dy, ap=1.0,sta=1.0):  # actor locomotion
+def move(ent,dx,dy, mx=1):  # actor locomotion
     '''
         move: generic actor locomotion
         Returns True if move was successful, else False
@@ -449,8 +451,7 @@ def move(ent,dx,dy, ap=1.0,sta=1.0):  # actor locomotion
             ent : entity that's moving
             dx  : change in x position
             dy  : change in y position
-            ap  : Action Point cost multiplier value
-            sta : Stamina cost multiplier value
+            mx  : AP/Calorie/Stamina cost multiplier value
     '''
     # init
     world = rog.world()
@@ -466,14 +467,18 @@ def move(ent,dx,dy, ap=1.0,sta=1.0):  # actor locomotion
     
     # AP cost
     mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
-    ap_cost = rog.around(ap * NRG_MOVE * mult * terrainCost / max(1, msp))
-    actor.ap -= max(1, ap_cost)
+    mult = mult * rog.getms(ent, 'mass')/MULT_MASS/75
+    ap_cost = max(1, rog.around(
+        mx * NRG_MOVE * mult * terrainCost / max(MIN_MSP, msp) ))
+    actor.ap -= ap_cost
 
-    # Stamina cost ( TODO )
-##    sta_cost = (sta * STA_MOVE)
-##    rog.sap(ent, sta_cost)
+    # Stamina cost (TODO FOR ALL ACTIONS!)
+    sta_cost = int(mx * STA_MOVE * mult)
+    rog.sap(ent, sta_cost)
 
     # Satiation, hydration, fatigue (TODO FOR ALL ACTIONS!)
+    cal_cost = int(mx * CALCOST_LIGHTACTIVITY * mult)
+    rog.metabolism(ent, cal_cost)
     
     # perform action
     rog.port(ent, xto, yto)

@@ -112,7 +112,7 @@ class GlobalSettings:
         "HIGHLIGHT PC"      : 0,
         "HIGHLIGHT COLOR"   : "TRUEBLUE",
         "SLEEP TIME"        : 1,
-        "COLORED STRINGS"   : "",
+        "COLORED STRINGS"   : "ATK,trueblue;DV,red",
     }
 
     COMMENTS = {
@@ -120,7 +120,7 @@ class GlobalSettings:
 0 - GLSL
 1 - OPENGL
 2 - SDL''',
-        "#DEEP"         : "Colors. RGB Values 0-255. Feel free to change!",
+        "#DEEP"         : "Colors. RGB Values 0-255. Feel free to change the values!",
     }
 
     ##

@@ -293,6 +293,7 @@ MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes 
 MULT_HYD            = 1000  # finer scale for hydration control
 EXP_LEVEL           = 1000  # experience needed to level up skills
 EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
+MIN_MSP             = 5     # minimum movement speed under normal conditions
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
@@ -300,7 +301,7 @@ ENV_DELTA_HEAT  = -0.1 # global change in heat each iteration of heat dispersion
 HEATMIN         = -300 # minimum temperature
 HEATMAX         = 16000 # maximum temperature
 FREEZE_THRESHOLD= -30
-FREEZE_INITIAL_DAMAGE   = 5  # damage dealt when you become frozen
+FREEZE_DMG_PC   = 0.17  # damage dealt when you become frozen (% of max lo)
 
 #fluids
 MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
@@ -344,19 +345,18 @@ ROTTEDNESS={
 
 
 # base stats for player
-BASE_HP         = 0
-BASE_MP         = 0
-BASE_MPREGEN    = 10
+BASE_HP         = 2
+BASE_MP         = 20
+BASE_MPREGEN    = 1
 BASE_ENCMAX     = 10
-BASE_FORCE      = 10
-BASE_VIT        = 12 # vitality
 BASE_STR        = 12 # strength
 BASE_CON        = 12 # constitution
 BASE_INT        = 12 # intelligence
 BASE_DEX        = 12 # dexterity
 BASE_AGI        = 12 # agility
 BASE_END        = 12 # endurance
-BASE_LUCK       = 0
+BASE_VIT        = 12 # vitality
+BASE_LUCK       = 100
 BASE_ATK        = 0
 BASE_DMG        = 0
 BASE_PEN        = 0
@@ -366,24 +366,24 @@ BASE_PRO        = 6
 BASE_SPD        = 100
 BASE_MSP        = 40
 BASE_ASP        = 0
-BASE_BAL        = 0
+BASE_BAL        = 2
 BASE_GRA        = 0
 BASE_CTR        = 0
 BASE_SIGHT      = 20
 BASE_HEARING    = 40
-BASE_COURAGE    = 32
+BASE_COURAGE    = 96
 BASE_SCARY      = 32
-BASE_BEAUTY     = 32
-BASE_RESFIRE    = 0
-BASE_RESCOLD    = 0
-BASE_RESBIO     = 50
+BASE_BEAUTY     = 16
+BASE_RESFIRE    = 20
+BASE_RESCOLD    = 20
+BASE_RESBIO     = 40
 BASE_RESPHYS    = 20
-BASE_RESELEC    = 0
-BASE_RESPAIN    = 0
-BASE_RESBLEED   = 0
+BASE_RESELEC    = 20
+BASE_RESPAIN    = 20
+BASE_RESBLEED   = 20
 BASE_RESRUST    = 0
 BASE_RESROT     = 0
-BASE_RESWET     = 0
+BASE_RESWET     = 20
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
 
@@ -393,19 +393,20 @@ BASE_RESSOUND   = 0
 
 # Strength
 ATT_STR_THROW_RNG       = 1 # throwing range bonus
-ATT_STR_DMG             = 0.33334 # melee damage bonus (damage from ranged weapons depends on the weapon used)
-ATT_STR_ATK             = 0.15 # should this be melee only?
-ATT_STR_PEN             = 0.2 # melee penetration bonus (pen from ranged weapons depends on the weapon used)
+ATT_STR_DMG             = 0.33334 # melee only (damage from ranged weapons depends on the weapon used)
+ATT_STR_ATK             = 0.15 # 
+ATT_STR_PEN             = 0.2 # melee only (pen from ranged weapons depends on the weapon used)
 ATT_STR_ENCMAX          = 3
 ATT_STR_FORCE           = 1
 ATT_STR_GRA             = 1
+ATT_STR_SCARY           = 1 # intimidation
 
 # Agility
 ATT_AGI_DV              = 0.5
 ATT_AGI_PRO             = 0.25
 ATT_AGI_BAL             = 1
 ATT_AGI_MSP             = 5
-ATT_AGI_ASP             = 3 #should it be melee only?
+ATT_AGI_ASP             = 5 #melee only (TODO: apply melee-only bonuses during combat for ASp and Dmg, and Pen from Str)
 
 # Dexterity
 ATT_DEX_PEN             = 0.33334
@@ -415,15 +416,15 @@ ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
 
 # Endurance
-ATT_END_HP              = 2
-ATT_END_SP              = 15
-ATT_END_SPREGEN         = 0.25
+ATT_END_HP              = 0.5
+ATT_END_SP              = 15  # stamina
+ATT_END_SPREGEN         = 1   # stamina regen
 ATT_END_RESHEAT         = 3
 ATT_END_RESCOLD         = 3
 ATT_END_RESPHYS         = 1
 ATT_END_RESPAIN         = 4
-ATT_END_RESBIO          = 2
-ATT_END_RESBLEED        = 3
+ATT_END_RESBIO          = 1
+ATT_END_RESBLEED        = 1
 
 # Intelligence
 ATT_INT_AUGS            = 0.33334
@@ -433,16 +434,11 @@ ATT_INT_IDENTIFY        = 1
 # Constitution
 ATT_CON_AUGS            = 0.33334
 ATT_CON_AV              = 0.2
-ATT_CON_HP              = 1
+ATT_CON_HP              = 1.5
 ATT_CON_ENCMAX          = 5 # * MASS_MULT
 ATT_CON_RESELEC         = 2
-
-### Vitality
-##ATT_VIT_HP              = 2
-##ATT_VIT_SPREGEN         = 0.1
-##ATT_VIT_RESBIO          = 1
-##ATT_END_RESBLEED        = 1
-##ATT_END_RESPAIN         = 1
+ATT_CON_RESBIO          = 2
+ATT_CON_RESBLEED        = 2
 
 
 
@@ -599,6 +595,7 @@ ENCUMBERANCE_MODIFIERS = {
 'pro' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
 'gra' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
 'bal' :(0.98,   0.95,   0.9,    0.78,   0.6,    0.4,    0.25,   0.1,),
+'agi' :(0.98,   0.95,   0.9,    0.75,   0.56,   0.33,   0.2,    0.1,),
     }
 
 
@@ -618,7 +615,8 @@ CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
 CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
-
+FAT_RESCOLD             = 2         # per kg of fat
+FAT_RESHEAT             = -2        # per kg of fat
 
 # body plans:
 #   body part coverage, for targeting specific body parts
@@ -685,6 +683,13 @@ BODYPOS_SUPINE      : "supine",
 BODYPOS_PRONE       : "prone",
     }
 
+# body parts
+
+i=0;
+BPP_MUSCLE  = i; i+=1;
+BPP_SKIN    = i; i+=1;
+BPP_BONE    = i; i+=1;
+
 # body part statuses
 
 i=0;
@@ -696,6 +701,7 @@ BONESTATUS_BROKEN       = i; i+=1; # fully broken in two
 BONESTATUS_MULTIBREAKS  = i; i+=1; # fully broken in multiple places
 BONESTATUS_SHATTERED    = i; i+=1; # shattered; broken into several pieces
 BONESTATUS_MANGLED      = i; i+=1; # mullered; bone is in utter ruin
+NBONESTATUSES           = i - 1;
 
 i=0;
 MUSCLESTATUS_NORMAL     = i; i+=1;
@@ -707,6 +713,7 @@ MUSCLESTATUS_TORN       = i; i+=1; # muscle badly torn
 MUSCLESTATUS_RIPPED     = i; i+=1; # muscle is mostly ripped in half
 MUSCLESTATUS_RUPTURED   = i; i+=1; # ruptured tendon or fully ripped in half muscle belly
 MUSCLESTATUS_MANGLED    = i; i+=1; # muscle is in utter ruin
+NMUSCLESTATUSES         = i - 1;
 
 i=0;
 ARTERYSTATUS_NORMAL     = i; i+=1;
@@ -714,6 +721,7 @@ ARTERYSTATUS_CLOGGED    = i; i+=1; # clogged, not working at full capacity
 ARTERYSTATUS_OPEN       = i; i+=1; # artery opened, causing massive bleeding
 ARTERYSTATUS_CUT        = i; i+=1; # fully cut, requiring urgent surgery
 ARTERYSTATUS_MANGLED    = i; i+=1; # fully ruined
+NARTERYSTATUSES         = i - 1;
 
 i=0;
 SKINSTATUS_NORMAL       = i; i+=1;
@@ -729,6 +737,7 @@ SKINSTATUS_SKINNED      = i; i+=1; # skin is partially removed
 SKINSTATUS_DEEPBURNED   = i; i+=1; # skin is burned at a deep level (overwrite all of the above)
 SKINSTATUS_FULLYSKINNED = i; i+=1; # skin is fully / almost fully removed
 SKINSTATUS_MANGLED      = i; i+=1; # skin is fully ruined
+NSKINSTATUSES           = i - 1;
 
 i=0;
 BRAINSTATUS_NORMAL      = i; i+=1; # swelling brain is a status effect, not a brain status
@@ -739,6 +748,7 @@ BRAINSTATUS_PERMDAMAGE  = i; i+=1; # permanent brain damage
 BRAINSTATUS_MAJORDAMAGE = i; i+=1; # MAJOR permanent brain damage
 BRAINSTATUS_DEAD        = i; i+=1; # braindead
 BRAINSTATUS_MANGLED     = i; i+=1; # ruined
+NBRAINSTATUSES          = i - 1;
 
 i=0;
 HAIRSTATUS_NORMAL       = i; i+=1;
@@ -748,6 +758,7 @@ HAIRSTATUS_DAMAGE       = i; i+=1; # minor damage to hair
 HAIRSTATUS_PERMDAMAGE   = i; i+=1; # permanent follicle damage
 HAIRSTATUS_MANGLED      = i; i+=1; # ruined
 # removed hair == no hair (status==NORMAL and length==0)
+NHAIRSTATUSES           = i - 1;
 
 i=0;
 HEARTSTATUS_NORMAL      = i; i+=1;
@@ -756,6 +767,7 @@ HEARTSTATUS_DAMAGE      = i; i+=1; # temporary damage
 HEARTSTATUS_PERMDAMAGE  = i; i+=1; # permanent damage
 HEARTSTATUS_MAJORDAMAGE = i; i+=1; # major permanent damage
 HEARTSTATUS_MANGLED     = i; i+=1; # ruined
+NHEARTSTATUSES          = i - 1;
 
 i=0;
 LUNGSTATUS_NORMAL       = i; i+=1;
@@ -765,6 +777,7 @@ LUNGSTATUS_DAMAGE       = i; i+=1; # temporary damage
 LUNGSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
 LUNGSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
 LUNGSTATUS_MANGLED      = i; i+=1; # ruined
+NLUNGSTATUSES           = i - 1;
 
 i=0;
 GUTSSTATUS_NORMAL       = i; i+=1;
@@ -775,6 +788,7 @@ GUTSSTATUS_DAMAGE       = i; i+=1; # temporary damage
 GUTSSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
 GUTSSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
 GUTSSTATUS_MANGLED      = i; i+=1; # ruined
+NGUTSSTATUSES           = i - 1;
 
 # string names for body part statuses
 
@@ -810,10 +824,10 @@ SKINSTATUS_SCRAPED      : "open wound",
 SKINSTATUS_MINORABRASION: "minor abrasion",
 SKINSTATUS_CUT          : "minor laceration",
 SKINSTATUS_MAJORABRASION: "major abrasion",
-SKINSTATUS_BURNED       : "minor burn",
+SKINSTATUS_BURNED       : "burned",
 SKINSTATUS_DEEPCUT      : "major laceration",
 SKINSTATUS_SKINNED      : "localized dermectomy",
-SKINSTATUS_DEEPBURNED   : "major burn",
+SKINSTATUS_DEEPBURNED   : "severely burned",
 SKINSTATUS_FULLYSKINNED : "widespread dermectomy",
 SKINSTATUS_MANGLED      : "mutilated",
     }
@@ -1121,16 +1135,26 @@ HASTE_SPDMOD      = 1.5    # speed bonus when hasty (mult modifier)
 #slow
 SLOW_SPDMOD       = 0.6666667 # speed penalty while slowed (mult modifier)
 
-# temp (fire)
+# temp (burn)
 FIRE_METERMAX   = 3600  #maximum temperature a thing can reach
 FIRE_MAXTEMP    = 1200  #max temperature you can reach from normal means
-FIRE_BURN       = 34    #dmg fire deals to things (in fire damage) per turn
+FIRE_BURN       = 34    #heat dmg fire deals to things per turn
 FIRE_PAIN       = 10    #fire hurts!
 FIRE_DAMAGE     = 1     #lo dmg dealt per turn to things w/ burning status effect
-FIRE_LIGHT      = 12    #how much light is produced by fire?
+FIRE_LIGHT      = 12    #how much light is produced by fire? TODO: make this depend on the heat of the fire
+HOT_SPREGENMOD  = 0.5   # how fast stamina regenerates while hot
+HOT_HYDRATIONLOSS = 2   # multiplier (?)
 
-# frozen
-FROZEN_MSPMOD   = 0.33333
+
+# chilly / cold
+CHILLY_INTMOD       = 0.6666667
+CHILLY_SPDMOD       = 0.6666667
+CHILLY_STAMMOD      = 0.6666667
+CHILLY_SPREGENMOD   = 0.6666667
+COLD_INTMOD         = 0.3333333
+COLD_SPDMOD         = 0.3333333
+COLD_STAMMOD        = 0.3333333
+COLD_SPREGENMOD     = 0.3333333
 
 # bio sick
 BIO_METERLOSS   = 1     # sickness points lost per turn
@@ -1149,9 +1173,10 @@ ACID_HURT       = 2
 ACID_DAMAGE     = 1.0
 
 # irritation
-IRRIT_ATKMOD    = -10
-IRRIT_SIGHTMOD  = 0.75
-IRRIT_HEARINGMOD= 0.75
+IRRITATED_ATK       = -4
+IRRITATED_SIGHTMOD  = 0.75
+IRRITATED_HEARINGMOD= 0.75
+IRRITATED_RESPAINMOD= 0.75
 
 # paralysis
 PARAL_ROLLSAVE  = 10    #affects chance to undo paralysis
@@ -1167,9 +1192,9 @@ VOMIT_CHANCE    = 10
 
 # blind
 BLIND_SIGHTMOD = 0.1 # multiplier
-
-# deaf
 DEAF_HEARINGMOD = 0.04 # multiplier
+DISORIENTED_SIGHTMOD = 0.3333333
+DISORIENTED_HEARINGMOD = 0.3333333
 
 # pain
 PAIN_METERLOSS = 1
@@ -1304,12 +1329,12 @@ CH_TRC      = [191, 184, 187] # top-right corner
 #
 i=1;
 EQ_MAINHAND =i; i+=1;
-EQ_MAINARM  =i; i+=1;
 EQ_OFFHAND  =i; i+=1;
+EQ_MAINARM  =i; i+=1;
 EQ_OFFARM   =i; i+=1;
 EQ_MAINFOOT =i; i+=1;
-EQ_MAINLEG  =i; i+=1;
 EQ_OFFFOOT  =i; i+=1;
+EQ_MAINLEG  =i; i+=1;
 EQ_OFFLEG   =i; i+=1;
 EQ_FRONT    =i; i+=1;
 EQ_BACK     =i; i+=1;
@@ -1353,6 +1378,8 @@ ELEM_BLEED  = i; i+=1;
 ELEM_RUST   = i; i+=1;
 ELEM_ROT    = i; i+=1;
 ELEM_WET    = i; i+=1;  # water damage
+ELEM_LIGHT  = i; i+=1;
+ELEM_SOUND  = i; i+=1;
 
 
 

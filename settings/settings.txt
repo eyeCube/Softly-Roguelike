@@ -22,7 +22,7 @@ HIGHLIGHT COLOR     = TRUEBLUE
 
 SLEEP TIME          = 1
 
-COLORED STRINGS     = 
+COLORED STRINGS     = ATK,trueblue;DV,red
 
 #WHITE              = 255,255,255
 
@@ -36,7 +36,7 @@ COLORED STRINGS     =
 
 #VDKGRAY            = 50,50,50
 
-// Colors. RGB Values 0-255. Feel free to change!
+// Colors. RGB Values 0-255. Feel free to change the values!
 #DEEP               = 20,20,0
 
 #ACCENT             = 250,230,168
