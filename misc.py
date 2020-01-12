@@ -482,91 +482,93 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     hydstr=_get_hydration(body)
     encmods=_get_encumberance_mods(pc)
     
+    immunei="<<IMMUNE"
     # create the display format string
     strng = '''
-                        {subdelim} identification {subdelim}
-                        name{idelim}{name}
-                     species{idelim}{species}
-                     faction{idelim}{fact}
-                         job{idelim}{job}
-                        mass{idelim}{kg} kg
-                      height{idelim}{cm} cm
-                  
-                        {subdelim} condition {subdelim}
-                   satiation:{tab}{satstr}
-                   hydration:{tab}{hydstr}
-                (life)----HP{predelim}{hp:>5} / {hpmax:<5}
-             (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
-        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
-        
-                        {subdelim} attribute {subdelim}
-       (constitution)----CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
-       (intelligence)----INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
-           (strength)----STR{predelim}{_str:<2}{attdelim}({bstr})
-            (agility)----AGI{predelim}{_agi:<2}{attdelim}({bagi})
-          (dexterity)----DEX{predelim}{_dex:<2}{attdelim}({bdex})
-          (endurance)----END{predelim}{_end:<2}{attdelim}({bend})
-       
-                        {subdelim} statistic {subdelim}
-              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
-     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
-       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
-         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
-        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
-        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
-        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
-    (attack / to-hit)----ATK{predelim}{atk:<4}{statdelim}({batk})
-             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
-   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
-            (balance)----BAL{predelim}{bal:<4}{statdelim}({bbal})
-          (grappling)----GRA{predelim}{gra:<4}{statdelim}({bgra})
-     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
-            (courage)----CRG{predelim}{crg:<4}{statdelim}({bcrg})
-       (intimidation)----IDN{predelim}{idn:<4}{statdelim}({bidn})
-             (beauty)----BEA{predelim}{bea:<4}{statdelim}({bbea})
-  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
-(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
-               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
-             (height)-----CM{predelim}{cm:<4}{statdelim}({cm})
-           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})
-        (max.stamina)--SPMAX{predelim}{spmax:<4}{statdelim}({bspmax})
-   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
-       
-                        {subdelim} resistance {subdelim}
-               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<8}
-               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<8}
-         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<8}{immbio:>8}
-        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<8}
-           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<8}
-               (pain)----PAI{predelim}{pai:<4}{resdelim}{bpai:<8}{immpain:>8}
-              (bleed)----BLD{predelim}{bld:<4}{resdelim}{bbld:<8}{immbleed:>8}
-              (light)----LGT{predelim}{lgt:<4}{resdelim}{blgt:<8}
-              (sound)----SND{predelim}{snd:<4}{resdelim}{bsnd:<8}
-               (rust)----RUS{predelim}{rus:<4}{resdelim}{brus:<8}{immrust:>8}
-                (rot)----ROT{predelim}{rot:<4}{resdelim}{brot:<8}{immrot:>8}
-              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<8}{immwater:>8}
-
-                        {subdelim} status {subdelim}
-    status effects:
-{effects}
-
-    body status:
-{bodystatus}
-
-    gauge:
-             temperature: {temp:.3f} C ({normalbodytemp})
-{gauges}
-
-                        {subdelim} equipment {subdelim}
-{equipment}
-
-                        {subdelim} skill {subdelim}
-{skills}
-
-                        {subdelim} augmentation {subdelim}
-{augs}
-
-'''.format(
+{p1}                        {subdelim} identification {subdelim}
+{p1}                        name{idelim}{name}
+{p1}                     species{idelim}{species}
+{p1}                     faction{idelim}{fact}
+{p1}                         job{idelim}{job}
+{p1}                        mass{idelim}{kg} kg
+{p1}                      height{idelim}{cm} cm
+{p1}                  
+{p1}                        {subdelim} condition {subdelim}
+{p1}                   satiation:{tab}{satstr}
+{p1}                   hydration:{tab}{hydstr}
+{p1}                (life)----HP{predelim}{hp:>5} / {hpmax:<5}
+{p1}             (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
+{p1}        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
+{p1}        
+{p1}                        {subdelim} attribute {subdelim}
+{p1}       (constitution)----CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
+{p1}       (intelligence)----INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
+{p1}           (strength)----STR{predelim}{_str:<2}{attdelim}({bstr})
+{p1}            (agility)----AGI{predelim}{_agi:<2}{attdelim}({bagi})
+{p1}          (dexterity)----DEX{predelim}{_dex:<2}{attdelim}({bdex})
+{p1}          (endurance)----END{predelim}{_end:<2}{attdelim}({bend})
+{p1}       
+{p1}                        {subdelim} statistic {subdelim}
+{p1}              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
+{p1}     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
+{p1}       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
+{p1}         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
+{p1}        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
+{p1}        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
+{p1}        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
+{p1}    (attack / to-hit)----ATK{predelim}{atk:<4}{statdelim}({batk})
+{p1}             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
+{p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
+{p1}            (balance)----BAL{predelim}{bal:<4}{statdelim}({bbal})
+{p1}          (grappling)----GRA{predelim}{gra:<4}{statdelim}({bgra})
+{p1}     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
+{p1}            (courage)----CRG{predelim}{crg:<4}{statdelim}({bcrg})
+{p1}       (intimidation)----IDN{predelim}{idn:<4}{statdelim}({bidn})
+{p1}             (beauty)----BEA{predelim}{bea:<4}{statdelim}({bbea})
+{p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
+{p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
+{p1}               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
+{p1}             (height)-----CM{predelim}{cm:<4}{statdelim}({cm})
+{p1}           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})
+{p1}        (max.stamina)--SPMAX{predelim}{spmax:<4}{statdelim}({bspmax})
+{p1}   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
+{p1}       
+{p1}                        {subdelim} resistance {subdelim}
+{p1}               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<8}
+{p1}               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<8}
+{p1}         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<8}{immbio:>8}
+{p1}        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<8}
+{p1}           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<8}
+{p1}               (pain)----PAI{predelim}{pai:<4}{resdelim}{bpai:<8}{immpain:>8}
+{p1}              (bleed)----BLD{predelim}{bld:<4}{resdelim}{bbld:<8}{immbleed:>8}
+{p1}              (light)----LGT{predelim}{lgt:<4}{resdelim}{blgt:<8}
+{p1}              (sound)----SND{predelim}{snd:<4}{resdelim}{bsnd:<8}
+{p1}               (rust)----RUS{predelim}{rus:<4}{resdelim}{brus:<8}{immrust:>8}
+{p1}                (rot)----ROT{predelim}{rot:<4}{resdelim}{brot:<8}{immrot:>8}
+{p1}              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<8}{immwater:>8}
+{p1}
+{p1}                        {subdelim} status {subdelim}
+{p1}    status effects:
+{p1}{effects}
+{p1}
+{p1}    body status:
+{p1}{bodystatus}
+{p1}
+{p1}    gauge:
+{p1}             temperature: {temp:.3f} C ({normalbodytemp})
+{p1}{gauges}
+{p1}
+{p1}                        {subdelim} equipment {subdelim}
+{p1}{equipment}
+{p1}
+{p1}                        {subdelim} skill {subdelim}
+{p1}{skills}
+{p1}
+{p1}                        {subdelim} augmentation {subdelim}
+{p1}{augs}
+{p1}
+{p1}'''.format(
+        p1="",
         titledelim="~~~~",
         tab="    ",
         delim    ="........",
@@ -579,12 +581,12 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         shortdelim ="...",
         dlv=dlvl,t=turn,
         # flags
-        immbio  ="IMMUNE" if rog.on(pc, IMMUNEBIO) else "",
-        immrust ="IMMUNE" if rog.on(pc, IMMUNERUST) else "",
-        immrot  ="IMMUNE" if rog.on(pc, IMMUNEROT) else "",
-        immwater="IMMUNE" if rog.on(pc, IMMUNEWATER) else "",
-        immbleed="IMMUNE" if rog.on(pc, IMMUNEBLEED) else "",
-        immpain ="IMMUNE" if rog.on(pc, IMMUNEPAIN) else "",
+        immbio  =immunei if rog.on(pc, IMMUNEBIO) else "",
+        immrust =immunei if rog.on(pc, IMMUNERUST) else "",
+        immrot  =immunei if rog.on(pc, IMMUNEROT) else "",
+        immwater=immunei if rog.on(pc, IMMUNEWATER) else "",
+        immbleed=immunei if rog.on(pc, IMMUNEBLEED) else "",
+        immpain =immunei if rog.on(pc, IMMUNEPAIN) else "",
         # component data
         effects=effects,gauges=gauges,augs=augs,
         equipment=equipment,skills=skills,bodystatus=bodystatus,

@@ -426,161 +426,184 @@ class BPM_Hearts:
        
 '''
     Body Parts (BP)
-    usually contain a slot, and optional BPP sub-components
+    usually contain a slot, covered bool, and optional BPP sub-components
     DO NOT have a STATUS
 '''
 class BP_TorsoCore:
-    __slots__=['slot','artery','muscle','skin','guts']
+    __slots__=['slot','artery','muscle','skin','guts','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle() # abs
         self.skin=BPP_Skin()
         self.guts=BPP_Guts()
+        self.covered=False
 class BP_TorsoFront:
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # ribs
         self.muscle=BPP_Muscle() # pecs
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_TorsoBack:
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # spine
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Hips:
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # pelvis
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Cell:
-    __slots__=['slot']
+    __slots__=['slot','covered']
     def __init__(self):
         self.slot=Slot()
+        self.covered=False
 class BP_Head:
-    __slots__=['slot','bone','brain','skin','hair']
+    __slots__=['slot','bone','brain','skin','hair','covered']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone() # skull
         self.brain=BPP_Brain()
         self.skin=BPP_Skin()
         self.hair=BPP_Hair()
+        self.covered=False
 class BP_Neck:
-    __slots__=['slot','artery','bone','muscle','skin']
+    __slots__=['slot','artery','bone','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Face:
-    __slots__=['slot','features','skin']
+    __slots__=['slot','features','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.features=BPP_FacialFeatures()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Mouth:
-    __slots__=['bone','muscle','teeth','gustatorySystem']
+    __slots__=['bone','muscle','teeth','gustatorySystem','covered']
     def __init__(self, taste=20): # quality of taste system
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.teeth=BPP_Teeth()
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
+        self.covered=False
 class BP_Eyes:
-    __slots__=['slot','visualSystem']
+    __slots__=['slot','visualSystem','covered']
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
+        self.covered=False
 class BP_Ears:
-    __slots__=['slot','auditorySystem']
+    __slots__=['slot','auditorySystem','covered']
     def __init__(self, quantity=2, quality=60):
         self.slot=Slot()        # earplugs, for protecting ears
         self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
+        self.covered=False
 class BP_Nose:
-    __slots__=['bone','olfactorySystem']
+    __slots__=['bone','olfactorySystem','covered']
     def __init__(self, quality=10):
         self.bone=BPP_Bone()
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
+        self.covered=False
 class BP_Arm: # upper / middle arm and shoulder
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Hand: # hand and lower forearm
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Leg: # thigh and knee
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Foot: # foot, ankle and lower leg
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
-    __slots__=['slot','artery','muscle','skin','stickies']
+    __slots__=['slot','artery','muscle','skin','stickies','covered']
     def __init__(self, stickies=0):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
+        self.covered=False
 class BP_Pseudopod:
-    __slots__=['slot']
+    __slots__=['slot','covered']
     def __init__(self):
         self.slot=Slot()
+        self.covered=False
 class BP_Ameboid:
-    __slots__=['slot','nucleus']
+    __slots__=['slot','nucleus','covered']
     def __init__(self):
         self.slot=Slot()
         self.nucleus=BPP_Nucleus()
+        self.covered=False
 class BP_Wing:
-    __slots__=['slot','bone','muscle','skin']
+    __slots__=['slot','bone','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Tail:
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.covered=False
 class BP_Genitals:
-    __slots__=['genitals']
+    __slots__=['genitals','covered']
     def __init__(self):
         self.genitals=BPP_Genitals()
+        self.covered=False
 class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
-    __slots__=['kind']
+    __slots__=['kind','covered']
     def __init__(self, kind):
         self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
+        self.covered=False
 
 '''
     Body Parts Piece (BPP)
@@ -701,18 +724,18 @@ class EquipableInAmmoSlot:
         self.fit=fit
 class EquipableInFrontSlot: # breastplate
     __slots__=['ap','mods','fit','strReq',
-               'coversBack','coversCore','coversHips','coversArms']
+               'coversBack','coversCore','coversHips']
     def __init__(self, ap, mods, fit=0, strReq=0,
                  coversBack=False, coversCore=False,
-                 coversHips=False, coversArms=False): #{var : modf,}
+                 coversHips=False): #{var : modf,}
         self.ap=ap
         self.mods=mods
         self.fit=fit
         self.coversBack=coversBack
         self.coversCore=coversCore
         self.coversHips=coversHips
-        self.coversArms=coversArms
         self.strReq=strReq
+##        self.coversArms=coversArms
 class EquipableInCoreSlot: # tummy area
     __slots__=['ap','mods','fit','strReq',] # ap = AP (Energy) cost to equip / take off
     def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}

@@ -1121,6 +1121,42 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
     return compo
 #end def
 
+def find_bps(ent, cls): # ent + cls -> list of BP component objects
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+##    if body.plan==BODYPLAN_HUMANOID:
+    if cls is cmp.BP_TorsoCore:
+        return (body.core.core,)
+    if cls is cmp.BP_TorsoFront:
+        return (body.core.front,)
+    if cls is cmp.BP_TorsoBack:
+        return (body.core.back,)
+    if cls is cmp.BP_Hips:
+        return (body.core.hips,)
+    if cls is cmp.BP_Head:
+        return (body.parts[cmp.BPC_Heads].heads[0].head,)
+    if cls is cmp.BP_Face:
+        return (body.parts[cmp.BPC_Heads].heads[0].face,)
+    if cls is cmp.BP_Neck:
+        return (body.parts[cmp.BPC_Heads].heads[0].neck,)
+    if cls is cmp.BP_Eyes:
+        return (body.parts[cmp.BPC_Heads].heads[0].eyes,)
+    if cls is cmp.BP_Ears:
+        return (body.parts[cmp.BPC_Heads].heads[0].ears,)
+    if cls is cmp.BP_Nose:
+        return (body.parts[cmp.BPC_Heads].heads[0].nose,)
+    if cls is cmp.BP_Arm:
+        return (body.parts[cmp.BPC_Arms].arms[0].arm,
+                body.parts[cmp.BPC_Arms].arms[1].arm,)
+    if cls is cmp.BP_Hand:
+        return (body.parts[cmp.BPC_Arms].arms[0].hand,
+                body.parts[cmp.BPC_Arms].arms[1].hand,)
+    if cls is cmp.BP_Leg:
+        return (body.parts[cmp.BPC_Legs].legs[0].leg,
+                body.parts[cmp.BPC_Legs].legs[1].leg,)
+    if cls is cmp.BP_Foot:
+        return (body.parts[cmp.BPC_Legs].legs[0].foot,
+                body.parts[cmp.BPC_Legs].legs[1].foot,)
+
 #equipping things
 def equip(ent,item,equipType): # equip an item in 'equipType' slot
     '''
@@ -1131,6 +1167,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         
 ##                #TODO: add special effects; light, etc. How to??
     '''
+    # first check that the entity can equip the item in the indicated slot.
     world = Rogue.world
     equipableConst = EQUIPABLE_CONSTS[equipType]
     
@@ -1147,8 +1184,8 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     if not compo:
         return (-101,None,) # something weird happened
     
-    if compo.slot.item:
-        return (-102,None,) # already have something equipped there
+    if compo.covered:
+        return (-102,None,) # already have something covering that slot
     
     equipable = world.component_for_entity(item, equipableConst)
     # ensure has the str and dex required
@@ -1158,30 +1195,32 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         if equipable.dexReq > getms(ent, 'dex'):
             return (-111,None,) # not enough DEX
     
-    # success! Equip the item
+        #-------------------------#
+        # success! Equip the item #
+        #-------------------------#
     
     grid_remove(item)
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
         
     compo.slot.item = item
+    compo.covered = True # True indicates: cannot equip in that slot
     
     # covers
+    def __cov(ent, lis, cls): # cover additional body part
+        lis.append(cls)
+        for compo in find_bps(ent, cls):
+            compo.covered = True
     lis = []
     if equipType==EQ_FRONT:
-        # how to ensure this slot isn't covered by some gear?
-        # Need to set a slot to be temporarily in use by
-        # another gear item. Then in deequip we need to
-        # undo that change to the slot(s).
-        if equipable.coversBack: lis.append(cmp.BP_TorsoBack)
-        if equipable.coversCore: lis.append(cmp.BP_TorsoCore)
-        if equipable.coversHips: lis.append(cmp.BP_Hips)
-        if equipable.coversArms: lis.append(cmp.BP_Arm) #how to apply this one? It's different since arms not part of torso bpc
+        if equipable.coversBack: __cov(ent,lis,cmp.BP_TorsoBack)
+        if equipable.coversCore: __cov(ent,lis,cmp.BP_TorsoCore)
+        if equipable.coversHips: __cov(ent,lis,cmp.BP_Hips)
     if equipType==EQ_MAINHEAD:
-        if equipable.coversFace: lis.append(cmp.BP_Face)
-        if equipable.coversNeck: lis.append(cmp.BP_Neck)
-        if equipable.coversEyes: lis.append(cmp.BP_Eyes)
-        if equipable.coversEars: lis.append(cmp.BP_Ears)
+        if equipable.coversFace: __cov(ent,lis,cmp.BP_Face)
+        if equipable.coversNeck: __cov(ent,lis,cmp.BP_Neck)
+        if equipable.coversEyes: __cov(ent,lis,cmp.BP_Eyes)
+        if equipable.coversEars: __cov(ent,lis,cmp.BP_Ears)
     compo.slot.covers = tuple(lis)
     
     make(ent, DIRTY_STATS)
@@ -1189,16 +1228,43 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
 # end def
 
-def deequip(ent,equipType): # remove equipment from slot 'equipType'
+def deequip(ent,equipType):
+    '''
+        remove equipment from slot 'equipType'
+        return the item that was equipped there
+            or None if failed to de-equip
+    '''
     compo = _get_eq_compo(ent, equipType)
-    if not compo: return None
-    if not compo.slot.item: #nothing equipped here
+    if not compo:
         return None
     
-    # remove the item
     item = compo.slot.item
+    if not item: #nothing equipped here
+        return None
+    
+        #-----------------#
+        # remove the item #
+        #-----------------#
+        
     compo.slot.item = None
+    compo.covered = False
+    
+    # covers
+    def __uncov(ent, cls): # cover additional body part
+        for compo in find_bps(ent, cls):
+            compo.covered = False
+    if equipType==EQ_FRONT:
+        if equipable.coversBack: __uncov(ent,cmp.BP_TorsoBack)
+        if equipable.coversCore: __uncov(ent,cmp.BP_TorsoCore)
+        if equipable.coversHips: __uncov(ent,cmp.BP_Hips)
+        if equipable.coversArms: __uncov(ent,cmp.BP_Arm)
+    if equipType==EQ_MAINHEAD:
+        if equipable.coversFace: __uncov(ent,cmp.BP_Face)
+        if equipable.coversNeck: __uncov(ent,cmp.BP_Neck)
+        if equipable.coversEyes: __uncov(ent,cmp.BP_Eyes)
+        if equipable.coversEars: __uncov(ent,cmp.BP_Ears)    
     compo.slot.covers = ()
+    
     make(ent, DIRTY_STATS)
     return item
 # end def

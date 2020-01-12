@@ -687,7 +687,7 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
     # finished generating map, tilemap map now contains all level info
     # now populate with entities
     # add walls to all sides
-    rog.map(z).fill_walls()
+    rog.map(z).fill_edges()
     print("Done generating level.")
 
 
