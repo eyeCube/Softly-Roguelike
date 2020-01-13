@@ -1867,11 +1867,11 @@ SKLMOD_UNARMORED_AV     = 0.15      # adder modifier - per level
 SKLMOD_UNARMORED_DV     = 0.25      # adder modifier - per level
 # WEAPONS
 SKLMOD_WEAPON_ATK   = 0.05          # multiplier modifier - per level
-SKLMOD_WEAPON_DFN   = 0.05          # "
+SKLMOD_WEAPON_DV    = 0.05          # "
 SKLMOD_WEAPON_PEN   = 0.05
 SKLMOD_WEAPON_PRO   = 0.05
 SKLMOD_WEAPON_DMG   = 0.05
-SKLMOD_WEAPON_ARM   = 0.05
+SKLMOD_WEAPON_AV    = 0.05
 SKLMOD_WEAPON_ASP   = 0.05
 SKLMOD_WEAPON_GRA   = 0.05
 SKLMOD_WEAPON_CTR   = 0.05

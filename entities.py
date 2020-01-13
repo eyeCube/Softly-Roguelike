@@ -145,11 +145,11 @@ def get_gear_ressound(gData):       return gData[5][11]
 def get_gear_sight(gData):          return gData[5][12]
 def get_gear_script(gData):         return gData[6]
     # armor only
-def get_armor_coversBack(gData):    return gData[6] 
-def get_armor_coversCore(gData):    return gData[7]
-def get_armor_coversHips(gData):    return gData[8]
-def get_armor_coversArms(gData):    return gData[9]
-def get_armor_script(gData):        return gData[10] 
+def get_armor_coversBack(gData):    return gData[6][0] 
+def get_armor_coversCore(gData):    return gData[6][1]
+def get_armor_coversHips(gData):    return gData[6][2]
+def get_armor_coversArms(gData):    return gData[6][3]
+def get_armor_script(gData):        return gData[7]
     # eyewear
 def get_eyewear_script(gData):      return gData[6]
     # facewear
@@ -2757,11 +2757,14 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        # convert the sight and hearing modifiers into multipliers
-        dmul['sight'] = dadd.get('sight', 1)
-        dmul['hearing'] = dadd.get('hearing', 1)
-        del dadd['sight']
-        del dadd['hearing']
+        # automatically convert the sight and hearing modifiers
+        #  into multipliers for headwear, facewear, eye/earwear, etc.
+        if 'sight' in dadd.keys():
+            dmul['sight'] = dadd['sight']
+            del dadd['sight']
+        if 'hearing' in dadd.keys():
+            dmul['hearing'] = dadd['hearing']
+            del dadd['hearing']
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2798,8 +2801,9 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInFaceSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        dmul['sight'] = dadd.get('sight', 1)
-        del dadd['sight']
+        if 'sight' in dadd.keys():
+            dmul['sight'] = dadd['sight']
+            del dadd['sight']
         
         # armor skill bonus
         _apply_skill_bonus_armor(dadd, armorSkill)
@@ -2859,8 +2863,9 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEyesSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        dmul['sight'] = dadd.get('sight', 1)
-        del dadd['sight']
+        if 'sight' in dadd.keys():
+            dmul['sight'] = dadd['sight']
+            del dadd['sight']
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -2882,6 +2887,9 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
+        if 'hearing' in dadd.keys():
+            dmul['hearing'] = dadd['hearing']
+            del dadd['hearing']
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -3260,11 +3268,11 @@ def create_armor(name,x,y,quality=1):
     resbleed = get_gear_resbleed(gData)
     reslight = 0#get_gear_reslight(gData)
     ressound = 0#get_gear_ressound(gData)
-    sight = 0#get_gear_sight(gData)
+    sight = 1#get_gear_sight(gData)
     back = get_armor_coversBack(gData)
     core = get_armor_coversCore(gData)
     hips = get_armor_coversHips(gData)
-    arms = get_armor_coversArms(gData)
+##    arms = get_armor_coversArms(gData)
     script = get_armor_script(gData)
     
     fgcol = COL['accent']
@@ -3288,7 +3296,7 @@ def create_armor(name,x,y,quality=1):
     statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
         resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
     world.add_component(ent, cmp.EquipableInFrontSlot(
-        apCost, statsDict, coversBack=back,coversCore=core,coversHips=hips,coversArms=arms) )
+        apCost, statsDict, coversBack=back,coversCore=core,coversHips=hips) )
     
     if script: script(ent)
     return ent
@@ -3427,7 +3435,8 @@ def create_armwear(name,x,y,quality=1):
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
     resbleed = get_gear_resbleed(gData)
-    reslight = ressound = sight = 0
+    reslight = ressound = 0
+    sight = 1
     script = get_gear_script(gData)
     
     fgcol = COL['accent']
@@ -3450,8 +3459,7 @@ def create_armwear(name,x,y,quality=1):
     
     statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
         resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
-    world.add_component(ent, cmp.EquipableInArmSlot(
-        apCost, statsDict) )
+    world.add_component(ent, cmp.EquipableInArmSlot(apCost, statsDict))
     
     if script: script(ent)
     return ent
@@ -3478,7 +3486,8 @@ def create_legwear(name,x,y,quality=1):
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
     resbleed = get_gear_resbleed(gData)
-    reslight = ressound = sight = 0
+    reslight = ressound = 0
+    sight = 1
     script = get_gear_script(gData)
     
     fgcol = COL['accent']
@@ -3501,8 +3510,58 @@ def create_legwear(name,x,y,quality=1):
     
     statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
         resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
-    world.add_component(ent, cmp.EquipableInLegSlot(
-        apCost, statsDict) )
+    world.add_component(ent, cmp.EquipableInLegSlot(apCost, statsDict))
+    
+    if script: script(ent)
+    return ent
+#
+
+#create foot armor - create armor item on FOOTARMOR table 
+def create_footwear(name,x,y,quality=1):
+    world = rog.world()
+    ent = world.create_entity()
+    
+    gData = FOOTWEAR[name]
+    value = int(get_gear_value(gData)*MULT_VALUE)
+    mass = round(get_gear_mass(gData)*MULT_MASS)
+    hpmax = get_gear_hpmax(gData)
+    apCost = get_gear_apCost(gData)
+    material = get_gear_mat(gData)
+    dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
+    arm = rog.around(get_gear_av(gData)*MULT_STATS)
+    pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    enc = get_gear_enc(gData)*mass/MULT_MASS
+    resbio = get_gear_resbio(gData)
+    resfire = get_gear_resfire(gData)
+    rescold = get_gear_rescold(gData)
+    reselec = get_gear_reselec(gData)
+    resphys = get_gear_resphys(gData)
+    resbleed = get_gear_resbleed(gData)
+    reslight = ressound = 0
+    sight = 1
+    script = get_gear_script(gData)
+    
+    fgcol = COL['accent']
+    bgcol = COL['deep']
+    
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
+    world.add_component(ent, cmp.Form(mat=material, val=value))
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=hpmax,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * quality)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    statsDict=_getGearStatsDict( mass,resbio,resfire,rescold,reselec,
+        resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
+    world.add_component(ent, cmp.EquipableInFootSlot(apCost, statsDict))
     
     if script: script(ent)
     return ent
@@ -4729,62 +4788,62 @@ armor type:
 # H - covers hips?
 # A - covers arms?
 ARMOR={
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
     # ceramics (ceramic armor is DIFFICULT to make)
-"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  1.5,-15,0,  3,  3,  3,  9, ),1,1,1,0,None,),
-"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  1.5,-15,0,  6,  3,  3,  9, ),1,1,1,0,None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"ceramic armor"         :(2310,  12.25,20,  600,  CERA,(1,  15, 3,  1.5,-15,0,  3,  3,  3,  9, ),(1,1,1,0,),None,),
+"ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  1.5,-15,0,  6,  3,  3,  9, ),(1,1,1,0,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
     # cloth
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  5,  -9, 3,  3,  0,  0,  1, ),0,0,0,0,None,),
-"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  4,  -24,9,  6,  0,  0,  2, ),0,0,0,0,None,),
-"cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  2,  -12,6,  3,  0,  0,  3, ),1,0,0,0,None,),
-"wool jacket"           :(75,    2.0,  160, 300,  CLTH,(1,  1,  3,  3,  -36,36, 6,  2,  0,  6, ),1,1,0,0,None,),
-"padded vest"           :(98,    1.6,  120, 300,  CLTH,(2,  1,  2,  2,  -6, 12, 3,  1,  0,  3, ),1,0,0,0,None,),
-"padded jacket"         :(35,    2.1,  150, 600,  CLTH,(2,  2,  5,  2,  -12,18, 6,  3,  1,  12,),1,1,0,0,None,),
-"padded jack"           :(51,    3.1,  275, 700,  CLTH,(3,  3,  6,  1.8,-21,24, 9,  6,  3,  15,),1,1,0,0,None,),
-"gambeson"              :(67,    4.1,  400, 800,  CLTH,(4,  4,  8,  1.5,-30,30, 9,  12, 5,  18,),1,1,0,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  5,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),None,),
+"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  4,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),None,),
+"cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  2,  -12,6,  3,  0,  0,  3, ),(1,0,0,0,),None,),
+"wool jacket"           :(75,    2.0,  160, 300,  CLTH,(1,  1,  3,  3,  -36,36, 6,  2,  0,  6, ),(1,1,0,0,),None,),
+"padded vest"           :(98,    1.6,  120, 300,  CLTH,(2,  1,  2,  2,  -6, 12, 3,  1,  0,  3, ),(1,0,0,0,),None,),
+"padded jacket"         :(35,    2.1,  150, 600,  CLTH,(2,  2,  5,  2,  -12,18, 6,  3,  1,  12,),(1,1,0,0,),None,),
+"padded jack"           :(51,    3.1,  275, 700,  CLTH,(3,  3,  6,  1.8,-21,24, 9,  6,  3,  15,),(1,1,0,0,),None,),
+"gambeson"              :(67,    4.1,  400, 800,  CLTH,(4,  4,  8,  1.5,-30,30, 9,  12, 5,  18,),(1,1,0,0,),None,),
     # flesh and fur
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  2.5,-6, 9,  6,  3,  0,  9, ),1,1,1,0,None,),
-"flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  2.5,-12,21, 9,  3,  3,  15,),1,1,1,1,None,),
-"fur coat"              :(95,    2.85, 25,  300,  FLSH,(-3, 0.6,2,  3.5,-42,60, 9,  9,  0,  0, ),1,0,0,1,None,),
-"fur cuirass"           :(265,   15.85,115, 600,  FLSH,(0,  3,  5,  2.5,-33,21, 9,  9,  0,  9, ),1,1,0,0,None,),
-"fur suit"              :(475,   21.5, 60,  4000, FLSH,(-2, 3,  7,  4,  -51,75, 12, 15, 0,  15,),1,1,1,1,None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"flesh armor"           :(75,    12.5, 80,  800,  FLSH,(1,  2,  5,  2.5,-6, 9,  6,  3,  0,  9, ),(1,1,1,0,),None,),
+"flesh suit"            :(110,   18.3, 50,  4000, FLSH,(2,  2,  8,  2.5,-12,21, 9,  3,  3,  15,),(1,1,1,1,),None,),
+"fur coat"              :(95,    2.85, 25,  300,  FLSH,(-3, 0.6,2,  3.5,-42,60, 9,  9,  0,  0, ),(1,0,0,1,),None,),
+"fur cuirass"           :(265,   15.85,115, 600,  FLSH,(0,  3,  5,  2.5,-33,21, 9,  9,  0,  9, ),(1,1,0,0,),None,),
+"fur suit"              :(475,   21.5, 60,  4000, FLSH,(-2, 3,  7,  4,  -51,75, 12, 15, 0,  15,),(1,1,1,1,),None,),#"no, not _that_ type of fur suit. ...ok, it basically is that type of fur suit. But it's not a sexual thing! At least, that wasn't it's original intended purpose, which was definitely combat and... ok, maybe it was a sexual thing. Oh, just get out of here, you weirdo! Just kidding, I wuv you UwU " 
     # leather and boiled leather
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"leather jacket"        :(100,   4.0,  40,  200,  LETH,(1,  1,  10, 1.5,-12,15, 12, 15, 5,  8, ),1,0,0,1,None,),
-"leather biker jacket"  :(220,   9.0,  90,  300,  LETH,(2,  2,  12, 1.5,-21,30, 12, 18, 10, 15,),1,0,0,1,None,),
-"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 15, 9,  33, 3,  5, ),1,1,0,0,None,),
-"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  6,  1.5,-9, 9,  9,  36, 3,  5, ),1,1,1,0,None,),
-"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  2.5,-36,51, 15, -6, 3,  21,),1,1,1,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"leather jacket"        :(100,   4.0,  40,  200,  LETH,(1,  1,  10, 1.5,-12,15, 12, 15, 5,  8, ),(1,0,0,1,),None,),
+"leather biker jacket"  :(220,   9.0,  90,  300,  LETH,(2,  2,  12, 1.5,-21,30, 12, 18, 10, 15,),(1,0,0,1,),None,),
+"boiled leather cuirass":(600,   22.5, 220, 1200, LETH,(2,  5,  4,  2,  -6, 15, 9,  33, 3,  5, ),(1,1,0,0,),None,),
+"boiled leather gear"   :(760,   13.3, 260, 2000, LETH,(3,  4,  6,  1.5,-9, 9,  9,  36, 3,  5, ),(1,1,1,0,),None,),
+"cuir bouilli"          :(1025,  26.4, 410, 3200, LETH,(-2, 8,  7,  2.5,-36,51, 15, -6, 3,  21,),(1,1,1,0,),None,),
     # plastic
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"plastic cuirass"       :(42,    20.2, 100, 1200, PLAS,(-1, 4,  3,  2,  -30,3,  -6, 21, 0,  3, ),1,1,0,0,None,),
-"plastic gear"          :(35,    13.5, 80,  2200, PLAS,(0,  3,  4,  1.7,-45,3,  -9, 21, 0,  3, ),1,1,1,0,None,),
-"disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  3,  -12,6,  30, 9,  0,  0, ),1,1,1,1,None,),
-"hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-4, 1,  2,  3,  -30,15, 45, 12, 3,  0, ),1,1,1,1,None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
-"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1.3,3,  3,  6,  6,  20, 5, ),1,0,0,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"plastic cuirass"       :(42,    20.2, 100, 1200, PLAS,(-1, 4,  3,  2,  -30,3,  -6, 21, 0,  3, ),(1,1,0,0,),None,),
+"plastic gear"          :(35,    13.5, 80,  2200, PLAS,(0,  3,  4,  1.7,-45,3,  -9, 21, 0,  3, ),(1,1,1,0,),None,),
+"disposable PPE"        :(25,    8.2,  10,  300,  PLAS,(-4, 0,  0,  3,  -12,6,  30, 9,  0,  0, ),(1,1,1,1,),None,),
+"hazard suit"           :(1120,  14.5, 25,  600,  PLAS,(-4, 1,  2,  3,  -30,15, 45, 12, 3,  0, ),(1,1,1,1,),None,),# some items that cannot be easily crafted with modern (post-apocalypse) technology are very expensive, being rare.
+"kevlar vest"           :(16200, 2.6,  275, 400,  PLAS,(4,  5,  10, 1.3,3,  3,  6,  6,  20, 5, ),(1,0,0,0,),None,),
     # wood
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  2,  2.5,-45,0,  3,  3,  0,  0, ),1,1,1,0,None,),
-"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  1.6,-30,3,  6,  6,  0,  3, ),1,1,1,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"wicker armor"          :(60,    12.3, 30,  1000, WOOD,(0,  2,  2,  2.5,-45,0,  3,  3,  0,  0, ),(1,1,1,0,),None,),
+"wooden gear"           :(115,   15.25,100, 1500, WOOD,(2,  3,  4,  1.6,-30,3,  6,  6,  0,  3, ),(1,1,1,0,),None,),
     # bone
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"bone cuirass"          :(380,   25.3, 160, 1200, BONE,(0,  6,  3,  2,  3,  6,  15, 21, 0,  5, ),1,1,0,0,None,),
-"bone gear"             :(100,   16.8, 240, 1500, BONE,(2,  4,  5,  1.5,6,  6,  12, 18, 0,  5, ),1,1,1,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"bone cuirass"          :(380,   25.3, 160, 1200, BONE,(0,  6,  3,  2,  3,  6,  15, 21, 0,  5, ),(1,1,0,0,),None,),
+"bone gear"             :(100,   16.8, 240, 1500, BONE,(2,  4,  5,  1.5,6,  6,  12, 18, 0,  5, ),(1,1,1,0,),None,),
     # metal
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"pop tab mail vest"     :(675,   12.3, 195, 800,  METL,(2,  6,  5,  1.5,-3, 0,  9,  0,  3,  15,),1,1,0,0,None,),
-"pop tab mail shirt"    :(795,   14.7, 315, 800,  METL,(2,  6,  7,  1.5,-3, 3,  9,  -3, 3,  18,),1,1,1,0,None,),
-"metal mail vest"       :(745,   11.2, 350, 800,  METL,(2,  7,  6,  1.5,-12,0,  9,  -3, 3,  15,),1,1,0,0,None,),
-"metal mail shirt"      :(1020,  15.6, 400, 800,  METL,(3,  7,  8,  1.5,-21,3,  9,  -6, 5,  18,),1,1,1,0,None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
-"metal gear"            :(860,   14.4, 510, 2400, METL,(0,  8,  4,  1.5,-30,-12,12, -12,3,  12,),1,1,1,0,None,),
-"brigandine"            :(895,   13.5, 550, 2400, METL,(1,  9,  5,  1.5,-27,3,  9,  -6, 3,  9, ),1,1,0,0,None,),
-"metal cuirass"         :(1370,  22.9, 600, 1500, METL,(0,  12, 6,  2,  -30,-15,9,  -21,3,  12,),1,1,0,0,None,),
-"metal blast plate"     :(2040,  34.0, 990, 2000, METL,(-2, 20, 4,  3,  -42,-30,9,  -33,5,  12,),1,1,0,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"pop tab mail vest"     :(675,   12.3, 195, 800,  METL,(2,  6,  5,  1.5,-3, 0,  9,  0,  3,  15,),(1,1,0,0,),None,),
+"pop tab mail shirt"    :(795,   14.7, 315, 800,  METL,(2,  6,  7,  1.5,-3, 3,  9,  -3, 3,  18,),(1,1,1,0,),None,),
+"metal mail vest"       :(745,   11.2, 350, 800,  METL,(2,  7,  6,  1.5,-12,0,  9,  -3, 3,  15,),(1,1,0,0,),None,),
+"metal mail shirt"      :(1020,  15.6, 400, 800,  METL,(3,  7,  8,  1.5,-21,3,  9,  -6, 5,  18,),(1,1,1,0,),None,),# todo: make this separable into its constituent parts (gambeson + mail shirt) OR should there be a separate slot for gambeson and mail?
+"metal gear"            :(860,   14.4, 510, 2400, METL,(0,  8,  4,  1.5,-30,-12,12, -12,3,  12,),(1,1,1,0,),None,),
+"brigandine"            :(895,   13.5, 550, 2400, METL,(1,  9,  5,  1.5,-27,3,  9,  -6, 3,  9, ),(1,1,0,0,),None,),
+"metal cuirass"         :(1370,  22.9, 600, 1500, METL,(0,  12, 6,  2,  -30,-15,9,  -21,3,  12,),(1,1,0,0,),None,),
+"metal blast plate"     :(2040,  34.0, 990, 2000, METL,(-3, 20, 4,  3,  -42,-30,9,  -33,5,  12,),(1,1,0,0,),None,),
     # carbon
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),B,C,H,A,script
-"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1.3,30, 21, 36, 60, 3,  30,),1,1,1,0,None,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
+"graphene armor"        :(75000, 5.0,  750, 1000, CARB,(4,  20, 10, 1.3,30, 21, 36, 60, 3,  30,),(1,1,1,0,),None,),
 }
 
 ARMARMOR={

@@ -224,7 +224,7 @@ def open_pc(pc):
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed
-    if rog.getms(pc,"mp") > 20:#not rog.world().has_component(pc, cmp.StatusTired):
+    if rog.getms(pc,"mp") > 0:#not rog.world().has_component(pc, cmp.StatusTired):
         sprint(pc)
     else:
         rog.alert("You're too tired to sprint.")
@@ -242,6 +242,9 @@ def examine_self_pc(pc):
 
 def equip_pc(pc, item, equipType):
     func, str1, str2 = _get_eq_data(equipType)
+
+    # TODO: convert this to a queued action / get queued actions working!!
+    
     result = func(pc, item) # try to equip
     
     # messages / alerts

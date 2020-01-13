@@ -588,7 +588,7 @@ wrap=False,con=rog.con_final(),disp='mono'
         #create pc object from the data given in chargen
         
         # create entity
-        flags = cmp.Flags(IMMUNERUST, IMMUNEROT)
+        flags = cmp.Flags(IMMUNERUST,)
         pc = world.create_entity(
             body,meters,
             cmp.Player(),

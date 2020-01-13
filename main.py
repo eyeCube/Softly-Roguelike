@@ -94,15 +94,15 @@ def main():
     rog.equip(
         rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
         )
-    rog.equip(
-        rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
-        )
+##    rog.equip(
+##        rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
+##        )
     rog.equip(
         rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
         )
-    rog.equip(
-        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
-        )
+##    rog.equip(
+##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+##        )
     
     # test body part statuses
 ##    import components as cmp

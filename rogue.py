@@ -506,6 +506,10 @@ def getskill(ent, skill): # return skill level in a given skill
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
     return _getskill(skills.skills.get(skill, 0))
+def getskillxp(ent, skill): # return skill experience in a given skill
+    assert(Rogue.world.has_component(ent, cmp.Skills))
+    skills = Rogue.world.component_for_entity(ent, cmp.Skills)
+    return skills.skills.get(skill, 0)
 def _getskill(lv): return lv // EXP_LEVEL
 def setskill(ent, skill, lvl): # set skill level
     assert(Rogue.world.has_component(ent, cmp.Skills))
@@ -513,17 +517,17 @@ def setskill(ent, skill, lvl): # set skill level
     skills.skills[skill] = lvl*EXP_LEVEL
     make(ent,DIRTY_STATS)
 def train(ent, skill, pts): # train (improve) skill
-    assert(Rogue.world.has_component(ent, cmp.Skills))
     # diminishing returns on skill gainz
     pts = pts - getskill(ent)*EXP_DIMINISH_RATE
     if pts > 0:
         make(ent,DIRTY_STATS)
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-        _train(skills, skill, pts)
-def _train(skills, skill, pts):
+        __train(skills, skill, pts)
+def __train(skills, skill, pts):
     skills.skills[skill] = skills.skills.get(skill, 0) + min(pts,EXP_LEVEL)
     pts = pts - EXP_LEVEL - EXP_DIMINISH_RATE
-    if pts > 0: _train(ent, skill, pts)
+    if pts > 0:
+        __train(ent, skill, pts)
 def forget(ent, skill, pts): # lose skill experience
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
@@ -991,10 +995,21 @@ def init_fluidContainer(ent, size):
     #---------------------#
     #   Equipment / Body  #
     #---------------------#
-    
-# damage BPP object
-def damagebpp(bpp, bpptype, status):
+
+def curebpp(bpp): #<flags> cure BPP status clear BPP status bpp_clear_status clear_bpp_status clear bpp status bpp clear status
+    bpp.status = 0 # revert to normal status
+def healbpp(bpp, bpptype, status): #<flags> heal BPP object
+    pass #TODO
+def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP status BPP set status set_bpp_status bpp_set_status bpp set status set bpp status
     '''
+        * Try to inflict a status on a BPP (body part piece) object
+            (A BPP is a sub-component of a BP (body part)
+             such as a muscle, bone, etc.)
+        * Possibly inflict a higher level status if the intended status
+            and the current status are equal.
+        * Do not overwrite higher-priority statuses (the higher the
+            integer value of the status constant, the higher priority).
+        
         # return whether the BPP was damaged
         # Parameters:
         #   bpp     : the BPP_ component to be damaged
@@ -1412,7 +1427,6 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # bonuses that are applied before gear bonuses #
         #----------------------------------------------#
 
-
         #  good multiplier statuses  #    
     # sprint
     if world.has_component(ent, cmp.StatusSprint):
@@ -1632,6 +1646,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Things should avoid affecting attributes as much as possible.
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
+    encpc = 1 - (modded.enc / max(1,modded.encmax))
+    modded.mpregen = modded.mpregen * (0.5 + 0.5*encpc)
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1

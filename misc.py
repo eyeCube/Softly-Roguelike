@@ -135,27 +135,7 @@ def _get_equipment(body):
         
     # human / humanoid shape bodies
     if body.plan==BODYPLAN_HUMANOID:
-        # core
-        equipment=__add_eq(equipment,"core",body.core.core.slot,
-                           cmp.EquipableInCoreSlot)
-        equipment=__add_eq(equipment,"front",body.core.front.slot,
-                           cmp.EquipableInFrontSlot)
-        equipment=__add_eq(equipment,"back",body.core.back.slot,
-                           cmp.EquipableInBackSlot)
-        equipment=__add_eq(equipment,"hips",body.core.hips.slot,
-                           cmp.EquipableInHipsSlot)
         # parts
-        for head in body.parts[cmp.BPC_Heads].heads:
-            equipment=__add_eq(equipment,"head",head.head.slot,
-                           cmp.EquipableInHeadSlot)
-            equipment=__add_eq(equipment,"face",head.face.slot,
-                           cmp.EquipableInFaceSlot)
-            equipment=__add_eq(equipment,"neck",head.neck.slot,
-                           cmp.EquipableInNeckSlot)
-            equipment=__add_eq(equipment,"eyes",head.eyes.slot,
-                           cmp.EquipableInEyesSlot)
-            equipment=__add_eq(equipment,"ears",head.ears.slot,
-                           cmp.EquipableInEarsSlot)
         i=-1
         for arm in body.parts[cmp.BPC_Arms].arms:
             i+=1
@@ -174,6 +154,26 @@ def _get_equipment(body):
                            cmp.EquipableInLegSlot)
             equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot,
                            cmp.EquipableInFootSlot)
+        for head in body.parts[cmp.BPC_Heads].heads:
+            equipment=__add_eq(equipment,"head",head.head.slot,
+                           cmp.EquipableInHeadSlot)
+            equipment=__add_eq(equipment,"face",head.face.slot,
+                           cmp.EquipableInFaceSlot)
+            equipment=__add_eq(equipment,"neck",head.neck.slot,
+                           cmp.EquipableInNeckSlot)
+            equipment=__add_eq(equipment,"eyes",head.eyes.slot,
+                           cmp.EquipableInEyesSlot)
+            equipment=__add_eq(equipment,"ears",head.ears.slot,
+                           cmp.EquipableInEarsSlot)
+        # core
+        equipment=__add_eq(equipment,"core",body.core.core.slot,
+                           cmp.EquipableInCoreSlot)
+        equipment=__add_eq(equipment,"front",body.core.front.slot,
+                           cmp.EquipableInFrontSlot)
+        equipment=__add_eq(equipment,"back",body.core.back.slot,
+                           cmp.EquipableInBackSlot)
+        equipment=__add_eq(equipment,"hips",body.core.hips.slot,
+                           cmp.EquipableInHipsSlot)
     #
     if equipment: equipment = equipment[:-1]
     return equipment
@@ -442,11 +442,13 @@ def _get_hydration(body):
     return "severely dehydrated"
 def _get_encumberance_mods(pc):
     mods = "\n    [ "
-    encbp = rog.get_encumberance_breakpoint(
-        rog.getms(pc,'enc'), rog.getms(pc,'encmax') )
+    encmax = rog.getms(pc,'encmax')
+    enc = rog.getms(pc,'enc')
+    encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
 ##        mods += "AGI {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['agi'][index]))
+        mods += "SPR {}%, ".format(int(50 + 50*(1 - (enc/max(1,encmax))) ))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))
@@ -455,7 +457,7 @@ def _get_encumberance_mods(pc):
         mods += "GRA {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['gra'][index]))
         mods += "BAL {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['bal'][index]))
     else:
-        return ""
+        mods += "SPR {}% ".format(int(50 + 50*(1 - (enc/max(1,encmax))) ))
     mods += "]"
     return mods
 
@@ -482,9 +484,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     hydstr=_get_hydration(body)
     encmods=_get_encumberance_mods(pc)
     
-    immunei="<<IMMUNE"
     # create the display format string
-    strng = '''
+    strng = '''{p1}
 {p1}                        {subdelim} identification {subdelim}
 {p1}                        name{idelim}{name}
 {p1}                     species{idelim}{species}
@@ -534,18 +535,18 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
 {p1}       
 {p1}                        {subdelim} resistance {subdelim}
-{p1}               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<8}
-{p1}               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<8}
-{p1}         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<8}{immbio:>8}
-{p1}        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<8}
-{p1}           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<8}
-{p1}               (pain)----PAI{predelim}{pai:<4}{resdelim}{bpai:<8}{immpain:>8}
-{p1}              (bleed)----BLD{predelim}{bld:<4}{resdelim}{bbld:<8}{immbleed:>8}
-{p1}              (light)----LGT{predelim}{lgt:<4}{resdelim}{blgt:<8}
-{p1}              (sound)----SND{predelim}{snd:<4}{resdelim}{bsnd:<8}
-{p1}               (rust)----RUS{predelim}{rus:<4}{resdelim}{brus:<8}{immrust:>8}
-{p1}                (rot)----ROT{predelim}{rot:<4}{resdelim}{brot:<8}{immrot:>8}
-{p1}              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<8}{immwater:>8}
+{p1}               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<6}
+{p1}               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<6}
+{p1}         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<6}{immbio:>8}
+{p1}        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<6}
+{p1}           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<6}
+{p1}               (pain)----PAI{predelim}{pai:<4}{resdelim}{bpai:<6}{immpain:>8}
+{p1}              (bleed)----BLD{predelim}{bld:<4}{resdelim}{bbld:<6}{immbleed:>8}
+{p1}              (light)----LGT{predelim}{lgt:<4}{resdelim}{blgt:<6}
+{p1}              (sound)----SND{predelim}{snd:<4}{resdelim}{bsnd:<6}
+{p1}               (rust)----RUS{predelim}{rus:<4}{resdelim}{brus:<6}{immrust:>8}
+{p1}                (rot)----ROT{predelim}{rot:<4}{resdelim}{brot:<6}{immrot:>8}
+{p1}              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<6}{immwater:>8}
 {p1}
 {p1}                        {subdelim} status {subdelim}
 {p1}    status effects:
@@ -581,12 +582,12 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         shortdelim ="...",
         dlv=dlvl,t=turn,
         # flags
-        immbio  =immunei if rog.on(pc, IMMUNEBIO) else "",
-        immrust =immunei if rog.on(pc, IMMUNERUST) else "",
-        immrot  =immunei if rog.on(pc, IMMUNEROT) else "",
-        immwater=immunei if rog.on(pc, IMMUNEWATER) else "",
-        immbleed=immunei if rog.on(pc, IMMUNEBLEED) else "",
-        immpain =immunei if rog.on(pc, IMMUNEPAIN) else "",
+        immbio  =">>IMMUNE TO BIO" if rog.on(pc, IMMUNEBIO) else "",
+        immrust =">>CANNOT RUST" if rog.on(pc, IMMUNERUST) else "",
+        immrot  =">>CANNOT ROT" if rog.on(pc, IMMUNEROT) else "",
+        immwater=">>HYDROPHOBIC" if rog.on(pc, IMMUNEWATER) else "",
+        immbleed=">>CANNOT BLEED" if rog.on(pc, IMMUNEBLEED) else "",
+        immpain =">>CANNOT FEEL PAIN" if rog.on(pc, IMMUNEPAIN) else "",
         # component data
         effects=effects,gauges=gauges,augs=augs,
         equipment=equipment,skills=skills,bodystatus=bodystatus,
@@ -598,7 +599,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         temp=meters.temp,
         normalbodytemp=37, #TEMPORARY
         kg="{__:.3f}".format(__=_get('mass')/MULT_MASS),
-        bkg=_getb('mass')//MULT_MASS,
+        bkg="{__:.3f}".format(__=_getb('mass')//MULT_MASS),
         cm=int(_getheight()),
         hp=_getb('hp'),hpmax=_get('hpmax'),
         sp=_getb('mp'),spmax=_get('mpmax'),
