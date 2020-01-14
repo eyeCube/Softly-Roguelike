@@ -138,12 +138,13 @@ class Rogue:
         '''
             constant managers, ran each turn
         '''
-        #beginning of turn (beginning of monster's turn)
-        cls.bt_managers.update({'sounds' : managers.Manager_SoundsHeard()})
-        cls.bt_managers.update({'sights' : managers.Manager_SightsSeen()})
-        cls.bt_managers.update({'actors' : managers.Manager_Actors()})
-        #end of turn (end of monster's turn)
-##        cls.et_managers.update(managers.Manager_SightsSeen())
+        #beginning of turn
+            
+        #end of turn (before player turn)
+            # TODO: convert into processors!!
+        cls.et_managers.update({'actors' : managers.Manager_Actors()})
+        cls.et_managers.update({'sounds' : managers.Manager_SoundsHeard()})
+        cls.et_managers.update({'sights' : managers.Manager_SightsSeen()})
     
     @classmethod
     def create_const_managers(cls):
@@ -159,25 +160,8 @@ class Rogue:
 '''
 WHAT DO WE DO WITH THESE MANAGERS????
     FOV and ActionQueue is now a processor.... Events?????
-    Rogue.c_managers.update({'fov'        : managers.Manager_FOV()})
     Rogue.c_managers.update({'events'     : managers.Manager_Events()})
-    Rogue.c_managers.update({'actionQueue': managers.Manager_ActionQueue()})
 
-'''
-'''
-    old update function:
-    
-    clearMsg = False
-    Ref.update.activate_all_necessary_updates()
-    pc=Ref.pc
-    for update in Ref.update.get_updates():
-        if update=='hud'        : render_hud(pc)
-        elif update=='game'     : render_gameArea(pc)
-        elif update=='msg'      : Ref.log.drawNew(); clearMsg=True
-        elif update=='final'    : blit_to_final( con_game(),0,0)
-        elif update=='base'     : refresh()
-    if clearMsg: msg_clear()
-    Ref.update.set_all_to_false()
 '''
 
     # EXPIRED: Environment class
@@ -510,7 +494,7 @@ def getskillxp(ent, skill): # return skill experience in a given skill
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
     return skills.skills.get(skill, 0)
-def _getskill(lv): return lv // EXP_LEVEL
+def _getskill(exp): return exp // EXP_LEVEL
 def setskill(ent, skill, lvl): # set skill level
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
@@ -1272,7 +1256,6 @@ def deequip(ent,equipType):
         if equipable.coversBack: __uncov(ent,cmp.BP_TorsoBack)
         if equipable.coversCore: __uncov(ent,cmp.BP_TorsoCore)
         if equipable.coversHips: __uncov(ent,cmp.BP_Hips)
-        if equipable.coversArms: __uncov(ent,cmp.BP_Arm)
     if equipType==EQ_MAINHEAD:
         if equipable.coversFace: __uncov(ent,cmp.BP_Face)
         if equipable.coversNeck: __uncov(ent,cmp.BP_Neck)
@@ -1423,17 +1406,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.__dict__[k] = v
     # /init
     
-#~~~~~~~#----------------------------------------------#~~~~~~~~~~~~~~~#
+#~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        #  good multiplier statuses  # 
+        #----------------------------#-----------------#
         # bonuses that are applied before gear bonuses #
         #----------------------------------------------#
 
-        #  good multiplier statuses  #    
-    # sprint
-    if world.has_component(ent, cmp.StatusSprint):
-        modded.msp = modded.msp * SPRINT_MSPMOD
-    # haste
-    if world.has_component(ent, cmp.StatusHaste):
-        modded.spd = modded.spd * HASTE_SPDMOD
 
 #~~~~~~~#-------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # Body Status / Equipment #
@@ -1523,8 +1501,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.str = modded.str * SICK_STRMOD
         modded.end = modded.end * SICK_ENDMOD
         modded.con = modded.con * SICK_CONMOD
-        modded.respain = modded.respain + SICK_RESPAINMOD
-    
+        modded.respain = modded.respain + SICK_RESPAINMOD    
 
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -1597,23 +1574,32 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 #~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #   bad multiplier statuses  #
         #----------------------------#
+
+    # should some of these statuses be moved up to before
+    # gear bonuses are applied?
     
     # hot
     if world.has_component(ent, cmp.StatusHot):
-        modded.mpregen = modded.mpregen * HOT_SPREGENMOD
-        
+        modded.mpregen  = modded.mpregen * HOT_SPREGENMOD
+    
+    # frozen
+    if world.has_component(ent, cmp.StatusFrozen):
+        modded.spd      = modded.spd        * FROZEN_SPDMOD
+        modded.mpregen  = modded.mpregen    * FROZEN_SPREGENMOD
+        modded.mp       = modded.mp         * FROZEN_STAMMOD
+        modded.int      = modded.int        * FROZEN_INTMOD
     # cold
-    if world.has_component(ent, cmp.StatusCold):
-        modded.spd = modded.spd * COLD_SPDMOD
-        modded.mpregen = modded.mpregen * COLD_SPREGENMOD
-        modded.mp = modded.mp * COLD_STAMMOD
-        modded.int = modded.int * COLD_INTMOD
+    elif world.has_component(ent, cmp.StatusCold):
+        modded.spd      = modded.spd        * COLD_SPDMOD
+        modded.mpregen  = modded.mpregen    * COLD_SPREGENMOD
+        modded.mpmax    = modded.mpmax      * COLD_STAMMOD
+        modded.int      = modded.int        * COLD_INTMOD
     # chilly
     elif world.has_component(ent, cmp.StatusChilly):
-        modded.spd = modded.spd * CHILLY_SPDMOD
-        modded.mpregen = modded.mpregen * CHILLY_SPREGENMOD
-        modded.mp = modded.mp * CHILLY_STAMMOD
-        modded.int = modded.int * CHILLY_INTMOD
+        modded.spd      = modded.spd        * CHILLY_SPDMOD
+        modded.mpregen  = modded.mpregen    * CHILLY_SPREGENMOD
+        modded.mpmax    = modded.mpmax      * CHILLY_STAMMOD
+        modded.int      = modded.int        * CHILLY_INTMOD
     
     # blind
     if world.has_component(ent, cmp.StatusBlind):
@@ -1623,20 +1609,47 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.hearing = modded.hearing * DEAF_HEARINGMOD
     # Disoriented
     if world.has_component(ent, cmp.StatusDisoriented):
-        modded.sight = modded.sight * DISORIENTED_SIGHTMOD
-        modded.hearing = modded.hearing * DISORIENTED_HEARINGMOD
+        modded.sight    = modded.sight      * DISORIENTED_SIGHTMOD
+        modded.hearing  = modded.hearing    * DISORIENTED_HEARINGMOD
+        
     # irritated
     if world.has_component(ent, cmp.StatusIrritated):
-        modded.atk = modded.atk + IRRITATED_ATK
-        modded.sight = modded.sight * IRRITATED_SIGHTMOD
-        modded.hearing = modded.hearing * IRRITATED_HEARINGMOD
-        modded.respain = modded.respain * IRRITATED_RESPAINMOD
+        modded.sight    = modded.sight      * IRRITATED_SIGHTMOD
+        modded.hearing  = modded.hearing    * IRRITATED_HEARINGMOD
+        modded.respain  = modded.respain    * IRRITATED_RESPAINMOD
+        modded.resbleed = modded.resbleed   + IRRITATED_RESBLEED
+        modded.atk      = modded.atk        + IRRITATED_ATK
+        
     # paralyzed
     if world.has_component(ent, cmp.StatusParalyzed):
         modded.spd = modded.spd * PARALYZED_SPDMOD
+        modded.atk = modded.atk + PARALYZED_ATK
+        modded.dfn = modded.dfn + PARALYZED_DFN
+        
     # slow
     if world.has_component(ent, cmp.StatusSlow):
-        modded.spd = modded.spd * SLOW_SPDMOD
+        modded.spd = modded.spd * SLOW_SPDMOD 
+    # haste
+    if world.has_component(ent, cmp.StatusHaste):
+        modded.spd = modded.spd * HASTE_SPDMOD
+        
+    # jog
+    if world.has_component(ent, cmp.StatusJog):
+        modded.msp = modded.msp * JOG_MSPMOD
+    # run
+    if world.has_component(ent, cmp.StatusRun):
+        modded.msp = modded.msp * RUN_MSPMOD
+    # sprint
+    if world.has_component(ent, cmp.StatusSprint):
+        modded.msp = modded.msp * SPRINT_MSPMOD
+    # drunk
+    if world.has_component(ent, cmp.StatusDrunk):
+        compo = world.component_for_entity(ent, cmp.StatusDrunk)
+        modded.bal = modded.bal - compo.quality
+    # off-balance staggered
+    if world.has_component(ent, cmp.StatusOffBalance):
+        compo = world.component_for_entity(ent, cmp.StatusOffBalance)
+        modded.bal = modded.bal - compo.quality
         
 
 #~~~~~~~#--------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

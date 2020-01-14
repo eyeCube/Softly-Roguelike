@@ -2488,6 +2488,7 @@ def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
     dadd['pro'] = min( dadd.get('pro',0), dadd.get('pro',0) * modf )
     dadd['arm'] = min( dadd.get('arm',0), dadd.get('arm',0) * _2575 )
     dadd['dfn'] = min( dadd.get('dfn',0), dadd.get('dfn',0) * _5050 )
+    dadd['ctr'] = min( dadd.get('ctr',0), dadd.get('ctr',0) * _5050 )
 # end def
 def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
     modf = 1 - (1 - (hp / hpMax))**2
@@ -2497,32 +2498,57 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
     dadd['arm'] = min(dadd.get('arm',0), dadd.get('arm',0) * _2575)
     dadd['dfn'] = min(dadd.get('dfn',0), dadd.get('dfn',0) * _5050)
 # end def
-def _apply_skill_bonus_armor(dadd, skill):
-    if not skill: return
-    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER
-    dadd['pro'] = dadd.get('pro',0) * (1 + SKLMOD_ARMOR_PRO*sm)
-    dadd['arm'] = dadd.get('arm',0) * (1 + SKLMOD_ARMOR_AV*sm)
-    dadd['dfn'] = dadd.get('dfn',0) * (1 + SKLMOD_ARMOR_DV*sm)
+def _apply_skill_bonus_armor(dadd, skillLv):
+    if not skillLv: return
+    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['pro'] = max(dadd.get('pro',0),
+        dadd.get('pro',0) * (1 + SKLMOD_ARMOR_PRO*sm) )
+    dadd['arm'] = max(dadd.get('arm',0),
+        dadd.get('arm',0) * (1 + SKLMOD_ARMOR_AV*sm) )
+    dadd['dfn'] = max(dadd.get('dfn',0),
+        dadd.get('dfn',0) * (1 + SKLMOD_ARMOR_DV*sm) )
 # end def
-def _apply_skill_bonus_unarmored(dadd, skill, coverage_modifier):
-    if not skill: return
-    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modifier
-    dadd['pro'] = dadd.get('pro',0) + SKLMOD_UNARMORED_PRO*sm
-    dadd['arm'] = dadd.get('arm',0) + SKLMOD_UNARMORED_AV*sm
-    dadd['dfn'] = dadd.get('dfn',0) + SKLMOD_UNARMORED_DV*sm
+def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
+    if not skillLv: return
+    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
+    dadd['pro'] = dadd.get('pro',0) + MULT_STATS*SKLMOD_UNARMORED_PRO*sm
+    dadd['arm'] = dadd.get('arm',0) + MULT_STATS*SKLMOD_UNARMORED_AV*sm
+    dadd['dfn'] = dadd.get('dfn',0) + MULT_STATS*SKLMOD_UNARMORED_DV*sm
 # end def
-def _apply_skill_bonus_weapon(dadd, skill):
-    if not skill: return
-    sm = skill * SKILL_EFFECTIVENESS_MULTIPLIER
-    dadd['atk'] = dadd.get('atk',0) * (1 + SKLMOD_WEAPON_ATK*sm)
-    dadd['pen'] = dadd.get('pen',0) * (1 + SKLMOD_WEAPON_PEN*sm)
-    dadd['dmg'] = dadd.get('dmg',0) * (1 + SKLMOD_WEAPON_DMG*sm)
-    dadd['dfn'] = dadd.get('dfn',0) * (1 + SKLMOD_WEAPON_DFN*sm)
-    dadd['pro'] = dadd.get('pro',0) * (1 + SKLMOD_WEAPON_PRO*sm)
-    dadd['arm'] = dadd.get('arm',0) * (1 + SKLMOD_WEAPON_ARM*sm)
-    dadd['asp'] = dadd.get('asp',0) * (1 + SKLMOD_WEAPON_ASP*sm)
-    dadd['gra'] = dadd.get('gra',0) * (1 + SKLMOD_WEAPON_GRA*sm)
-    dadd['ctr'] = dadd.get('ctr',0) * (1 + SKLMOD_WEAPON_CTR*sm)
+def _apply_skill_bonus_weapon(dadd, skillLv, skill):
+    if not skillLv: return
+    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['atk'] = max( dadd.get('atk',0),
+        dadd.get('atk',0) * (1 + sm*SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)) )
+    dadd['pen'] = max( dadd.get('pen',0),
+        dadd.get('pen',0) * (1 + sm*SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)) )
+    dadd['dmg'] = max( dadd.get('dmg',0),
+        dadd.get('dmg',0) * (1 + sm*SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)) )
+    dadd['dfn'] = max( dadd.get('dfn',0),
+        dadd.get('dfn',0) * (1 + sm*SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)) )
+    dadd['pro'] = max( dadd.get('pro',0),
+        dadd.get('pro',0) * (1 + sm*SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)) )
+    dadd['arm'] = max( dadd.get('arm',0),
+        dadd.get('arm',0) * (1 + sm*SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)) )
+    dadd['asp'] = max( dadd.get('asp',0),
+        dadd.get('asp',0) * (1 + sm*SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)) )
+    dadd['gra'] = max( dadd.get('gra',0),
+        dadd.get('gra',0) * (1 + sm*SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)) )
+    dadd['ctr'] = max( dadd.get('ctr',0),
+        dadd.get('ctr',0) * (1 + sm*SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)) )
+# end def
+def _apply_skill_bonus_unarmed(dadd, skillLv, skill): # similar as above but it adds instead of multiplying the added value
+    if not skillLv: return
+    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['atk'] = dadd.get('atk',0) + MULT_STATS*sm*SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
+    dadd['pen'] = dadd.get('pen',0) + MULT_STATS*sm*SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
+    dadd['dmg'] = dadd.get('dmg',0) + MULT_STATS*sm*SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)
+    dadd['dfn'] = dadd.get('dfn',0) + MULT_STATS*sm*SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)
+    dadd['pro'] = dadd.get('pro',0) + MULT_STATS*sm*SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)
+    dadd['arm'] = dadd.get('arm',0) + MULT_STATS*sm*SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)
+    dadd['asp'] = dadd.get('asp',0) + sm*SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)
+    dadd['gra'] = dadd.get('gra',0) + MULT_STATS*sm*SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)
+    dadd['ctr'] = dadd.get('ctr',0) + MULT_STATS*sm*SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)
 # end def
 ##def _apply_mass(ent, item, dadd, equipable):
 ##    mass=rog.getms(item, 'mass')
@@ -2580,10 +2606,10 @@ def _update_from_bpc_legs(addMods, multMods, ent, bpc, armorSkill, unarmored):
 def _update_from_bpc_arms(addMods, multMods, ent, bpc, armorSkill, unarmored):
     i = 0
     for bpm in bpc.arms: # for each arm you possess,
-        isOffhand = (i>0)
+        ismainhand = (i==0)
         i += 1
         # hand
-        dadd,dmul=_update_from_bp_hand(ent, bpm.hand, isOffhand)
+        dadd,dmul=_update_from_bp_hand(ent, bpm.hand, ismainhand)
         append_mods(addMods, multMods, dadd, dmul)
         # arm
         dadd,dmul=_update_from_bp_arm(ent, bpm.arm, armorSkill, unarmored)
@@ -2645,10 +2671,12 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
 # end def
 
 # hand
-def _update_from_bp_hand(ent, hand, isOffhand=True):
+def _update_from_bp_hand(ent, hand, ismainhand=False):
     world = rog.world()
     dadd={}
     dmul={}
+
+    skillsCompo=world.component_for_entity(ent, cmp.Skills)
 
     # equipment
     if hand.slot.item:
@@ -2657,17 +2685,33 @@ def _update_from_bp_hand(ent, hand, isOffhand=True):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
+        # offhand penalty
+        if not ismainhand:
+            dadd['atk'] = 0
+            dadd['dmg'] = 0
+            dadd['pen'] = 0
+            dadd['asp'] = 0
+            dadd['dfn'] = dadd.get('dfn', 0) * OFFHAND_PENALTY_DFN
+            dadd['arm'] = dadd.get('arm', 0) * OFFHAND_PENALTY_ARM
+            dadd['pro'] = dadd.get('pro', 0) * OFFHAND_PENALTY_PRO
+        
         # weapon skill bonus
-        if world.has_component(item, cmp.WeaponSkill):
+        if (ismainhand and world.has_component(item, cmp.WeaponSkill)):
             weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
-        else:
-            weapClass = -1
-        weaponSkill = world.component_for_entity(ent, cmp.Skills).skills.get(weapClass, 0)
-        _apply_skill_bonus_weapon(dadd, weaponSkill)
+            skillLv = skillsCompo.skills.get(weapClass, 0)
+            if skillLv:
+                _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_weapon(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+    else:
+        if ismainhand:
+            # unarmed combat (hand-to-hand combat)
+            boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
+            _apply_skill_bonus_unarmed(dadd, boxLv, SKL_BOXING)
+            wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
+            _apply_skill_bonus_unarmed(dadd, wreLv, SKL_WRESTLING)
         
     # examine body part
     if hand.bone.status:
@@ -3829,7 +3873,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
         height=int(height),
         blood=int(mass*0.07), # 7% of body mass is blood
         fat=fat, # total fat mass in the body (floating point -- precision doesn't matter)
-        hydration=int(MULT_HYD*mass*0.7), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
+        hydration=int(MULT_HYD*mass*0.6), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.
         satiation=int(mass*50), # how many calories (not KiloCalories) you have available at maximum satiation w/o resorting to burning fat / muscle
         sleep=86400 # 24h * 60m * 60s
         )

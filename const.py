@@ -567,6 +567,7 @@ NRG_TAKE            = 100   # Cost of picking an item from a container
 NRG_EXAMINE         = 200
 NRG_QUAFF           = 100
 NRG_EAT             = 300   # default AP cost per unit of consumption to eat
+NRG_EAT_MIN         = 50    # minimum AP cost to eat any amount of food
 NRG_READ            = 50    # cost to read a simple thing (phrase/sentence)
 NRG_READPARAGRAPH   = 250   # cost to read an idea (paragraph/complex sentence)
 NRG_READPAGE        = 2500  # cost to read a page of a book (several ideas forming one meta-idea that requires you to read it all to understand)
@@ -1126,15 +1127,6 @@ BLEED_QUALITY_ARTERIAL      = 15
 #wet
 WET_RESFIRE     = 200   # fire resistance gained while wet (per liter)
 
-#sprint
-SPRINT_MSPMOD     = 3.0   # move speed bonus when you sprint
-
-#hasty
-HASTE_SPDMOD      = 1.5    # speed bonus when hasty (mult modifier)
-
-#slow
-SLOW_SPDMOD       = 0.6666667 # speed penalty while slowed (mult modifier)
-
 # temp (burn)
 FIRE_METERMAX   = 3600  #maximum temperature a thing can reach
 FIRE_MAXTEMP    = 1200  #max temperature you can reach from normal means
@@ -1155,6 +1147,10 @@ COLD_INTMOD         = 0.3333333
 COLD_SPDMOD         = 0.3333333
 COLD_STAMMOD        = 0.3333333
 COLD_SPREGENMOD     = 0.3333333
+FROZEN_INTMOD       = 0
+FROZEN_SPDMOD       = 0
+FROZEN_STAMMOD      = 0.1
+FROZEN_SPREGENMOD   = 0.1
 
 # bio sick
 BIO_METERLOSS   = 1     # sickness points lost per turn
@@ -1174,13 +1170,16 @@ ACID_DAMAGE     = 1.0
 
 # irritation
 IRRITATED_ATK       = -4
+IRRITATED_RESBLEED  = -10
 IRRITATED_SIGHTMOD  = 0.75
 IRRITATED_HEARINGMOD= 0.75
 IRRITATED_RESPAINMOD= 0.75
 
 # paralysis
-PARAL_ROLLSAVE  = 10    #affects chance to undo paralysis
-PARALYZED_SPDMOD = 0.1
+PARALYZED_ROLLSAVE  = 10    #affects chance to undo paralysis
+PARALYZED_SPDMOD    = 0.1
+PARALYZED_ATK       = -15
+PARALYZED_DFN       = -15
 
 # cough
 COUGH_CHANCE    = 33
@@ -1204,6 +1203,24 @@ PAIN_CONMOD = 0.75
 
 # fear
 FEAR_METERLOSS = 1
+
+#hasty
+HASTE_SPDMOD        = 1.5    # speed bonus when hasty (mult modifier)
+
+#slow
+SLOW_SPDMOD         = 0.6666667 # speed penalty while slowed (mult modifier)
+
+# jog
+JOG_MSPMOD          = 2.0   # move speed modifier when you jog
+
+# run
+RUN_MSPMOD          = 3.0   # move speed modifier when you run
+
+#sprint
+SPRINT_MSPMOD       = 4.0   # move speed modifier when you sprint
+
+# drunk
+DRUNK_BALMOD        = 0.5
 
 # trauma
 #
@@ -1642,7 +1659,7 @@ AMMO_ANYTHING       = i; i+=1;  # literally anything
 #
 
 # constants
-SKILL_EFFECTIVENESS_MULTIPLIER = 0.05 # higher -> skills have more effect
+SKILL_EFFECTIVENESS_MULTIPLIER = 1 # higher -> skills have more effect
 SKILL_MAXIMUM = 100
 
 #
@@ -1857,24 +1874,127 @@ SKL_BULLWHIPS       : 0.2,
 SKL_BOXING          : 0.25,
     }
 
+
+
 # Skill data (stat modifiers gained from skills)
+
 # ARMOR
 SKLMOD_ARMOR_PRO        = 0.05      # multiplier modifier - per level
 SKLMOD_ARMOR_AV         = 0.05      # multiplier modifier - per level
 SKLMOD_ARMOR_DV         = 0.05      # multiplier modifier - per level
 SKLMOD_UNARMORED_PRO    = 0.3       # adder modifier - per level
 SKLMOD_UNARMORED_AV     = 0.15      # adder modifier - per level
-SKLMOD_UNARMORED_DV     = 0.25      # adder modifier - per level
+SKLMOD_UNARMORED_DV     = 0.4       # adder modifier - per level
+
 # WEAPONS
-SKLMOD_WEAPON_ATK   = 0.05          # multiplier modifier - per level
-SKLMOD_WEAPON_DV    = 0.05          # "
-SKLMOD_WEAPON_PEN   = 0.05
-SKLMOD_WEAPON_PRO   = 0.05
-SKLMOD_WEAPON_DMG   = 0.05
-SKLMOD_WEAPON_AV    = 0.05
-SKLMOD_WEAPON_ASP   = 0.05
-SKLMOD_WEAPON_GRA   = 0.05
-SKLMOD_WEAPON_CTR   = 0.05
+# Multiplier per level for each weapons, and defaults
+#   defaults apply for a given dict/skill if the skill has no key.
+# Otherwise the value in the dict applies for that skill as a modifier
+#   for growth for each skill level gained.
+SKLMOD_ATK   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0.25,
+    SKL_SHIELDS     : 0.025,
+    }
+
+SKLMOD_DFN   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0.2,
+    SKL_SHIELDS     : 0.06,
+    SKL_BULLWHIPS   : 0,
+    }
+
+SKLMOD_PEN   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0,
+    SKL_SHIELDS     : 0.025,
+    }
+
+SKLMOD_PRO   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0.05,
+    SKL_SHIELDS     : 0.066667,
+    SKL_BOWS        : 0.025,
+    SKL_CROSSBOWS   : 0.025,
+    SKL_CANNONS     : 0.025,
+    SKL_PISTOLS     : 0.025,
+    SKL_SHOTGUNS    : 0.025,
+    SKL_SMGS        : 0.025,
+    SKL_MACHINEGUNS : 0.025,
+    SKL_HEAVY       : 0.025,
+    SKL_ENERGY      : 0.025,
+    }
+
+SKLMOD_DMG   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0.15,
+    SKL_POLEARMS    : 0.075,
+    SKL_GREATSWORDS : 0.075,
+    SKL_MALLETS     : 0.075,
+    SKL_GREATAXES   : 0.075,
+    SKL_SPEARS      : 0.075,
+    SKL_BULLWHIPS   : 0.1,
+    }
+
+SKLMOD_ARM   = {
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : 0.1,
+    SKL_SHIELDS     : 0.1,
+    SKL_BULLWHIPS   : 0,
+    }
+
+SKLMOD_ASP   = {
+    SKL_WRESTLING   : 1,
+    SKL_BOXING      : 1.5,
+    SKL_SHIELDS     : 0.025,
+    }
+
+SKLMOD_GRA   = {
+    SKL_WRESTLING   : 0.5,
+    SKL_BOXING      : 0.01,
+    SKL_BULLWHIPS   : 0,
+    SKL_BLUDGEONS   : 0.033334,
+    SKL_PUSHDAGGERS : 0.025,
+    SKL_POLEARMS    : 0.025,
+    SKL_GREATSWORDS : 0.025,
+    SKL_MALLETS     : 0.025,
+    SKL_GREATAXES   : 0.025,
+    SKL_SPEARS      : 0.025,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : 0,
+    SKL_CANNONS     : 0,
+    SKL_PISTOLS     : 0,
+    SKL_SHOTGUNS    : 0,
+    SKL_SMGS        : 0,
+    SKL_MACHINEGUNS : 0,
+    SKL_HEAVY       : 0,
+    SKL_ENERGY      : 0,
+    }
+
+SKLMOD_CTR   = {
+    SKL_WRESTLING   : 0.1,
+    SKL_BOXING      : 0.2,
+    SKL_KNIVES      : 0.075,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : 0,
+    SKL_CANNONS     : 0,
+    SKL_PISTOLS     : 0,
+    SKL_SHOTGUNS    : 0,
+    SKL_SMGS        : 0,
+    SKL_MACHINEGUNS : 0,
+    SKL_HEAVY       : 0,
+    SKL_ENERGY      : 0,
+    }
+
+DEFAULT_SKLMOD_ATK   = 0.05
+DEFAULT_SKLMOD_DFN   = 0.05
+DEFAULT_SKLMOD_PEN   = 0.05
+DEFAULT_SKLMOD_PRO   = 0.05
+DEFAULT_SKLMOD_DMG   = 0.05
+DEFAULT_SKLMOD_ARM   = 0.05
+DEFAULT_SKLMOD_ASP   = 0.05
+DEFAULT_SKLMOD_GRA   = 0.05
+DEFAULT_SKLMOD_CTR   = 0.05
 
 
 #

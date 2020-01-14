@@ -226,23 +226,24 @@ class Skills:
 ##        self.level = level # int level
 ##        self.experience = experience # int experience CURRENT LEVEL
 
+class QueuedAction:
 # Queued Actions / Delayed Actions / multi-turn actions / queued jobs / queued tasks / action queue / ActionQueueProcessor
 # Actions that take multiple turns to complete use these components
 # to keep track of the progress and to finish up the task when complete
 # (func) or cancelled (cancelfunc). Interrupted means task is cancelled
 # and is pending its cancellation being processed by ActionQueueProcessor.
-class QueuedAction:
     __slots__=['ap','apMax','func','data','cancelfunc',
                'interrupted','elapsed' ]
     def __init__(self, totalAP, func, data=None, cancelfunc=None):
         self.ap=totalAP
-        self.apMax=totalAP
+        self.apmax=totalAP
         self.func=func # function that runs when action completed. Two parameters: ent, which is the entity calling the function, and data, which is special data about the job e.g. the item being crafted.
         self.data=data
         self.cancelfunc = cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
         self.elapsed=0 # number of turns elapsed since the job began
         self.interrupted=False # set to True when/if action is interrupted
 class PausedAction: # QueuedAction that has been put on pause
+# PausedAction - given to entity doing the queued action
     __slots__=['ap','func','data','cancelfunc','elapsed']
     def __init__(self, queuedAction):
         self.ap         = queuedAction.ap
@@ -250,23 +251,25 @@ class PausedAction: # QueuedAction that has been put on pause
         self.data       = queuedAction.data
         self.cancelfunc = queuedAction.cancelfunc
         self.elapsed    = queuedAction.elapsed
+class QueuedJob:
 # Queued Job / Unfinished job / crafting item:
-# the subject of a PausedAction
+# given to the subject of a PausedAction's data
 # when a crafting job is paused, a crafting result item may be created,
 # which is half-finished or 3/4 finished or w/e.
 # This item can then be finished to produce the final crafting product.
 # The entity with this component is that unfinished product of some kind.
-class QueuedJob:
     __slots__=['ap','func','cancelfunc']
     def __init__(self, ap, func, cancelfunc=None):
         self.ap = ap
         self.func = func
         self.cancelfunc = cancelfunc
 
-class PartiallyEaten:
-    __slots__=['string']
-    def __init__(self, string=""):
-        self.string = string # string to add to the prefix of the name
+class Prefixes:
+    __slots__=['strings']
+    def __init__(self, *args):
+        self.strings=[] # string(s) to add to the prefix of the name
+        for arg in args:
+            self.strings.append(arg)
 
 class CountersRemaining:
     __slots__=['quantity']
@@ -1423,8 +1426,16 @@ class StatusCough: # chance to cough uncontrollably each turn
     __slots__=['timer']
     def __init__(self, t=24):
         self.timer=t
+class StatusJog: # Msp +100%
+    __slots__=['timer']
+    def __init__(self, t=12):
+        self.timer=t
+class StatusRun: # Msp +200%
+    __slots__=['timer']
+    def __init__(self, t=12):
+        self.timer=t
 class StatusSprint: # Msp +300%
-    __slots__=['timer'] # THIS SHOULD NOT BE A STATUS
+    __slots__=['timer']
     def __init__(self, t=12):
         self.timer=t
 class StatusFrightening: # add extra scariness for a time
@@ -1447,10 +1458,6 @@ class StatusSlow: # speed -33%
     __slots__=['timer']
     def __init__(self, t=24):
         self.timer=t
-class StatusDrunk: # balance -50%
-    __slots__=['timer']
-    def __init__(self, t=1920):
-        self.timer=t
 class StatusHazy: # headache, slurred speech, vision loss, weakness
     __slots__=['timer']
     def __init__(self, t=3840):
@@ -1471,6 +1478,10 @@ class StatusDehydrated: # dehydrated
     __slots__=['timer']
     def __init__(self, t=8):
         self.timer=t
+class StatusLowEnergy: # stamina max --, stamina regen --
+    __slots__=['timer']
+    def __init__(self, t=144):
+        self.timer=t
 class StatusTired: # sleepy (stamina is a separate thing)
     __slots__=['timer']
     def __init__(self, t=144):
@@ -1489,6 +1500,11 @@ class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets
 class StatusOffBalance: # off-balance or staggered temporarily
     __slots__=['timer','quality']
     def __init__(self, t=4, q=1):
+        self.timer=t
+        self.quality=q # how much balance you lost
+class StatusDrunk: # balance --
+    __slots__=['timer','quality']
+    def __init__(self, t=1920, q=1):
         self.timer=t
         self.quality=q # how much balance you lost
 #

@@ -1,4 +1,8 @@
 
+bug list
+	when user closes/opens a door, sometimes loses LOS for 1 turn
+
+
 todo list (what needs to get done before Softly Into the Night is playable?)
 
 	ranged combat
@@ -10,6 +14,7 @@ todo list (what needs to get done before Softly Into the Night is playable?)
 	inventory
 		item viewer manager
 		
+	
 	
 	implement stats:
 		grappling

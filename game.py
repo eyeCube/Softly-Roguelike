@@ -50,25 +50,24 @@ def play(pc, pcAct):
 ##    rog.release_souls() #handled by esper now
     
 
-    #-------------------#
-    #   NPC turn        #
-    #-------------------#
-
+        #-------------------#
+        #   NPC turn        #
+        #-------------------#
+    
     pcActor = world.component_for_entity(pc, cmp.Actor)
     if pcActor.ap <= 0:
         rog.turn_pass()
-        #beginning of turn is considered when the monsters begin their turns
-        #   /right after player turn.
+        #beginning of turn /right after player turn.
         rog.Rogue.run_beginTurn_managers(pc)
-        # process processors
-        world.process()              
-        #end of turn is considered to be right before player does his turn
+        # process
+        world.process()
+        #end of turn
         rog.Rogue.run_endTurn_managers(pc)
         return
-
-    #-------------------#
-    #   player turn     #
-    #-------------------#
+    
+        #-------------------#
+        #   player turn     #
+        #-------------------#
 
     rog.pc_listen_sights()
     rog.pc_listen_sounds()

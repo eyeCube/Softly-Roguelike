@@ -252,9 +252,9 @@ def equip_pc(pc, item, equipType):
         pass
     else:
         if result == -100:
-            rog.alert("You can't {} that.".format(str1))
+            rog.alert("You can't {} that there.".format(str1))
         elif result == -101:
-            rog.alert("You can't {} that.".format(str1))
+            rog.alert("You can't {} that there.".format(str1))
         elif result == -102:
             rog.alert("You are already {w}ing something in that {bp} slot.".format(w=str1, bp=str2))
 # end def
@@ -530,12 +530,20 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
     
         # get the data we need
     world = rog.world()
+
+    # skill
+    if world.has_component(aweap,cmp.WeaponSkill):
+        skillCompo=world.component_for_entity(aweap, cmp.WeaponSkill)
+        skillLv=world.component_for_entity(attkr, cmp.Skills)
+    else:
+        skillCompo=None
+        skillLv=0
     
     # attacker stats
     acc =   rog.getms(attkr,'atk')//MULT_STATS
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
-    asp =   max( MIN_ASP, rog.getms(attkr,'asp')//MULT_STATS )
+    asp =   max( MIN_ASP, rog.getms(attkr,'asp') )
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
@@ -610,8 +618,7 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
         # you need more atk and more pen than usual to score a crit.
         if (hitDie >= dice.roll(20) and pen-prot >= 12 + dice.roll(12) ):
             # critical hit!
-            if world.has_component(aweap,cmp.WeaponSkill):
-                skillCompo=world.component_for_entity(aweap,cmp.WeaponSkill)
+            if skillCompo:
                 critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
             else:
                 critMult = 0.2
@@ -773,15 +780,17 @@ def fight(attkr,dfndr,adv=0,power=0):
 #######################################################################
 
 
+#
+
 
 # eat
 # initialize eating action
 def eat(ent, item): # entity ent begins the eating action, eating food item
     world = rog.world()
     edible = world.component_for_entity(item, cmp.Edible)
-    apCost = max(100, int(NRG_EAT*edible.satiation/1000) + edible.extraAP)
-    world.add_component(ent, cmp.QueuedAction(
-        apCost, _eat_finishFunc, data=item, cancelFunc=_eat_cancelFunc ))
+    apCost = max(NRG_EAT_MIN, int(NRG_EAT*edible.satiation/1000) + edible.extraAP)
+    proc.ActionQueue.queue( ent, apCost, _eat_finishFunc,
+                            data=item, cancelFunc=_eat_cancelFunc )
 # end def
 def _eat_finishFunc(ent, item): # helper func for eat action
     edible = world.component_for_entity(item, cmp.Edible)
@@ -867,7 +876,7 @@ def _eat_cancelFunc(ent, qa): # helper func for eat action
         cmp.Draw(draw.char, draw.fgcol, draw.bgcol),
         cmp.Position(pos.x, pos.y),
         cmp.Stats(hp=1, mass=newMass),
-        cmp.PartiallyEaten("partially eaten "), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
+        cmp.Prefixes("partially eaten "), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
         )
     
     # finally, delete the food item
