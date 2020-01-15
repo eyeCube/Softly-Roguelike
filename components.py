@@ -80,7 +80,8 @@ class Actor:
     def __init__(self, ap=0):
         self.ap=int(ap)      #action points (energy/potential to act)
 
-class Player: # the player has some unique stats that only apply to them
+class Player: # uniquely identify the one entity that's controlled by user
+    # the player has some unique stats that only apply to them
     __slots__=['identify']
     def __init__(self, identify=0):
         self.identify=int(identify)

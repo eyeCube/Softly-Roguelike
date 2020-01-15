@@ -122,27 +122,27 @@ class Rogue:
     @classmethod
     def create_processors(cls):
         #Processor class, priority (higher = processed first)
-        cls.world.add_processor(proc.MetersProcessor(), 31)
-        cls.world.add_processor(proc.StatusProcessor(), 30)
-        cls.world.add_processor(proc.UpkeepProcessor(), 23)
-        cls.world.add_processor(proc.FluidProcessor(), 22)
-        cls.world.add_processor(proc.FireProcessor(), 21)
-        cls.world.add_processor(proc.TimersProcessor(), 20)
-        cls.world.add_processor(proc.ActionQueueProcessor(), 11)
+        cls.world.add_processor(proc.MetersProcessor(), 101)
+        cls.world.add_processor(proc.StatusProcessor(), 100)
+        cls.world.add_processor(proc.UpkeepProcessor(), 93)
+        cls.world.add_processor(proc.FluidProcessor(), 92)
+        cls.world.add_processor(proc.FireProcessor(), 91)
+        cls.world.add_processor(proc.TimersProcessor(), 90)
             # after all changes have been made
-        cls.world.add_processor(proc.FOVProcessor(), 2)
-        cls.world.add_processor(proc.GUIProcessor(), 1) 
+        cls.world.add_processor(proc.FOVProcessor(), 72)
+        cls.world.add_processor(proc.GUIProcessor(), 71)
+            # AI function (entity turns)
+        cls.world.add_processor(proc.ActorsProcessor(), 50)
 
     @classmethod
     def create_perturn_managers(cls):
         '''
-            constant managers, ran each turn
+            constant, per-turn managers, ran each turn
         '''
-        #beginning of turn
+        #ran at beginning of turn
+            # (No managers run at beginning of turn currently.)
             
-        #end of turn (before player turn)
-            # TODO: convert into processors!!
-        cls.et_managers.update({'actors' : managers.Manager_Actors()})
+        #ran at end of turn (before player turn -- player turn is the very final thing to occur on any given turn)
         cls.et_managers.update({'sounds' : managers.Manager_SoundsHeard()})
         cls.et_managers.update({'sights' : managers.Manager_SightsSeen()})
     
@@ -358,6 +358,8 @@ def render_gameArea(pc) :
 def render_hud(pc) :
     con = misc.render_hud(hud_w(),hud_h(), pc, get_turn(), dlvl() )
     libtcod.console_blit(con,0,0,0,0, con_game(),hud_x(),hud_y())
+def clear_final():
+    libtcod.console_clear(con_final())
 #@debug.printr
 def blit_to_final(con,xs,ys, xdest=0,ydest=0): # window-sized blit to final
     libtcod.console_blit(con, xs,ys,window_w(),window_h(),
@@ -1004,11 +1006,25 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
     # progressive damage:
     # two applications of same status => next status up in priority
     if bpptype == BPP_MUSCLE:
-        for ii in range(NMUSCLESTATUSES):
+        for ii in range(4): # sore up to torn, not to burned
             if (status == ii+1 and
                 bpp.status==ii+1 ):
                 bpp.status = ii+2
+                assert( (bpp.status != MUSCLESTATUS_BURNED and
+                         bpp.status != MUSCLESTATUS_DEEPBURNED) )
                 return True
+        if (status == MUSCLESTATUS_TORN and
+            bpp.status == MUSCLESTATUS_TORN ):
+            bpp.status = MUSCLESTATUS_RIPPED
+            return True
+        if (status == MUSCLESTATUS_RIPPED and
+            bpp.status == MUSCLESTATUS_RIPPED ):
+            bpp.status = MUSCLESTATUS_RUPTURED
+            return True
+        if (status == MUSCLESTATUS_RUPTURED and
+            bpp.status == MUSCLESTATUS_RUPTURED ):
+            bpp.status = MUSCLESTATUS_MANGLED
+            return True
     elif bpptype == BPP_BONE:
         for ii in range(NBONESTATUSES):
             if (status == ii+1 and
@@ -1016,10 +1032,12 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
                 bpp.status = ii+2
                 return True
     elif bpptype == BPP_SKIN:
-        for ii in range(4): # up to mild abrasion, not to cut
+        for ii in range(3): # rash up to mild abrasion, not to cut
             if (status == ii+1 and
                 bpp.status==ii+1 ):
                 bpp.status = ii+2
+                assert( (bpp.status != SKINSTATUS_CUT and
+                         bpp.status != SKINSTATUS_DEEPCUT) )
                 return True
         if (status == SKINSTATUS_MINORABRASION and
             bpp.status == SKINSTATUS_MINORABRASION ):
@@ -1120,8 +1138,9 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
     return compo
 #end def
 
-def find_bps(ent, cls): # ent + cls -> list of BP component objects
+def findbps(ent, cls): # ent + cls -> list of BP component objects
     body = Rogue.world.component_for_entity(ent, cmp.Body)
+    # TODO: body plans other than humanoid
 ##    if body.plan==BODYPLAN_HUMANOID:
     if cls is cmp.BP_TorsoCore:
         return (body.core.core,)
@@ -1208,7 +1227,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     # covers
     def __cov(ent, lis, cls): # cover additional body part
         lis.append(cls)
-        for compo in find_bps(ent, cls):
+        for compo in findbps(ent, cls):
             compo.covered = True
     lis = []
     if equipType==EQ_FRONT:
@@ -1250,7 +1269,7 @@ def deequip(ent,equipType):
     
     # covers
     def __uncov(ent, cls): # cover additional body part
-        for compo in find_bps(ent, cls):
+        for compo in findbps(ent, cls):
             compo.covered = False
     if equipType==EQ_FRONT:
         if equipable.coversBack: __uncov(ent,cmp.BP_TorsoBack)
@@ -1902,7 +1921,7 @@ def routine_print_charPage():
     hud1h   = 3
     hud2h   = 3
     scroll  = makeConBox(width,200,strng)
-    top     = makeConBox(width,hud1h,"character")
+    top     = makeConBox(width,hud1h,"character data sheet")
     bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
     Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
 

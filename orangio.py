@@ -319,6 +319,26 @@ NONE
 //  MENUS   |
 //---------//
 
+// Menu Up
+UP
+NONE
+NONE
+
+// Menu Left
+LEFT
+NONE
+NONE
+
+// Menu Down
+DOWN
+NONE
+NONE
+
+// Menu Right
+RIGHT
+NONE
+NONE
+
 // Select
 SPACE
 ENTER
@@ -418,7 +438,11 @@ COMMANDS = {        # translate commands into actions
     'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
     'char page'     : {'character page': True},
-    
+
+    'menu-up'       : {'menu-nav': (0, -1,  0,) },
+    'menu-left'     : {'menu-nav': (-1, 0,  0,) },
+    'menu-down'     : {'menu-nav': (0,  1,  0,) },
+    'menu-right'    : {'menu-nav': (1,  0,  0,) },
     'select'        : {'select': True},
     'exit'          : {'exit': True},
     'pgup'          : {'page up': True},

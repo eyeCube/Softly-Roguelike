@@ -2682,34 +2682,52 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
     if hand.slot.item:
         item=hand.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
+        weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
+        
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # offhand penalty
+        # weapon skill bonus
+        if (ismainhand and world.has_component(item, cmp.WeaponSkill)):
+            skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
+            if skillLv:
+                _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+        
+        # offhand offensive penalty for offhand weapons
         if not ismainhand:
             dadd['atk'] = 0
             dadd['dmg'] = 0
             dadd['pen'] = 0
             dadd['asp'] = 0
-            dadd['dfn'] = dadd.get('dfn', 0) * OFFHAND_PENALTY_DFN
-            dadd['arm'] = dadd.get('arm', 0) * OFFHAND_PENALTY_ARM
-            dadd['pro'] = dadd.get('pro', 0) * OFFHAND_PENALTY_PRO
-        
-        # weapon skill bonus
-        if (ismainhand and world.has_component(item, cmp.WeaponSkill)):
-            weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
-            skillLv = skillsCompo.skills.get(weapClass, 0)
-            if skillLv:
-                _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+            dadd['gra'] = dadd.get('gra', 0) + OFFHAND_PENALTY_GRA
+
+        # offhand defensive penalty for offhand (non-shield) weapons
+        #   AND for shields held in mainhand.
+        offpenalty=False            
+        if (not ismainhand and weapClass != SKL_SHIELDS):
+            offpenalty=True
+        elif (ismainhand and weapClass == SKL_SHIELDS):
+            offpenalty=True
+        if offpenalty:
+            dadd['dfn'] = dadd.get('dfn', 0) * OFFHAND_PENALTY_DFNMOD
+            dadd['arm'] = dadd.get('arm', 0) * OFFHAND_PENALTY_ARMMOD
+            dadd['pro'] = dadd.get('pro', 0) * OFFHAND_PENALTY_PROMOD
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_weapon(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+
+        # armed wrestling still grants you some Gra, but significantly
+        #   less than if you were unarmed.
+        wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
+        wreLv = wreLv // 3 # penalty to effective skill Lv
+        _apply_skill_bonus_unarmed(dadd, wreLv, SKL_WRESTLING)
     else:
         if ismainhand:
             # unarmed combat (hand-to-hand combat)
             boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
             _apply_skill_bonus_unarmed(dadd, boxLv, SKL_BOXING)
+            # wrestling unarmed
             wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
             _apply_skill_bonus_unarmed(dadd, wreLv, SKL_WRESTLING)
         
@@ -3737,6 +3755,8 @@ def create_monster(_type, x, y, col=None, mutate=0):
     script = getMonScript(_type)
 
     # TODO: add fringe resistances like light, sounds, pain, bleed, etc.
+
+    # TODO: add AI component if not already added somewhere ........ (is it???)
     
     ent = rog.world().create_entity(
         cmp.Draw(_type, col, COL['deep']),

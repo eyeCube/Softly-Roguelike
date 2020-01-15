@@ -192,6 +192,26 @@ NONE
 //  MENUS   |
 //---------//
 
+// Menu Up
+UP
+NONE
+NONE
+
+// Menu Left
+LEFT
+NONE
+NONE
+
+// Menu Down
+DOWN
+NONE
+NONE
+
+// Menu Right
+RIGHT
+NONE
+NONE
+
 // Select
 SPACE
 ENTER

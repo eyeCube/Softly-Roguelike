@@ -23,7 +23,7 @@ from const import *
 import rogue as rog
 import components as cmp
 import orangio as IO
-import ai
+##import ai
 import misc
 import maths
 
@@ -343,21 +343,6 @@ class Manager_SoundsHeard(Manager):
         if pv >= vc/64: return "pp"
         else:           return "ppp"
 
-
-class Manager_Actors(Manager):
-
-    def __init__(self):
-        super(Manager_Actors,self).__init__()
-
-    def run(self, pc):
-        super(Manager_Actors,self).run()
-
-        world=rog.world()
-        for ent,compo in world.get_component(cmp.Actor):
-            if rog.on(ent,DEAD): continue
-            ai.tick(ent)
-            spd=max(MIN_SPD, rog.getms(ent, 'spd'))
-            compo.ap = min(compo.ap + spd, spd)
         
         
 
@@ -386,7 +371,8 @@ class Manager_MoveView(GameStateManager):
         super(Manager_MoveView, self).run(pcAct)
         
         for act,args in pcAct:
-            if act=="target":   self.move(args)
+            if (act=="context-dir" or act=="move" or act=="menu-nav"):
+                self.move(args)
             elif act=="select": self.set_result("select")
             elif act=="exit":   self.set_result("exit")
     
@@ -400,7 +386,11 @@ class Manager_MoveView(GameStateManager):
         
     def move(self,arg):
         dx,dy,dz = arg
+        rog.clear_final() # to fill the out-of-bounds areas
         self.view.nudge(dx*self.NUDGESPD, dy*self.NUDGESPD)
+        print("x,y: ")
+        print(self.view.x)
+        print(self.view.y)
         self.refresh()
 
     def refresh(self):
@@ -440,9 +430,10 @@ class Manager_SelectTile(GameStateManager):
         
         self.cursor_blink()
         for act,arg in pcAct:
-            if act=='rclick':   self.rclick(arg)
+            if (act=='context-dir' or act=='move' or act=='menu-move'):
+                self.nudge(arg)
+            elif act=='rclick': self.rclick(arg)
             elif act=='lclick': self.lclick(arg)
-            elif act=='target': self.nudge(arg)
             elif act=='select': self.select()
             elif act=="exit":   self.set_result('exit')
     
@@ -584,7 +575,7 @@ class Manager_PrintScroll(GameStateManager):
     
     def user_input(self, pcAct):
         for act, arg in pcAct:
-            if (act=="context-dir" or act=="move"):
+            if (act=="context-dir" or act=="move" or act=="menu-move"):
                 self.y += arg[1]*self.scrollspd
                 self.y=maths.restrict(self.y,0,self.maxy)
             elif act=="page up":    self.y = max(0,         self.y -int(self.pagescroll))

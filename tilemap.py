@@ -242,10 +242,10 @@ TODO: move rendering code to a new, different class.
             print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
 Reason: out of bounds of grid array.'''.format(x,y,typ) )
             return False
-        except Exception as e:
-            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
-Reason: {}.'''.format(x,y,typ, e) )
-            return False
+##        except Exception as e:
+##            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
+##Reason: {}.'''.format(x,y,typ, e) )
+##            return False
     #
 
     def fill_edges(self, tile=None):
@@ -254,7 +254,7 @@ Reason: {}.'''.format(x,y,typ, e) )
             (default: WALL)
         '''
         if tile is None:
-            tile==WALL
+            tile = WALL
         for x in range(self.w):
             self.tile_change(x,         0,  tile)
             self.tile_change(x,  self.h-1,  tile)
@@ -324,7 +324,7 @@ Reason: entity has no position component.'''.format(ent))
         
     def get_map_state(self):
         self._recall_memories( 0,0,ROOMW,ROOMH)
-        self._draw_what_player_sees(rog.pc())
+        self._draw_what_player_sees(rog.pc(), rog.getms(rog.pc(),'sight'))
         return self.con_map_state
     
     # A* paths wrappers

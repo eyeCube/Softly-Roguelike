@@ -181,8 +181,24 @@ class ActionQueue:
         self.world.remove_component(ent, cmp.QueuedAction)
 # end class
 #
-class ActionQueueProcessor(esper.Processor): # run this once per turn
+
+#
+# Actors processor
+# and Action Queues processor
+#
+class ActorsProcessor(esper.Processor):
     def process(self):
+        world=self.world
+
+        # give AP to all actors
+        for ent,actor in world.get_component(cmp.Actor):
+            if rog.on(ent,DEAD):
+                actor.ap=0
+                continue
+            spd=max(MIN_SPD, rog.getms(ent, 'spd'))
+            actor.ap = min(actor.ap + spd, spd)
+        
+        # Action Queues
         for ent, (qa, actor) in self.world.get_components(
             cmp.QueuedAction, cmp.Actor ):
             
@@ -198,9 +214,18 @@ class ActionQueueProcessor(esper.Processor): # run this once per turn
             # automatically finishes the job if applicable
             points = min(actor.ap, qa.ap)
             ActionQueue._pay(ent, qa, actor, points)
-# end class    
+        
+        # If no Action Queued, then continue with turn as normal #
+        
+        # NPC / AI / computer turn
+        for ent,(actor, _ai) in world.get_components(
+            cmp.Actor, cmp.AI ):
+            while actor.ap > 0:
+                _ai.func(ent)
+# end class
 
 
+            
 #
 # Timers
 #

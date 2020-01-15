@@ -517,16 +517,25 @@ def sprint(ent):
     rog.msg("{n} begins sprinting.".format(n=entn.name))
 
 
-def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
+def _strike(attkr,dfndr,aweap,dweap,
+            adv=0,power=0, counterable=False,
+            bptarget=None, targettype=None):
     '''
         strike the target with your primary weapon or body part
             this in itself is not an action -- requires no AP
         (this is a helper function used by combat actions)
+
+        adv         advantage to the attacker
+        power       amount of power the attacker is putting into the attack
+        counterable bool, can this strike be counter-striked?
+        bptarget    None: aim for center mass. else a BP component object
+        targettype  BP_ const indicates what type of BP is being targeted
     '''
     # init
     hit=killed=crit=ctrd=grazed=False
     pens=trueDmg=rol=0
     feelStrings=[]
+    bphit=None
     
         # get the data we need
     world = rog.world()
@@ -632,8 +641,84 @@ def _strike(attkr,dfndr,aweap,dweap,adv=0,power=0, counterable=False):
             elements=world.component_for_entity(aweap,cmp.ElementalDamageMelee).elements
         else:
             elements={}
+
+            #-------------#
+            # body damage #
+            #-------------#
+                # TODO: move to separate function
+        
+        hitpp = hitDie // 7
+        if hitpp==0:
+            bphit=None
+        # TODO: pick body part to hit randomly based on parameters
+        elif bptarget:
+            bphit = bptarget # TEMPORARY
+
+        if bphit:
+            bphit = min(2, bphit)
             
+            dmgtype = DMGTYPES[skillCompo.skill]
+            
+            # abrasions
+            if dmgtype==DMGTYPE_ABRASION:
+                rog.damagebpp(
+                    bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[bphit])
+                # deep skin abrasions may result in muscle abrasion
+                if bptarget.skin.status >= SKINSTATUS_MAJORABRASION:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[bphit])
+            # burns
+            elif dmgtype==DMGTYPE_BURN:
+                rog.damagebpp(
+                    bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[bphit])
+                # deep skin burns may result in muscle burns
+                if bptarget.skin.status >= SKINSTATUS_DEEPBURNED:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[bphit])
+            # lacerations and puncture wounds
+            elif dmgtype==DMGTYPE_CUT:
+##                if targettype==BP_LIMB:# or targettype==BP_:
+##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
+                
+                rog.damagebpp(
+                    bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
+            # hacking / picking damage
+            elif dmgtype==DMGTYPE_HACK:
+##                if targettype==BP_LIMB:# or targettype==BP_:
+##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
+                
+                rog.damagebpp(
+                    bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
+                rog.damagebpp(
+                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            # blunt / crushing damage
+            elif dmgtype==DMGTYPE_BLUNT:
+##                if targettype==BP_LIMB:# or targettype==BP_:
+##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
+                
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
+                rog.damagebpp(
+                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            # mace/morning-star-like weapons
+            elif dmgtype==DMGTYPE_SPIKES:
+##                if targettype==BP_LIMB:# or targettype==BP_:
+##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
+                
+                rog.damagebpp(
+                    bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[bphit])
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
+                rog.damagebpp(
+                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            
+            #-------------------------------------#
             # deal damage, physical and elemental #
+            #-------------------------------------#
 
         rog.damage(dfndr, trueDmg//10)
         for element, elemDmg in elements.items():

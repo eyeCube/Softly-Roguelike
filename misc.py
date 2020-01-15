@@ -497,9 +497,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}                        {subdelim} condition {subdelim}
 {p1}                   satiation:{tab}{satstr}
 {p1}                   hydration:{tab}{hydstr}
-{p1}                (life)----HP{predelim}{hp:>5} / {hpmax:<5}
-{p1}             (stamina)----SP{predelim}{sp:>5} / {spmax:<5}
-{p1}        (encumberance)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
+{p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}
+{p1}      (stamina / max.)----SP{predelim}{sp:>5} / {spmax:<5}
+{p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
 {p1}        
 {p1}                        {subdelim} attribute {subdelim}
 {p1}       (constitution)----CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
@@ -513,21 +513,26 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
 {p1}     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
 {p1}       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
-{p1}         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
-{p1}        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
-{p1}        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
+{p1}
 {p1}        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
-{p1}    (attack / to-hit)----ATK{predelim}{atk:<4}{statdelim}({batk})
+{p1}         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
+{p1}    (attack accuracy)----ATK{predelim}{atk:<4}{statdelim}({batk})
+{p1}        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
 {p1}             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
-{p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
+{p1}        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
+{p1}
 {p1}            (balance)----BAL{predelim}{bal:<4}{statdelim}({bbal})
 {p1}          (grappling)----GRA{predelim}{gra:<4}{statdelim}({bgra})
 {p1}     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
+{p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
+{p1}
+{p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
+{p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
+{p1}
 {p1}            (courage)----CRG{predelim}{crg:<4}{statdelim}({bcrg})
 {p1}       (intimidation)----IDN{predelim}{idn:<4}{statdelim}({bidn})
 {p1}             (beauty)----BEA{predelim}{bea:<4}{statdelim}({bbea})
-{p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
-{p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
+{p1}
 {p1}               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
 {p1}             (height)-----CM{predelim}{cm:<4}{statdelim}({cm})
 {p1}           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})

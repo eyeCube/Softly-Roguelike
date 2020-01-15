@@ -464,9 +464,10 @@ MULT_1HANDBONUS_STR_PEN = 0.25    # strength bonus for 1-h wielding per STR
 MULT_2HANDBONUS_STR_DMG = 0.75    # strength bonus for 2-h wielding per STR
 MULT_2HANDBONUS_STR_PEN = 0.5     # strength bonus for 2-h wielding per STR
 # penalty to offhand weapons wielded (other than weapons designed for offhand)
-OFFHAND_PENALTY_DFN = 0.5   # multiplier
-OFFHAND_PENALTY_ARM = 0.5   # multiplier
-OFFHAND_PENALTY_PRO = 0.5   # multiplier
+OFFHAND_PENALTY_DFNMOD  = 0.5   # multiplier
+OFFHAND_PENALTY_ARMMOD  = 0.5   # multiplier
+OFFHAND_PENALTY_PROMOD  = 0.5   # multiplier
+OFFHAND_PENALTY_GRA     = -5    # adder
 # bonuses for when you fight with a 1-handed weapon in 2 hands
 MOD_2HANDBONUS_ASP    = 25      # attack speed you gain
 MOD_2HANDBONUS_ATK    = 4       # attack you gain
@@ -505,7 +506,7 @@ CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 STRIKE_AIR_IMBALANCE_AMOUNT = 8 # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
-
+                
 #sounds
 VOLUME_DEAFEN       = 500
 
@@ -687,9 +688,23 @@ BODYPOS_PRONE       : "prone",
 # body parts
 
 i=0;
+BP_LIMB     = i; i+=1;
+BP_HEAD     = i; i+=1;
+BP_TORSO    = i; i+=1;
+BP_CORE     = i; i+=1;
+BP_HAND     = i; i+=1;
+BP_FOOT     = i; i+=1;
+
+# body parts pieces
+
+i=0;
 BPP_MUSCLE  = i; i+=1;
 BPP_SKIN    = i; i+=1;
 BPP_BONE    = i; i+=1;
+BPP_HEART   = i; i+=1;
+BPP_LUNG    = i; i+=1;
+BPP_GUTS    = i; i+=1;
+BPP_BRAIN   = i; i+=1;
 
 # body part statuses
 
@@ -711,7 +726,9 @@ MUSCLESTATUS_KNOTTED    = i; i+=1; # muscle has knots that need massage
 MUSCLESTATUS_CONTUSION  = i; i+=1; # bruised
 MUSCLESTATUS_STRAINED   = i; i+=1; # muscle mildly torn
 MUSCLESTATUS_TORN       = i; i+=1; # muscle badly torn
+MUSCLESTATUS_BURNED     = i; i+=1; # surface muscle burn
 MUSCLESTATUS_RIPPED     = i; i+=1; # muscle is mostly ripped in half
+MUSCLESTATUS_DEEPBURNED = i; i+=1; # deep / widespread muscle burn
 MUSCLESTATUS_RUPTURED   = i; i+=1; # ruptured tendon or fully ripped in half muscle belly
 MUSCLESTATUS_MANGLED    = i; i+=1; # muscle is in utter ruin
 NMUSCLESTATUSES         = i - 1;
@@ -794,7 +811,7 @@ NGUTSSTATUSES           = i - 1;
 # string names for body part statuses
 
 BONESTATUSES={
-BONESTATUS_DAMAGED      : "minor damage",
+BONESTATUS_DAMAGED      : "damaged",
 BONESTATUS_FRACTURED    : "fractured",
 BONESTATUS_CRACKED      : "cracked",
 BONESTATUS_BROKEN       : "broken",
@@ -804,41 +821,43 @@ BONESTATUS_MANGLED      : "mutilated",
     }
 MUSCLESTATUSES={
 MUSCLESTATUS_SORE       : "sore",
-MUSCLESTATUS_KNOTTED    : "knotted",
-MUSCLESTATUS_CONTUSION  : "contusion",
+MUSCLESTATUS_KNOTTED    : "very sore",
+MUSCLESTATUS_CONTUSION  : "bruised",
 MUSCLESTATUS_STRAINED   : "strained",
-MUSCLESTATUS_TORN       : "minor tear",
-MUSCLESTATUS_RIPPED     : "major tear",
+MUSCLESTATUS_TORN       : "torn",
+MUSCLESTATUS_RIPPED     : "severely torn",
 MUSCLESTATUS_RUPTURED   : "ruptured",
+MUSCLESTATUS_BURNED     : "burned",
+MUSCLESTATUS_DEEPBURNED : "severely burned",
 MUSCLESTATUS_MANGLED    : "mutilated",
 }
 ARTERYSTATUSES={
 ARTERYSTATUS_CLOGGED    : "clogged",
-ARTERYSTATUS_OPEN       : "opened",
+ARTERYSTATUS_OPEN       : "cut open",
 ARTERYSTATUS_CUT        : "severed",
 ARTERYSTATUS_MANGLED    : "mutilated",
     }
 SKINSTATUSES={
-SKINSTATUS_RASH         : "mild inflammation",
-SKINSTATUS_BLISTER      : "lesion or vesicle",
-SKINSTATUS_SCRAPED      : "open wound",
-SKINSTATUS_MINORABRASION: "minor abrasion",
-SKINSTATUS_CUT          : "minor laceration",
-SKINSTATUS_MAJORABRASION: "major abrasion",
+SKINSTATUS_RASH         : "inflamed",
+SKINSTATUS_BLISTER      : "blistered",
+SKINSTATUS_SCRAPED      : "scraped",
+SKINSTATUS_MINORABRASION: "abrased",
+SKINSTATUS_CUT          : "cut",
+SKINSTATUS_MAJORABRASION: "severely abrased",
 SKINSTATUS_BURNED       : "burned",
-SKINSTATUS_DEEPCUT      : "major laceration",
-SKINSTATUS_SKINNED      : "localized dermectomy",
+SKINSTATUS_DEEPCUT      : "deep cut",
+SKINSTATUS_SKINNED      : "skinned",
 SKINSTATUS_DEEPBURNED   : "severely burned",
-SKINSTATUS_FULLYSKINNED : "widespread dermectomy",
+SKINSTATUS_FULLYSKINNED : "fully skinned",
 SKINSTATUS_MANGLED      : "mutilated",
     }
 BRAINSTATUSES={
-BRAINSTATUS_CONTUSION   : "contusion",
-BRAINSTATUS_CONCUSSION  : "concussion",
-BRAINSTATUS_DAMAGE      : "temporary brain damage",
-BRAINSTATUS_PERMDAMAGE  : "permanent brain damage",
-BRAINSTATUS_MAJORDAMAGE : "major permanent brain damage",
-BRAINSTATUS_DEAD        : "braindead",
+BRAINSTATUS_CONTUSION   : "bruised",
+BRAINSTATUS_CONCUSSION  : "concussed",
+BRAINSTATUS_DAMAGE      : "damaged",
+BRAINSTATUS_PERMDAMAGE  : "permanently damaged",
+BRAINSTATUS_MAJORDAMAGE : "severely permanently damaged",
+BRAINSTATUS_DEAD        : "dead",
 BRAINSTATUS_MANGLED     : "mutilated",
     }
 HAIRSTATUSES={
@@ -851,25 +870,25 @@ HAIRSTATUS_MANGLED      : "mutilated",
 HEARTSTATUSES={
 HEARTSTATUS_SCARRED     : "scarred",
 HEARTSTATUS_DAMAGE      : "damaged",
-HEARTSTATUS_PERMDAMAGE  : "permanent damage",
-HEARTSTATUS_MAJORDAMAGE : "major permanent damage",
+HEARTSTATUS_PERMDAMAGE  : "permanently damaged",
+HEARTSTATUS_MAJORDAMAGE : "severely permanently damaged",
 HEARTSTATUS_MANGLED     : "mutilated",
     }
 LUNGSTATUSES={
 LUNGSTATUS_IRRITATED    : "irritated",
-LUNGSTATUS_CLOGGED      : "major inflammation",
+LUNGSTATUS_CLOGGED      : "inflamed",
 LUNGSTATUS_DAMAGE       : "damaged",
-LUNGSTATUS_PERMDAMAGE   : "permanent damage",
-LUNGSTATUS_MAJORDAMAGE  : "major permanent damage",
+LUNGSTATUS_PERMDAMAGE   : "permanently damaged",
+LUNGSTATUS_MAJORDAMAGE  : "severely permanently damaged",
 LUNGSTATUS_MANGLED      : "mutilated",
     }
 GUTSSTATUSES={
-GUTSSTATUS_UPSET        : "slightly upset",
+GUTSSTATUS_UPSET        : "upset",
 GUTSSTATUS_SICK         : "sick",
 GUTSSTATUS_ILL          : "severely sick",
 GUTSSTATUS_DAMAGE       : "damaged",
-GUTSSTATUS_PERMDAMAGE   : "permanent damage",
-GUTSSTATUS_MAJORDAMAGE  : "major permanent damage",
+GUTSSTATUS_PERMDAMAGE   : "permanently damaged",
+GUTSSTATUS_MAJORDAMAGE  : "severely permanently damaged",
 GUTSSTATUS_MANGLED      : "mutilated",
     }
 
@@ -898,7 +917,9 @@ MUSCLESTATUS_KNOTTED    :{'msp':-3,'asp':-3,'respain':-5,},
 MUSCLESTATUS_CONTUSION  :{'msp':-3,'asp':-3,'respain':-5,'resbleed':-4,},
 MUSCLESTATUS_STRAINED   :{'atk':-1,'dfn':-1,  'msp':-3, 'asp':-3, 'gra':-1,'respain':-5, 'resbleed':-4,},
 MUSCLESTATUS_TORN       :{'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-10,'resbleed':-8,},
+MUSCLESTATUS_BURNED     :{'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-15,'resbleed':-12,},
 MUSCLESTATUS_RIPPED     :{'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-15,'resbleed':-12,},
+MUSCLESTATUS_DEEPBURNED :{'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-20,'resbleed':-16,},
 MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'respain':-20,'resbleed':-16,},
 MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
@@ -923,7 +944,9 @@ MUSCLESTATUS_KNOTTED    :{'str':-1,'msp':-3,'asp':-3,'respain':-10,},
 MUSCLESTATUS_CONTUSION  :{'str':-1,'msp':-3,'asp':-3,'respain':-10,'resbleed':-4,},
 MUSCLESTATUS_STRAINED   :{'con':-1,'str':-2,'atk':-1,'dfn':-1,  'msp':-3, 'asp':-3, 'gra':-1,'respain':-10, 'resbleed':-4,},
 MUSCLESTATUS_TORN       :{'con':-2,'str':-3,'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-10,'resbleed':-8,},
+MUSCLESTATUS_BURNED     :{'con':-2,'str':-3,'atk':-2,'dfn':-1.5,'msp':-6, 'asp':-6, 'gra':-2,'respain':-15,'resbleed':-12,},
 MUSCLESTATUS_RIPPED     :{'con':-4,'str':-4,'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-15,'resbleed':-12,},
+MUSCLESTATUS_DEEPBURNED :{'con':-4,'str':-4,'atk':-3,'dfn':-2,  'msp':-9, 'asp':-9, 'gra':-3,'respain':-20,'resbleed':-16,},
 MUSCLESTATUS_RUPTURED   :{'con':-5,'str':-5,'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'respain':-20,'resbleed':-16,},
 MUSCLESTATUS_MANGLED    :{'con':-6,'str':-6,'atk':-5,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
@@ -965,7 +988,9 @@ MUSCLESTATUS_KNOTTED    :{'asp':-8,'respain':-15,},
 MUSCLESTATUS_CONTUSION  :{'asp':-4,'respain':-15,'resbleed':-8,},
 MUSCLESTATUS_STRAINED   :{'atk':-2,'dfn':-1,'asp':-5,'gra':-1,'respain':-15,'resbleed':-4,},
 MUSCLESTATUS_TORN       :{'atk':-4,'dfn':-2,'asp':-10,'gra':-2,'respain':-20,'resbleed':-8,},
+MUSCLESTATUS_BURNED     :{'atk':-4,'dfn':-2,'asp':-10,'gra':-2,'respain':-25,'resbleed':-12,},
 MUSCLESTATUS_RIPPED     :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-25,'resbleed':-12,},
+MUSCLESTATUS_DEEPBURNED :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-30,'resbleed':-16,},
 MUSCLESTATUS_RUPTURED   :{'atk':-8,'dfn':-4,'asp':-20,'gra':-4,'respain':-30,'resbleed':-16,},
 MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'resbleed':-20,},
     }
@@ -1010,7 +1035,9 @@ MUSCLESTATUS_KNOTTED    :{'respain':-15,},
 MUSCLESTATUS_CONTUSION  :{'respain':-15,'resbleed':-5,},
 MUSCLESTATUS_STRAINED   :{'respain':-20,'resbleed':-6,},
 MUSCLESTATUS_TORN       :{'respain':-25,'resbleed':-9,},
+MUSCLESTATUS_BURNED     :{'respain':-30,'resbleed':-12,},
 MUSCLESTATUS_RIPPED     :{'respain':-30,'resbleed':-12,},
+MUSCLESTATUS_DEEPBURNED :{'respain':-35,'resbleed':-15,},
 MUSCLESTATUS_RUPTURED   :{'respain':-35,'resbleed':-15,},
 MUSCLESTATUS_MANGLED    :{'respain':-40,'resbleed':-18,},
 }
@@ -1075,7 +1102,9 @@ MUSCLESTATUS_KNOTTED    :{'msp':-3,'respain':-3,},
 MUSCLESTATUS_CONTUSION  :{'msp':-3,'respain':-3,'resbleed':-2,},
 MUSCLESTATUS_STRAINED   :{'bal':-1,'atk':-1,'dfn':-1,'msp':-8,'gra':-1,'respain':-5,'resbleed':-2},
 MUSCLESTATUS_TORN       :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-10,'resbleed':-4},
+MUSCLESTATUS_BURNED     :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain':-15,'resbleed':-6},
 MUSCLESTATUS_RIPPED     :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6},
+MUSCLESTATUS_DEEPBURNED :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-20,'resbleed':-8},
 MUSCLESTATUS_RUPTURED   :{'bal':-4,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-20,'resbleed':-8},
 MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16},
     }
@@ -1092,7 +1121,34 @@ LUNGSTATUS_MAJORDAMAGE  : 0.33,
 LUNGSTATUS_MANGLED      : 0,
     }
 
-
+# damage types -> bpp classes constants
+SKINSTATUSES_SPIKES=(
+    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION, SKINSTATUS_MAJORABRASION,
+    )
+SKINSTATUSES_CUT=(
+    SKINSTATUS_MINORABRASION, SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
+    )
+MUSCLESTATUSES_CUT=(
+    MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
+    )
+MUSCLESTATUSES_BLUNT=(
+    MUSCLESTATUS_SORE, MUSCLESTATUS_KNOTTED, MUSCLESTATUS_CONTUSION,
+    )
+BONESTATUSES_BLUNT=(
+    BONESTATUS_FRACTURED, BONESTATUS_CRACKED, BONESTATUS_BROKEN,
+    )
+SKINSTATUSES_BURN=(
+    SKINSTATUS_BLISTER, SKINSTATUS_BURNED, SKINSTATUS_DEEPBURNED,
+    )
+MUSCLESTATUSES_BURN=(
+    MUSCLESTATUS_SORE, MUSCLESTATUS_BURNED, MUSCLESTATUS_DEEPBURNED, 
+    )
+SKINSTATUSES_ABRASION=(
+    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION, SKINSTATUS_MAJORABRASION,
+    )
+MUSCLESTATUSES_ABRASION=(
+    MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN, 
+    )
 
 
 
@@ -1988,13 +2044,69 @@ SKLMOD_CTR   = {
 
 DEFAULT_SKLMOD_ATK   = 0.05
 DEFAULT_SKLMOD_DFN   = 0.05
-DEFAULT_SKLMOD_PEN   = 0.05
-DEFAULT_SKLMOD_PRO   = 0.05
+DEFAULT_SKLMOD_PEN   = 0.033334
+DEFAULT_SKLMOD_PRO   = 0.033334
 DEFAULT_SKLMOD_DMG   = 0.05
 DEFAULT_SKLMOD_ARM   = 0.05
 DEFAULT_SKLMOD_ASP   = 0.05
 DEFAULT_SKLMOD_GRA   = 0.05
 DEFAULT_SKLMOD_CTR   = 0.05
+
+
+
+    #---------------#
+    #     Combat    #
+    #---------------#
+
+i=0;    
+DMGTYPE_CUT         = i; i += 1;
+DMGTYPE_HACK        = i; i += 1;
+DMGTYPE_BLUNT       = i; i += 1;
+DMGTYPE_SPIKES      = i; i += 1;
+DMGTYPE_BURN        = i; i += 1;
+DMGTYPE_ABRASION    = i; i += 1;
+
+DMGTYPES={ # default damage types for specific weapon classes
+    # (in order of the constants' allocation low->high)
+    # C cut
+    # H hack
+    # B blunt
+    # S spikes
+    # F burn
+    # A abrasion
+# skill         : (C,   H,   B,   S,   F,   A,)
+SKL_SHIELDS     : (0,   0,   1,   0,   0,   0,),
+SKL_BOXING      : (0,   0,   1,   0,   0,   0,),
+SKL_WRESTLING   : (0,   0,   1,   0,   0,   0,),
+SKL_AXES        : (0,   0.75,0.25,0,   0,   0,),
+SKL_GREATAXES   : (0,   0.75,0.25,0,   0,   0,),
+SKL_HAMMERS     : (0,   0,   1,   0,   0,   0,),
+SKL_MALLETS     : (0,   0,   1,   0,   0,   0,),
+SKL_JAVELINS    : (1,   0,   0,   0,   0,   0,),
+SKL_SPEARS      : (1,   0,   0,   0,   0,   0,),
+SKL_SWORDS      : (1,   0,   0,   0,   0,   0,),
+SKL_LONGSWORDS  : (1,   0,   0,   0,   0,   0,),
+SKL_POLEARMS    : (0.25,0.5, 0.25,0,   0,   0,),
+SKL_GREATSWORDS : (0.5, 0.5, 0,   0,   0,   0,),
+SKL_KNIVES      : (1,   0,   0,   0,   0,   0,),
+SKL_BLUDGEONS   : (0,   0,   1,   0,   0,   0,),
+SKL_STAVES      : (0,   0,   1,   0,   0,   0,),
+SKL_BULLWHIPS   : (0,   0,   0,   0,   0,   1,),
+# all ranged weapons -> blunt melee weapons.
+    # ranged damage type depends on the ammunition.
+SKL_SLINGS      : (0,   0,   1,   0,   0,   0,),
+SKL_BOWS        : (0,   0,   1,   0,   0,   0,),
+SKL_CROSSBOWS   : (0,   0,   1,   0,   0,   0,),
+SKL_CANNONS     : (0,   0,   1,   0,   0,   0,),
+SKL_PISTOLS     : (0,   0,   1,   0,   0,   0,),
+SKL_RIFLES      : (0,   0,   1,   0,   0,   0,),
+SKL_SHOTGUNS    : (0,   0,   1,   0,   0,   0,),
+SKL_SMGS        : (0,   0,   1,   0,   0,   0,),
+SKL_MACHINEGUNS : (0,   0,   1,   0,   0,   0,),
+SKL_HEAVY       : (0,   0,   1,   0,   0,   0,),
+SKL_ENERGY      : (0,   0,   1,   0,   0,   0,),
+    }
+
 
 
 #

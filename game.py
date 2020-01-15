@@ -78,7 +78,8 @@ def play(pc, pcAct):
     
     player.commands(pc, pcAct)
     player.commands_pages(pc, pcAct)
-    
+# end def
+
     
 
         # Class definitions #

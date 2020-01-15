@@ -92,9 +92,10 @@ def main():
     
     rog.make(rog.pc(), NVISION)
     rog.setskill(rog.pc(), SKL_WRESTLING, 25)
-##    rog.equip(
-##        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
-##        )
+    rog.setskill(rog.pc(), SKL_SWORDS, 25)
+    rog.equip(
+        rog.pc(),rog.create_weapon("plastic sword", 0,0),EQ_MAINHAND
+        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
 ##        )
