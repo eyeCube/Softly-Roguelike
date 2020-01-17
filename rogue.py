@@ -1015,6 +1015,9 @@ def init_fluidContainer(ent, size):
     #   Equipment / Body  #
     #---------------------#
 
+def get_arm_length(bodyplan, height): #temporary solution to get arm length based on body type
+    if bodyplan==BODYPLAN_HUMANOID:
+        return around(height / 2.67)
 def curebpp(bpp): #<flags> cure BPP status clear BPP status bpp_clear_status clear_bpp_status clear bpp status bpp clear status
     bpp.status = 0 # revert to normal status
 def healbpp(bpp, bpptype, status): #<flags> heal BPP object

@@ -283,6 +283,8 @@ DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 # Gameplay Constants
 #
 
+LEN_ADVANTAGE_BP    = 12    # how much extra length you need to gain +1 Atk in combat (+1 is guaranteed)
+
 # global multipliers
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.

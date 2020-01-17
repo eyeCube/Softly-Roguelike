@@ -541,6 +541,10 @@ def _strike(attkr,dfndr,aweap,dweap,
         # get the data we need
     world = rog.world()
 
+    # bodies
+    abody=world.component_for_entity(attkr, cmp.Body)
+    dbody=world.component_for_entity(dfndr, cmp.Body)
+
     # skill
     if world.has_component(aweap,cmp.WeaponSkill):
         skillCompo=world.component_for_entity(aweap, cmp.WeaponSkill)
@@ -561,6 +565,16 @@ def _strike(attkr,dfndr,aweap,dweap,
     arm =   rog.getms(dfndr,'arm')//MULT_STATS
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
+
+    # change advantage based on weapon length
+    aweaplen = world.component_for_entity(aweap, cmp.Form).length
+    dweaplen = world.component_for_entity(dweap, cmp.Form).length
+    # give some length from the arm length
+    aweaplen += rog.get_arm_length(abody.height)
+    dweaplen += rog.get_arm_length(dbody.height)
+    diff=aweaplen - dweaplen
+    if diff!=0:
+        adv += rog.sign(diff) * max(1, int(abs(diff)/LEN_ADVANTAGE_BP))
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
