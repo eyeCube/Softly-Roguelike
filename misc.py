@@ -485,7 +485,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     encmods=_get_encumberance_mods(pc)
     
     # create the display format string
-    strng = '''{p1}
+    return '''{p1}
 {p1}                        {subdelim} identification {subdelim}
 {p1}                        name{idelim}{name}
 {p1}                     species{idelim}{species}
@@ -651,7 +651,93 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         bpai=_getbr('respain'),blgt=_getbr('reslight'),bsnd=_getbr('ressound'),
         brus=_getbr('resrust'),brot=_getbr('resrot'),bwet=_getbr('reswet'),
     )
-    return strng
+# end def
+
+def render_itempage_string(w, h, item):
+    world=rog.world()
+    def _getmaux(item): # melee auxiliary elemental effects
+        strng=""
+        if world.has_component(item, cmp.ElementalDamageMelee):
+            compo=world.component_for_entity(item, cmp.ElementalDamageMelee)
+            for elem, amt in compo.elements.items():
+                strng = "{s}{eff>16}:    {amt}\n".format(
+                    s=strng,eff=ELEMENTS[elem][1],amt=amt
+                    )
+    def _eq_weap_s(header, item):
+        md=equipable.mods
+        equipable = world.component_for_entity(item, cmp.EquipableInHandSlot)
+        auxeffects=_getmaux(item)
+        return '''{p1}        {subdelim} {header} {subdelim}
+{p1}                StrReq. {strreq<20}DexReq. {dexreq}
+{p1}                ATK:    {atk<20}DV:     {dfn<20}
+{p1}                DMG:    {dmg<20}AV:     {arm<20}
+{p1}                PEN:    {pen<20}PRO:    {pro<20}
+{p1}                ASP:    {asp<20}BAL:    {bal<20}
+{p1}                CTR:    {ctr<20}GRA:    {gra<20}
+{p1}                ENC:    {enc<20}SP:     {spcost<20}
+{p1}                {auxeffects}
+{p1}'''.format(
+            p1="",
+            subdelim ="--",
+            header=header,
+            atk=moddict.get('atk',0),dfn=moddict.get('dfn',0),
+            dmg=moddict.get('dmg',0),arm=moddict.get('arm',0),
+            pen=moddict.get('pen',0),pro=moddict.get('pro',0),
+            asp=moddict.get('asp',0),enc=moddict.get('enc',0),
+            ctr=moddict.get('ctr',0),bal=moddict.get('bal',0),
+            gra=moddict.get('gra',0),spcost=equipable.stamina,
+            auxeffects=auxeffects,
+        )
+    def _tool_s(item):
+        strng=""
+        for cls, name in cmp.TOOLS.items():
+            if world.has_component(item, cls):
+                compo=world.component_for_entity(item, cls)
+                strng = "{s}\n                {tool>10}:    {val}".format(
+                    s=strng, tool=name, val=compo.quality
+                    )
+        return strng
+    # end nested def
+    draw=world.component_for_entity(item, cmp.Draw)
+    name=world.component_for_entity(item, cmp.Name)
+    if world.has_component(item, cmp.WeaponSkill):
+        skillc=world.component_for_entity(item, cmp.WeaponSkill).skill
+        skill=SKILLS[skillc][1]
+    else:
+        skill=""
+    
+    if world.has_component(item, cmp.EquipableInHandSlot):
+        equipstats=_eq_weap_s("equipment statistic")
+    else:
+        equipstats=""
+    
+    return '''{p1}
+{p1}        {subdelim} identification {subdelim}
+{p1}        {fullname}
+{p1}            ( {typ} ) {subcls}
+{p1}                    type: {proto}
+{p1}                   skill: {skill}
+{p1}            condition: {hp} / {hpmax}
+{p1}            $ {value}, {kg:.3f} ({valueperkg} $$/kg)
+{p1}            primary material: {mat}
+{p1}
+{p1}{equipstats}
+{p1}'''.format(
+        p1="",
+        titledelim="~~~~",
+        tab="    ",
+        delim    ="........",
+        idelim   =":.......",
+        subdelim ="--",
+        predelim =": ",
+        typ=draw.char,
+        fullname=rog.getfname(item), #TODO: make this function
+        skill=skill,proto=name.name,
+        hp=rog.getms(item,'hp'),hpmax=rog.getms(item,'hpmax'),
+        kg=rog.getms(item,'mass'),
+        value=form.value,mat=form.material,
+        equipstats=equipstats,
+    )
 # end def
 
 # render HUD

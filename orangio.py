@@ -178,22 +178,22 @@ NONE
 // North
 K
 KP8
-UP
+NONE
 
 // West
 H
 KP4
-LEFT
+NONE
 
 // South
 J
 KP2
-DOWN
+NONE
 
 // East
 L
 KP6
-RIGHT
+NONE
 
 // Northwest
 Y

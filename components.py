@@ -1575,7 +1575,49 @@ STATUSES={ # dict of statuses that have a timer
     }
 ##StatusDigest
 
+#ssh-keygen
 
+TOOLS={
+Tool_Cut                : 'cut',
+Tool_Chop               : 'chop',
+Tool_Machete            : 'machete',
+Tool_Saw                : 'saw',
+Tool_Hammer             : 'hammer',
+Tool_Striker            : 'striker',
+Tool_Chisel             : 'chisel',
+Tool_Anvil              : 'anvil',
+Tool_Furnace            : 'furnace',
+Tool_Weld               : 'weld',
+Tool_Torch              : 'torch',
+Tool_FireStarter        : 'fire starter',
+Tool_Crucible           : 'crucible',
+Tool_Tongs              : 'tongs',
+Tool_Pliers             : 'pliers',
+Tool_Drill              : 'drill',
+Tool_Sew                : 'sewing needle',
+Tool_Grinder            : 'grinder',
+Tool_Sharpener          : 'sharpener',
+Tool_Honer              : 'honer',
+Tool_File               : 'file',
+Tool_Dig                : 'dig',
+Tool_Pickaxe            : 'pickaxe',
+Tool_Crush              : 'press',
+Tool_LockPick           : 'lockpick',
+Tool_Screwdriver        : 'screwdriver',
+Tool_CrossbowReloader   : 'crossbow reloader',
+Tool_Brush              : 'brush',
+Tool_Mandril            : 'mandril',
+Tool_Swage              : 'swage',
+Tool_Fuller             : 'fuller',
+Tool_Lens               : 'lens',
+Tool_Identify           : 'identifier',
+Tool_Drillbit_a         : 'drillbit type a',
+Tool_Drillbit_b         : 'drillbit type b',
+Tool_Drillbit_c         : 'drillbit type c',
+Tool_Drillbit_d         : 'drillbit type d',
+Tool_Drillbit_e         : 'drillbit type e',
+Tool_Drillbit_f         : 'drillbit type f',
+    }
 
 
 

@@ -2501,12 +2501,9 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
 def _apply_skill_bonus_armor(dadd, skillLv):
     if not skillLv: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
-    dadd['pro'] = max(dadd.get('pro',0),
-        dadd.get('pro',0) * (1 + SKLMOD_ARMOR_PRO*sm) )
-    dadd['arm'] = max(dadd.get('arm',0),
-        dadd.get('arm',0) * (1 + SKLMOD_ARMOR_AV*sm) )
-    dadd['dfn'] = max(dadd.get('dfn',0),
-        dadd.get('dfn',0) * (1 + SKLMOD_ARMOR_DV*sm) )
+    dadd['pro'] = dadd.get('pro',0) + MULT_STATS*SKLMOD_ARMOR_PRO*sm
+    dadd['arm'] = dadd.get('arm',0) + MULT_STATS*SKLMOD_ARMOR_AV*sm
+    dadd['dfn'] = dadd.get('dfn',0) + MULT_STATS*SKLMOD_ARMOR_DV*sm
 # end def
 def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
     if not skillLv: return
@@ -2518,24 +2515,25 @@ def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
 def _apply_skill_bonus_weapon(dadd, skillLv, skill):
     if not skillLv: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
+    dadd['enc'] = dadd['enc'] * (100 / (100 + sm*DEFAULT_SKLMOD_ENC))
     dadd['atk'] = max( dadd.get('atk',0),
-        dadd.get('atk',0) * (1 + sm*SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)) )
+        dadd.get('atk',0) + (MULT_STATS*sm*SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)) )
     dadd['pen'] = max( dadd.get('pen',0),
-        dadd.get('pen',0) * (1 + sm*SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)) )
+        dadd.get('pen',0) + (MULT_STATS*sm*SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)) )
     dadd['dmg'] = max( dadd.get('dmg',0),
-        dadd.get('dmg',0) * (1 + sm*SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)) )
+        dadd.get('dmg',0) + (MULT_STATS*sm*SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)) )
     dadd['dfn'] = max( dadd.get('dfn',0),
-        dadd.get('dfn',0) * (1 + sm*SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)) )
+        dadd.get('dfn',0) + (MULT_STATS*sm*SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)) )
     dadd['pro'] = max( dadd.get('pro',0),
-        dadd.get('pro',0) * (1 + sm*SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)) )
+        dadd.get('pro',0) + (MULT_STATS*sm*SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)) )
     dadd['arm'] = max( dadd.get('arm',0),
-        dadd.get('arm',0) * (1 + sm*SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)) )
+        dadd.get('arm',0) + (MULT_STATS*sm*SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)) )
     dadd['asp'] = max( dadd.get('asp',0),
-        dadd.get('asp',0) * (1 + sm*SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)) )
+        dadd.get('asp',0) + (sm*SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)) )
     dadd['gra'] = max( dadd.get('gra',0),
-        dadd.get('gra',0) * (1 + sm*SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)) )
+        dadd.get('gra',0) + (MULT_STATS*sm*SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)) )
     dadd['ctr'] = max( dadd.get('ctr',0),
-        dadd.get('ctr',0) * (1 + sm*SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)) )
+        dadd.get('ctr',0) + (MULT_STATS*sm*SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)) )
 # end def
 def _apply_skill_bonus_unarmed(dadd, skillLv, skill): # similar as above but it adds instead of multiplying the added value
     if not skillLv: return
@@ -3232,7 +3230,7 @@ def dehydrate(ent):
 '''
 
 #create a thing from STUFF; does not register thing
-def create_stuff(name, x, y):
+def create_stuff(name, x, y) -> int:
     typ,mat,val,fgcol,hp,kg,script = STUFF[name]
     world = rog.world()
     if fgcol == "random":
@@ -3252,7 +3250,7 @@ def create_stuff(name, x, y):
     script(ent)
     return ent
 #create a thing from RAWMATERIALS; does not register thing
-def create_rawmat(name, x, y):
+def create_rawmat(name, x, y) -> int:
     typ,val,kg,hp,mat,fgcol,script = RAWMATERIALS[name]
     world = rog.world()
     if fgcol == "random":
@@ -3274,7 +3272,7 @@ def create_rawmat(name, x, y):
 
 
 #create a fluid
-def create_fluid(x,y,ID,volume):
+def create_fluid(x,y,ID,volume) -> int:
     ent = world.create_entity(cmp.Position(x,y), cmp.Fluid(ID, volume))
     return ent
 
@@ -3303,11 +3301,11 @@ def _getGearStatsDict( mass,resbio,resfire,rescold,reselec,
     return statsDict
 
 #create_armor - create armor item on ARMOR table 
-def create_armor(name,x,y,quality=1):
+def create_armor(name,x,y,quality=1) -> int:
     '''
         # Parameters:
-        #   name : name of item to create from the data table
-        #   quality = 0 to 1. Determines starting condition of the item
+        #   name : string = name of item to create from the data table
+        #   quality : float = 0 to 1. Determines starting HP of the item
     '''
     world = rog.world()
     ent = world.create_entity()
@@ -3365,7 +3363,7 @@ def create_armor(name,x,y,quality=1):
 #
 
 #create head armor - create armor item on HEADWEAR table 
-def create_headwear(name,x,y,quality=1):
+def create_headwear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3423,7 +3421,7 @@ def create_headwear(name,x,y,quality=1):
 #
 
 #create facewear - create armor item on FACEWEAR table 
-def create_facewear(name,x,y,quality=1):
+def create_facewear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3477,7 +3475,7 @@ def create_facewear(name,x,y,quality=1):
 #
 
 #create armwear - create armor item on ARMARMOR table | arm armor
-def create_armwear(name,x,y,quality=1):
+def create_armwear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3528,7 +3526,7 @@ def create_armwear(name,x,y,quality=1):
 #
 
 #create legging - create armor item on LEGARMOR table | leg armor
-def create_legwear(name,x,y,quality=1):
+def create_legwear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3579,7 +3577,7 @@ def create_legwear(name,x,y,quality=1):
 #
 
 #create foot armor - create armor item on FOOTARMOR table 
-def create_footwear(name,x,y,quality=1):
+def create_footwear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3630,7 +3628,7 @@ def create_footwear(name,x,y,quality=1):
 #
 
 # weapons
-def create_weapon(name, x,y, quality=1):
+def create_weapon(name, x,y, quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     # get weapon data from table
@@ -3701,7 +3699,7 @@ def create_weapon(name, x,y, quality=1):
 #
 
 # monsters
-def create_monster(_type, x, y, col=None, mutate=0):
+def create_monster(_type, x, y, col=None, mutate=0) -> int:
 
               # THIS IS BROKEN AND NEEDS A LOT OF WORK
 
@@ -3796,7 +3794,7 @@ def create_monster(_type, x, y, col=None, mutate=0):
 
 # conversion functions #
 
-def convertTo_corpse(ent):
+def convertTo_corpse(ent) -> int:
     '''
         TODO: change it so you don't delete the entity when you kill a creature,
         instead just call this to convert it to a corpse
@@ -3813,7 +3811,7 @@ def convertTo_corpse(ent):
     rog.make(ent, DIRTY_STATS)
     return ent
 
-def create_ashes(ent):
+def create_ashes(ent) -> int:
     '''
         attempt to create ashes from the remains of an entity
         does not delete the entity
@@ -3833,10 +3831,9 @@ def create_ashes(ent):
         )
     return ent
 
-def create_steel_weapon(itemName, x, y):
+def create_steel_weapon(itemName, x, y) -> int:
     '''
-        create a metal weapon and modify its values/name
-        to resemble a higher quality metal
+        create a metal weapon and modify its values/name to resemble steel
     '''
     world=rog.world()
     # create the weapon
@@ -3864,7 +3861,7 @@ def create_steel_weapon(itemName, x, y):
     compo=world.component_for_entity(weap, cmp.Stats)
     compo.hpmax=compo.hpmax*1.5
     compo.hp=compo.hpmax
-    compo.resrust=round(compo.resrust + (100 - compo.resrust) * 0.5)
+    compo.resrust=compo.resrust + 50
     return weap
 #
 
@@ -3875,13 +3872,19 @@ def create_body_humanoid(mass=75, height=175, female=False):
     '''
         create a generic humanoid body with everything a basic body needs
             *does not add any values to components -- inits default vals
+        
         Parameters:
-            int mass    : mass in KG
+            int mass    : intended total body mass in KG
             int height  : height in centimeters
             bool female : is the creature female?
+            
+        Returns: tuple of (body_component_object, base_mass,)
+            where base_mass is the mass of the body except for
+              the blood, fat, and water (the mass of which is added
+              on the fly to calculate the total mass of the body).
     '''
     mass = int(mass * MULT_MASS)
-    fat = mass*0.075 #mass*0.1 if female else mass*0.05
+    fat = mass*0.05 #mass*0.1 if female else mass*0.05
     body = cmp.Body(
         BODYPLAN_HUMANOID,
         cmp.BPC_Torso(),
@@ -3910,7 +3913,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
 
 
 # generic components that can be applied depending on entity's data
-def _setGenericData(ent, material=0):
+def _setGenericData(ent, material=0) -> int:
     stats=rog.world().component_for_entity(ent, cmp.Stats)
     # fuel
     fuelValue = FUEL_MULT * MAT_FUEL[material]

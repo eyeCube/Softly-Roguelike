@@ -75,6 +75,18 @@ class GameStateManager(Manager):
 
 
 
+# FOV Manager
+class Manager_FOV(Manager):
+    def __init__(self):
+        super(Manager_FOV, self).__init__()
+        self._updates=set()
+    def run(self, ent):
+        if ent in self._updates:
+            self._updates.remove(ent)
+            rog.fov_compute(ent)
+    def update(self, ent):
+        self._updates.add(ent)
+
 
 
 #
@@ -430,7 +442,7 @@ class Manager_SelectTile(GameStateManager):
         
         self.cursor_blink()
         for act,arg in pcAct:
-            if (act=='context-dir' or act=='move' or act=='menu-move'):
+            if (act=='context-dir' or act=='move' or act=='menu-nav'):
                 self.nudge(arg)
             elif act=='rclick': self.rclick(arg)
             elif act=='lclick': self.lclick(arg)
@@ -575,7 +587,7 @@ class Manager_PrintScroll(GameStateManager):
     
     def user_input(self, pcAct):
         for act, arg in pcAct:
-            if (act=="context-dir" or act=="move" or act=="menu-move"):
+            if (act=="context-dir" or act=="move" or act=="menu-nav"):
                 self.y += arg[1]*self.scrollspd
                 self.y=maths.restrict(self.y,0,self.maxy)
             elif act=="page up":    self.y = max(0,         self.y -int(self.pagescroll))

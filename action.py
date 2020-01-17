@@ -216,11 +216,12 @@ def open_pc(pc):
     yto = pos.y + dy
     # do the open/close action
     success = openClose(pc, xto, yto)
-    if success:
-        pass
-    else:
+    if not success:
         rog.alert("It won't open.")
+        return
     rog.update_game()
+    rog.update_hud()
+    rog.update_pcfov()
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed

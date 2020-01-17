@@ -63,11 +63,15 @@ def stateless(bot):
     desires=Desires(wander=7)
     sight=world.component_for_entity(bot, cmp.SenseSight).sight
     pos=world.component_for_entity(bot, cmp.Position)
-    botCreature=world.component_for_entity(bot, cmp.Creature).char
+    botCreature=world.component_for_entity(bot, cmp.Creature)
 ##    botType=world.component_for_entity(bot, cmp.Draw).char #should not depend on draw component
-
+    
+    # Where should this go????
+    rog.run_fov_manager(bot)
+    
+    
     # TODO: write this function
-    def isFoe(faction):
+    def isFoe(myFaction, theirFaction):
         return True
 
     # TODO: re-implement listening
@@ -103,18 +107,16 @@ def stateless(bot):
                 if isCreature:
                     creature = world.component_for_entity(here, cmp.Creature)
                     if rog.on(here,DEAD): continue # no interest in dead things
-
+                    
                     interest=0
-
+                    
                     #desire to fight
                     if creature.faction == FACT_ROGUE:
                         interest=1000
-                    #desire to run away
-                    #elif here.type == '@':
-                    #   interest=-1000
                     #grouping behavior
                     elif creature.faction == botCreature.faction:
                         interest = 5
+                        
                     if (interest > 0):
                         _add_desire_direction(
                             desires, pos.x,pos.y, x,y, interest
@@ -149,7 +151,7 @@ def stateless(bot):
     mon = rog.monat(xto, yto)
     if (mon and mon is not bot):
         monFaction = world.component_for_entity(mon, cmp.Creature).faction
-        if isFoe(monFaction):
+        if isFoe(botCreature.faction, monFaction):
             action.fight(bot, mon)
             return
     # or move

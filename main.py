@@ -91,17 +91,17 @@ def main():
     rog.Rogue.create_player(xpos, ypos) # create player
     
     rog.make(rog.pc(), NVISION)
-    rog.setskill(rog.pc(), SKL_WRESTLING, 25)
-    rog.setskill(rog.pc(), SKL_SWORDS, 25)
+##    rog.setskill(rog.pc(), SKL_WRESTLING, 25)
+    rog.setskill(rog.pc(), SKL_SWORDS, 36)
     rog.equip(
-        rog.pc(),rog.create_weapon("plastic sword", 0,0),EQ_MAINHAND
+        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
         )
 ##    rog.equip(
 ##        rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
 ##        )
-    rog.equip(
-        rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
-        )
+##    rog.equip(
+##        rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
+##        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
 ##        )

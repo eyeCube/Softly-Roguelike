@@ -107,6 +107,9 @@ def commands(pc, pcAct):
         
         if act =='context-dir':
             act=directional_command
+        # moving using the menu move keys
+        if (act =='menu-nav' and rog.game_state()=="normal"):
+            act=directional_command
         
         
         #----------------#

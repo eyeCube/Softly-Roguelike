@@ -129,7 +129,6 @@ class Rogue:
         cls.world.add_processor(proc.FireProcessor(), 91)
         cls.world.add_processor(proc.TimersProcessor(), 90)
             # after all changes have been made
-        cls.world.add_processor(proc.FOVProcessor(), 72)
         cls.world.add_processor(proc.GUIProcessor(), 71)
             # AI function (entity turns)
         cls.world.add_processor(proc.ActorsProcessor(), 50)
@@ -155,6 +154,7 @@ class Rogue:
 ##        cls.c_managers.update({'sounds' : managers.Manager_SoundsHeard()})
         cls.c_managers.update({'events' : managers.Manager_Events()})
         cls.c_managers.update({'lights' : managers.Manager_Lights()})
+        cls.c_managers.update({'fov' : managers.Manager_FOV()})
         
         
 '''
@@ -371,6 +371,35 @@ def alert(text=""):    # message that doesn't go into history
 
 
 
+# Error checking
+class ComponentException(Exception):
+    ''' raised when an entity lacks an expected component. '''
+    pass
+
+def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
+    ''' ASSERT condition condition satisifed, else raise error
+        and print ID info about the Entity ent.'''
+    if not condition:
+        # name
+        if world.has_component(ent, cmp.Name):
+            entname="with name '{}'".format(
+                world.component_for_entity(ent, cmp.Name).name)
+        else:
+            entname="<NO NAME>"
+        # position
+        if world.has_component(ent, cmp.Position):
+            entposx=world.component_for_entity(ent, cmp.Position).x
+            entposy=world.component_for_entity(ent, cmp.Position).y
+        else:
+            entposx = entposy = -1
+        # message
+        print("ERROR: rogue.py: function getms: entity {e} {n} at pos ({x},{y}) {err}".format(
+            e=ent, n=entname, x=entposx, y=entposy, err=errorstring))
+        raise ComponentException
+# end def
+
+
+
     # "Fun"ctions #
 
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
@@ -455,22 +484,15 @@ def dupCmpMeters(meters):
     newMeters.wet = meters.wet
     return newMeters
 
-            
+
     # entity functions #
 
 # getms: GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
-    # Error checking
-    if not Rogue.world.has_component(ent, cmp.ModdedStats):
-        entname=Rogue.world.component_for_entity(ent, cmp.Name)
-        entpos=Rogue.world.component_for_entity(ent, cmp.Position)
-        print("ERROR: rogue.py: function getms: entity {} with name '{}' at pos ({},{}) has no ModdedStats component.".format(
-            ent, entname.name, entpos.pos.x, entpos.pos.y))
-        raise
-    #
-    
+    world=Rogue.world
+    asserte(ent,world.has_component(ent,cmp.ModdedStats),"has no ModdedStats component.")
     if on(ent, DIRTY_STATS): # dirty; re-calculate the stats first.
-        makenot(ent, DIRTY_STATS)
+        makenot(ent, DIRTY_STATS) # make sure we don't get caught in infinite loop...
         modded=_update_stats(ent)
         return modded.__dict__[_var]
     return Rogue.world.component_for_entity(ent, cmp.ModdedStats).__dict__[_var]
@@ -724,6 +746,7 @@ def explosion(name, x, y, radius):
     #        Events        #
     #----------------------#
 
+
 def event_sight(x,y,text):
     if not text: return
     Rogue.c_managers['events'].add_sight(x,y,text)
@@ -773,6 +796,16 @@ def pc_listen_sounds():
     #       FOV      #
     #----------------#
 
+# TODO: test FOV for NPCs to make sure it works properly!!!
+def update_fov(ent):
+    Rogue.c_managers['fov'].update(ent)
+def run_fov_manager(ent):
+    Rogue.c_managers['fov'].run(ent)
+def update_pcfov():
+    Rogue.c_managers['fov'].update(Rogue.pc)
+def run_pcfov_manager():
+    Rogue.c_managers['fov'].run(Rogue.pc)
+    
 def fov_init():  # normal type FOV map init
     #TODO: THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
     fovMap=libtcod.map_new(ROOMW,ROOMH)
@@ -780,6 +813,7 @@ def fov_init():  # normal type FOV map init
     return fovMap
 #@debug.printr
 def fov_compute(ent):
+    print("computing fov for ent {}".format(ent))
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     senseSight = Rogue.world.component_for_entity(ent, cmp.SenseSight)
     libtcod.map_compute_fov(
@@ -788,7 +822,6 @@ def fov_compute(ent):
         )
 def update_fovmap_property(fovmap, x,y, value):
     libtcod.map_set_properties( fovmap, x,y,value,True)
-def update_fov(ent):    proc.FOV.add(ent)
 ##def compute_fovs():     Rogue.c_managers['fov'].run()
 # circular FOV function
 def can_see(ent,x,y):
@@ -1400,6 +1433,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             and it will contain the right value, until something significant
             updates which would change the calculation, at which point the
             DIRTY_STATS flag for that entity must be set to True.
+        NOTE: should not call this directly nor access modified stats
+            component directly. Use the public interface "getms"
     '''
     # NOTE: apply all penalties (w/ limits, if applicable) AFTER bonuses.
         # this is to ensure you don't end up with MORE during a
@@ -1534,10 +1569,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 #~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # attributes #
         #------------#
-
-        # These are NOT multiplier modifiers;
-        # These only improve stats by adding some value to them.
-
+        # Apply derived stat bonuses from attributes.
+        # These are NOT multiplier modifiers; just add to stats.
+    
     # Strength
     _str = modded.str/MULT_ATT
     modded.atk += _str * ATT_STR_ATK*MULT_STATS
