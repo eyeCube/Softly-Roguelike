@@ -1592,6 +1592,59 @@ STATUSES={ # dict of statuses that have a timer
     }
 ##StatusDigest
 
+STATUS_MODS={
+    #status compo   : (addMods, mulMods,)
+    StatusHot       : ({},{'mpregen':HOT_SPREGENMOD,},),
+    StatusBurn      : {},
+    StatusChilly    : ({},{
+        'int':CHILLY_INTMOD,'mpregen':CHILLY_SPREGENMOD,
+        'mpmax':CHILLY_STAMMOD,'spd':CHILLY_SPDMOD,},),
+    StatusCold      : ({},{
+        'int':COLD_INTMOD,'mpregen':COLD_SPREGENMOD,
+        'mpmax':COLD_STAMMOD,'spd':COLD_SPDMOD,},),
+    StatusAcid      : ({},{},),
+    StatusBlind     : ({},{'sight':BLIND_SIGHTMOD,},),
+    StatusDeaf      : ({},{'hearing':DEAF_HEARINGMOD,},),
+    StatusDisoriented:({'bal':DISOR_BAL*MULT_STATS,},
+        {'sight':DISOR_SIGHTMOD,'hearing':DISOR_HEARINGMOD,},),
+    StatusIrritated : (
+        {'atk':IRRIT_ATK*MULT_STATS,'resbleed':IRRIT_RESBLEED*MULT_STATS,},
+        {'sight':IRRIT_SIGHTMOD,'hearing':IRRIT_HEARINGMOD,
+        'respain':IRRIT_RESPAINMOD,},),
+    StatusParalyzed : (
+        {'atk':PARAL_ATK*MULT_STATS,'dfn':PARAL_DFN*MULT_STATS,},
+        {'spd':PARAL_SPDMOD},),
+    StatusPain      : ({},{},), # these mods affect attributes so are handled separately
+    StatusSick      : ({},{},), # ""
+    StatusVomit     : ({},{},),
+    StatusCough     : (
+        {'atk':COUGH_ATK*MULT_STATS,'dfn':COUGH_DFN*MULT_STATS},{},),
+    StatusJog       : ({},{'msp':JOG_MSPMOD},),
+    StatusRun       : ({},{'msp':RUN_MSPMOD},),
+    StatusSprint    : ({},{'msp':SPRINT_MSPMOD},),
+    StatusFrightening:({},{},),
+    StatusPanic     : ({},{},),
+    StatusHaste     : ({},{'spd':HASTE_SPDMOD,},),
+    StatusSlow      : ({},{'spd':SLOW_SPDMOD,},),
+    StatusHazy      : ({'respain':HAZY_RESPAIN,},
+        {'mpregen':HAZY_SPREGENMOD,'sight':HAZY_SIGHTMOD,
+         'int':HAZY_INTMOD,},),
+    StatusSweat     : ({},{},),
+    StatusShiver    : ({},{},),
+    StatusHungry    : ({},
+        {'mpregen':HUNGRY_SPREGENMOD,'con':HUNGRY_CONMOD,'end':HUNGRY_ENDMOD},),
+    StatusEmaciated : ({},
+        {'mpregen':EMACI_SPREGENMOD,'con':EMACI_CONMOD,'end':EMACI_ENDMOD},),
+    StatusDehydrated: ({'resfire':DEHYD_RESFIRE,'respain':DEHYD_RESPAIN,},
+        {'mpregen':DEHYD_SPREGENMOD,},),
+    StatusTired     : ({},
+        {'mpregen':TIRED_SPREGENMOD,'sight':TIRED_SIGHTMOD,
+         'int':TIRED_INTMOD,},),
+    StatusFull      : ({},{'mpregen':FULL_SPREGENMOD},),
+    StatusDrunk     : ({'bal':QUALITYMODF,},{},),
+    StatusOffBalance: ({'bal':QUALITYMODF,},{},),
+    }
+
 TOOLS={
 Tool_Cut                : 'cut',
 Tool_Chop               : 'chop',
@@ -1656,59 +1709,6 @@ Tool_Drillbit_f         : 'drillbit type f',
 
 
 
-
-##STATUS_MODS={
-##    #status compo   : (addMods, mulMods,)
-##    StatusHot       : ({},{'mpregen':HOT_SPREGENMOD,},),
-##    StatusBurn      : {},
-##    StatusChilly    : ({},{
-##        'int':CHILLY_INTMOD,'mpregen':CHILLY_SPREGENMOD,
-##        'mpmax':CHILLY_STAMMOD,'spd':CHILLY_SPDMOD,},),
-##    StatusCold      : ({},{
-##        'int':COLD_INTMOD,'mpregen':COLD_SPREGENMOD,
-##        'mpmax':COLD_STAMMOD,'spd':COLD_SPDMOD,},),
-##    StatusAcid      : ({},{},),
-##    StatusBlind     : ({},{'sight':BLIND_SIGHTMOD,},),
-##    StatusDeaf      : ({},{'hearing':DEAF_HEARINGMOD,},),
-##    StatusDisoriented:({'bal':DISOR_BAL*MULT_STATS,},
-##        {'sight':DISOR_SIGHTMOD,'hearing':DISOR_HEARINGMOD,},),
-##    StatusIrritated : (
-##        {'atk':IRRIT_ATK*MULT_STATS,'resbleed':IRRIT_RESBLEED*MULT_STATS,},
-##        {'sight':IRRIT_SIGHTMOD,'hearing':IRRIT_HEARINGMOD,
-##        'respain':IRRIT_RESPAINMOD,},),
-##    StatusParalyzed : (
-##        {'atk':PARAL_ATK*MULT_STATS,'dfn':PARAL_DFN*MULT_STATS,},
-##        {'spd':PARAL_SPDMOD},),
-##    StatusPain      : ({},{},), # these mods affect attributes so are handled separately
-##    StatusSick      : ({},{},), # ""
-##    StatusVomit     : ({},{},),
-##    StatusCough     : (
-##        {'atk':COUGH_ATK*MULT_STATS,'dfn':COUGH_DFN*MULT_STATS},{},),
-##    StatusJog       : ({},{'msp':JOG_MSPMOD},),
-##    StatusRun       : ({},{'msp':RUN_MSPMOD},),
-##    StatusSprint    : ({},{'msp':SPRINT_MSPMOD},),
-##    StatusFrightening:({},{},),
-##    StatusPanic     : ({},{},),
-##    StatusHaste     : ({},{'spd':HASTE_SPDMOD,},),
-##    StatusSlow      : ({},{'spd':SLOW_SPDMOD,},),
-##    StatusHazy      : ({'respain':HAZY_RESPAIN,},
-##        {'mpregen':HAZY_SPREGENMOD,'sight':HAZY_SIGHTMOD,
-##         'int':HAZY_INTMOD,},),
-##    StatusSweat     : ({},{},),
-##    StatusShiver    : ({},{},),
-##    StatusHungry    : ({},
-##        {'mpregen':HUNGRY_SPREGENMOD,'con':HUNGRY_CONMOD,'end':HUNGRY_ENDMOD},),
-##    StatusEmaciated : ({},
-##        {'mpregen':EMACI_SPREGENMOD,'con':EMACI_CONMOD,'end':EMACI_ENDMOD},),
-##    StatusDehydrated: ({'resfire':DEHYD_RESFIRE,'respain':DEHYD_RESPAIN,},
-##        {'mpregen':DEHYD_SPREGENMOD,},),
-##    StatusTired     : ({},
-##        {'mpregen':TIRED_SPREGENMOD,'sight':TIRED_SIGHTMOD,
-##         'int':TIRED_INTMOD,},),
-##    StatusFull      : ({},{'mpregen':FULL_SPREGENMOD},),
-##    StatusDrunk     : ({'bal':QUALITYMODF,},{},),
-##    StatusOffBalance: ({'bal':QUALITYMODF,},{},),
-##    }
 
 ##    __slots__=[ # not using slots so that we are able to iterate through stats
 ##        'str','con','int',
