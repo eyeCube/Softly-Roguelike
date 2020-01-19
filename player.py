@@ -576,12 +576,11 @@ wrap=False,con=rog.con_final(),disp='mono'
             #----------------------------------#
         
         # mass, height
-        mass = 70 # temporary
         height = 175 # temporary
             
         # create body
         body, newmass = rog.create_body_humanoid(
-            mass=mass, height=height, female=(_genderName=="female") )
+            mass=_mass, height=height, female=(_genderName=="female") )
         body.hydration = body.hydrationMax * 0.98
         body.satiation = body.satiationMax * 0.85
         
@@ -637,12 +636,12 @@ wrap=False,con=rog.con_final(),disp='mono'
         for sk_id in _jobskills:
             rog.setskill(pc, sk_id, 25)
         #add specific class stats
-        for stat, val in _jobstats.items():
+        for stat, val in _jobstats:
             value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
             rog.alts(pc, stat, value)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.setskill(pc, sk_id, 5)
+            rog.setskill(pc, sk_id, 1)
         print("skills = ", rog.world().component_for_entity(pc, cmp.Skills).skills)
     # end if
     

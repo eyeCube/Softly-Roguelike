@@ -99,26 +99,26 @@ def main():
 ##    rog.set_status(rog.pc(), cmp.StatusDrunk, t=1920, q=-4*MULT_STATS)
     
 ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
-    rog.setskill(rog.pc(), SKL_SWORDS, 30)
+##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
 ##    rog.sets(rog.pc(), 'agi', 300)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
-    rog.equip(
-        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
-        )
-    rog.equip(
-        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-        )
-    rog.equip(
-        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
-        )
-    rog.equip(
-        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
-        )
-    rog.equip(
-        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
-        )
+##    rog.equip(
+##        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
+##        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_armwear("metal vambrace", 0,0),EQ_MAINARM
 ##        )
@@ -134,9 +134,9 @@ def main():
     
     # test body part statuses
 ##    import components as cmp
-    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
-    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
-    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_BROKEN
+##    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
+##    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
+##    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_BROKEN
 ##    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
 ##    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
 ##    body.parts[cmp.BPC_Legs].legs[0].leg.bone.status = BONESTATUS_BROKEN

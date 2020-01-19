@@ -399,7 +399,7 @@ BASE_BAL        = 2
 BASE_GRA        = 0
 BASE_CTR        = 0
 BASE_SIGHT      = 20
-BASE_HEARING    = 40
+BASE_HEARING    = 80
 BASE_COURAGE    = 96
 BASE_SCARY      = 32
 BASE_BEAUTY     = 16
@@ -1944,6 +1944,7 @@ SKL_FLETCHER    = i; i+=1; #
 SKL_BLADESMITH  = i; i+=1; #making and repairing knives
 SKL_GUNSMITH    = i; i+=1; #making and repairing guns (child of: metal, wood)
 SKL_HARDWARE    = i; i+=1; #computer building and repair
+SKL_MECHANIC    = i; i+=1; #machine building and repair
 SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 ##SKL_SWORDSMITH  = i; i+=1; #making and repairing swords (bladesmithing skill -- incorporated)
 # Languages
@@ -2531,6 +2532,8 @@ CLS_SOLDIER     = i; i+=1;
 CLS_THIEF       = i; i+=1;
 CLS_ACROBAT     = i; i+=1;
 CLS_WRESTLER    = i; i+=1;
+CLS_DOCTOR      = i; i+=1;
+CLS_PROGRAMMER  = i; i+=1;
 
 
 

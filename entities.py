@@ -4363,20 +4363,21 @@ JOBS={
     # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
     
 #ID                Char,Name         KG, $$$$,S|Key--------stats---------------skills
-CLS_ATHLETE     : ("a", "athlete",   80, 300, 0,'', {'str':1,'con':1,'dex':-2,'agi':1,'int':-1,'msp':20,'gra':2,},(SKL_ATHLETE,),),
-CLS_CHEMIST     : ("C", "chemist",   65, 1000,2,'L',{'int':8,'end':-2,'con':-2,'agi':-2,'hpmax':-5,'mpmax':5,},(SKL_CHEMISTRY,),),
-CLS_DEPRIVED    : ("d", "deprived",  50, 0,   0,'', {'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,'hpmax':-5,'mpmax':-20,},(),),
-##CLS_ENGINEER    : ("E", "engineer",  60, 500, 0,'C',{'hpmax':5,'carry':10,},(SKL_ROBOTS,),),
-CLS_JANITOR     : ("j", "janitor",   80, 100, 0,'J',{'int':-4,'con':2,'end':2,},(),),
-CLS_SECURITY    : ("O", "security",  80, 100, 5,'', {'dex':4,'con':4,'end':2,'int':-4,'gra':2,},(SKL_ENERGY,),),
-CLS_PILOT       : ("p", "pilot",     70, 300, 0,'P',{'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},(SKL_PILOT,),),
-CLS_POLITICIAN  : ("I", "politician",70, 2000,4,'K',{'con':-2,'end':-2,'int':4,},(SKL_PERSUASION,),),
-CLS_RIOTPOLICE  : ("P", "police",    80, 300, 2,'', {'str':4,'con':4,'dex':2,'end':2,'int':-2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
-CLS_SMUGGLER    : ("u", "smuggler",  70, 1000,0,'', {'con':4,'int':2,'dex':2,'agi':2,'str':-2,},(SKL_PERSUASION,SKL_PISTOLS,),),
-CLS_SOLDIER     : ("S", "marine",    90, 500, 3,'', {'hearing':-20,'str':4,'con':6,'dex':4,'int':4,'end':6,'agi':4,'gra':6,},(SKL_RIFLES,),),
-CLS_TECHNICIAN  : ("T", "technician",60, 500, 1,'', {'int':2,'dex':2,'end':-2,'agi':-2,},(SKL_COMPUTERS,),),
-CLS_THIEF       : ("t", "thief",     65, 2000,0,'', {'con':2,'str':2,'int':2,'agi':2,'dex':2,'end':2,'dfn':2,},(SKL_STEALTH,),),
-CLS_WRESTLER    : ("w", "wrestler",  85, 100, 0,'', {'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':12,},(SKL_ATHLETE,),),
+CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'', {'str':4,'con':2,'agi':4,'end':8,'int':-4,'msp':10,'gra':2,},(SKL_ATHLETE,),),
+CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',{'int':8,'end':-2,'con':-2,'agi':-2,},(SKL_CHEMISTRY,),),
+CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'', {'sight':-10,'hearing':-40,'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,'hpmax':-5,'mpmax':-20,},(SKL_SURVIVAL,SKL_ASSEMBLY,),),
+CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',{'int':6,'dex':6,'end':-4,'agi':-4,'con':-2,},(SKL_MEDICINE,SKL_SURGERY,),),
+CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',{'int':-4,'con':2,'end':2,},(),),
+CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'', {'hearing':-40,'str':4,'con':6,'dex':4,'int':4,'end':6,'agi':4,'gra':6,},(SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),),
+CLS_SECURITY    : ("O", "security",  80, 300, 5,'', {'dex':4,'con':4,'end':2,'int':-4,'gra':2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
+CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',{'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},(SKL_PILOT,),),
+CLS_RIOTPOLICE  : ("P", "police",    85, 500, 2,'', {'str':4,'con':4,'dex':2,'end':2,'int':-2,},(SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),),
+CLS_PROGRAMMER  : ("q", "programmer",70, 2000,0,'', {'int':4,'agi':-2,'con':-2,},(SKL_COMPUTERS,),),
+CLS_POLITICIAN  : ("I", "politician",65,20000,4,'K',{'con':-2,'end':-2,'int':4,},(SKL_PERSUASION,),),
+CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'', {'con':4,'int':2,'dex':2,'agi':2,'str':-2,},(SKL_PERSUASION,SKL_PISTOLS,),),
+CLS_TECHNICIAN  : ("T", "technician",75, 500, 1,'', {'int':2,'dex':2,'end':-2,'agi':-2,},(SKL_MECHANIC,SKL_HARDWARE,),),
+CLS_THIEF       : ("t", "thief",     60, 5000,0,'', {'con':2,'str':2,'int':2,'agi':2,'dex':2,'end':2,'dfn':2,},(SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),),
+CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'', {'sight':-10,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':12,},(SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),),
     }
 
 FLUIDS = {
