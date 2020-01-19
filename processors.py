@@ -589,7 +589,7 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
 
 class Status:
     @classmethod
-    def add(self, ent, component, t=-1):
+    def add(self, ent, component, t=-1, q=None):
         if rog.world().has_component(ent, component): return False
         rog.make(ent, DIRTY_STATS)
         status_str = ""
@@ -628,7 +628,7 @@ class Status:
         elif component is cmp.StatusTired:
             status_str = " starts to yawn"
         elif component is cmp.StatusFrightening:
-            status_str = " becomes scarier"
+            status_str = " puts on a frightening display"
         elif component is cmp.StatusFrightened:
             status_str = " becomes frightened"
         elif component is cmp.StatusHaste:
@@ -638,13 +638,23 @@ class Status:
         elif component is cmp.StatusDrunk:
             status_str = " becomes inebriated"
         elif component is cmp.StatusHazy:
+            gender=rog.world().component_for_entity(ent, cmp.Gender)
             status_str = " begins slurring {} speech".format(gender.pronouns[2])
         #if status_str:
             #"{}{}{}".format(name.title, name.name, status_str)
+
+        # TODO: events to display the messages
+        
         if t==-1: # use the default time value for the component
-            rog.world().add_component(ent, component())
+            if q: # status components with quality variable
+                rog.world().add_component(ent, component(q=q))
+            else:
+                rog.world().add_component(ent, component())
         else: # pass in the time value
-            rog.world().add_component(ent, component(t))
+            if q: # status components with quality variable
+                rog.world().add_component(ent, component(t=t, q=q))
+            else:
+                rog.world().add_component(ent, component(t=t))
         return True
         
     @classmethod
@@ -693,7 +703,7 @@ class StatusProcessor(esper.Processor):
 
         # frozen ice
         for ent, (status, meters) in world.get_components(
-            cmp.StatusCold, cmp.Meters):
+            cmp.StatusFrozen, cmp.Meters):
             status.timer -= 1
             if (status.timer == 0 or meters.temp > FREEZE_THRESHOLD):
                 Status.remove(ent, cmp.StatusCold)
@@ -1037,6 +1047,8 @@ class HomeostasisProcessor(esper.Processor):
                 rog.set_status(ent, cmp.StatusSweat())
             elif meters.temp < BODY_TEMP-1:
                 rog.set_status(ent, cmp.StatusShiver())
+
+            # TODO: Hot and Chilly/Cold statuses
             
             # digestion: get calories (satiation) from food consumed
 

@@ -207,12 +207,37 @@ def _get_gauges(meters):
     return gauges
 def _get_effects(world, pc):
     effects=""
-    for k,v in cmp.STATUSES.items():
-        clsname=type(k).__name__
-        if world.has_component(pc, clsname):
-            compo=world.component_for_entity(pc, clsname)
-            effects += "{v:>24}: {t}\n".format(
-                v=v, t=compo.timer )
+    for cls, dics in cmp.STATUS_MODS.items():
+        if world.has_component(pc, cls):
+            dadd, dmul = dics
+            compo=world.component_for_entity(pc, cls)
+            name=cmp.STATUSES[cls]
+
+            if dadd:
+                amods="            [ "
+                for stat, val in dadd.items():
+                    cval = compo.quality if val==QUALITYMODF else val
+                    sign = "+" if cval >= 0 else ""
+                    if stat in STATS_TO_MULT.keys():
+                        cval = cval // MULT_STATS
+                    amods += "{st} {si}{cv}, ".format(
+                        st=STATS[stat], si=sign, cv=cval)
+                amods=amods[:-2]
+                amods+=" ]\n"
+            else: amods=""
+            if dmul:
+                mmods="            [ "
+                for stat, val in dmul.items():
+                    cval = compo.quality if val==QUALITYMODF else val
+                    cval = int(100 * cval)
+                    mmods += "{st} {cv}%, ".format(
+                        st=STATS[stat], cv=cval)
+                mmods=mmods[:-2]
+                mmods+=" ]\n"
+            else: mmods=""
+                        
+            effects += "        {n} ({t} t):\n{amods}{mmods}".format(
+                n=name, t=compo.timer, amods=amods, mmods=mmods )
     if effects: effects=effects[:-1] # remove final '\n'
     return effects
 
@@ -407,8 +432,12 @@ def _get_skills(compo):
     for const,exp in compo.skills.items():
         skillname=SKILLS[const][1]
         lvl=exp//EXP_LEVEL
-        skills += "{n:>28}: lv. {lv} | xp. {xp}\n".format(
-            n=skillname, lv=lvl, xp=(exp%EXP_LEVEL))
+        if lvl < 100:
+            xp=" | xp. {xp}".format(xp=exp%EXP_LEVEL)
+        else:
+            xp=""
+        skills += "{n:>28}: lv. {lv}{xp}\n".format(
+            n=skillname, lv=lvl, xp=xp)
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
 
@@ -447,7 +476,6 @@ def _get_encumberance_mods(pc):
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
-##        mods += "AGI {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['agi'][index]))
         mods += "SPR {}%, ".format(int(50 + 50*(1 - (enc/max(1,encmax))) ))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
@@ -483,6 +511,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     satstr=_get_satiation(body)
     hydstr=_get_hydration(body)
     encmods=_get_encumberance_mods(pc)
+
+    # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
     
     # create the display format string
     return '''{p1}
@@ -620,7 +650,6 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         paugs=npaugs, paugsmax=int(_geta('con') * ATT_CON_AUGS),
         maugs=nmaugs, maugsmax=int(_geta('int') * ATT_INT_AUGS),
         # stats
-            # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
         atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),

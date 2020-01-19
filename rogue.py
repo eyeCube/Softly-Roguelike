@@ -1452,8 +1452,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
     if world.has_component(ent, cmp.Skills):
         skills=world.component_for_entity(ent, cmp.Skills)
-        armorSkill = (skills.skills.get(SKL_ARMOR,0)) # armored skill value
-        unarmored = (skills.skills.get(SKL_UNARMORED,0)) # unarmored skill
+        armorSkill = _getskill(skills.skills.get(SKL_ARMOR,0)) # armored skill value
+        unarmored = _getskill(skills.skills.get(SKL_UNARMORED,0)) # unarmored skill
     else:
         skills=None
         armorSkill = 0
@@ -1557,9 +1557,33 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusSick):
         modded.str = modded.str * SICK_STRMOD
         modded.end = modded.end * SICK_ENDMOD
-        modded.con = modded.con * SICK_CONMOD
-        modded.respain = modded.respain + SICK_RESPAINMOD    
+        modded.con = modded.con * SICK_CONMOD  
 
+    # frozen
+    if world.has_component(ent, cmp.StatusFrozen):
+        modded.int = modded.int * FROZEN_INTMOD
+    # cold
+    elif world.has_component(ent, cmp.StatusCold):
+        modded.int = modded.int * COLD_INTMOD
+    # chilly
+    elif world.has_component(ent, cmp.StatusChilly):
+        modded.int = modded.int * CHILLY_INTMOD
+
+    # hazy
+    if world.has_component(ent, cmp.StatusHazy):
+        modded.int = modded.int * HAZY_INTMOD
+        
+    # hungry
+    if world.has_component(ent, cmp.StatusHungry):
+        modded.con = modded.con * HUNGRY_CONMOD
+        modded.end = modded.end * HUNGRY_ENDMOD
+    # Emaciated
+    elif world.has_component(ent, cmp.StatusEmaciated):
+        modded.con = modded.con * EMACI_CONMOD
+        modded.end = modded.end * EMACI_ENDMOD
+    # tired
+    if world.has_component(ent, cmp.StatusTired):
+        modded.int = modded.int * TIRED_INTMOD
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #&&&&''''^^^^````....,,,,----OOOO&&&&''''^^^^````....,,,,----OOOO&&&&''#
@@ -1576,30 +1600,36 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # These are NOT multiplier modifiers; just add to stats.
     
     # Strength
-    _str = modded.str/MULT_ATT
+    _str = modded.str//MULT_ATT
     modded.atk += _str * ATT_STR_ATK*MULT_STATS
     modded.dmg += _str * ATT_STR_DMG*MULT_STATS
+    modded.arm += _str * ATT_STR_AV*MULT_STATS
     modded.gra += _str * ATT_STR_GRA*MULT_STATS
     modded.encmax += _str * ATT_STR_ENCMAX
     modded.scary += _str * ATT_STR_SCARY
+    modded.trng += _str * ATT_STR_TRNG
     
     # Agility
-    _agi = modded.agi/MULT_ATT
+    _agi = modded.agi//MULT_ATT
     modded.dfn += _agi * ATT_AGI_DV*MULT_STATS
     modded.pro += _agi * ATT_AGI_PRO*MULT_STATS
     modded.bal += _agi * ATT_AGI_BAL*MULT_STATS
     modded.msp += _agi * ATT_AGI_MSP
-##    modded.asp += _agi * ATT_AGI_ASP # Melee only! (TODO!)
+    modded.asp += _agi * ATT_AGI_ASP
     
     # Dexterity
-    _dex = modded.dex/MULT_ATT
+    _dex = modded.dex//MULT_ATT
     modded.pen += _dex * ATT_DEX_PEN*MULT_STATS
     modded.atk += _dex * ATT_DEX_ATK*MULT_STATS
-    modded.asp += _dex * ATT_DEX_SPEED
+    modded.rpen += _dex * ATT_DEX_RPEN*MULT_STATS
+    modded.ratk += _dex * ATT_DEX_RATK*MULT_STATS
+    modded.asp += _dex * ATT_DEX_ASP
+    modded.rasp += _dex * ATT_DEX_RASP
+    modded.maxrng += _dex * ATT_DEX_RNG
     # TODO: context-sensitive dex bonuses (crafting, any tasks with hands...) (Not in this function of course!!!!)
     
     # Endurance
-    _end = modded.end/MULT_ATT
+    _end = modded.end//MULT_ATT
     modded.hpmax += _end * ATT_END_HP
     modded.mpmax += _end * ATT_END_SP
     modded.mpregen += _end * ATT_END_SPREGEN*MULT_STATS
@@ -1611,15 +1641,16 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded.resbleed += _end * ATT_END_RESBLEED
     
     # Intelligence
-    _int = modded.int/MULT_ATT
+    _int = modded.int//MULT_ATT
     
     # Constitution
-    _con = modded.con/MULT_ATT
+    _con = modded.con//MULT_ATT
     modded.arm += _con * ATT_CON_AV*MULT_STATS
     modded.hpmax += _con * ATT_CON_HP
     modded.encmax += _con * ATT_CON_ENCMAX
     modded.reselec += _con * ATT_CON_RESELEC
     modded.resbleed += _con * ATT_CON_RESBLEED
+    modded.respain += _con * ATT_CON_RESPAIN
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -1627,12 +1658,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     #       FINAL        MULTIPLIERS       BEGIN       HERE         #
     #---------------------------------------------------------------#
 
-#~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-        #   bad multiplier statuses  #
-        #----------------------------#
-
-    # should some of these statuses be moved up to before
-    # gear bonuses are applied?
+    # sick
+    if world.has_component(ent, cmp.StatusSick):
+        modded.respain = modded.respain + SICK_RESPAINMOD  
     
     # hot
     if world.has_component(ent, cmp.StatusHot):
@@ -1643,19 +1671,16 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.spd      = modded.spd        * FROZEN_SPDMOD
         modded.mpregen  = modded.mpregen    * FROZEN_SPREGENMOD
         modded.mp       = modded.mp         * FROZEN_STAMMOD
-        modded.int      = modded.int        * FROZEN_INTMOD
     # cold
     elif world.has_component(ent, cmp.StatusCold):
         modded.spd      = modded.spd        * COLD_SPDMOD
         modded.mpregen  = modded.mpregen    * COLD_SPREGENMOD
         modded.mpmax    = modded.mpmax      * COLD_STAMMOD
-        modded.int      = modded.int        * COLD_INTMOD
     # chilly
     elif world.has_component(ent, cmp.StatusChilly):
         modded.spd      = modded.spd        * CHILLY_SPDMOD
         modded.mpregen  = modded.mpregen    * CHILLY_SPREGENMOD
         modded.mpmax    = modded.mpmax      * CHILLY_STAMMOD
-        modded.int      = modded.int        * CHILLY_INTMOD
     
     # blind
     if world.has_component(ent, cmp.StatusBlind):
@@ -1665,22 +1690,32 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.hearing = modded.hearing * DEAF_HEARINGMOD
     # Disoriented
     if world.has_component(ent, cmp.StatusDisoriented):
-        modded.sight    = modded.sight      * DISORIENTED_SIGHTMOD
-        modded.hearing  = modded.hearing    * DISORIENTED_HEARINGMOD
-        
+        modded.sight    = modded.sight      * DISOR_SIGHTMOD
+        modded.hearing  = modded.hearing    * DISOR_HEARINGMOD
+    # hazy
+    if world.has_component(ent, cmp.StatusHazy):
+        modded.respain  = modded.respain    * HAZY_RESPAIN
+        modded.hearing  = modded.hearing    * HAZY_SPREGENMOD
+        modded.sight    = modded.sight      * HAZY_SIGHTMOD
+    
     # irritated
     if world.has_component(ent, cmp.StatusIrritated):
-        modded.sight    = modded.sight      * IRRITATED_SIGHTMOD
-        modded.hearing  = modded.hearing    * IRRITATED_HEARINGMOD
-        modded.respain  = modded.respain    * IRRITATED_RESPAINMOD
-        modded.resbleed = modded.resbleed   + IRRITATED_RESBLEED
-        modded.atk      = modded.atk        + IRRITATED_ATK
+        modded.sight    = modded.sight      * IRRIT_SIGHTMOD
+        modded.hearing  = modded.hearing    * IRRIT_HEARINGMOD
+        modded.respain  = modded.respain    + IRRIT_RESPAIN
+        modded.resbleed = modded.resbleed   + IRRIT_RESBLEED
+        modded.atk      = modded.atk        + IRRIT_ATK
+        modded.dfn      = modded.dfn        + IRRIT_DFN
+    # cough
+    if world.has_component(ent, cmp.StatusCough):
+        modded.atk = modded.atk + COUGH_ATK
+        modded.dfn = modded.dfn + COUGH_DFN
         
     # paralyzed
     if world.has_component(ent, cmp.StatusParalyzed):
-        modded.spd = modded.spd * PARALYZED_SPDMOD
-        modded.atk = modded.atk + PARALYZED_ATK
-        modded.dfn = modded.dfn + PARALYZED_DFN
+        modded.spd = modded.spd * PARAL_SPDMOD
+        modded.atk = modded.atk + PARAL_ATK
+        modded.dfn = modded.dfn + PARAL_DFN
         
     # slow
     if world.has_component(ent, cmp.StatusSlow):
@@ -1698,6 +1733,29 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # sprint
     if world.has_component(ent, cmp.StatusSprint):
         modded.msp = modded.msp * SPRINT_MSPMOD
+        
+    # hungry
+    if world.has_component(ent, cmp.StatusHungry):
+        modded.mpregen = modded.mpregen * HUNGRY_SPREGENMOD
+    # emaciated
+    elif world.has_component(ent, cmp.StatusEmaciated):
+        modded.mpregen = modded.mpregen * EMACI_SPREGENMOD
+    # dehydrated
+    if world.has_component(ent, cmp.StatusDehydrated):
+        modded.resfire = modded.resfire + DEHYD_RESFIRE
+        modded.respain = modded.respain + DEHYD_RESPAIN
+        modded.mpregen = modded.mpregen * DEHYD_SPREGENMOD
+    # tired
+    if world.has_component(ent, cmp.StatusTired):
+        modded.sight = modded.sight * TIRED_SIGHTMOD
+        modded.mpregen = modded.mpregen * TIRED_SPREGENMOD
+    # Full
+    if world.has_component(ent, cmp.StatusFull):
+        modded.mpregen = modded.mpregen * FULL_SPREGENMOD
+    
+    # quality statuses #
+    # have variable magnitude
+        
     # drunk
     if world.has_component(ent, cmp.StatusDrunk):
         compo = world.component_for_entity(ent, cmp.StatusDrunk)
@@ -1706,8 +1764,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusOffBalance):
         compo = world.component_for_entity(ent, cmp.StatusOffBalance)
         modded.bal = modded.bal - compo.quality
-        
-
+    
+    
+    
 #~~~~~~~#--------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # encumberance - stat mods #
         #--------------------------#
@@ -1861,13 +1920,14 @@ def get_status(ent, statusCompo):
         return Rogue.world.component_for_entity(ent, statusCompo)
     else:
         return None
-def set_status(ent, status, t=-1):
+def set_status(ent, status, t=-1, q=None):
     '''
         # ent       = Thing object to set the status for
         # status    = status class (not an object instance)
         # t         = duration (-1 is the default duration for that status)
+        # q         = quality (for specific statuses)
     '''
-    proc.Status.add(ent, status, t)
+    proc.Status.add(ent, status, t, q)
 ##def set_status_args(ent, status, *args): we might need this....?
 ##    '''
 ##        # ent       = Thing object to set the status for

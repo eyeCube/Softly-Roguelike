@@ -112,14 +112,15 @@ class Meters:
 ##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity. Dirtiness can be a component or something...
 class Stats: #base stats
     def __init__(self, hp=1,mp=1, mpregen=1, mass=1,
-                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,#_vit=0,_cha=0,
+                 _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
                  respain=100,resbleed=100,reslight=100,ressound=100,
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
-                 spd=0,asp=0,msp=0,gra=0,ctr=0,bal=0,
-                 encmax=0,sight=0,hearing=0,#force=0,
-                 courage=0,scary=0,beauty=0,
+                 ratk=0,rdmg=0,rpen=0,minrng=0,maxrng=0,trng=0,
+                 gra=0,ctr=0,bal=0,spd=0,asp=0,msp=0,rasp=0,
+                 encmax=0,sight=0,hearing=0,
+                 courage=0,scary=0,beauty=0
                  ):
         # attributes
         self.str=int(_str)           
@@ -151,18 +152,25 @@ class Stats: #base stats
         self.mpregen=mpregen        # regeneration rate, MULT_STATS
         self.encmax=int(encmax)     # encumberance maximum
         self.enc=0                  # encumberance
-        self.atk=int(atk)    #Attack -- accuracy
-        self.dmg=int(dmg)    #Damage, physical (melee)
-        self.pen=int(pen)    #Penetration
-        self.dfn=int(dfn)    #Defense -- DV (dodge value)
-        self.arm=int(arm)    #Armor -- AV (armor value)
-        self.pro=int(pro)    #Protection
-        self.spd=int(spd)    #Speed -- AP gained per turn
-        self.asp=int(asp)    #Attack speed (affects AP cost of attacking)
-        self.msp=int(msp)    #Move speed (affects AP cost of moving)
-        self.gra=int(gra)    #Grappling (wrestling)
-        self.ctr=int(ctr)    #Counter-attack chance
-        self.bal=int(bal)    #Maximum Balance
+        self.spd=int(spd)    # Speed -- AP gained per turn
+        self.asp=int(asp)    # Attack Speed (affects AP cost of attacking)
+        self.msp=int(msp)    # Move Speed (affects AP cost of moving)
+        self.rasp=int(rasp)  # Ranged Attack Speed
+        self.atk=int(atk)    # Attack -- accuracy
+        self.dmg=int(dmg)    # Damage, physical (melee)
+        self.pen=int(pen)    # Penetration
+        self.ratk=int(ratk)  # Ranged Attack -- accuracy
+        self.rdmg=int(rdmg)  # Ranged Damage, physical (melee)
+        self.rpen=int(rpen)  # Ranged Penetration
+        self.minrng=int(minrng) # Ranged attack minimum range
+        self.maxrng=int(maxrng) # Ranged attack maximum range
+        self.trng=int(trng)  # Throwing Range
+        self.dfn=int(dfn)    # Defense -- DV (dodge value)
+        self.arm=int(arm)    # Armor -- AV (armor value)
+        self.pro=int(pro)    # Protection
+        self.gra=int(gra)    # Grappling (wrestling)
+        self.ctr=int(ctr)    # Counter-attack chance
+        self.bal=int(bal)    # Maximum Balance
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
         self.scary=int(scary) # intimidation / scariness
@@ -929,7 +937,7 @@ class Shootable:
     __slots__=['ammoTypes','atk','dmg','pen','asp','rng','minrng','ammo','capacity','reloadTime','failChance','skill','func']
     def __init__(self, aTypes,atk=0,dmg=0,pen=0,asp=0,rng=0,minrng=0,aMax=0,rTime=0,jam=0,skill=None,func=None):
         self.ammoTypes=aTypes # *set* of ammo types that can be used
-        self.atk=atk        #Attack -- accuracy
+        self.atk=atk        #Attack -- accuracy added on to Atk stat
         self.dmg=dmg        #damage (ranged) - physical by default (ElementalDamage component affects elemental damage...)
         self.pen=pen        #Penetration
         self.asp=asp        #Attack speed for shooting: different from melee
@@ -1475,6 +1483,10 @@ class StatusEmaciated: # starving famished starved emaciated
     __slots__=['timer']
     def __init__(self, t=64):
         self.timer=t
+class StatusHungry: # 
+    __slots__=['timer']
+    def __init__(self, t=64):
+        self.timer=t
 class StatusDehydrated: # dehydrated
     __slots__=['timer']
     def __init__(self, t=8):
@@ -1495,17 +1507,17 @@ class StatusFull: # overeat
 # quality statuses
 class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
     __slots__=['timer','quality']
-    def __init__(self, t=128, q=1):
+    def __init__(self, t=128, q=-1): # negative quality means you lose blood not gain blood per turn
         self.timer=t
-        self.quality=q # g of blood you lose per turn (1==minor, 15==major arterial bleeding)
+        self.quality=q # g of blood you lose per turn (-1==minor, -15==major arterial bleeding)
 class StatusOffBalance: # off-balance or staggered temporarily
     __slots__=['timer','quality']
-    def __init__(self, t=4, q=1):
+    def __init__(self, t=4, q=-1):
         self.timer=t
         self.quality=q # how much balance you lost
 class StatusDrunk: # balance --
     __slots__=['timer','quality']
-    def __init__(self, t=1920, q=1):
+    def __init__(self, t=960, q=-1):
         self.timer=t
         self.quality=q # how much balance you lost
 #
@@ -1552,6 +1564,7 @@ STATUSES={ # dict of statuses that have a timer
     StatusAcid      : 'corroding',
     StatusBlind     : 'blinded',
     StatusDeaf      : 'deafened',
+    StatusDisoriented:'disoriented',
     StatusIrritated : 'irritated',
     StatusPain      : 'overwhelmed by pain',
     StatusParalyzed : 'paralyzed',
@@ -1559,6 +1572,8 @@ STATUSES={ # dict of statuses that have a timer
     StatusVomit     : 'nauseous',
     StatusCough     : 'coughing fit',
     StatusSprint    : 'sprinting',
+    StatusJog       : 'jogging',
+    StatusRun       : 'running',
     StatusFrightening:'intimidating',
     StatusPanic     : 'panicking',
     StatusHaste     : 'hyper',
@@ -1567,15 +1582,15 @@ STATUSES={ # dict of statuses that have a timer
     StatusHazy      : 'hazy',
     StatusSweat     : 'sweating',
     StatusShiver    : 'shivering',
+    StatusHungry    : 'hungry',
     StatusEmaciated : 'emaciated',
     StatusDehydrated: 'dehydrated',
     StatusTired     : 'sleepy',
+    StatusOffBalance: 'staggered',
     StatusFull      : 'full (overeating)',
 ##    StatusBleed, # removed b/c it has quality
     }
 ##StatusDigest
-
-#ssh-keygen
 
 TOOLS={
 Tool_Cut                : 'cut',
@@ -1641,6 +1656,59 @@ Tool_Drillbit_f         : 'drillbit type f',
 
 
 
+
+##STATUS_MODS={
+##    #status compo   : (addMods, mulMods,)
+##    StatusHot       : ({},{'mpregen':HOT_SPREGENMOD,},),
+##    StatusBurn      : {},
+##    StatusChilly    : ({},{
+##        'int':CHILLY_INTMOD,'mpregen':CHILLY_SPREGENMOD,
+##        'mpmax':CHILLY_STAMMOD,'spd':CHILLY_SPDMOD,},),
+##    StatusCold      : ({},{
+##        'int':COLD_INTMOD,'mpregen':COLD_SPREGENMOD,
+##        'mpmax':COLD_STAMMOD,'spd':COLD_SPDMOD,},),
+##    StatusAcid      : ({},{},),
+##    StatusBlind     : ({},{'sight':BLIND_SIGHTMOD,},),
+##    StatusDeaf      : ({},{'hearing':DEAF_HEARINGMOD,},),
+##    StatusDisoriented:({'bal':DISOR_BAL*MULT_STATS,},
+##        {'sight':DISOR_SIGHTMOD,'hearing':DISOR_HEARINGMOD,},),
+##    StatusIrritated : (
+##        {'atk':IRRIT_ATK*MULT_STATS,'resbleed':IRRIT_RESBLEED*MULT_STATS,},
+##        {'sight':IRRIT_SIGHTMOD,'hearing':IRRIT_HEARINGMOD,
+##        'respain':IRRIT_RESPAINMOD,},),
+##    StatusParalyzed : (
+##        {'atk':PARAL_ATK*MULT_STATS,'dfn':PARAL_DFN*MULT_STATS,},
+##        {'spd':PARAL_SPDMOD},),
+##    StatusPain      : ({},{},), # these mods affect attributes so are handled separately
+##    StatusSick      : ({},{},), # ""
+##    StatusVomit     : ({},{},),
+##    StatusCough     : (
+##        {'atk':COUGH_ATK*MULT_STATS,'dfn':COUGH_DFN*MULT_STATS},{},),
+##    StatusJog       : ({},{'msp':JOG_MSPMOD},),
+##    StatusRun       : ({},{'msp':RUN_MSPMOD},),
+##    StatusSprint    : ({},{'msp':SPRINT_MSPMOD},),
+##    StatusFrightening:({},{},),
+##    StatusPanic     : ({},{},),
+##    StatusHaste     : ({},{'spd':HASTE_SPDMOD,},),
+##    StatusSlow      : ({},{'spd':SLOW_SPDMOD,},),
+##    StatusHazy      : ({'respain':HAZY_RESPAIN,},
+##        {'mpregen':HAZY_SPREGENMOD,'sight':HAZY_SIGHTMOD,
+##         'int':HAZY_INTMOD,},),
+##    StatusSweat     : ({},{},),
+##    StatusShiver    : ({},{},),
+##    StatusHungry    : ({},
+##        {'mpregen':HUNGRY_SPREGENMOD,'con':HUNGRY_CONMOD,'end':HUNGRY_ENDMOD},),
+##    StatusEmaciated : ({},
+##        {'mpregen':EMACI_SPREGENMOD,'con':EMACI_CONMOD,'end':EMACI_ENDMOD},),
+##    StatusDehydrated: ({'resfire':DEHYD_RESFIRE,'respain':DEHYD_RESPAIN,},
+##        {'mpregen':DEHYD_SPREGENMOD,},),
+##    StatusTired     : ({},
+##        {'mpregen':TIRED_SPREGENMOD,'sight':TIRED_SIGHTMOD,
+##         'int':TIRED_INTMOD,},),
+##    StatusFull      : ({},{'mpregen':FULL_SPREGENMOD},),
+##    StatusDrunk     : ({'bal':QUALITYMODF,},{},),
+##    StatusOffBalance: ({'bal':QUALITYMODF,},{},),
+##    }
 
 ##    __slots__=[ # not using slots so that we are able to iterate through stats
 ##        'str','con','int',

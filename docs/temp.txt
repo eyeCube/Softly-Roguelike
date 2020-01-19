@@ -1,0 +1,74 @@
+    
+    # hot
+    if world.has_component(ent, cmp.StatusHot):
+        modded.mpregen  = modded.mpregen * HOT_SPREGENMOD
+    
+    # frozen
+    if world.has_component(ent, cmp.StatusFrozen):
+        modded.spd      = modded.spd        * FROZEN_SPDMOD
+        modded.mpregen  = modded.mpregen    * FROZEN_SPREGENMOD
+        modded.mp       = modded.mp         * FROZEN_STAMMOD
+        modded.int      = modded.int        * FROZEN_INTMOD
+    # cold
+    elif world.has_component(ent, cmp.StatusCold):
+        modded.spd      = modded.spd        * COLD_SPDMOD
+        modded.mpregen  = modded.mpregen    * COLD_SPREGENMOD
+        modded.mpmax    = modded.mpmax      * COLD_STAMMOD
+        modded.int      = modded.int        * COLD_INTMOD
+    # chilly
+    elif world.has_component(ent, cmp.StatusChilly):
+        modded.spd      = modded.spd        * CHILLY_SPDMOD
+        modded.mpregen  = modded.mpregen    * CHILLY_SPREGENMOD
+        modded.mpmax    = modded.mpmax      * CHILLY_STAMMOD
+        modded.int      = modded.int        * CHILLY_INTMOD
+    
+    # blind
+    if world.has_component(ent, cmp.StatusBlind):
+        modded.sight = modded.sight * BLIND_SIGHTMOD
+    # deaf
+    if world.has_component(ent, cmp.StatusDeaf):
+        modded.hearing = modded.hearing * DEAF_HEARINGMOD
+    # Disoriented
+    if world.has_component(ent, cmp.StatusDisoriented):
+        modded.sight    = modded.sight      * DISORIENTED_SIGHTMOD
+        modded.hearing  = modded.hearing    * DISORIENTED_HEARINGMOD
+        
+    # irritated
+    if world.has_component(ent, cmp.StatusIrritated):
+        modded.sight    = modded.sight      * IRRITATED_SIGHTMOD
+        modded.hearing  = modded.hearing    * IRRITATED_HEARINGMOD
+        modded.respain  = modded.respain    * IRRITATED_RESPAINMOD
+        modded.resbleed = modded.resbleed   + IRRITATED_RESBLEED
+        modded.atk      = modded.atk        + IRRITATED_ATK
+        
+    # paralyzed
+    if world.has_component(ent, cmp.StatusParalyzed):
+        modded.spd = modded.spd * PARALYZED_SPDMOD
+        modded.atk = modded.atk + PARALYZED_ATK
+        modded.dfn = modded.dfn + PARALYZED_DFN
+        
+    # slow
+    if world.has_component(ent, cmp.StatusSlow):
+        modded.spd = modded.spd * SLOW_SPDMOD 
+    # haste
+    if world.has_component(ent, cmp.StatusHaste):
+        modded.spd = modded.spd * HASTE_SPDMOD
+        
+    # jog
+    if world.has_component(ent, cmp.StatusJog):
+        modded.msp = modded.msp * JOG_MSPMOD
+    # run
+    if world.has_component(ent, cmp.StatusRun):
+        modded.msp = modded.msp * RUN_MSPMOD
+    # sprint
+    if world.has_component(ent, cmp.StatusSprint):
+        modded.msp = modded.msp * SPRINT_MSPMOD
+    # drunk
+    if world.has_component(ent, cmp.StatusDrunk):
+        compo = world.component_for_entity(ent, cmp.StatusDrunk)
+        modded.bal = modded.bal - compo.quality
+    # off-balance staggered
+    if world.has_component(ent, cmp.StatusOffBalance):
+        compo = world.component_for_entity(ent, cmp.StatusOffBalance)
+        modded.bal = modded.bal - compo.quality
+        

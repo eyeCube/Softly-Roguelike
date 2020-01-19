@@ -91,20 +91,29 @@ def main():
     rog.Rogue.create_player(xpos, ypos) # create player
     
     rog.make(rog.pc(), NVISION)
-##    rog.setskill(rog.pc(), SKL_WRESTLING, 25)
-    rog.setskill(rog.pc(), SKL_SWORDS, 36)
+    import components as cmp
+##    rog.set_status(rog.pc(), cmp.StatusCold, 8)
+##    rog.set_status(rog.pc(), cmp.StatusDisoriented)
+##    rog.set_status(rog.pc(), cmp.StatusDrunk, t=1920, q=-4*MULT_STATS)
+    
+    rog.setskill(rog.pc(), SKL_BOXING, 100)
+    rog.setskill(rog.pc(), SKL_SWORDS, 10)
+    rog.setskill(rog.pc(), SKL_ARMOR, 25)
     rog.equip(
         rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
         )
-##    rog.equip(
-##        rog.pc(),rog.create_armor("bone cuirass", 0,0),EQ_FRONT
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_headwear("plastic helm", 0,0),EQ_MAINHEAD
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
-##        )
+    rog.equip(
+        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+        )
+    rog.equip(
+        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+        )
+    rog.equip(
+        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+        )
+    rog.equip(
+        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
+        )
     
     # test body part statuses
 ##    import components as cmp

@@ -566,15 +566,14 @@ def _strike(attkr,dfndr,aweap,dweap,
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
 
-    # change advantage based on weapon length
+    # change advantage based on weapon length (TODO: Test)
     aweaplen = world.component_for_entity(aweap, cmp.Form).length
     dweaplen = world.component_for_entity(dweap, cmp.Form).length
     # give some length from the arm length
-    aweaplen += rog.get_arm_length(abody.height)
-    dweaplen += rog.get_arm_length(dbody.height)
+    aweaplen += rog.get_arm_length(abody.plan, abody.height)
+    dweaplen += rog.get_arm_length(dbody.plan, dbody.height)
     diff=aweaplen - dweaplen
-    if diff!=0:
-        adv += rog.sign(diff) * max(1, int(abs(diff)/LEN_ADVANTAGE_BP))
+    adv += rog.sign(diff) #* max(1, int(abs(diff)/LEN_ADVANTAGE_BP))
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
@@ -756,15 +755,27 @@ def _strike(attkr,dfndr,aweap,dweap,
             elif element == ELEM_COLD:
                 rog.cool(dfndr, elemDmg)
             elif element == ELEM_PAIN:
-                if trueDmg <= 0: # if phys dmg==0, pain is cut in half
+                # reduce pain if damage is low
+                if trueDmg <= 0:
+                    elemDmg = 1
+                elif trueDmg <= 1:
+                    elemDmg = elemDmg // 3
+                elif trueDmg <= 2:
                     elemDmg = elemDmg // 2
+                elif trueDmg <= 3:
+                    elemDmg = elemDmg * 0.75
                 rog.hurt(dfndr, elemDmg)
             elif element == ELEM_BLEED:
                 if trueDmg <= 0: continue   # if phys dmg==0, no bleeding
+                if pens == 0: continue   # if failed to penetrate, ""
+                if pens == 1: # 1 penetration -> half bleed effect
+                    elemDmg = elemDmg // 2
                 rog.bleed(dfndr, elemDmg)
             elif element == ELEM_RUST:
+                if pens == 0: continue   # if failed to penetrate, continue
                 rog.rust(dfndr, elemDmg)
             elif element == ELEM_ROT:
+                if pens == 0: continue   # if failed to penetrate, continue
                 rog.rot(dfndr, elemDmg)
             elif element == ELEM_WET:
                 rog.wet(dfndr, elemDmg)
@@ -792,8 +803,8 @@ def fight(attkr,dfndr,adv=0,power=0):
         
         TODO: implement this!
         # power:    how much force putting in the attack?
-            -1== subpar: use less than adequate force
-            0 == standard: use muscles only in the attacking limb(s)
+            -1== subpar: use less than adequate force (bad leverage)
+            0 == standard: use muscles in the attacking limb(s) / torso
             1 == heavy hit: use muscles in whole body (offensive)
                 *leaves those body parts unable to provide defense
                  until your next turn
@@ -810,11 +821,10 @@ def fight(attkr,dfndr,adv=0,power=0):
     dpos = world.component_for_entity(dfndr, cmp.Position)
     aname=world.component_for_entity(attkr, cmp.Name)
     dname=world.component_for_entity(dfndr, cmp.Name)
-
     # weapons of the combatants
     aweap = rog.dominant_arm(attkr).hand.slot.item
     dweap = rog.dominant_arm(dfndr).hand.slot.item
-
+    
     # ensure you have the proper amount of Stamina
     if aweap:
         equipable = world.component_for_entity(aweap, cmp.EquipableInHandSlot)
@@ -833,7 +843,7 @@ def fight(attkr,dfndr,adv=0,power=0):
     
     # AP cost
     aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
-
+    
     # stamina cost
     rog.sap(attkr, stamina_cost)
                  

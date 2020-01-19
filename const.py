@@ -164,7 +164,6 @@ STATS={
 'mpregen' : 'SPR',
 'encmax' : 'ENCMAX',
 'enc' : 'ENC',
-'force' : 'FOR',
 'atk' : 'ATK',
 'dmg' : 'DMG',
 'pen' : 'PEN',
@@ -174,6 +173,13 @@ STATS={
 'spd' : 'SPD',
 'asp' : 'ASP',
 'msp' : 'MSP',
+'rasp' : 'RASP',
+'ratk' : 'RATK',
+'rpen' : 'RPEN',
+'rdmg' : 'RDMG',
+'minrng' : 'MINRNG',
+'maxrng' : 'MAXRNG',
+'trng' : 'TRNG',
 'gra' : 'GRA',
 'ctr' : 'CTR',
 'bal' : 'BAL',
@@ -181,6 +187,27 @@ STATS={
 'hearing' : 'AUD',
 'scary' : 'IDN',
 'beauty' : 'BEA',
+    }
+
+STATS_TO_MULT={
+'str' : 'STR', #,'strength'),
+'con' : 'CON',
+'int' : 'INT',
+'agi' : 'AGI',
+'dex' : 'DEX',
+'end' : 'END',
+'atk' : 'ATK',
+'dmg' : 'DMG',
+'pen' : 'PEN',
+'dfn' : 'DV',
+'arm' : 'AV',
+'pro' : 'PRO',
+'gra' : 'GRA',
+'ctr' : 'CTR',
+'bal' : 'BAL',
+'ratk' : 'RATK',
+'rpen' : 'RPEN',
+'rdmg' : 'RDMG',
     }
 
 
@@ -394,11 +421,12 @@ BASE_RESSOUND   = 0
 # attributes
 
 # Strength
-ATT_STR_THROW_RNG       = 1 # throwing range bonus
-ATT_STR_DMG             = 0.33334 # melee only (damage from ranged weapons depends on the weapon used)
+ATT_STR_TRNG            = 1 # throwing range bonus
+ATT_STR_DMG             = 0.33334 # 
 ATT_STR_ATK             = 0.15 # 
-ATT_STR_PEN             = 0.2 # melee only (pen from ranged weapons depends on the weapon used)
-ATT_STR_ENCMAX          = 3
+ATT_STR_PEN             = 0.2 # 
+ATT_STR_AV              = 0.15 # armor from strength
+ATT_STR_ENCMAX          = 2
 ATT_STR_FORCE           = 1
 ATT_STR_GRA             = 1
 ATT_STR_SCARY           = 1 # intimidation
@@ -413,9 +441,11 @@ ATT_AGI_ASP             = 5 #melee only (TODO: apply melee-only bonuses during c
 # Dexterity
 ATT_DEX_PEN             = 0.33334
 ATT_DEX_ATK             = 0.5
-ATT_DEX_ATK_RANGED      = 0.25 # extra bonus on top of the regular bonus, only applies to ranged attacks
+ATT_DEX_RATK            = 0.75 # ranged Accuracy bonus
+ATT_DEX_RPEN            = 0.5 # ranged Penetration bonus
 ATT_DEX_RNG             = 1 # range of bows and guns
-ATT_DEX_SPEED           = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
+ATT_DEX_ASP             = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
+ATT_DEX_RASP            = 10 # speed bonus for ranged attacks
 
 # Endurance
 ATT_END_HP              = 0.5
@@ -437,10 +467,11 @@ ATT_INT_IDENTIFY        = 1
 ATT_CON_AUGS            = 0.33334
 ATT_CON_AV              = 0.2
 ATT_CON_HP              = 1.5
-ATT_CON_ENCMAX          = 5 # * MASS_MULT
+ATT_CON_ENCMAX          = 4 # * MASS_MULT
 ATT_CON_RESELEC         = 2
 ATT_CON_RESBIO          = 2
 ATT_CON_RESBLEED        = 2
+ATT_CON_RESPAIN         = 1
 
 
 
@@ -560,7 +591,7 @@ STA_USE             = 1 # default use item cost
 #energy (action potential or AP) cost to perform actions
 NRG_MOVE            = 100   # on default terrain (flat ground) 
 NRG_ATTACK          = 200   
-NRG_BOMB            = 150   
+NRG_BOMB            = 200   
 NRG_PICKUP          = 50    # grab thing and wield it (requires empty hand)
 NRG_POCKET          = 100   # picking up and putting in your inventory
 NRG_RUMMAGE         = 50    # Cost to look at the contents of a container
@@ -589,9 +620,12 @@ STAM_QUICKATTACK    = 1.5
 # ENCUMBERANCE
 
 ENCUMBERANCE_MODIFIERS = {
+# note: encumberance affecting attributes (like Agi) is difficult to
+#   implement and is a recipe for disaster... so it only affects
+#   derived stats here.
 #stat : Encumberance Breakpoint
-#       1       2       3       4       5       6       7       8
-#     ( 5%      12%     25%     50%     75%     87%     95%     100% )
+# BP:   1       2       3       4       5       6       7       8
+#Enc% ( 5%      12%     25%     50%     75%     87%     95%     100% )
 'msp' :(0.99,   0.98,   0.95,   0.9,    0.8,    0.67,   0.33,   0,),
 'asp' :(0.99,   0.98,   0.95,   0.9,    0.82,   0.75,   0.67,   0.6,),
 'atk' :(0.98,   0.96,   0.94,   0.9,    0.8,    0.75,   0.7,    0.6,),
@@ -599,7 +633,6 @@ ENCUMBERANCE_MODIFIERS = {
 'pro' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
 'gra' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
 'bal' :(0.98,   0.95,   0.9,    0.78,   0.6,    0.4,    0.25,   0.1,),
-'agi' :(0.98,   0.95,   0.9,    0.75,   0.56,   0.33,   0.2,    0.1,),
     }
 
 
@@ -719,7 +752,7 @@ BONESTATUS_BROKEN       = i; i+=1; # fully broken in two
 BONESTATUS_MULTIBREAKS  = i; i+=1; # fully broken in multiple places
 BONESTATUS_SHATTERED    = i; i+=1; # shattered; broken into several pieces
 BONESTATUS_MANGLED      = i; i+=1; # mullered; bone is in utter ruin
-NBONESTATUSES           = i - 1;
+NBONESTATUSES           = i - 1; # don't count the normal status
 
 i=0;
 MUSCLESTATUS_NORMAL     = i; i+=1;
@@ -733,7 +766,7 @@ MUSCLESTATUS_RIPPED     = i; i+=1; # muscle is mostly ripped in half
 MUSCLESTATUS_DEEPBURNED = i; i+=1; # deep / widespread muscle burn
 MUSCLESTATUS_RUPTURED   = i; i+=1; # ruptured tendon or fully ripped in half muscle belly
 MUSCLESTATUS_MANGLED    = i; i+=1; # muscle is in utter ruin
-NMUSCLESTATUSES         = i - 1;
+NMUSCLESTATUSES         = i - 1; # don't count the normal status
 
 i=0;
 ARTERYSTATUS_NORMAL     = i; i+=1;
@@ -741,7 +774,7 @@ ARTERYSTATUS_CLOGGED    = i; i+=1; # clogged, not working at full capacity
 ARTERYSTATUS_OPEN       = i; i+=1; # artery opened, causing massive bleeding
 ARTERYSTATUS_CUT        = i; i+=1; # fully cut, requiring urgent surgery
 ARTERYSTATUS_MANGLED    = i; i+=1; # fully ruined
-NARTERYSTATUSES         = i - 1;
+NARTERYSTATUSES         = i - 1; # don't count the normal status
 
 i=0;
 SKINSTATUS_NORMAL       = i; i+=1;
@@ -757,7 +790,7 @@ SKINSTATUS_SKINNED      = i; i+=1; # skin is partially removed
 SKINSTATUS_DEEPBURNED   = i; i+=1; # skin is burned at a deep level (overwrite all of the above)
 SKINSTATUS_FULLYSKINNED = i; i+=1; # skin is fully / almost fully removed
 SKINSTATUS_MANGLED      = i; i+=1; # skin is fully ruined
-NSKINSTATUSES           = i - 1;
+NSKINSTATUSES           = i - 1; # don't count the normal status
 
 i=0;
 BRAINSTATUS_NORMAL      = i; i+=1; # swelling brain is a status effect, not a brain status
@@ -768,7 +801,7 @@ BRAINSTATUS_PERMDAMAGE  = i; i+=1; # permanent brain damage
 BRAINSTATUS_MAJORDAMAGE = i; i+=1; # MAJOR permanent brain damage
 BRAINSTATUS_DEAD        = i; i+=1; # braindead
 BRAINSTATUS_MANGLED     = i; i+=1; # ruined
-NBRAINSTATUSES          = i - 1;
+NBRAINSTATUSES          = i - 1; # don't count the normal status
 
 i=0;
 HAIRSTATUS_NORMAL       = i; i+=1;
@@ -778,7 +811,7 @@ HAIRSTATUS_DAMAGE       = i; i+=1; # minor damage to hair
 HAIRSTATUS_PERMDAMAGE   = i; i+=1; # permanent follicle damage
 HAIRSTATUS_MANGLED      = i; i+=1; # ruined
 # removed hair == no hair (status==NORMAL and length==0)
-NHAIRSTATUSES           = i - 1;
+NHAIRSTATUSES           = i - 1; # don't count the normal status
 
 i=0;
 HEARTSTATUS_NORMAL      = i; i+=1;
@@ -787,7 +820,7 @@ HEARTSTATUS_DAMAGE      = i; i+=1; # temporary damage
 HEARTSTATUS_PERMDAMAGE  = i; i+=1; # permanent damage
 HEARTSTATUS_MAJORDAMAGE = i; i+=1; # major permanent damage
 HEARTSTATUS_MANGLED     = i; i+=1; # ruined
-NHEARTSTATUSES          = i - 1;
+NHEARTSTATUSES          = i - 1; # don't count the normal status
 
 i=0;
 LUNGSTATUS_NORMAL       = i; i+=1;
@@ -797,7 +830,7 @@ LUNGSTATUS_DAMAGE       = i; i+=1; # temporary damage
 LUNGSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
 LUNGSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
 LUNGSTATUS_MANGLED      = i; i+=1; # ruined
-NLUNGSTATUSES           = i - 1;
+NLUNGSTATUSES           = i - 1; # don't count the normal status
 
 i=0;
 GUTSSTATUS_NORMAL       = i; i+=1;
@@ -808,7 +841,7 @@ GUTSSTATUS_DAMAGE       = i; i+=1; # temporary damage
 GUTSSTATUS_PERMDAMAGE   = i; i+=1; # permanent damage
 GUTSSTATUS_MAJORDAMAGE  = i; i+=1; # major permanent damage
 GUTSSTATUS_MANGLED      = i; i+=1; # ruined
-NGUTSSTATUSES           = i - 1;
+NGUTSSTATUSES           = i - 1; # don't count the normal status
 
 # string names for body part statuses
 
@@ -896,6 +929,8 @@ GUTSSTATUS_MANGLED      : "mutilated",
 
 
     # Penalties for BPP statuses #
+
+    # TODO: implement MANGLED status for all BPPs of all kinds
 
 # skin
 ADDMODS_BPP_SKINSTATUS = { # stat : value
@@ -1064,6 +1099,40 @@ BRAINSTATUS_MANGLED     :{'int':0.1,'bal':0.1,'sight':0.1,'hearing':0.1,'mpmax':
 BRAINSTATUS_DEAD        :{'int':0,'bal':0,'sight':0,'hearing':0,'mpmax':0.1,},
     }
 
+# hand
+# Hand is more sensitive than most BPs, and adds dex penalty for damage.
+# Less resbleed penalty as result of less blood in extremities.
+# Hand skin damage -> double resbio penalty than normal.
+ADDMODS_BPP_HAND_SKINSTATUS = { # stat : value
+SKINSTATUS_RASH         :{'resbio':-2, 'respain':-4, 'resbleed':-1, 'resfire':-1,},
+SKINSTATUS_SCRAPED      :{'resbio':-4, 'respain':-6, 'resbleed':-1, 'resfire':-1,},
+SKINSTATUS_MINORABRASION:{'resbio':-6, 'respain':-10, 'resbleed':-2, 'resfire':-2,},
+SKINSTATUS_CUT          :{'resbio':-12, 'respain':-10, 'resbleed':-3, 'resfire':-2,},
+SKINSTATUS_MAJORABRASION:{'dex':-1,'resbio':-12, 'respain':-20,'resbleed':-3, 'resfire':-3,},
+SKINSTATUS_BURNED       :{'dex':-1,'resbio':-12, 'respain':-20,'resbleed':-3, 'resfire':-6,},
+SKINSTATUS_DEEPCUT      :{'dex':-2,'resbio':-24,'respain':-20,'resbleed':-4, 'resfire':-6,},
+SKINSTATUS_SKINNED      :{'dex':-2,'resbio':-30,'respain':-30,'resbleed':-5,'resfire':-10,},
+SKINSTATUS_DEEPBURNED   :{'dex':-3,'resbio':-36,'respain':-30,'resbleed':-5,'resfire':-20,},
+SKINSTATUS_FULLYSKINNED :{'dex':-3,'resbio':-40,'respain':-40,'resbleed':-7,'resfire':-20,},
+    }
+ADDMODS_BPP_HAND_BONESTATUS = { # stat : value
+BONESTATUS_FRACTURED    :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
+BONESTATUS_CRACKED      :{'dex':-2,'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
+BONESTATUS_BROKEN       :{'dex':-3,'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
+BONESTATUS_MULTIBREAKS  :{'dex':-4,'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
+BONESTATUS_SHATTERED    :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-40,},
+    }
+ADDMODS_BPP_HAND_MUSCLESTATUS = { # stat : value
+MUSCLESTATUS_SORE       :{'respain':-1,},
+MUSCLESTATUS_KNOTTED    :{'asp':-3,'respain':-3,},
+MUSCLESTATUS_CONTUSION  :{'asp':-3,'respain':-3,'resbleed':-2,},
+MUSCLESTATUS_STRAINED   :{'dex':-1,'atk':-1,'dfn':-1,'asp':-5,'gra':-1,'respain':-5,'resbleed':-1,},
+MUSCLESTATUS_TORN       :{'dex':-2,'atk':-2,'dfn':-2,'asp':-10,'gra':-2,'respain':-10,'resbleed':-3,},
+MUSCLESTATUS_RIPPED     :{'dex':-3,'atk':-3,'dfn':-3,'asp':-15,'gra':-3,'respain':-20,'resbleed':-5,},
+MUSCLESTATUS_RUPTURED   :{'dex':-4,'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'respain':-30,'resbleed':-7,},
+MUSCLESTATUS_MANGLED    :{'dex':-5,'atk':-5,'dfn':-5,'asp':-25,'gra':-5,'respain':-40,'resbleed':-9,},
+    }
+
 # arm
 ADDMODS_BPP_ARM_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
@@ -1092,10 +1161,10 @@ BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
-BONESTATUS_FRACTURED    :{'bal':0.9,},
+BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.96,},
 BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333333,},
-BONESTATUS_BROKEN       :{'bal':0.6666667,'msp':0.6666667,},
-BONESTATUS_MULTIBREAKS  :{'bal':0.5,'msp':0.5,},
+BONESTATUS_BROKEN       :{'bal':0.6,'msp':0.6666667,},
+BONESTATUS_MULTIBREAKS  :{'bal':0.4,'msp':0.5,},
 BONESTATUS_SHATTERED    :{'bal':0.3333333,'msp':0.4,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
@@ -1156,6 +1225,8 @@ MUSCLESTATUSES_ABRASION=(
 
 #STATUSES
 
+QUALITYMODF=-1     # flag indicates to use component quality variable instead of constant modifier
+
 # is this a good place to put this?
 # TODO: do this for all relevant statuses, apply them when status activated and remove them when deactivated
 STATUS_STARVING_MULTMODS={'str':0.5,'end':0.5,}
@@ -1215,7 +1286,7 @@ BIO_METERLOSS   = 1     # sickness points lost per turn
 SICK_STRMOD     = 0.9
 SICK_ENDMOD     = 0.9
 SICK_CONMOD     = 0.9
-SICK_RESPAINMOD = -50
+SICK_RESPAIN    = -50
 
 # chem (exposure)
 CHEM_METERLOSS  = 2     # exposure points lost per turn
@@ -1227,31 +1298,33 @@ ACID_HURT       = 2
 ACID_DAMAGE     = 1.0
 
 # irritation
-IRRITATED_ATK       = -4
-IRRITATED_RESBLEED  = -10
-IRRITATED_SIGHTMOD  = 0.75
-IRRITATED_HEARINGMOD= 0.75
-IRRITATED_RESPAINMOD= 0.75
+IRRIT_ATK       = -4
+IRRIT_DFN       = -6
+IRRIT_RESBLEED  = -10
+IRRIT_RESPAIN   = -25
+IRRIT_SIGHTMOD  = 0.75
+IRRIT_HEARINGMOD= 0.75
 
 # paralysis
-PARALYZED_ROLLSAVE  = 10    #affects chance to undo paralysis
-PARALYZED_SPDMOD    = 0.1
-PARALYZED_ATK       = -15
-PARALYZED_DFN       = -15
+PARAL_ROLLSAVE  = 10    #affects chance to undo paralysis
+PARAL_SPDMOD    = 0.1
+PARAL_ATK       = -15
+PARAL_DFN       = -15
 
 # cough
 COUGH_CHANCE    = 33
-COUGH_ATKMOD    = -10
-COUGH_DFNMOD    = -10
+COUGH_ATK       = -2
+COUGH_DFN       = -4
 
 # vomit
 VOMIT_CHANCE    = 10
 
 # blind
-BLIND_SIGHTMOD = 0.1 # multiplier
-DEAF_HEARINGMOD = 0.04 # multiplier
-DISORIENTED_SIGHTMOD = 0.3333333
-DISORIENTED_HEARINGMOD = 0.3333333
+BLIND_SIGHTMOD = 0.2 # multiplier
+DEAF_HEARINGMOD = 0.1 # multiplier
+DISOR_SIGHTMOD = 0.666666667
+DISOR_HEARINGMOD = 0.666666667
+DISOR_BAL       = -5
 
 # pain
 PAIN_METERLOSS = 1
@@ -1279,6 +1352,35 @@ SPRINT_MSPMOD       = 4.0   # move speed modifier when you sprint
 
 # drunk
 DRUNK_BALMOD        = 0.5
+
+# hazy
+HAZY_SIGHTMOD       = 0.75
+HAZY_RESPAIN        = -20
+HAZY_SPREGENMOD     = 0.83
+HAZY_INTMOD         = 0.75
+
+# full
+FULL_SPREGENMOD     = 0.8
+
+# tired
+TIRED_SPREGENMOD    = 0.8
+TIRED_SIGHTMOD      = 0.75
+TIRED_INTMOD        = 0.9
+
+# hungry
+HUNGRY_SPREGENMOD   = 0.5
+HUNGRY_ENDMOD       = 0.75
+HUNGRY_CONMOD       = 0.75
+
+# emaciated
+EMACI_SPREGENMOD    = 0.25
+EMACI_ENDMOD        = 0.5
+EMACI_CONMOD        = 0.5
+
+# dehydrated
+DEHYD_SPREGENMOD    = 0.5
+DEHYD_RESFIRE       = -25
+DEHYD_RESPAIN       = -25
 
 # trauma
 #
@@ -1973,8 +2075,8 @@ DEFAULT_SKLMOD_PEN   = 0.25
 DEFAULT_SKLMOD_PRO   = 0.15
 DEFAULT_SKLMOD_DMG   = 0.25
 DEFAULT_SKLMOD_ARM   = 0.1
-DEFAULT_SKLMOD_ASP   = 3
-DEFAULT_SKLMOD_GRA   = 0.1
+DEFAULT_SKLMOD_ASP   = 2
+DEFAULT_SKLMOD_GRA   = 0.25
 DEFAULT_SKLMOD_CTR   = 0.1
 DEFAULT_SKLMOD_ENC   = 1
 
@@ -1982,11 +2084,37 @@ SKLMOD_ATK   = {
     SKL_WRESTLING   : DEFAULT_SKLMOD_ATK*0.2,
     SKL_BOXING      : DEFAULT_SKLMOD_ATK*0.6,
     SKL_SHIELDS     : DEFAULT_SKLMOD_ATK*0.333334,
-    SKL_SLINGS      : DEFAULT_SKLMOD_ATK*1.5, # slings have very low Atk by default, but highly skilled users can make up for this
+    SKL_BULLWHIPS   : DEFAULT_SKLMOD_ATK*1.25,
+    SKL_SLINGS      : 0,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : 0,
+    SKL_CANNONS     : 0,
+    SKL_PISTOLS     : 0,
+    SKL_RIFLES      : 0,
+    SKL_SHOTGUNS    : 0,
+    SKL_SMGS        : 0,
+    SKL_MACHINEGUNS : 0,
+    SKL_HEAVY       : 0,
+    SKL_ENERGY      : 0,
     }
+
+##SKLMOD_RATK={ # ranged accuracy
+##    SKL_SLINGS      : DEFAULT_SKLMOD_RATK*1.5,
+##    SKL_BOWS        : DEFAULT_SKLMOD_RATK*1.25,
+##    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RATK*1.1,
+##    SKL_CANNONS     : DEFAULT_SKLMOD_RATK*0.5,
+##    SKL_PISTOLS     : DEFAULT_SKLMOD_RATK*1.1,
+##    SKL_RIFLES      : DEFAULT_SKLMOD_RATK*1.5,
+##    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RATK*0.5,
+##    SKL_SMGS        : DEFAULT_SKLMOD_RATK*0.75,
+##    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RATK*1,
+##    SKL_HEAVY       : DEFAULT_SKLMOD_RATK*0.666667,
+##    SKL_ENERGY      : DEFAULT_SKLMOD_RATK*0.5,
+##    }
 
 SKLMOD_DFN   = {
     SKL_SWORDS      : DEFAULT_SKLMOD_DFN*1.2,
+    SKL_LONGSWORDS  : DEFAULT_SKLMOD_DFN*1.25,
     SKL_WRESTLING   : DEFAULT_SKLMOD_DFN*0.2,
     SKL_BOXING      : DEFAULT_SKLMOD_DFN*0.666667,
     SKL_SHIELDS     : DEFAULT_SKLMOD_DFN*1.25,
@@ -2008,6 +2136,17 @@ SKLMOD_PEN   = {
     SKL_WRESTLING   : 0,
     SKL_BOXING      : DEFAULT_SKLMOD_PEN*0.5,
     SKL_SHIELDS     : DEFAULT_SKLMOD_PEN*0.25,
+    SKL_SLINGS      : 0,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : 0,
+    SKL_CANNONS     : 0,
+    SKL_PISTOLS     : 0,
+    SKL_RIFLES      : 0,
+    SKL_SHOTGUNS    : 0,
+    SKL_SMGS        : 0,
+    SKL_MACHINEGUNS : 0,
+    SKL_HEAVY       : 0,
+    SKL_ENERGY      : 0,
     }
 
 SKLMOD_PRO   = {
@@ -2027,11 +2166,22 @@ SKLMOD_PRO   = {
     SKL_SLINGS      : DEFAULT_SKLMOD_PRO*0.05,
     }
 
-SKLMOD_DMG   = { #2-handed weapons get bonus from strength
+SKLMOD_DMG   = {
+    # note 2-handed weapons get primary dmg bonus from str, not skill
     SKL_WRESTLING   : DEFAULT_SKLMOD_DMG*0.1,
     SKL_BOXING      : DEFAULT_SKLMOD_DMG*0.5,
     SKL_BULLWHIPS   : DEFAULT_SKLMOD_DMG*0.25,
-    SKL_SLINGS      : DEFAULT_SKLMOD_DMG*1.25,
+    SKL_SLINGS      : 0,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : 0,
+    SKL_CANNONS     : 0,
+    SKL_PISTOLS     : 0,
+    SKL_RIFLES      : 0,
+    SKL_SHOTGUNS    : 0,
+    SKL_SMGS        : 0,
+    SKL_MACHINEGUNS : 0,
+    SKL_HEAVY       : 0,
+    SKL_ENERGY      : 0,
     }
 
 SKLMOD_ARM   = {
@@ -2039,13 +2189,13 @@ SKLMOD_ARM   = {
     SKL_BOXING      : DEFAULT_SKLMOD_ARM*0.25,
     SKL_SHIELDS     : DEFAULT_SKLMOD_ARM*1.5,
     SKL_BULLWHIPS   : DEFAULT_SKLMOD_ARM*0.05,
-    SKL_SLINGS      : DEFAULT_SKLMOD_ARM*0.05,
-    SKL_BOWS        : DEFAULT_SKLMOD_ARM*0.05,
-    SKL_CROSSBOWS   : DEFAULT_SKLMOD_ARM*0.2,
+    SKL_SLINGS      : 0,
+    SKL_BOWS        : 0,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_ARM*0.25,
     SKL_CANNONS     : DEFAULT_SKLMOD_ARM*0.5,
     SKL_PISTOLS     : DEFAULT_SKLMOD_ARM*0.33334,
-    SKL_RIFLES      : DEFAULT_SKLMOD_ARM*0.2,
-    SKL_SHOTGUNS    : DEFAULT_SKLMOD_ARM*0.5,
+    SKL_RIFLES      : DEFAULT_SKLMOD_ARM*0.15,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_ARM*0.4,
     SKL_SMGS        : DEFAULT_SKLMOD_ARM*0.33334,
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_ARM*0.5,
     SKL_HEAVY       : DEFAULT_SKLMOD_ARM*0.5,
@@ -2060,23 +2210,23 @@ SKLMOD_ASP   = {
     }
 
 SKLMOD_GRA   = {
-    SKL_WRESTLING   : DEFAULT_SKLMOD_GRA*5,
-    SKL_BOXING      : DEFAULT_SKLMOD_GRA*1.5,
+    SKL_WRESTLING   : DEFAULT_SKLMOD_GRA*4,
+    SKL_BOXING      : DEFAULT_SKLMOD_GRA*1,
     SKL_BULLWHIPS   : 0,
-    SKL_BLUDGEONS   : DEFAULT_SKLMOD_GRA*0.3,
-    SKL_PUSHDAGGERS : DEFAULT_SKLMOD_GRA*0.05,
+    SKL_BLUDGEONS   : DEFAULT_SKLMOD_GRA*0.4,
+    SKL_PUSHDAGGERS : DEFAULT_SKLMOD_GRA*0.2,
     SKL_POLEARMS    : DEFAULT_SKLMOD_GRA*0.33334,
     SKL_GREATSWORDS : DEFAULT_SKLMOD_GRA*0.6,
     SKL_MALLETS     : DEFAULT_SKLMOD_GRA*0.3,
     SKL_GREATAXES   : DEFAULT_SKLMOD_GRA*0.5,
     SKL_SPEARS      : DEFAULT_SKLMOD_GRA*0.3,
     SKL_BOWS        : 0,
-    SKL_CROSSBOWS   : DEFAULT_SKLMOD_GRA*0.2,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_GRA*0.1,
     SKL_CANNONS     : 0,
     SKL_PISTOLS     : DEFAULT_SKLMOD_GRA*0.5,
     SKL_RIFLES      : 0,
-    SKL_SHOTGUNS    : DEFAULT_SKLMOD_GRA*0.4,
-    SKL_SMGS        : DEFAULT_SKLMOD_GRA*0.5,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_GRA*0.2,
+    SKL_SMGS        : DEFAULT_SKLMOD_GRA*0.4,
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
@@ -2087,6 +2237,7 @@ SKLMOD_CTR   = {
     SKL_WRESTLING   : DEFAULT_SKLMOD_CTR*0.2,
     SKL_BOXING      : DEFAULT_SKLMOD_CTR*0.5,
     SKL_KNIVES      : DEFAULT_SKLMOD_CTR*1.5,
+    SKL_SWORDS      : DEFAULT_SKLMOD_CTR*1.25,
     SKL_BOWS        : 0,
     SKL_CROSSBOWS   : 0,
     SKL_CANNONS     : 0,
