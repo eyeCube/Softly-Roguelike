@@ -348,7 +348,7 @@ DUR_STATMODS={ # durability % affects stats (multipliers)
 0.75 : (0.85,0.9,),
 0.50 : (0.7, 0.8,),
 0.25 : (0.5, 0.666667,),
-0.10 : (0.3333333,0.5,),
+0.10 : (0.3333334,0.5,),
     }
 RUSTEDNESS={
 # amt   - rustedness amount
@@ -421,62 +421,63 @@ BASE_RESSOUND   = 0
 # attributes
 
 # Strength
-ATT_STR_TRNG            = 1 # throwing range bonus
-ATT_STR_DMG             = 0.33334 # 
-ATT_STR_ATK             = 0.15 # 
-ATT_STR_PEN             = 0.2 # 
-ATT_STR_AV              = 0.15 # armor from strength
-ATT_STR_ENCMAX          = 2
-ATT_STR_FORCE           = 1
-ATT_STR_GRA             = 1
-ATT_STR_SCARY           = 1 # intimidation
+ATT_STR_TRNG            = 0.5 # throwing range bonus
+ATT_STR_DMG             = 0.3333334 # melee/thrown damage
+ATT_STR_ATK             = 0.15 # melee/thrown accuracy -- less than Dex bonus
+ATT_STR_PEN             = 0.2 # melee/thrown penetration -- less than Dex bonus
+ATT_STR_AV              = 0.15 # armor from strength -- less than Con bonus
+ATT_STR_ENCMAX          = 2 # strength gives some carrying capacity -- less than Con bonus
+ATT_STR_FORCE           = 1 # pushing / shoving strength +
+ATT_STR_GRA             = 1 # grappling / wrestling, grip, climbing
+ATT_STR_SCARY           = 1 # intimidation +
 
 # Agility
-ATT_AGI_DV              = 0.5
-ATT_AGI_PRO             = 0.25
-ATT_AGI_BAL             = 1
-ATT_AGI_MSP             = 5
-ATT_AGI_ASP             = 5 #melee only (TODO: apply melee-only bonuses during combat for ASp and Dmg, and Pen from Str)
+ATT_AGI_DV              = 0.5 # dodge value
+ATT_AGI_PRO             = 0.25 # protection
+ATT_AGI_BAL             = 1 # balance / poise
+ATT_AGI_MSP             = 5 # movement speed +
+ATT_AGI_ASP             = 5 # melee attack speed
 
 # Dexterity
-ATT_DEX_PEN             = 0.33334
-ATT_DEX_ATK             = 0.5
+ATT_DEX_PEN             = 0.3333334 # melee penetration
+ATT_DEX_ATK             = 0.5 # melee accuracy
 ATT_DEX_RATK            = 0.75 # ranged Accuracy bonus
-ATT_DEX_RPEN            = 0.5 # ranged Penetration bonus
+ATT_DEX_RPEN            = 0.3333334 # ranged Penetration bonus
 ATT_DEX_RNG             = 1 # range of bows and guns
-ATT_DEX_ASP             = 5 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
-ATT_DEX_RASP            = 10 # speed bonus for ranged attacks
+ATT_DEX_ASP             = 4 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
+ATT_DEX_RASP            = 5 # speed bonus for ranged attacks
+ATT_DEX_TRNG            = 0.25 # throwing range bonus -- less than Str bonus
 
 # Endurance
-ATT_END_HP              = 0.5
-ATT_END_SP              = 15  # stamina
-ATT_END_SPREGEN         = 1   # stamina regen
-ATT_END_RESHEAT         = 3
+ATT_END_HP              = 0.5   # life -- less than Con bonus
+ATT_END_SP              = 15    # stamina
+ATT_END_SPREGEN         = 1     # stamina regen
+ATT_END_RESHEAT         = 3     # endurance grants many resistances
 ATT_END_RESCOLD         = 3
 ATT_END_RESPHYS         = 1
-ATT_END_RESPAIN         = 4
-ATT_END_RESBIO          = 1
+ATT_END_RESPAIN         = 4     # res pain -- significantly more than Con bonus
+ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
 ATT_END_RESBLEED        = 1
 
 # Intelligence
-ATT_INT_AUGS            = 0.33334
-ATT_INT_PERSUASION      = 0.5
-ATT_INT_IDENTIFY        = 1
+ATT_INT_AUGS            = 0.3333334 # mental augmentations
+ATT_INT_PERSUASION      = 0.5 # charisma is not an attribute so it's shared w/ int
+ATT_INT_IDENTIFY        = 1 # identify ability
 
 # Constitution
-ATT_CON_AUGS            = 0.33334
-ATT_CON_AV              = 0.2
-ATT_CON_HP              = 1.5
-ATT_CON_ENCMAX          = 4 # * MASS_MULT
-ATT_CON_RESELEC         = 2
-ATT_CON_RESBIO          = 2
+ATT_CON_AUGS            = 0.3333334 # physical augmentations
+ATT_CON_AV              = 0.2   # armor value
+ATT_CON_HP              = 1.5   # life
+ATT_CON_ENCMAX          = 4     # encumberance maximum -- more than Str bonus
+ATT_CON_RESELEC         = 2     # consitution grants some resistances
+ATT_CON_RESBIO          = 2 
 ATT_CON_RESBLEED        = 2
 ATT_CON_RESPAIN         = 1
 
 
 
 # body augmentations #
-PAUG_LIMITBREAKER       = i; i+=1;
+PAUG_LIMITBREAKER_STR   = i; i+=1;
 # Limit Breaker:
 #   * Removes the natural limitations placed on one's muscles
 #       in order to unlock supernatural strength. However, this
@@ -485,7 +486,7 @@ PAUG_LIMITBREAKER       = i; i+=1;
 #   Muscles 1000% more prone to tearing
     
 AUGS_PHYS = {
-PAUG_LIMITBREAKER       : ("str",5,),
+PAUG_LIMITBREAKER_STR   : ("str",5,),
     }
 
 
@@ -502,7 +503,7 @@ OFFHAND_PENALTY_ARMMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_PROMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_GRA     = -5    # adder
 # bonuses for when you fight with a 1-handed weapon in 2 hands
-MOD_2HANDBONUS_ASP    = 25      # attack speed you gain
+MOD_2HANDBONUS_ASPMOD = 1.3333334 # attack speed MULTIPLIER modifier
 MOD_2HANDBONUS_ATK    = 4       # attack you gain
 MULT_2HANDBONUS_DMG   = 1.2     # damage MULTIPLIER
 MOD_2HANDBONUS_PEN    = 2       # penetration you gain
@@ -687,7 +688,7 @@ BODYPLAN_INSECTOID  : (0.04, 0.5,),
     }
 
 METABOLIC_RATE_FOOD = { # how fast you metabolize calories from food
-BODYPLAN_HUMANOID   : 3333,
+BODYPLAN_HUMANOID   : 3334,
 BODYPLAN_4LEGGED    : 5000,
 BODYPLAN_INSECTOID  : 6667,
     }
@@ -705,6 +706,7 @@ BODYPLAN_INSECTOID  : 50000,
 # rule: the higher the value of the constant, the higher priority it has
 #   when deciding whether to overwrite a status with another
 
+# body positions
 i=0;
 BODYPOS_UPRIGHT     = i; i+=1;
 BODYPOS_CROUCHED    = i; i+=1;
@@ -719,6 +721,31 @@ BODYPOS_SEATED      : "seated",
 BODYPOS_SUPINE      : "supine",
 BODYPOS_PRONE       : "prone",
     }
+
+# position stat modifiers
+CROUCHED_MSPMOD         = 0.5
+CROUCHED_HEIGHTMOD      = 0.75
+CROUCHED_AGIMOD         = 0.9
+CROUCHED_ATK            = -5
+CROUCHED_DFN            = -10
+
+SEATED_MSPMOD           = 0.1
+SEATED_HEIGHTMOD        = 0.5
+SEATED_AGIMOD           = 0.666667
+SEATED_ATK              = -20
+SEATED_DFN              = -20
+
+PRONE_MSPMOD            = 0.1
+PRONE_HEIGHTMOD         = 0.2
+PRONE_AGIMOD            = 0.5
+PRONE_ATK               = -30
+PRONE_DFN               = -25
+
+SUPINE_MSPMOD           = 0.05
+SUPINE_HEIGHTMOD        = 0.2
+SUPINE_AGIMOD           = 0.25
+SUPINE_ATK              = -25
+SUPINE_DFN              = -30
 
 # body parts
 
@@ -1162,10 +1189,10 @@ BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
 BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.96,},
-BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333333,},
+BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333334,},
 BONESTATUS_BROKEN       :{'bal':0.6,'msp':0.6666667,},
 BONESTATUS_MULTIBREAKS  :{'bal':0.4,'msp':0.5,},
-BONESTATUS_SHATTERED    :{'bal':0.3333333,'msp':0.4,},
+BONESTATUS_SHATTERED    :{'bal':0.3333334,'msp':0.4,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1837,7 +1864,7 @@ AMMO_ANYTHING       = i; i+=1;  # literally anything
 #
 
 # constants
-SKILL_EFFECTIVENESS_MULTIPLIER = 1 # higher -> skills have more effect
+SKILL_EFFECTIVENESS_MULTIPLIER = 0.66667 # higher -> skills have more effect
 SKILL_MAXIMUM = 100
 
 #
@@ -1966,27 +1993,30 @@ SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 # Skills data skill data
 #
 
+SKILL_POINTS = 60 # max num skill pts user can distribute during chargen
+    # 60 is evenly divisible by 2, 3, 4, 5, and 6.
+    
 SKILLS={ # ID : (SP,name,)
     # SP = skill points required to learn (in chargen)
 SKL_ARMOR       :(3,'armored combat',),
-SKL_UNARMORED   :(3,'unarmored combat',),
+SKL_UNARMORED   :(2,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
 SKL_BOXING      :(3,'boxing',),
 SKL_WRESTLING   :(3,'wrestling',),
 SKL_AXES        :(1,'axes, one-handed',),
-SKL_GREATAXES   :(1,'axes, two-handed',),
+SKL_GREATAXES   :(2,'axes, two-handed',),
 SKL_HAMMERS     :(1,'hammers, one-handed',),
-SKL_MALLETS     :(1,'hammers, two-handed',),
+SKL_MALLETS     :(2,'hammers, two-handed',),
 SKL_JAVELINS    :(1,'spears, one-handed',),
 SKL_SPEARS      :(1,'spears, two-handed',),
 SKL_SWORDS      :(2,'swords, one-handed',),
-SKL_LONGSWORDS  :(2,'swords, two-handed',),
+SKL_LONGSWORDS  :(3,'swords, two-handed',),
 SKL_POLEARMS    :(2,'polearms',),
 SKL_GREATSWORDS :(3,'greatswords',),
 SKL_KNIVES      :(2,'knives',),
 SKL_BLUDGEONS   :(1,'bludgeons',),
 SKL_STAVES      :(1,'staves',),
-SKL_BULLWHIPS   :(3,'bullwhips',),
+SKL_BULLWHIPS   :(1,'bullwhips',),
 SKL_THROWING    :(2,'throwing',),
 SKL_IEDS        :(3,'explosives',),
 SKL_SLINGS      :(2,'slings',),
@@ -1997,29 +2027,29 @@ SKL_PISTOLS     :(2,'pistols',),
 SKL_RIFLES      :(2,'rifles',),
 SKL_SHOTGUNS    :(2,'shotguns',),
 SKL_SMGS        :(2,'SMGs',),
-SKL_MACHINEGUNS :(2,'machine guns',),
-SKL_HEAVY       :(2,'big guns',),
-SKL_ENERGY      :(3,'energy weapons',),
+SKL_MACHINEGUNS :(3,'machine guns',),
+SKL_HEAVY       :(3,'heavy weapons',),
+SKL_ENERGY      :(4,'energy weapons',),
 # Physical / Technical Skills
 SKL_ATHLETE     :(2,'athleticism',),
 SKL_STEALTH     :(1,'stealth',),
-SKL_COMPUTERS   :(3,'computers',),
-SKL_PILOT       :(1,'pilot',),
+SKL_COMPUTERS   :(4,'computers',),
+SKL_PILOT       :(2,'pilot',),
 SKL_PERSUASION  :(2,'speech',),
 SKL_CHEMISTRY   :(5,'chemistry',),
-SKL_SURVIVAL    :(2,'survival',),
+SKL_SURVIVAL    :(1,'survival',),
 SKL_LOCKPICK    :(1,'lockpick',),
 SKL_MEDICINE    :(3,'medicine',),
-SKL_SURGERY     :(5,'surgery',),
+SKL_SURGERY     :(6,'surgery',),
 # Crafting Skills
 SKL_ASSEMBLY    :(1,'assembly',),
 SKL_COOKING     :(1,'cooking',),
 SKL_WOOD        :(1,'woodworking',),
-SKL_BONE        :(2,'boneworking',),
+SKL_BONE        :(1,'boneworking',),
 SKL_LEATHER     :(2,'leatherworking',),
 SKL_PLASTIC     :(1,'plasticworking',),
-SKL_STONE       :(2,'stoneworking',),
-SKL_GLASS       :(4,'glassworking',),
+SKL_STONE       :(1,'stoneworking',),
+SKL_GLASS       :(3,'glassworking',),
 SKL_METAL       :(3,'metalworking',),
 SKL_BOWYER      :(2,'bowyer',),
 SKL_FLETCHER    :(1,'fletcher',),
@@ -2054,13 +2084,16 @@ SKL_BOXING          : 0.25,
 
 # Skill data (stat modifiers gained from skills)
 
+# misc.
+SKL_ATHLETE_MSP         = 2
+
 # ARMOR
-SKLMOD_ARMOR_PRO        = 0.3333334 # adder modifier - per level
-SKLMOD_ARMOR_AV         = 0.1666667 # adder modifier - per level
-SKLMOD_ARMOR_DV         = 0.1666667 # adder modifier - per level
+SKLMOD_ARMOR_PRO        = 0.3       # adder modifier - per level
+SKLMOD_ARMOR_AV         = 0.16666667# adder modifier - per level
+SKLMOD_ARMOR_DV         = 0.16666667# adder modifier - per level
 SKLMOD_UNARMORED_PRO    = 0.3       # adder modifier - per level
 SKLMOD_UNARMORED_AV     = 0.2       # adder modifier - per level
-SKLMOD_UNARMORED_DV     = 0.3333334 # adder modifier - per level
+SKLMOD_UNARMORED_DV     = 0.25      # adder modifier - per level
 
 # WEAPONS
 # Multiplier per level for each weapons, and defaults
@@ -2069,18 +2102,24 @@ SKLMOD_UNARMORED_DV     = 0.3333334 # adder modifier - per level
 #   for growth for each skill level gained.
 DEFAULT_SKLMOD_ATK   = 0.5
 DEFAULT_SKLMOD_DFN   = 0.25
-DEFAULT_SKLMOD_PEN   = 0.3
-DEFAULT_SKLMOD_PRO   = 0.15
+DEFAULT_SKLMOD_PEN   = 0.36363636
+DEFAULT_SKLMOD_PRO   = 0.16666667
 DEFAULT_SKLMOD_DMG   = 0.25
 DEFAULT_SKLMOD_ARM   = 0.1
 DEFAULT_SKLMOD_ASP   = 2
 DEFAULT_SKLMOD_GRA   = 0.25
 DEFAULT_SKLMOD_CTR   = 0.1
 DEFAULT_SKLMOD_ENC   = 1
+DEFAULT_SKLMOD_RASP  = 2
+DEFAULT_SKLMOD_RNG   = 0.25
+DEFAULT_SKLMOD_TRNG  = 0.5 # throwing range -- throwing skill works differently. All weapons that can be thrown act the same for throwing skill.
+DEFAULT_SKLMOD_RATK  = 0.75
+DEFAULT_SKLMOD_RPEN  = 0.33333334
+DEFAULT_SKLMOD_RDMG  = 0.1
 
-SKLMOD_ATK   = {
+SKLMOD_ATK   = { # melee attack accuracy
     SKL_WRESTLING   : DEFAULT_SKLMOD_ATK*0.2,
-    SKL_BOXING      : DEFAULT_SKLMOD_ATK*0.6,
+    SKL_BOXING      : DEFAULT_SKLMOD_ATK*0.9,
     SKL_SHIELDS     : DEFAULT_SKLMOD_ATK*0.333334,
     SKL_BULLWHIPS   : DEFAULT_SKLMOD_ATK*1.25,
     SKL_SLINGS      : 0,
@@ -2096,25 +2135,11 @@ SKLMOD_ATK   = {
     SKL_ENERGY      : 0,
     }
 
-##SKLMOD_RATK={ # ranged accuracy
-##    SKL_SLINGS      : DEFAULT_SKLMOD_RATK*1.5,
-##    SKL_BOWS        : DEFAULT_SKLMOD_RATK*1.25,
-##    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RATK*1.1,
-##    SKL_CANNONS     : DEFAULT_SKLMOD_RATK*0.5,
-##    SKL_PISTOLS     : DEFAULT_SKLMOD_RATK*1.1,
-##    SKL_RIFLES      : DEFAULT_SKLMOD_RATK*1.5,
-##    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RATK*0.5,
-##    SKL_SMGS        : DEFAULT_SKLMOD_RATK*0.75,
-##    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RATK*1,
-##    SKL_HEAVY       : DEFAULT_SKLMOD_RATK*0.666667,
-##    SKL_ENERGY      : DEFAULT_SKLMOD_RATK*0.5,
-##    }
-
-SKLMOD_DFN   = {
+SKLMOD_DFN   = { # Dodge Value
     SKL_SWORDS      : DEFAULT_SKLMOD_DFN*1.2,
     SKL_LONGSWORDS  : DEFAULT_SKLMOD_DFN*1.25,
     SKL_WRESTLING   : DEFAULT_SKLMOD_DFN*0.2,
-    SKL_BOXING      : DEFAULT_SKLMOD_DFN*0.666667,
+    SKL_BOXING      : DEFAULT_SKLMOD_DFN*0.83,
     SKL_SHIELDS     : DEFAULT_SKLMOD_DFN*1.25,
     SKL_BULLWHIPS   : DEFAULT_SKLMOD_DFN*0.2,
     SKL_SLINGS      : DEFAULT_SKLMOD_DFN*0.2,
@@ -2130,18 +2155,18 @@ SKLMOD_DFN   = {
     SKL_ENERGY      : DEFAULT_SKLMOD_DFN*0.1,
     }
 
-SKLMOD_PEN   = {
+SKLMOD_PEN   = { # melee penetration
     SKL_WRESTLING   : 0,
-    SKL_BOXING      : DEFAULT_SKLMOD_PEN*0.6666667,
+    SKL_BOXING      : DEFAULT_SKLMOD_PEN*0.75,
     SKL_SHIELDS     : DEFAULT_SKLMOD_PEN*0.5,
-    SKL_SWORDS      : DEFAULT_SKLMOD_PEN*1.1666667,
-    SKL_LONGSWORDS  : DEFAULT_SKLMOD_PEN*1.1666667,
+    SKL_SWORDS      : DEFAULT_SKLMOD_PEN*1.16666667,
+    SKL_LONGSWORDS  : DEFAULT_SKLMOD_PEN*1.16666667,
     SKL_KNIVES      : DEFAULT_SKLMOD_PEN*1.25,
-    SKL_PUSHDAGGERS : DEFAULT_SKLMOD_PEN*1.1666667,
+    SKL_PUSHDAGGERS : DEFAULT_SKLMOD_PEN*1.16666667,
     SKL_SPEARS      : DEFAULT_SKLMOD_PEN*1.1,
     SKL_POLEARMS    : DEFAULT_SKLMOD_PEN*1.1,
     SKL_BLUDGEONS   : DEFAULT_SKLMOD_PEN*0.83,
-    SKL_STAVES      : DEFAULT_SKLMOD_PEN*0.6666667,
+    SKL_STAVES      : DEFAULT_SKLMOD_PEN*0.75,
     SKL_HAMMERS     : DEFAULT_SKLMOD_PEN*1.05,
     SKL_MALLETS     : DEFAULT_SKLMOD_PEN*0.75,
     SKL_SLINGS      : 0,
@@ -2157,13 +2182,13 @@ SKLMOD_PEN   = {
     SKL_ENERGY      : 0,
     }
 
-SKLMOD_PRO   = {
-    SKL_WRESTLING   : DEFAULT_SKLMOD_PRO*0.333334,
-    SKL_BOXING      : DEFAULT_SKLMOD_PRO*0.666667,
-    SKL_SHIELDS     : DEFAULT_SKLMOD_PRO*1.25,
+SKLMOD_PRO   = { # protection
+    SKL_WRESTLING   : DEFAULT_SKLMOD_PRO*0.3333334,
+    SKL_BOXING      : DEFAULT_SKLMOD_PRO*0.6666667,
+    SKL_SHIELDS     : DEFAULT_SKLMOD_PRO*1.1666667,
     SKL_BOWS        : DEFAULT_SKLMOD_PRO*0.05,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_PRO*0.1,
-    SKL_CANNONS     : DEFAULT_SKLMOD_PRO*0.333334,
+    SKL_CANNONS     : DEFAULT_SKLMOD_PRO*0.3333334,
     SKL_PISTOLS     : DEFAULT_SKLMOD_PRO*0.1,
     SKL_RIFLES      : DEFAULT_SKLMOD_PRO*0.1,
     SKL_SHOTGUNS    : DEFAULT_SKLMOD_PRO*0.25,
@@ -2174,66 +2199,75 @@ SKLMOD_PRO   = {
     SKL_SLINGS      : DEFAULT_SKLMOD_PRO*0.05,
     }
 
-SKLMOD_DMG   = {
+SKLMOD_DMG   = { # melee damage
     # note 2-handed weapons get primary dmg bonus from str, not skill
-    SKL_WRESTLING   : DEFAULT_SKLMOD_DMG*0.1,
-    SKL_BOXING      : DEFAULT_SKLMOD_DMG*0.5,
-    SKL_BULLWHIPS   : DEFAULT_SKLMOD_DMG*0.25,
+    SKL_WRESTLING   : 0,
+    SKL_BOXING      : DEFAULT_SKLMOD_DMG*0.75,
+    SKL_BULLWHIPS   : DEFAULT_SKLMOD_DMG*0.5,
     SKL_SLINGS      : 0,
     SKL_BOWS        : 0,
     SKL_CROSSBOWS   : 0,
     SKL_CANNONS     : 0,
-    SKL_PISTOLS     : 0,
-    SKL_RIFLES      : 0,
-    SKL_SHOTGUNS    : 0,
-    SKL_SMGS        : 0,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_DMG*0.5,
+    SKL_RIFLES      : DEFAULT_SKLMOD_DMG*0.25,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_DMG*0.3333334,
+    SKL_SMGS        : DEFAULT_SKLMOD_DMG*0.4,
     SKL_MACHINEGUNS : 0,
-    SKL_HEAVY       : 0,
+    SKL_HEAVY       : DEFAULT_SKLMOD_DMG*0.25,
     SKL_ENERGY      : 0,
     }
 
-SKLMOD_ARM   = {
+SKLMOD_ARM   = { # Armor Value
     SKL_WRESTLING   : DEFAULT_SKLMOD_ARM*0.05,
     SKL_BOXING      : DEFAULT_SKLMOD_ARM*0.25,
-    SKL_SHIELDS     : DEFAULT_SKLMOD_ARM*1.5,
+    SKL_SHIELDS     : DEFAULT_SKLMOD_ARM*1.25,
     SKL_BULLWHIPS   : DEFAULT_SKLMOD_ARM*0.05,
     SKL_SLINGS      : 0,
     SKL_BOWS        : 0,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_ARM*0.25,
     SKL_CANNONS     : DEFAULT_SKLMOD_ARM*0.5,
-    SKL_PISTOLS     : DEFAULT_SKLMOD_ARM*0.33334,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_ARM*0.3333334,
     SKL_RIFLES      : DEFAULT_SKLMOD_ARM*0.15,
     SKL_SHOTGUNS    : DEFAULT_SKLMOD_ARM*0.4,
-    SKL_SMGS        : DEFAULT_SKLMOD_ARM*0.33334,
-    SKL_MACHINEGUNS : DEFAULT_SKLMOD_ARM*0.5,
-    SKL_HEAVY       : DEFAULT_SKLMOD_ARM*0.5,
-    SKL_ENERGY      : DEFAULT_SKLMOD_ARM*0.1,
+    SKL_SMGS        : DEFAULT_SKLMOD_ARM*0.3333334,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_ARM*0.25,
+    SKL_HEAVY       : DEFAULT_SKLMOD_ARM*0.25,
+    SKL_ENERGY      : 0,
     }
 
-SKLMOD_ASP   = {
-    SKL_WRESTLING   : DEFAULT_SKLMOD_ASP*0.333334,
-    SKL_BOXING      : DEFAULT_SKLMOD_ASP*0.75,
+SKLMOD_ASP   = { # melee attack speed
+    SKL_WRESTLING   : DEFAULT_SKLMOD_ASP*0.3333334,
+    SKL_BOXING      : DEFAULT_SKLMOD_ASP*0.6666667,
     SKL_SHIELDS     : DEFAULT_SKLMOD_ASP*0.5,
     SKL_SLINGS      : DEFAULT_SKLMOD_ASP*1.2, # slings have very low base Asp
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_CANNONS     : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_RIFLES      : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_SMGS        : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_HEAVY       : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_ENERGY      : DEFAULT_SKLMOD_ASP*0.5,
     }
 
-SKLMOD_GRA   = {
+SKLMOD_GRA   = { # grappling
     SKL_WRESTLING   : DEFAULT_SKLMOD_GRA*4,
-    SKL_BOXING      : DEFAULT_SKLMOD_GRA*1,
+    SKL_BOXING      : DEFAULT_SKLMOD_GRA*0.75,
     SKL_BULLWHIPS   : 0,
     SKL_BLUDGEONS   : DEFAULT_SKLMOD_GRA*0.4,
     SKL_PUSHDAGGERS : DEFAULT_SKLMOD_GRA*0.2,
-    SKL_POLEARMS    : DEFAULT_SKLMOD_GRA*0.33334,
+    SKL_POLEARMS    : DEFAULT_SKLMOD_GRA*0.3333334,
     SKL_GREATSWORDS : DEFAULT_SKLMOD_GRA*0.6,
     SKL_MALLETS     : DEFAULT_SKLMOD_GRA*0.3,
     SKL_GREATAXES   : DEFAULT_SKLMOD_GRA*0.5,
     SKL_SPEARS      : DEFAULT_SKLMOD_GRA*0.3,
     SKL_BOWS        : 0,
-    SKL_CROSSBOWS   : DEFAULT_SKLMOD_GRA*0.1,
+    SKL_CROSSBOWS   : 0,
     SKL_CANNONS     : 0,
     SKL_PISTOLS     : DEFAULT_SKLMOD_GRA*0.5,
     SKL_RIFLES      : 0,
-    SKL_SHOTGUNS    : DEFAULT_SKLMOD_GRA*0.2,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_GRA*0.25,
     SKL_SMGS        : DEFAULT_SKLMOD_GRA*0.4,
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
@@ -2241,21 +2275,183 @@ SKLMOD_GRA   = {
     SKL_SLINGS      : 0,
     }
 
-SKLMOD_CTR   = {
-    SKL_WRESTLING   : DEFAULT_SKLMOD_CTR*0.2,
+SKLMOD_CTR   = { # counter-attack
+    SKL_WRESTLING   : DEFAULT_SKLMOD_CTR*0.25,
     SKL_BOXING      : DEFAULT_SKLMOD_CTR*0.5,
     SKL_KNIVES      : DEFAULT_SKLMOD_CTR*1.5,
     SKL_SWORDS      : DEFAULT_SKLMOD_CTR*1.25,
+    SKL_LONGSWORDS  : DEFAULT_SKLMOD_CTR*1.1,
     SKL_BOWS        : 0,
     SKL_CROSSBOWS   : 0,
     SKL_CANNONS     : 0,
     SKL_PISTOLS     : 0,
+    SKL_RIFLES      : 0,
     SKL_SHOTGUNS    : 0,
     SKL_SMGS        : 0,
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
     SKL_SLINGS      : 0,
+    }
+
+SKLMOD_RASP={ # ranged attack speed
+    SKL_SHIELDS     : 0,
+    SKL_BOXING      : 0,
+    SKL_WRESTLING   : 0,
+    SKL_BLUDGEONS   : 0,
+    SKL_JAVELINS    : 0,
+    SKL_SPEARS      : 0,
+    SKL_POLEARMS    : 0,
+    SKL_KNIVES      : 0,
+    SKL_SWORDS      : 0,
+    SKL_LONGSWORDS  : 0,
+    SKL_GREATSWORDS : 0,
+    SKL_AXES        : 0,
+    SKL_GREATAXES   : 0,
+    SKL_HAMMERS     : 0,
+    SKL_MALLETS     : 0,
+    SKL_STAVES      : 0,
+    SKL_BULLWHIPS   : 0,
+    SKL_PUSHDAGGERS : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RASP*1,
+    SKL_BOWS        : DEFAULT_SKLMOD_RASP*1,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RASP*1,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RASP*1,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RASP*1.2,
+    SKL_RIFLES      : DEFAULT_SKLMOD_RASP*0.75,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RASP*0.75,
+    SKL_SMGS        : DEFAULT_SKLMOD_RASP*1.333334,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RASP*0.5,
+    SKL_HEAVY       : DEFAULT_SKLMOD_RASP*0.5,
+    SKL_ENERGY      : DEFAULT_SKLMOD_RASP*1,
+    }
+
+DEFAULT_SKLMOD_RNG={ # max range
+    SKL_SHIELDS     : 0,
+    SKL_BOXING      : 0,
+    SKL_WRESTLING   : 0,
+    SKL_BLUDGEONS   : 0,
+    SKL_JAVELINS    : 0,
+    SKL_SPEARS      : 0,
+    SKL_POLEARMS    : 0,
+    SKL_KNIVES      : 0,
+    SKL_SWORDS      : 0,
+    SKL_LONGSWORDS  : 0,
+    SKL_GREATSWORDS : 0,
+    SKL_AXES        : 0,
+    SKL_GREATAXES   : 0,
+    SKL_HAMMERS     : 0,
+    SKL_MALLETS     : 0,
+    SKL_STAVES      : 0,
+    SKL_BULLWHIPS   : 0,
+    SKL_PUSHDAGGERS : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RNG*1.3333334,
+    SKL_BOWS        : DEFAULT_SKLMOD_RNG*1.3333334,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RNG*0.9,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RNG*1.5,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RNG*1.25,
+    SKL_RIFLES      : DEFAULT_SKLMOD_RNG*1.6666667,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RNG*0.8333334,
+    SKL_SMGS        : DEFAULT_SKLMOD_RNG*0.9,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RNG*1.4,
+    SKL_HEAVY       : DEFAULT_SKLMOD_RNG*0.8333334,
+    SKL_ENERGY      : DEFAULT_SKLMOD_RNG*1.05,
+    }
+
+SKLMOD_RATK={ # ranged accuracy
+    SKL_SHIELDS     : 0,
+    SKL_BOXING      : 0,
+    SKL_WRESTLING   : 0,
+    SKL_BLUDGEONS   : 0,
+    SKL_JAVELINS    : 0,
+    SKL_SPEARS      : 0,
+    SKL_POLEARMS    : 0,
+    SKL_KNIVES      : 0,
+    SKL_SWORDS      : 0,
+    SKL_LONGSWORDS  : 0,
+    SKL_GREATSWORDS : 0,
+    SKL_AXES        : 0,
+    SKL_GREATAXES   : 0,
+    SKL_HAMMERS     : 0,
+    SKL_MALLETS     : 0,
+    SKL_STAVES      : 0,
+    SKL_BULLWHIPS   : 0,
+    SKL_PUSHDAGGERS : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RATK*1.3333334,
+    SKL_BOWS        : DEFAULT_SKLMOD_RATK*1.25,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RATK*0.9,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RATK*0.5,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RATK*1.1,
+    SKL_RIFLES      : DEFAULT_SKLMOD_RATK*1.5,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RATK*0.75,
+    SKL_SMGS        : DEFAULT_SKLMOD_RATK*0.8333334,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RATK*1,
+    SKL_HEAVY       : DEFAULT_SKLMOD_RATK*0.6666667,
+    SKL_ENERGY      : DEFAULT_SKLMOD_RATK*1.05,
+    }
+
+DEFAULT_SKLMOD_RDMG={ # ranged damage
+    SKL_SHIELDS     : 0,
+    SKL_BOXING      : 0,
+    SKL_WRESTLING   : 0,
+    SKL_BLUDGEONS   : 0,
+    SKL_JAVELINS    : 0,
+    SKL_SPEARS      : 0,
+    SKL_POLEARMS    : 0,
+    SKL_KNIVES      : 0,
+    SKL_SWORDS      : 0,
+    SKL_LONGSWORDS  : 0,
+    SKL_GREATSWORDS : 0,
+    SKL_AXES        : 0,
+    SKL_GREATAXES   : 0,
+    SKL_HAMMERS     : 0,
+    SKL_MALLETS     : 0,
+    SKL_STAVES      : 0,
+    SKL_BULLWHIPS   : 0,
+    SKL_PUSHDAGGERS : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RDMG*1.1,
+    SKL_BOWS        : DEFAULT_SKLMOD_RDMG*1.1,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RDMG*0.9,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RDMG*1.5,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RDMG*1,
+    SKL_RIFLES      : DEFAULT_SKLMOD_RDMG*1.25,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RDMG*1,
+    SKL_SMGS        : DEFAULT_SKLMOD_RDMG*1,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RDMG*1,
+    SKL_HEAVY       : DEFAULT_SKLMOD_RDMG*0.5,
+    SKL_ENERGY      : 0,
+    }
+
+DEFAULT_SKLMOD_RPEN={ # ranged penetration
+    SKL_SHIELDS     : 0,
+    SKL_BOXING      : 0,
+    SKL_WRESTLING   : 0,
+    SKL_BLUDGEONS   : 0,
+    SKL_JAVELINS    : 0,
+    SKL_SPEARS      : 0,
+    SKL_POLEARMS    : 0,
+    SKL_KNIVES      : 0,
+    SKL_SWORDS      : 0,
+    SKL_LONGSWORDS  : 0,
+    SKL_GREATSWORDS : 0,
+    SKL_AXES        : 0,
+    SKL_GREATAXES   : 0,
+    SKL_HAMMERS     : 0,
+    SKL_MALLETS     : 0,
+    SKL_STAVES      : 0,
+    SKL_BULLWHIPS   : 0,
+    SKL_PUSHDAGGERS : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RPEN*0.75,
+    SKL_BOWS        : DEFAULT_SKLMOD_RPEN*1.05,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RPEN*0.9,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RPEN*0.6666667,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RPEN*1.1,
+    SKL_RIFLES      : DEFAULT_SKLMOD_RPEN*1.3333334,
+    SKL_SHOTGUNS    : DEFAULT_SKLMOD_RPEN*0.8333334,
+    SKL_SMGS        : DEFAULT_SKLMOD_RPEN*0.9,
+    SKL_MACHINEGUNS : DEFAULT_SKLMOD_RPEN*1.25,
+    SKL_HEAVY       : DEFAULT_SKLMOD_RPEN*0.75,
+    SKL_ENERGY      : 0,
     }
 
 

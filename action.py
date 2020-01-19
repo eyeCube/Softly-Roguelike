@@ -446,7 +446,23 @@ def quaff(ent, drink):
     # TODO: make sure this works...
     world.delete_entity(drink)
 
-
+def crouch(ent):
+    rog.set_status(ent, cmp.StatusBPos_Crouched)
+    actor = rog.world().component_for_entity(ent, cmp.Actor)
+    actor.ap -= 20
+def sit(ent):
+    rog.set_status(ent, cmp.StatusBPos_Seated)
+    actor = rog.world().component_for_entity(ent, cmp.Actor)
+    actor.ap -= 40
+def lieprone(ent):
+    rog.set_status(ent, cmp.StatusBPos_Prone)
+    actor = rog.world().component_for_entity(ent, cmp.Actor)
+    actor.ap -= 100
+def liesupine(ent):
+    rog.set_status(ent, cmp.StatusBPos_Supine)
+    actor = rog.world().component_for_entity(ent, cmp.Actor)
+    actor.ap -= 200
+    
 def move(ent,dx,dy, mx=1):  # actor locomotion
     '''
         move: generic actor locomotion

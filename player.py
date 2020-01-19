@@ -497,7 +497,7 @@ def chargen(sx, sy):
         _mask = _type
         _classID = _classList[_className][1]
         _mass = entities.getJobMass(_classID)
-        _stats = entities.getJobStats(_classID).items()
+        _jobstats = entities.getJobStats(_classID).items()
         _jobskills = entities.getJobSkills(_classID)
         
         #grant stats / abilities of your chosen class
@@ -509,7 +509,7 @@ def chargen(sx, sy):
         _skillNames=[]
         _skillIDs=[]
         skilldict={}
-        ptsRemaining=0#30
+        ptsRemaining=0#SKILL_POINTS
         cancel=False
         
         for k, sk in SKILLS.items():
@@ -633,14 +633,13 @@ wrap=False,con=rog.con_final(),disp='mono'
             cmp.Gender(_genderName,_pronouns),
         )
         
-        
-        #add specific class stats
-##        for _var, _value in _stats:
-##            #compo= # get component somehow...
-##            world.component_for_entity(pc, compo).__dict__[_var] += _value
         #add specific class skills
         for sk_id in _jobskills:
             rog.setskill(pc, sk_id, 25)
+        #add specific class stats
+        for stat, val in _jobstats.items():
+            value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
+            rog.alts(pc, stat, value)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
             rog.setskill(pc, sk_id, 5)

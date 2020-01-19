@@ -3800,7 +3800,7 @@ def create_footwear(name,x,y,quality=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
-    gData = FOOTWEAR[name]
+    gData = FOOTARMOR[name]
     value = int(get_gear_value(gData)*MULT_VALUE)
     mass = round(get_gear_mass(gData)*MULT_MASS)
     hpmax = get_gear_hpmax(gData)
@@ -4363,21 +4363,20 @@ JOBS={
     # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
     
 #ID                Char,Name         KG, $$$$,S|Key--------stats---------------skills
-CLS_ATHLETE     : ("A", "athlete",   80, 300, 0,'', {'str':2,'con':2,'int':-1,'bal':5,'msp':50,'dfn':3,'carry':5,},(SKL_ATHLETE,),),
-CLS_ACROBAT     : ("a", "acrobat",   60, 100, 0,'', {'str':4,'bal':10,'msp':25,'dfn':6,'gra':2,},(SKL_ATHLETE,),),
-CLS_CHEMIST     : ("C", "chemist",   65, 1000,2,'L',{'int':6,'hpmax':-5,'mpmax':5,},(SKL_CHEMISTRY,),),
-CLS_DEPRIVED    : ("d", "deprived",  50, 0,   0,'', {'str':-2,'con':-2,'int':-1,'hpmax':-5,'mpmax':-20,'atk':-5,},(),),
+CLS_ATHLETE     : ("a", "athlete",   80, 300, 0,'', {'str':1,'con':1,'dex':-2,'agi':1,'int':-1,'msp':20,'gra':2,},(SKL_ATHLETE,),),
+CLS_CHEMIST     : ("C", "chemist",   65, 1000,2,'L',{'int':8,'end':-2,'con':-2,'agi':-2,'hpmax':-5,'mpmax':5,},(SKL_CHEMISTRY,),),
+CLS_DEPRIVED    : ("d", "deprived",  50, 0,   0,'', {'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,'hpmax':-5,'mpmax':-20,},(),),
 ##CLS_ENGINEER    : ("E", "engineer",  60, 500, 0,'C',{'hpmax':5,'carry':10,},(SKL_ROBOTS,),),
-CLS_JANITOR     : ("j", "janitor",   80, 100, 0,'J',{},(),),
-CLS_SECURITY    : ("O", "security",  80, 100, 5,'', {'str':2,'atk':4,'dfn':2,},(SKL_ENERGY,SKL_BLUDGEONS,),),
-CLS_PILOT       : ("p", "pilot",     70, 300, 0,'P',{'sight':40,},(SKL_PILOT,),),
-CLS_POLITICIAN  : ("I", "politician",70, 2000,4,'K',{'con':-1,'int':2,'hpmax':-5,'mpmax':-5,},(SKL_PERSUASION,),),
-CLS_RIOTPOLICE  : ("P", "police",    80, 300, 2,'', {'str':2,'con':2,'int':-1,'hpmax':5,'mpmax':-5,'atk':4,'asp':10,'dfn':2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
-CLS_SMUGGLER    : ("u", "smuggler",  70, 1000,0,'', {'con':2,'int':1,'hpmax':5,'carry':20,'dfn':2,},(SKL_PERSUASION,SKL_PISTOLS,),),
-CLS_SOLDIER     : ("S", "marine",    90, 500, 3,'', {'str':4,'con':4,'int':3,'hpmax':10,'mpmax':100,'atk':6,'dfn':4,'asp':25,'msp':25,'gra':6,'carry':20,},(SKL_RIFLES,),),
-CLS_TECHNICIAN  : ("T", "technician",60, 500, 1,'', {'int':3,'mpmax':-20,},(SKL_COMPUTERS,),),
-CLS_THIEF       : ("t", "thief",     65, 2000,0,'', {'con':1,'int':1,'mpmax':50,'dfn':6,'msp':10,'gra':4,'carry':15,},(SKL_STEALTH,),),
-CLS_WRESTLER    : ("w", "wrestler",  85, 100, 0,'', {'str':6,'bal':5,'gra':12,},(SKL_ATHLETE,),),
+CLS_JANITOR     : ("j", "janitor",   80, 100, 0,'J',{'int':-4,'con':2,'end':2,},(),),
+CLS_SECURITY    : ("O", "security",  80, 100, 5,'', {'dex':4,'con':4,'end':2,'int':-4,'gra':2,},(SKL_ENERGY,),),
+CLS_PILOT       : ("p", "pilot",     70, 300, 0,'P',{'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},(SKL_PILOT,),),
+CLS_POLITICIAN  : ("I", "politician",70, 2000,4,'K',{'con':-2,'end':-2,'int':4,},(SKL_PERSUASION,),),
+CLS_RIOTPOLICE  : ("P", "police",    80, 300, 2,'', {'str':4,'con':4,'dex':2,'end':2,'int':-2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
+CLS_SMUGGLER    : ("u", "smuggler",  70, 1000,0,'', {'con':4,'int':2,'dex':2,'agi':2,'str':-2,},(SKL_PERSUASION,SKL_PISTOLS,),),
+CLS_SOLDIER     : ("S", "marine",    90, 500, 3,'', {'hearing':-20,'str':4,'con':6,'dex':4,'int':4,'end':6,'agi':4,'gra':6,},(SKL_RIFLES,),),
+CLS_TECHNICIAN  : ("T", "technician",60, 500, 1,'', {'int':2,'dex':2,'end':-2,'agi':-2,},(SKL_COMPUTERS,),),
+CLS_THIEF       : ("t", "thief",     65, 2000,0,'', {'con':2,'str':2,'int':2,'agi':2,'dex':2,'end':2,'dfn':2,},(SKL_STEALTH,),),
+CLS_WRESTLER    : ("w", "wrestler",  85, 100, 0,'', {'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':12,},(SKL_ATHLETE,),),
     }
 
 FLUIDS = {

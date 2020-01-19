@@ -1509,6 +1509,22 @@ class StatusFull: # overeat
     __slots__=['timer']
     def __init__(self, t=384):
         self.timer=t
+class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)
+    __slots__=[]
+    def __init__(self):
+        pass
+class StatusBPos_Seated: # body position: seated (on the ground propped up by legs/back muscles)
+    __slots__=[]
+    def __init__(self):
+        pass
+class StatusBPos_Supine: # body position: supine (lying / on the ground face-up)
+    __slots__=[]
+    def __init__(self):
+        pass
+class StatusBPos_Prone: # body position: prone (lying / on the ground face-down)
+    __slots__=[]
+    def __init__(self):
+        pass
 
 # quality statuses
 class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
@@ -1594,9 +1610,20 @@ STATUSES={ # dict of statuses that have a timer
     StatusTired     : 'sleepy',
     StatusOffBalance: 'staggered',
     StatusFull      : 'full (overeating)',
+    StatusBPos_Crouched : "crouched",
+    StatusBPos_Seated   : "seated",
+    StatusBPos_Prone    : "prone",
+    StatusBPos_Supine   : "supine",
 ##    StatusBleed, # removed b/c it has quality
     }
 ##StatusDigest
+
+STATUSES_BODYPOSITIONS=[
+    StatusBPos_Crouched,
+    StatusBPos_Seated,
+    StatusBPos_Prone,
+    StatusBPos_Supine,
+    ]
 
 STATUS_MODS={
     #status compo   : (addMods, mulMods,)
@@ -1638,10 +1665,13 @@ STATUS_MODS={
     StatusSweat     : ({},{},),
     StatusShiver    : ({},{},),
     StatusHungry    : ({},
-        {'mpregen':HUNGRY_SPREGENMOD,'con':HUNGRY_CONMOD,'end':HUNGRY_ENDMOD},),
+        {'mpregen':HUNGRY_SPREGENMOD,'con':HUNGRY_CONMOD,
+         'end':HUNGRY_ENDMOD},),
     StatusEmaciated : ({},
-        {'mpregen':EMACI_SPREGENMOD,'con':EMACI_CONMOD,'end':EMACI_ENDMOD},),
-    StatusDehydrated: ({'resfire':DEHYD_RESFIRE,'respain':DEHYD_RESPAIN,},
+        {'mpregen':EMACI_SPREGENMOD,'con':EMACI_CONMOD,
+         'end':EMACI_ENDMOD},),
+    StatusDehydrated: (
+        {'resfire':DEHYD_RESFIRE,'respain':DEHYD_RESPAIN,},
         {'mpregen':DEHYD_SPREGENMOD,},),
     StatusTired     : ({},
         {'mpregen':TIRED_SPREGENMOD,'sight':TIRED_SIGHTMOD,
@@ -1649,6 +1679,18 @@ STATUS_MODS={
     StatusFull      : ({},{'mpregen':FULL_SPREGENMOD},),
     StatusDrunk     : ({'bal':QUALITYMODF,},{},),
     StatusOffBalance: ({'bal':QUALITYMODF,},{},),
+    StatusBPos_Crouched : (
+        {'atk':CROUCHED_ATK*MULT_STATS,'dfn':CROUCHED_DFN*MULT_STATS},
+        {'msp':CROUCHED_MSPMOD,'agi':CROUCHED_AGIMOD},),
+    StatusBPos_Seated : (
+        {'atk':SEATED_ATK*MULT_STATS,'dfn':SEATED_DFN*MULT_STATS},
+        {'msp':SEATED_MSPMOD,'agi':SEATED_AGIMOD},),
+    StatusBPos_Prone : (
+        {'atk':PRONE_ATK*MULT_STATS,'dfn':PRONE_DFN*MULT_STATS},
+        {'msp':PRONE_MSPMOD,'agi':PRONE_AGIMOD},),
+    StatusBPos_Supine : (
+        {'atk':SUPINE_ATK*MULT_STATS,'dfn':SUPINE_DFN*MULT_STATS},
+        {'msp':SUPINE_MSPMOD,'agi':SUPINE_AGIMOD},),
     }
 
 TOOLS={

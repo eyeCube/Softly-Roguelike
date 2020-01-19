@@ -141,19 +141,19 @@ def _get_equipment(body):
             i+=1
             if arm is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
-                           cmp.EquipableInArmSlot)
             equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
                            cmp.EquipableInHandSlot)
+            equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
+                           cmp.EquipableInArmSlot)
         i=-1
         for leg in body.parts[cmp.BPC_Legs].legs:
             i+=1
             if leg is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot,
-                           cmp.EquipableInLegSlot)
             equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot,
                            cmp.EquipableInFootSlot)
+            equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot,
+                           cmp.EquipableInLegSlot)
         for head in body.parts[cmp.BPC_Heads].heads:
             equipment=__add_eq(equipment,"head",head.head.slot,
                            cmp.EquipableInHeadSlot)
@@ -208,36 +208,43 @@ def _get_gauges(meters):
 def _get_effects(world, pc):
     effects=""
     for cls, dics in cmp.STATUS_MODS.items():
-        if world.has_component(pc, cls):
-            dadd, dmul = dics
-            compo=world.component_for_entity(pc, cls)
-            name=cmp.STATUSES[cls]
+        if not world.has_component(pc, cls):
+            continue
+        dadd, dmul = dics
+        compo=world.component_for_entity(pc, cls)
+        name=cmp.STATUSES[cls]
 
-            if dadd:
-                amods="            [ "
-                for stat, val in dadd.items():
-                    cval = compo.quality if val==QUALITYMODF else val
-                    sign = "+" if cval >= 0 else ""
-                    if stat in STATS_TO_MULT.keys():
-                        cval = cval // MULT_STATS
-                    amods += "{st} {si}{cv}, ".format(
-                        st=STATS[stat], si=sign, cv=cval)
-                amods=amods[:-2]
-                amods+=" ]\n"
-            else: amods=""
-            if dmul:
-                mmods="            [ "
-                for stat, val in dmul.items():
-                    cval = compo.quality if val==QUALITYMODF else val
-                    cval = int(100 * cval)
-                    mmods += "{st} {cv}%, ".format(
-                        st=STATS[stat], cv=cval)
-                mmods=mmods[:-2]
-                mmods+=" ]\n"
-            else: mmods=""
-                        
-            effects += "        {n} ({t} t):\n{amods}{mmods}".format(
-                n=name, t=compo.timer, amods=amods, mmods=mmods )
+        if dadd:
+            amods="            [ "
+            for stat, val in dadd.items():
+                cval = compo.quality if val==QUALITYMODF else val
+                sign = "+" if cval >= 0 else ""
+                if stat in STATS_TO_MULT.keys():
+                    cval = cval // MULT_STATS
+                amods += "{st} {si}{cv}, ".format(
+                    st=STATS[stat], si=sign, cv=cval)
+            amods=amods[:-2]
+            amods+=" ]\n"
+        else: amods=""
+        if dmul:
+            mmods="            [ "
+            for stat, val in dmul.items():
+                cval = compo.quality if val==QUALITYMODF else val
+                cval = int(100 * cval)
+                mmods += "{st} {cv}%, ".format(
+                    st=STATS[stat], cv=cval)
+            mmods=mmods[:-2]
+            mmods+=" ]\n"
+        else: mmods=""
+        
+        if cls in cmp.STATUSES_BODYPOSITIONS:
+            t=""
+        else:
+            t=" ({t} t)".format(compo.timer)
+            
+        effects += "        {n}{t}:\n{amods}{mmods}".format(
+            n=name, t=t, amods=amods, mmods=mmods )
+    # end for
     if effects: effects=effects[:-1] # remove final '\n'
     return effects
 
@@ -485,7 +492,7 @@ def _get_encumberance_mods(pc):
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
-        mods += "SPR {}%, ".format(int(50 + 50*(1 - (enc/max(1,encmax))) ))
+        mods += "SPR {}%, ".format(int(50 + max(0, 50*(1 - (enc/max(1,encmax)))) ))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))

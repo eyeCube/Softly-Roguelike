@@ -664,10 +664,8 @@ class Status:
         #attribute modifiers, aux. effects, message (based on status type)
         if component is cmp.StatusHaste:
             status_str = "'s movements slow"
-            rog.alts(ent, "spd", -HASTE_SPEEDMOD)
         elif component is cmp.StatusSlow:
             status_str = "'s movements speed up"
-            rog.alts(ent, "spd", -SLOW_SPEEDMOD)
         #if status_str:
             #"{}{}{}".format(name.title, name.name, status_str)
         rog.world().remove_component(ent, component)

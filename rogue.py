@@ -498,7 +498,11 @@ def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any
     return Rogue.world.component_for_entity(ent, cmp.ModdedStats).__dict__[_var]
 def getbase(ent, _var): # get Base statistic
     return Rogue.world.component_for_entity(ent, cmp.Stats).__dict__[_var]
-# ALTer Stat -- change stat stat by value val
+# SET Stat -- set stat stat to value val set base stat 
+def sets(ent, stat, val):
+    Rogue.world.component_for_entity(ent, cmp.Stats).__dict__[stat] = val
+    make(ent, DIRTY_STATS)
+# ALTer Stat -- change stat stat by val value
 def alts(ent, stat, val):
     Rogue.world.component_for_entity(ent, cmp.Stats).__dict__[stat] += val
     make(ent, DIRTY_STATS)
@@ -1451,11 +1455,13 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
     if world.has_component(ent, cmp.Skills):
-        skills=world.component_for_entity(ent, cmp.Skills)
+        skills = world.component_for_entity(ent, cmp.Skills)
+        athlete = _getskill(skills.skills.get(SKL_ATHLETE,0)) # athletic skill Lv
         armorSkill = _getskill(skills.skills.get(SKL_ARMOR,0)) # armored skill value
         unarmored = _getskill(skills.skills.get(SKL_UNARMORED,0)) # unarmored skill
     else:
         skills=None
+        athlete = 0
         armorSkill = 0
         unarmored = 0
     # RESET all modded stats to their base
@@ -1537,6 +1543,14 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             modded.__dict__[k] = v + modded.__dict__[k]
             
 #~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        #   skills   #
+        #------------#
+
+    if athlete:
+        modded.msp = modded.msp + athlete*SKL_ATHLETE_MSP
+
+            
+#~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # inventory  #
         #------------#
 
@@ -1550,40 +1564,53 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         
     # pain
     if world.has_component(ent, cmp.StatusPain):
-        modded.str = modded.str * PAIN_STRMOD
-        modded.end = modded.end * PAIN_ENDMOD
-        modded.con = modded.con * PAIN_CONMOD
+        modded.str = min(modded.str, modded.str * PAIN_STRMOD)
+        modded.end = min(modded.end, modded.end * PAIN_ENDMOD)
+        modded.con = min(modded.con, modded.con * PAIN_CONMOD)
     # sick
     if world.has_component(ent, cmp.StatusSick):
-        modded.str = modded.str * SICK_STRMOD
-        modded.end = modded.end * SICK_ENDMOD
-        modded.con = modded.con * SICK_CONMOD  
+        modded.str = min(modded.str, modded.str * SICK_STRMOD)
+        modded.end = min(modded.end, modded.end * SICK_ENDMOD)
+        modded.con = min(modded.con, modded.con * SICK_CONMOD) 
 
     # frozen
     if world.has_component(ent, cmp.StatusFrozen):
-        modded.int = modded.int * FROZEN_INTMOD
+        modded.int = min(modded.int, modded.int * FROZEN_INTMOD)
     # cold
     elif world.has_component(ent, cmp.StatusCold):
-        modded.int = modded.int * COLD_INTMOD
+        modded.int = min(modded.int, modded.int * COLD_INTMOD)
     # chilly
     elif world.has_component(ent, cmp.StatusChilly):
-        modded.int = modded.int * CHILLY_INTMOD
+        modded.int = min(modded.int, modded.int * CHILLY_INTMOD)
 
     # hazy
     if world.has_component(ent, cmp.StatusHazy):
-        modded.int = modded.int * HAZY_INTMOD
+        modded.int = min(modded.int, modded.int * HAZY_INTMOD)
         
     # hungry
     if world.has_component(ent, cmp.StatusHungry):
-        modded.con = modded.con * HUNGRY_CONMOD
-        modded.end = modded.end * HUNGRY_ENDMOD
+        modded.con = min(modded.con, modded.con * HUNGRY_CONMOD)
+        modded.end = min(modded.end, modded.end * HUNGRY_ENDMOD)
     # Emaciated
     elif world.has_component(ent, cmp.StatusEmaciated):
-        modded.con = modded.con * EMACI_CONMOD
-        modded.end = modded.end * EMACI_ENDMOD
+        modded.con = min(modded.con, modded.con * EMACI_CONMOD)
+        modded.end = min(modded.end, modded.end * EMACI_ENDMOD)
     # tired
     if world.has_component(ent, cmp.StatusTired):
-        modded.int = modded.int * TIRED_INTMOD
+        modded.int = min(modded.int, modded.int * TIRED_INTMOD)
+        
+    # crouched
+    if world.has_component(ent, cmp.StatusBPos_Crouched):
+        modded.agi = modded.agi * CROUCHED_AGIMOD
+    # seated
+    if world.has_component(ent, cmp.StatusBPos_Seated):
+        modded.agi = modded.agi * SEATED_AGIMOD
+    # supine
+    if world.has_component(ent, cmp.StatusBPos_Supine):
+        modded.agi = modded.agi * SUPINE_AGIMOD
+    # prone
+    if world.has_component(ent, cmp.StatusBPos_Prone):
+        modded.agi = modded.agi * PRONE_AGIMOD
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #&&&&''''^^^^````....,,,,----OOOO&&&&''''^^^^````....,,,,----OOOO&&&&''#
@@ -1601,56 +1628,64 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     
     # Strength
     _str = modded.str//MULT_ATT
-    modded.atk += _str * ATT_STR_ATK*MULT_STATS
-    modded.dmg += _str * ATT_STR_DMG*MULT_STATS
-    modded.arm += _str * ATT_STR_AV*MULT_STATS
-    modded.gra += _str * ATT_STR_GRA*MULT_STATS
-    modded.encmax += _str * ATT_STR_ENCMAX
-    modded.scary += _str * ATT_STR_SCARY
-    modded.trng += _str * ATT_STR_TRNG
+    if _str > 0: # negative attributes do not drain stats.
+        modded.atk += _str * ATT_STR_ATK*MULT_STATS
+        modded.dmg += _str * ATT_STR_DMG*MULT_STATS
+        modded.arm += _str * ATT_STR_AV*MULT_STATS
+        modded.gra += _str * ATT_STR_GRA*MULT_STATS
+        modded.encmax += _str * ATT_STR_ENCMAX
+        modded.scary += _str * ATT_STR_SCARY
+        modded.trng += _str * ATT_STR_TRNG
     
     # Agility
     _agi = modded.agi//MULT_ATT
-    modded.dfn += _agi * ATT_AGI_DV*MULT_STATS
-    modded.pro += _agi * ATT_AGI_PRO*MULT_STATS
-    modded.bal += _agi * ATT_AGI_BAL*MULT_STATS
-    modded.msp += _agi * ATT_AGI_MSP
-    modded.asp += _agi * ATT_AGI_ASP
+    if _agi > 0:
+        modded.dfn += _agi * ATT_AGI_DV*MULT_STATS
+        modded.pro += _agi * ATT_AGI_PRO*MULT_STATS
+        modded.bal += _agi * ATT_AGI_BAL*MULT_STATS
+        modded.msp += _agi * ATT_AGI_MSP
+        modded.asp += _agi * ATT_AGI_ASP
     
     # Dexterity
     _dex = modded.dex//MULT_ATT
-    modded.pen += _dex * ATT_DEX_PEN*MULT_STATS
-    modded.atk += _dex * ATT_DEX_ATK*MULT_STATS
-    modded.rpen += _dex * ATT_DEX_RPEN*MULT_STATS
-    modded.ratk += _dex * ATT_DEX_RATK*MULT_STATS
-    modded.asp += _dex * ATT_DEX_ASP
-    modded.rasp += _dex * ATT_DEX_RASP
-    modded.maxrng += _dex * ATT_DEX_RNG
+    if _dex > 0:
+        modded.pen += _dex * ATT_DEX_PEN*MULT_STATS
+        modded.atk += _dex * ATT_DEX_ATK*MULT_STATS
+        modded.asp += _dex * ATT_DEX_ASP
+        modded.rpen += _dex * ATT_DEX_RPEN*MULT_STATS
+        modded.ratk += _dex * ATT_DEX_RATK*MULT_STATS
+        modded.rasp += _dex * ATT_DEX_RASP
+        modded.maxrng += _dex * ATT_DEX_RNG
+        modded.trng += _dex * ATT_DEX_TRNG
     # TODO: context-sensitive dex bonuses (crafting, any tasks with hands...) (Not in this function of course!!!!)
     
     # Endurance
     _end = modded.end//MULT_ATT
-    modded.hpmax += _end * ATT_END_HP
-    modded.mpmax += _end * ATT_END_SP
-    modded.mpregen += _end * ATT_END_SPREGEN*MULT_STATS
-    modded.resfire += _end * ATT_END_RESHEAT
-    modded.rescold += _end * ATT_END_RESCOLD
-    modded.resphys += _end * ATT_END_RESPHYS
-    modded.respain += _end * ATT_END_RESPAIN
-    modded.resbio += _end * ATT_END_RESBIO
-    modded.resbleed += _end * ATT_END_RESBLEED
+    if _end > 0:
+        modded.hpmax += _end * ATT_END_HP
+        modded.mpmax += _end * ATT_END_SP
+        modded.mpregen += _end * ATT_END_SPREGEN*MULT_STATS
+        modded.resfire += _end * ATT_END_RESHEAT
+        modded.rescold += _end * ATT_END_RESCOLD
+        modded.resphys += _end * ATT_END_RESPHYS
+        modded.respain += _end * ATT_END_RESPAIN
+        modded.resbio += _end * ATT_END_RESBIO
+        modded.resbleed += _end * ATT_END_RESBLEED
     
     # Intelligence
     _int = modded.int//MULT_ATT
+    if _int > 0:
+        pass
     
     # Constitution
     _con = modded.con//MULT_ATT
-    modded.arm += _con * ATT_CON_AV*MULT_STATS
-    modded.hpmax += _con * ATT_CON_HP
-    modded.encmax += _con * ATT_CON_ENCMAX
-    modded.reselec += _con * ATT_CON_RESELEC
-    modded.resbleed += _con * ATT_CON_RESBLEED
-    modded.respain += _con * ATT_CON_RESPAIN
+    if _con > 0:
+        modded.arm += _con * ATT_CON_AV*MULT_STATS
+        modded.hpmax += _con * ATT_CON_HP
+        modded.encmax += _con * ATT_CON_ENCMAX
+        modded.reselec += _con * ATT_CON_RESELEC
+        modded.resbleed += _con * ATT_CON_RESBLEED
+        modded.respain += _con * ATT_CON_RESPAIN
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -1764,6 +1799,31 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusOffBalance):
         compo = world.component_for_entity(ent, cmp.StatusOffBalance)
         modded.bal = modded.bal - compo.quality
+        
+    # crouched
+    if world.has_component(ent, cmp.StatusBPos_Crouched):
+##        modded.height = modded.height * CROUCHED_HEIGHTMOD
+        modded.msp = modded.msp * CROUCHED_MSPMOD
+        modded.atk = modded.atk + CROUCHED_ATK*MULT_STATS
+        modded.dfn = modded.dfn + CROUCHED_DFN*MULT_STATS
+    # seated
+    if world.has_component(ent, cmp.StatusBPos_Seated):
+##        modded.height = modded.height * SEATED_HEIGHTMOD
+        modded.msp = modded.msp * SEATED_MSPMOD
+        modded.atk = modded.atk + SEATED_ATK*MULT_STATS
+        modded.dfn = modded.dfn + SEATED_DFN*MULT_STATS
+    # supine
+    if world.has_component(ent, cmp.StatusBPos_Supine):
+##        modded.height = modded.height * SUPINE_HEIGHTMOD
+        modded.msp = modded.msp * SUPINE_MSPMOD
+        modded.atk = modded.atk + SUPINE_ATK*MULT_STATS
+        modded.dfn = modded.dfn + SUPINE_DFN*MULT_STATS
+    # prone
+    if world.has_component(ent, cmp.StatusBPos_Prone):
+##        modded.height = modded.height * PRONE_HEIGHTMOD
+        modded.msp = modded.msp * PRONE_MSPMOD
+        modded.atk = modded.atk + PRONE_ATK*MULT_STATS
+        modded.dfn = modded.dfn + PRONE_DFN*MULT_STATS
     
     
     
@@ -1774,18 +1834,25 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Things should avoid affecting attributes as much as possible.
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
-    encpc = 1 - (modded.enc / max(1,modded.encmax))
+    encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
     modded.mpregen = modded.mpregen * (0.5 + 0.5*encpc)
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1
-        modded.asp = ENCUMBERANCE_MODIFIERS['asp'][index] * modded.asp
-        modded.msp = ENCUMBERANCE_MODIFIERS['msp'][index] * modded.msp
-        modded.atk = ENCUMBERANCE_MODIFIERS['atk'][index] * modded.atk
-        modded.dfn = ENCUMBERANCE_MODIFIERS['dfn'][index] * modded.dfn
-        modded.pro = ENCUMBERANCE_MODIFIERS['pro'][index] * modded.pro
-        modded.gra = ENCUMBERANCE_MODIFIERS['gra'][index] * modded.gra
-        modded.bal = ENCUMBERANCE_MODIFIERS['bal'][index] * modded.bal
+        modded.asp = min(modded.asp,
+            ENCUMBERANCE_MODIFIERS['asp'][index] * modded.asp)
+        modded.msp = min(modded.msp,
+            ENCUMBERANCE_MODIFIERS['msp'][index] * modded.msp)
+        modded.atk = min(modded.atk,
+            ENCUMBERANCE_MODIFIERS['atk'][index] * modded.atk)
+        modded.dfn = min(modded.dfn,
+            ENCUMBERANCE_MODIFIERS['dfn'][index] * modded.dfn)
+        modded.pro = min(modded.pro,
+            ENCUMBERANCE_MODIFIERS['pro'][index] * modded.pro)
+        modded.gra = min(modded.gra,
+            ENCUMBERANCE_MODIFIERS['gra'][index] * modded.gra)
+        modded.bal = min(modded.bal,
+            ENCUMBERANCE_MODIFIERS['bal'][index] * modded.bal)
     #
     
 #~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
