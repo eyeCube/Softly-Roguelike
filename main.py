@@ -97,8 +97,8 @@ def main():
 ##    rog.set_status(rog.pc(), cmp.StatusDrunk, t=1920, q=-4*MULT_STATS)
     
     rog.setskill(rog.pc(), SKL_BOXING, 100)
-    rog.setskill(rog.pc(), SKL_SWORDS, 10)
-    rog.setskill(rog.pc(), SKL_ARMOR, 25)
+    rog.setskill(rog.pc(), SKL_SWORDS, 100)
+    rog.setskill(rog.pc(), SKL_ARMOR, 100)
     rog.equip(
         rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
         )
@@ -117,11 +117,11 @@ def main():
     
     # test body part statuses
 ##    import components as cmp
-##    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
-##    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
-##    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_FRACTURED
-##    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
-##    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
+    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
+    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
+    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_FRACTURED
+    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
+    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
 ##    body.parts[cmp.BPC_Legs].legs[0].leg.bone.status = BONESTATUS_BROKEN
 ##    body.parts[cmp.BPC_Legs].legs[1].leg.bone.status = BONESTATUS_DAMAGED
 ##    body.parts[cmp.BPC_Legs].legs[0].leg.muscle.status = 3

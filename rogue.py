@@ -1657,7 +1657,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     #---------------------------------------------------------------#
     #       FINAL        MULTIPLIERS       BEGIN       HERE         #
     #---------------------------------------------------------------#
-
+    
     # sick
     if world.has_component(ent, cmp.StatusSick):
         modded.respain = modded.respain + SICK_RESPAINMOD  
@@ -1704,8 +1704,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.hearing  = modded.hearing    * IRRIT_HEARINGMOD
         modded.respain  = modded.respain    + IRRIT_RESPAIN
         modded.resbleed = modded.resbleed   + IRRIT_RESBLEED
-        modded.atk      = modded.atk        + IRRIT_ATK
-        modded.dfn      = modded.dfn        + IRRIT_DFN
+        modded.atk      = modded.atk        + IRRIT_ATK*MULT_STATS
+        modded.dfn      = modded.dfn        + IRRIT_DFN*MULT_STATS
     # cough
     if world.has_component(ent, cmp.StatusCough):
         modded.atk = modded.atk + COUGH_ATK
@@ -1714,8 +1714,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # paralyzed
     if world.has_component(ent, cmp.StatusParalyzed):
         modded.spd = modded.spd * PARAL_SPDMOD
-        modded.atk = modded.atk + PARAL_ATK
-        modded.dfn = modded.dfn + PARAL_DFN
+        modded.atk = modded.atk + PARAL_ATK*MULT_STATS
+        modded.dfn = modded.dfn + PARAL_DFN*MULT_STATS
         
     # slow
     if world.has_component(ent, cmp.StatusSlow):

@@ -378,13 +378,13 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
             
             __sbps(fxlist,"hand {} skin".format(index),
                 arm.hand.skin.status,
-                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
+                SKINSTATUSES, amd=ADDMODS_BPP_HAND_SKINSTATUS )
             __sbps(fxlist,"hand {} muscle".format(index),
                 arm.hand.muscle.status,
-                MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
+                MUSCLESTATUSES, amd=ADDMODS_BPP_HAND_MUSCLESTATUS)
             __sbps(fxlist,"hand {} bone".format(index),
                 arm.hand.bone.status,
-                BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
+                BONESTATUSES, amd=ADDMODS_BPP_HAND_BONESTATUS)
         # end for
 
         # leg 1
@@ -429,15 +429,24 @@ def _get_body_effects(world, pc): # TODO: finish all of these for each body part
 
 def _get_skills(compo):
     skills=""
+
+    # alphabetical ordering
+    lis=[]
     for const,exp in compo.skills.items():
-        skillname=SKILLS[const][1]
+        lis.append( (SKILLS[const][1], exp,) )
+    lis.sort(key = lambda x: x[0]) #, reverse=True
+    
+    # create string for each skill that is above a certain exp level
+    for name,exp in lis:
         lvl=exp//EXP_LEVEL
+        if lvl < 1: # too low of a level to show the exp
+            continue
         if lvl < 100:
-            xp=" | xp. {xp}".format(xp=exp%EXP_LEVEL)
+            xp="  | xp. {xp}".format(xp=exp%EXP_LEVEL)
         else:
             xp=""
         skills += "{n:>28}: lv. {lv}{xp}\n".format(
-            n=skillname, lv=lvl, xp=xp)
+            n=name, lv=lvl, xp=xp)
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
 

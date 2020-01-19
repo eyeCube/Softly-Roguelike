@@ -1868,14 +1868,14 @@ SKL_BULLWHIPS   = i; i+=1; #combat skill: bullwhips
 SKL_PUSHDAGGERS = i; i+=1; #combat skill: push daggers
 # throwing
 SKL_THROWING    = i; i+=1; #throwing skill (throwing small things not foes)
-SKL_PITCHING    = i; i+=1; #throwing skill: tumbling throws (rocks, balls, grenades, etc.)
-SKL_ENDOVEREND  = i; i+=1; #throwing skill: end-over-end (axes, knives)
-SKL_SPINNING    = i; i+=1; #throwing skill: spinning (boomerangs, frisbees, shurikens, cards)
-SKL_TIPFIRST    = i; i+=1; #throwing skill: tip-first (javelins, spears, darts, swords)
+##SKL_PITCHING    = i; i+=1; #throwing skill: tumbling throws (rocks, balls, grenades, etc.)
+##SKL_ENDOVEREND  = i; i+=1; #throwing skill: end-over-end (axes, knives)
+##SKL_SPINNING    = i; i+=1; #throwing skill: spinning (boomerangs, frisbees, shurikens, cards)
+##SKL_TIPFIRST    = i; i+=1; #throwing skill: tip-first (javelins, spears, darts, swords)
 # Explosives
 SKL_IEDS        = i; i+=1; #explosives skill: IEDs
-SKL_EMPS        = i; i+=1; #explosives skill: EMPs
-SKL_MINES       = i; i+=1; #explosives skill: Mines
+##SKL_EMPS        = i; i+=1; #explosives skill: EMPs
+##SKL_MINES       = i; i+=1; #explosives skill: Mines
 # Archery
 SKL_SLINGS      = i; i+=1; #archery skill: slings and slingshots
 SKL_BOWS        = i; i+=1; #archery skill: bows
@@ -1973,14 +1973,14 @@ SKL_UNARMORED   :(3,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
 SKL_BOXING      :(3,'boxing',),
 SKL_WRESTLING   :(3,'wrestling',),
-SKL_AXES        :(1,'1-handed axes',),
-SKL_GREATAXES   :(1,'2-handed axes',),
-SKL_HAMMERS     :(1,'1-handed hammers',),
-SKL_MALLETS     :(1,'2-handed hammers',),
-SKL_JAVELINS    :(1,'1-handed spears',),
-SKL_SPEARS      :(1,'2-handed spears',),
-SKL_SWORDS      :(2,'1-handed swords',),
-SKL_LONGSWORDS  :(2,'2-handed swords',),
+SKL_AXES        :(1,'axes, one-handed',),
+SKL_GREATAXES   :(1,'axes, two-handed',),
+SKL_HAMMERS     :(1,'hammers, one-handed',),
+SKL_MALLETS     :(1,'hammers, two-handed',),
+SKL_JAVELINS    :(1,'spears, one-handed',),
+SKL_SPEARS      :(1,'spears, two-handed',),
+SKL_SWORDS      :(2,'swords, one-handed',),
+SKL_LONGSWORDS  :(2,'swords, two-handed',),
 SKL_POLEARMS    :(2,'polearms',),
 SKL_GREATSWORDS :(3,'greatswords',),
 SKL_KNIVES      :(2,'knives',),
@@ -1988,9 +1988,7 @@ SKL_BLUDGEONS   :(1,'bludgeons',),
 SKL_STAVES      :(1,'staves',),
 SKL_BULLWHIPS   :(3,'bullwhips',),
 SKL_THROWING    :(2,'throwing',),
-SKL_IEDS        :(3,'IEDs',),
-SKL_EMPS        :(3,'EMPs',),
-SKL_MINES       :(3,'mines',),
+SKL_IEDS        :(3,'explosives',),
 SKL_SLINGS      :(2,'slings',),
 SKL_BOWS        :(3,'bows',),
 SKL_CROSSBOWS   :(1,'crossbows',),
@@ -2057,12 +2055,12 @@ SKL_BOXING          : 0.25,
 # Skill data (stat modifiers gained from skills)
 
 # ARMOR
-SKLMOD_ARMOR_PRO        = 0.05      # multiplier modifier - per level
-SKLMOD_ARMOR_AV         = 0.05      # multiplier modifier - per level
-SKLMOD_ARMOR_DV         = 0.05      # multiplier modifier - per level
+SKLMOD_ARMOR_PRO        = 0.3333334 # adder modifier - per level
+SKLMOD_ARMOR_AV         = 0.1666667 # adder modifier - per level
+SKLMOD_ARMOR_DV         = 0.1666667 # adder modifier - per level
 SKLMOD_UNARMORED_PRO    = 0.3       # adder modifier - per level
-SKLMOD_UNARMORED_AV     = 0.15      # adder modifier - per level
-SKLMOD_UNARMORED_DV     = 0.4       # adder modifier - per level
+SKLMOD_UNARMORED_AV     = 0.2       # adder modifier - per level
+SKLMOD_UNARMORED_DV     = 0.3333334 # adder modifier - per level
 
 # WEAPONS
 # Multiplier per level for each weapons, and defaults
@@ -2071,7 +2069,7 @@ SKLMOD_UNARMORED_DV     = 0.4       # adder modifier - per level
 #   for growth for each skill level gained.
 DEFAULT_SKLMOD_ATK   = 0.5
 DEFAULT_SKLMOD_DFN   = 0.25
-DEFAULT_SKLMOD_PEN   = 0.25
+DEFAULT_SKLMOD_PEN   = 0.3
 DEFAULT_SKLMOD_PRO   = 0.15
 DEFAULT_SKLMOD_DMG   = 0.25
 DEFAULT_SKLMOD_ARM   = 0.1
@@ -2134,8 +2132,18 @@ SKLMOD_DFN   = {
 
 SKLMOD_PEN   = {
     SKL_WRESTLING   : 0,
-    SKL_BOXING      : DEFAULT_SKLMOD_PEN*0.5,
-    SKL_SHIELDS     : DEFAULT_SKLMOD_PEN*0.25,
+    SKL_BOXING      : DEFAULT_SKLMOD_PEN*0.6666667,
+    SKL_SHIELDS     : DEFAULT_SKLMOD_PEN*0.5,
+    SKL_SWORDS      : DEFAULT_SKLMOD_PEN*1.1666667,
+    SKL_LONGSWORDS  : DEFAULT_SKLMOD_PEN*1.1666667,
+    SKL_KNIVES      : DEFAULT_SKLMOD_PEN*1.25,
+    SKL_PUSHDAGGERS : DEFAULT_SKLMOD_PEN*1.1666667,
+    SKL_SPEARS      : DEFAULT_SKLMOD_PEN*1.1,
+    SKL_POLEARMS    : DEFAULT_SKLMOD_PEN*1.1,
+    SKL_BLUDGEONS   : DEFAULT_SKLMOD_PEN*0.83,
+    SKL_STAVES      : DEFAULT_SKLMOD_PEN*0.6666667,
+    SKL_HAMMERS     : DEFAULT_SKLMOD_PEN*1.05,
+    SKL_MALLETS     : DEFAULT_SKLMOD_PEN*0.75,
     SKL_SLINGS      : 0,
     SKL_BOWS        : 0,
     SKL_CROSSBOWS   : 0,

@@ -250,6 +250,9 @@ def getMonScript(_char):    return bestiary[_char][3]
 
     # GENERIC SCRIPTS
 
+def _clothes(item):
+    rog.world.add_component(item, cmp.Clothes)
+
 def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=0,twoh=False,skill=None):
     world=rog.world()
     dmod={}
@@ -2690,9 +2693,9 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
     dadd['arm'] = min(dadd.get('arm',0), dadd.get('arm',0) * _2575)
     dadd['dfn'] = min(dadd.get('dfn',0), dadd.get('dfn',0) * _5050)
 # end def
-def _apply_skill_bonus_armor(dadd, skillLv):
+def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
     if not skillLv: return
-    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
+    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
     dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
     # custom or default stat modifiers for specific skills
@@ -2835,6 +2838,8 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.15 # temporary (TODO: get from body plan...)
 
     # equipment
     if arm.slot.item:
@@ -2845,14 +2850,16 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.15 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
     # examine body part
@@ -2940,6 +2947,8 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
 
     # equipment
     if leg.slot.item:
@@ -2949,14 +2958,16 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
     # examine body part
@@ -2983,9 +2994,6 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
-        
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
@@ -3006,6 +3014,8 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
 
     # equipment
     if head.slot.item:
@@ -3023,14 +3033,16 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
             del dadd['hearing']
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
     
     # examine body part                
@@ -3061,9 +3073,6 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
             dmul['sight'] = dadd['sight']
             del dadd['sight']
         
-        # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
-        
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
@@ -3088,9 +3097,6 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        
-        # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -3183,6 +3189,8 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
 
     # equipment
     if core.slot.item:
@@ -3192,14 +3200,16 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
              
     # examine body part
@@ -3217,6 +3227,9 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
+    cov += 0.1 * len(front.slot.covers)
 
     # equipment
     if front.slot.item:
@@ -3226,14 +3239,16 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
              
     # examine body part
@@ -3252,6 +3267,8 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
 
     # equipment
     if back.slot.item:
@@ -3261,14 +3278,16 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
              
     # examine body part
@@ -3287,6 +3306,8 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
     world = rog.world()
     dadd={}
     dmul={}
+    
+    cov = 0.1 # temporary (TODO: get from body plan...)
 
     # equipment
     if hips.slot.item:
@@ -3296,14 +3317,16 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
             dadd.update({k:v})
         
         # armor skill bonus
-        _apply_skill_bonus_armor(dadd, armorSkill)
+        if not world.has_component(item, cmp.Clothes):
+            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+        else: # unarmored combat skill used for "clothing" armor
+            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
                                 
     else: # unarmored combat
-        cov = 0.1 # temporary (TODO: get from body plan...)
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
              
     # examine body part
@@ -5057,8 +5080,8 @@ ARMOR={
 "ceramic gear"          :(3090,  13.6, 60,  1000, CERA,(2,  15, 5,  2,  -15,0,  6,  3,  3,  9, ),(1,1,1,0,),None,),# padded jacket interlaced with ceramic tiles, grants very good defense against one powerful blow before it shatters, rendering it useless to repeated assault.
     # cloth
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script
-"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  5,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),None,),
-"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  4,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),None,),
+"t-shirt"               :(5,     0.15, 10,  100,  CLTH,(0,  0,  0,  5,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),_clothes,),
+"hoody"                 :(23,    0.8,  30,  300,  CLTH,(0,  0,  1,  4,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),_clothes,),
 "cloth vest"            :(19,    1.0,  40,  200,  CLTH,(1,  0,  1,  2,  -12,6,  3,  0,  0,  3, ),(1,0,0,0,),None,),
 "wool jacket"           :(75,    2.0,  160, 300,  CLTH,(1,  1,  3,  3,  -36,36, 6,  2,  0,  6, ),(1,1,0,0,),None,),
 "padded vest"           :(98,    1.6,  120, 300,  CLTH,(2,  1,  2,  2,  -6, 12, 3,  1,  0,  3, ),(1,0,0,0,),None,),

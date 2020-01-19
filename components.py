@@ -728,6 +728,12 @@ class BPP_Nucleus:
     mods:   stat mod dict {var : modf,}
     fit:    the entity it's fitted to. 0==None. 
 '''
+class Clothes: # equipable armor-like component is clothing, not armor
+    # hence it works with unarmored skill, not armored skill
+    __slots__=['quality']
+    def __init__(self,quality=0):
+        self.quality=quality
+        
 class EquipableInAmmoSlot:
     __slots__=['ap','mods','fit']
     def __init__(self, ap, mods, fit=0): #{var : modf,}
@@ -1610,7 +1616,7 @@ STATUS_MODS={
     StatusIrritated : (
         {'atk':IRRIT_ATK*MULT_STATS,'resbleed':IRRIT_RESBLEED*MULT_STATS,},
         {'sight':IRRIT_SIGHTMOD,'hearing':IRRIT_HEARINGMOD,
-        'respain':IRRIT_RESPAINMOD,},),
+        'respain':IRRIT_RESPAIN,},),
     StatusParalyzed : (
         {'atk':PARAL_ATK*MULT_STATS,'dfn':PARAL_DFN*MULT_STATS,},
         {'spd':PARAL_SPDMOD},),
