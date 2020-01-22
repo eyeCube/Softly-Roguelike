@@ -378,6 +378,7 @@ BASE_HP         = 2
 BASE_MP         = 20
 BASE_MPREGEN    = 1
 BASE_ENCMAX     = 10
+BASE_REACH      = 2
 BASE_STR        = 12 # strength
 BASE_CON        = 12 # constitution
 BASE_INT        = 12 # intelligence
@@ -387,7 +388,7 @@ BASE_END        = 12 # endurance
 BASE_VIT        = 12 # vitality
 BASE_LUCK       = 100
 BASE_ATK        = 0
-BASE_DMG        = 0
+BASE_DMG        = 1
 BASE_PEN        = 0
 BASE_DFN        = 10
 BASE_ARM        = 0
@@ -435,17 +436,17 @@ ATT_STR_SCARY           = 1 # intimidation +
 ATT_AGI_DV              = 0.5 # dodge value
 ATT_AGI_PRO             = 0.25 # protection
 ATT_AGI_BAL             = 1 # balance / poise
-ATT_AGI_MSP             = 5 # movement speed +
+ATT_AGI_MSP             = 3 # movement speed +
 ATT_AGI_ASP             = 5 # melee attack speed
 
 # Dexterity
-ATT_DEX_PEN             = 0.3333334 # melee penetration
 ATT_DEX_ATK             = 0.5 # melee accuracy
 ATT_DEX_RATK            = 0.75 # ranged Accuracy bonus
+ATT_DEX_PEN             = 0.3333334 # melee penetration
 ATT_DEX_RPEN            = 0.3333334 # ranged Penetration bonus
-ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_ASP             = 4 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
 ATT_DEX_RASP            = 5 # speed bonus for ranged attacks
+ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_TRNG            = 0.25 # throwing range bonus -- less than Str bonus
 
 # Endurance
@@ -455,7 +456,7 @@ ATT_END_SPREGEN         = 1     # stamina regen
 ATT_END_RESHEAT         = 3     # endurance grants many resistances
 ATT_END_RESCOLD         = 3
 ATT_END_RESPHYS         = 1
-ATT_END_RESPAIN         = 4     # res pain -- significantly more than Con bonus
+ATT_END_RESPAIN         = 3     # res pain -- significantly more than Con bonus
 ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
 ATT_END_RESBLEED        = 1
 
@@ -474,6 +475,33 @@ ATT_CON_RESBIO          = 2
 ATT_CON_RESBLEED        = 2
 ATT_CON_RESPAIN         = 1
 
+ATTRIBUTES={
+'str': '''
+Strength improves melee combat effectiveness, raising damage, attack,
+penetration, armor, grappling, and force of attacks. It also improves
+throwing range and effectiveness, and adds some carry capacity. Finally,
+it also grants some additional intimidation value. All equipment types
+require some amount of strength to effectively equip.''',
+'agi': '''
+Agility improves speed of movement and melee attacks, and grants extra
+dodge value, protection, and balance.''',
+'dex': '''
+Dexterity enhances both melee and ranged combat effectiveness, increasing
+penetration, accuracy, and attack speed. It also increases maximum range
+of ranged and throwing weapons. A certain amount of dexterity is required
+to equip specific types of weapons.''',
+'end': '''
+Endurance increases SP and SP regeneration rate. It also grants some HP
+and improves various resistances.''',
+'con': '''
+Constitution determines the maximum number of physical augmentations.
+It also greatly improves maximum HP, armor value, and carrying
+capacity, and grants some resistances.
+''',
+'int': '''
+Intelligence determines the maximum number of mental augmentations.
+In addition, it enhances identify and persuasion.''',
+    }
 
 
 # body augmentations #
@@ -575,6 +603,8 @@ AVG_SPD             = 100
 # MP (stamina) cost to perform actions
 STA_MOVE            = 4 # standard movement option
 STA_ATTACK          = 8 # multiplied by STA cost of weapons?
+STA_PUNCH           = 12
+STA_GRAB            = 4
 STA_PICKUP          = 1 # times KG?
 STA_POCKET          = 1
 STA_RUMMAGE         = 2
@@ -591,7 +621,7 @@ STA_USE             = 1 # default use item cost
 
 #energy (action potential or AP) cost to perform actions
 NRG_MOVE            = 100   # on default terrain (flat ground) 
-NRG_ATTACK          = 200   
+NRG_ATTACK          = 200
 NRG_BOMB            = 200   
 NRG_PICKUP          = 50    # grab thing and wield it (requires empty hand)
 NRG_POCKET          = 100   # picking up and putting in your inventory
@@ -773,6 +803,7 @@ BPP_BRAIN   = i; i+=1;
 i=0;
 BONESTATUS_NORMAL       = i; i+=1;
 BONESTATUS_DAMAGED      = i; i+=1; # bone is damaged, susceptible to fracture or breakage
+BONESTATUS_DISLOCATED   = i; i+=1; # bone is out of socket
 BONESTATUS_FRACTURED    = i; i+=1; # hairline fracture
 BONESTATUS_CRACKED      = i; i+=1; # badly cracked
 BONESTATUS_BROKEN       = i; i+=1; # fully broken in two
@@ -874,6 +905,7 @@ NGUTSSTATUSES           = i - 1; # don't count the normal status
 
 BONESTATUSES={
 BONESTATUS_DAMAGED      : "damaged",
+BONESTATUS_DISLOCATED   : "dislocated",
 BONESTATUS_FRACTURED    : "fractured",
 BONESTATUS_CRACKED      : "cracked",
 BONESTATUS_BROKEN       : "broken",
@@ -972,6 +1004,7 @@ SKINSTATUS_DEEPCUT      :{'resbio':-12,'respain':-10,'resbleed':-8, 'resfire':-6
 SKINSTATUS_SKINNED      :{'resbio':-15,'respain':-15,'resbleed':-10,'resfire':-10,},
 SKINSTATUS_DEEPBURNED   :{'resbio':-18,'respain':-15,'resbleed':-10,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'resbio':-20,'respain':-20,'resbleed':-15,'resfire':-20,},
+SKINSTATUS_MANGLED      :{'resbio':-20,'respain':-20,'resbleed':-15,'resfire':-20,},
     }
 
 # torso
@@ -988,18 +1021,22 @@ MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'resp
 MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
 ADDMODS_BPP_TORSO_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'respain':-20,},
 BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
+BONESTATUS_MANGLED      :{'respain':-100,},
     }
 MULTMODS_BPP_TORSO_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'agi':0.9,'asp':0.9,'msp':0.9,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
+BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
     }
 # back
 ADDMODS_BPP_BACK_MUSCLESTATUS = { # stat : value
@@ -1015,34 +1052,42 @@ MUSCLESTATUS_RUPTURED   :{'con':-5,'str':-5,'atk':-4,'dfn':-2.5,'msp':-12,'asp':
 MUSCLESTATUS_MANGLED    :{'con':-6,'str':-6,'atk':-5,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
 ADDMODS_BPP_BACK_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'bal':-2,'respain':-20,},
 BONESTATUS_BROKEN       :{'bal':-4,'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'bal':-6,'respain':-80,},
 BONESTATUS_SHATTERED    :{'bal':-8,'respain':-100,},
+BONESTATUS_MANGLED      :{'bal':-8,'respain':-100,},
     }
 MULTMODS_BPP_BACK_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'agi':0.8,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.8,},
 BONESTATUS_BROKEN       :{'agi':0.6,'asp':0.8,'msp':0.6,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.4,'asp':0.7,'msp':0.4,},
 BONESTATUS_SHATTERED    :{'agi':0.2,'asp':0.6,'msp':0.2,},
+BONESTATUS_MANGLED      :{'agi':0.2,'asp':0.6,'msp':0.2,},
     }
 
 # head
 ADDMODS_BPP_HEAD_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'respain':-20,},
 BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-60,},
 BONESTATUS_SHATTERED    :{'respain':-80,},
+BONESTATUS_MANGLED      :{'respain':-80,},
     }
 MULTMODS_BPP_HEAD_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
 BONESTATUS_FRACTURED    :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
 BONESTATUS_CRACKED      :{'int':0.8,'end':0.8,'bal':0.8,'sight':0.8,'mpmax':0.8,},
 BONESTATUS_BROKEN       :{'int':0.7,'end':0.7,'bal':0.7,'sight':0.7,'mpmax':0.7,},
 BONESTATUS_MULTIBREAKS  :{'int':0.6,'end':0.6,'bal':0.6,'sight':0.6,'mpmax':0.6,},
 BONESTATUS_SHATTERED    :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
+BONESTATUS_MANGLED      :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
     }
 
 # neck
@@ -1057,20 +1102,25 @@ MUSCLESTATUS_RIPPED     :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-25,'re
 MUSCLESTATUS_DEEPBURNED :{'atk':-6,'dfn':-3,'asp':-15,'gra':-3,'respain':-30,'resbleed':-16,},
 MUSCLESTATUS_RUPTURED   :{'atk':-8,'dfn':-4,'asp':-20,'gra':-4,'respain':-30,'resbleed':-16,},
 MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'resbleed':-20,},
+MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'resbleed':-20,},
     }
 ADDMODS_BPP_NECK_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'respain':-20,},
 BONESTATUS_FRACTURED    :{'respain':-20,},
 BONESTATUS_CRACKED      :{'respain':-40,},
 BONESTATUS_BROKEN       :{'respain':-60,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
+BONESTATUS_MANGLED      :{'respain':-100,},
     }
 MULTMODS_BPP_NECK_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'agi':0.9,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
+BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
     }
 
 # face & mouth & nose
@@ -1085,13 +1135,16 @@ SKINSTATUS_DEEPCUT      :{'beauty':-24,'intimidation':8, 'resbio':-25,'respain':
 SKINSTATUS_SKINNED      :{'beauty':-32,'intimidation':16,'resbio':-25,'respain':-10,'resbleed':-20,'resfire':-10,},
 SKINSTATUS_DEEPBURNED   :{'beauty':-32,'intimidation':16,'resbio':-25,'respain':-20,'resbleed':-20,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'beauty':-64,'intimidation':32,'resbio':-50,'respain':-20,'resbleed':-25,'resfire':-20,},
+SKINSTATUS_MANGLED      :{'beauty':-96,'intimidation':48,'resbio':-50,'respain':-20,'resbleed':-25,'resfire':-20,},
     }
 ADDMODS_BPP_FACE_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'respain':-16,'intimidation':-4,'beauty':-8,},
 BONESTATUS_FRACTURED    :{'respain':-16,},
 BONESTATUS_CRACKED      :{'respain':-32,'intimidation':-4,'beauty':-8},
 BONESTATUS_BROKEN       :{'respain':-48,'intimidation':-8,'beauty':-16,},
 BONESTATUS_MULTIBREAKS  :{'respain':-64,'intimidation':-8,'beauty':-24,},
 BONESTATUS_SHATTERED    :{'respain':-96,'intimidation':-8,'beauty':-32,},
+BONESTATUS_MANGLED      :{'respain':-96,'intimidation':-8,'beauty':-32,},
     }
 ADDMODS_BPP_FACE_MUSCLESTATUS = { # muscles around the face
 MUSCLESTATUS_SORE       :{'respain':-5,},
@@ -1113,8 +1166,8 @@ BRAINSTATUS_CONCUSSION  :{'atk':-4,'dfn':-4,},
 BRAINSTATUS_DAMAGE      :{'atk':-6,'dfn':-6,},
 BRAINSTATUS_PERMDAMAGE  :{'atk':-6,'dfn':-6,},
 BRAINSTATUS_MAJORDAMAGE :{'atk':-12,'dfn':-12,},
-BRAINSTATUS_DEAD        :{'atk':-20,'dfn':-20,},
 BRAINSTATUS_MANGLED     :{'atk':-20,'dfn':-20,},
+BRAINSTATUS_DEAD        :{'atk':-24,'dfn':-24,},
     }
 MULTMODS_BPP_BRAINSTATUS = { # stat : value
 BRAINSTATUS_CONTUSION   :{'int':0.9,'bal':0.9,'sight':0.9,'hearing':0.9,'mpmax':0.9,},
@@ -1141,13 +1194,16 @@ SKINSTATUS_DEEPCUT      :{'dex':-2,'resbio':-24,'respain':-20,'resbleed':-4, 're
 SKINSTATUS_SKINNED      :{'dex':-2,'resbio':-30,'respain':-30,'resbleed':-5,'resfire':-10,},
 SKINSTATUS_DEEPBURNED   :{'dex':-3,'resbio':-36,'respain':-30,'resbleed':-5,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'dex':-3,'resbio':-40,'respain':-40,'resbleed':-7,'resfire':-20,},
+SKINSTATUS_MANGLED      :{'dex':-3,'resbio':-40,'respain':-40,'resbleed':-9,'resfire':-20,},
     }
 ADDMODS_BPP_HAND_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_FRACTURED    :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'dex':-2,'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'dex':-3,'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
 BONESTATUS_MULTIBREAKS  :{'dex':-4,'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
 BONESTATUS_SHATTERED    :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-40,},
+BONESTATUS_MANGLED      :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-50,},
     }
 ADDMODS_BPP_HAND_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1162,11 +1218,13 @@ MUSCLESTATUS_MANGLED    :{'dex':-5,'atk':-5,'dfn':-5,'asp':-25,'gra':-5,'respain
 
 # arm
 ADDMODS_BPP_ARM_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
 BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
+BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
     }
 ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1181,18 +1239,22 @@ MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'respain':-25,'re
 
 # leg
 ADDMODS_BPP_LEG_BONESTATUS = { # stat : value
-BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
-BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
-BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
-BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
-BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
+BONESTATUS_DISLOCATED   :{'atk':-1,'dfn':-3,'gra':-3,'respain':-10,},
+BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-10,},
+BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-15,},
+BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
+BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
+BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
+BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-35,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
+BONESTATUS_DISLOCATED   :{'bal':0.8,'msp':0.9,},
 BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.96,},
 BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333334,},
 BONESTATUS_BROKEN       :{'bal':0.6,'msp':0.6666667,},
 BONESTATUS_MULTIBREAKS  :{'bal':0.4,'msp':0.5,},
 BONESTATUS_SHATTERED    :{'bal':0.3333334,'msp':0.4,},
+BONESTATUS_MANGLED      :{'bal':0.3333334,'msp':0.4,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1429,8 +1491,14 @@ BRAMBLE         =   6       # spade
 JUNGLE          =   13      # musical note (16th note)
 JUNGLE2         =   14      # musical note (8th note pair)
 WALL            = ord('#')
+
 DOORCLOSED      = ord('+')
 DOOROPEN        = ord('-')
+DOORCLOSED2     = ord('+') + 256
+DOOROPEN2       = ord('-') + 256
+LOCKEDCLOSED    = DOORCLOSED
+LOCKEDOPEN      = DOOROPEN
+
 VAULTCLOSED     =   241     # +/-
 VAULTOPEN       =   240     # =_
 STAIRUP         = ord('<')
@@ -2002,8 +2070,8 @@ SKILLS={ # ID : (SP,name,)
 SKL_ARMOR       :(3,'armored combat',),
 SKL_UNARMORED   :(2,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
-SKL_BOXING      :(3,'boxing',),
-SKL_WRESTLING   :(3,'wrestling',),
+SKL_BOXING      :(3,'boxer',),
+SKL_WRESTLING   :(3,'wrestler',),
 SKL_AXES        :(1,'axes, one-handed',),
 SKL_GREATAXES   :(2,'axes, two-handed',),
 SKL_HAMMERS     :(1,'hammers, one-handed',),
@@ -2032,31 +2100,32 @@ SKL_MACHINEGUNS :(3,'machine guns',),
 SKL_HEAVY       :(3,'heavy weapons',),
 SKL_ENERGY      :(4,'energy weapons',),
 # Physical / Technical Skills
-SKL_ATHLETE     :(2,'athleticism',),
+SKL_ATHLETE     :(2,'athlete',),
 SKL_STEALTH     :(1,'stealth',),
 SKL_COMPUTERS   :(4,'computers',),
 SKL_PILOT       :(2,'pilot',),
 SKL_PERSUASION  :(2,'speech',),
-SKL_CHEMISTRY   :(5,'chemistry',),
-SKL_SURVIVAL    :(1,'survival',),
+SKL_CHEMISTRY   :(5,'chemist',),
+SKL_SURVIVAL    :(1,'survivor',),
 SKL_LOCKPICK    :(1,'lockpick',),
 SKL_MEDICINE    :(3,'medicine',),
-SKL_SURGERY     :(6,'surgery',),
+SKL_SURGERY     :(6,'surgeon',),
 # Crafting Skills
-SKL_ASSEMBLY    :(1,'assembly',),
-SKL_COOKING     :(1,'cooking',),
-SKL_WOOD        :(1,'woodworking',),
-SKL_BONE        :(1,'boneworking',),
-SKL_LEATHER     :(2,'leatherworking',),
-SKL_PLASTIC     :(1,'plasticworking',),
-SKL_STONE       :(1,'stoneworking',),
-SKL_GLASS       :(3,'glassworking',),
-SKL_METAL       :(3,'metalworking',),
+SKL_ASSEMBLY    :(1,'assembler',),
+SKL_COOKING     :(1,'cook',),
+SKL_WOOD        :(1,'woodcraft',),
+SKL_BONE        :(1,'bonecraft',),
+SKL_LEATHER     :(2,'leathercraft',),
+SKL_PLASTIC     :(1,'plasticcraft',),
+SKL_STONE       :(1,'stonecraft',),
+SKL_GLASS       :(3,'glasscraft',),
+SKL_METAL       :(3,'metalcraft',),
 SKL_BOWYER      :(2,'bowyer',),
 SKL_FLETCHER    :(1,'fletcher',),
 SKL_BLADESMITH  :(3,'bladesmith',),
 SKL_GUNSMITH    :(3,'gunsmith',),
 SKL_HARDWARE    :(2,'technosmith',),
+SKL_MECHANIC    :(2,'autosmith',),
 SKL_ARMORSMITH  :(3,'armorsmith',),
 0               :(0,'no skill',),
     }
@@ -2070,15 +2139,16 @@ SKL_GREATSWORDS     : 0.3333334,
 SKL_POLEARMS        : 0.3333334,
 SKL_KNIVES          : 0.5,
 SKL_HAMMERS         : 0.25,
-SKL_MALLETS         : 0.25,
+SKL_MALLETS         : 0.2,
+SKL_STAVES          : 0.25,
 SKL_AXES            : 0.3333334,
 SKL_GREATAXES       : 0.3333334,
 SKL_JAVELINS        : 0.25,
 SKL_SPEARS          : 0.3333334,
 SKL_BLUDGEONS       : 0.25,
 SKL_SHIELDS         : 0.2,
-SKL_BULLWHIPS       : 0.2,
-SKL_BOXING          : 0.25,
+SKL_BULLWHIPS       : 0.1,
+SKL_BOXING          : 0.2,
     }
 
 
@@ -2086,15 +2156,15 @@ SKL_BOXING          : 0.25,
 # Skill data (stat modifiers gained from skills)
 
 # misc.
-SKL_ATHLETE_MSP         = 2
+SKL_ATHLETE_MSP         = 1
 
 # ARMOR
 SKLMOD_ARMOR_PRO        = 0.3       # adder modifier - per level
 SKLMOD_ARMOR_AV         = 0.16666667# adder modifier - per level
 SKLMOD_ARMOR_DV         = 0.16666667# adder modifier - per level
-SKLMOD_UNARMORED_PRO    = 0.3       # adder modifier - per level
+SKLMOD_UNARMORED_PRO    = 0.33333334# adder modifier - per level
 SKLMOD_UNARMORED_AV     = 0.2       # adder modifier - per level
-SKLMOD_UNARMORED_DV     = 0.25      # adder modifier - per level
+SKLMOD_UNARMORED_DV     = 0.2       # adder modifier - per level
 
 # WEAPONS
 # Multiplier per level for each weapons, and defaults
@@ -2103,7 +2173,7 @@ SKLMOD_UNARMORED_DV     = 0.25      # adder modifier - per level
 #   for growth for each skill level gained.
 DEFAULT_SKLMOD_ATK   = 0.5
 DEFAULT_SKLMOD_DFN   = 0.25
-DEFAULT_SKLMOD_PEN   = 0.36363636
+DEFAULT_SKLMOD_PEN   = 0.36363636 #~4/11
 DEFAULT_SKLMOD_PRO   = 0.16666667
 DEFAULT_SKLMOD_DMG   = 0.25
 DEFAULT_SKLMOD_ARM   = 0.1

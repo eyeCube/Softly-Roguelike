@@ -205,9 +205,9 @@ def drop_pc(pc,item):
     if not drop(pc, item):
         rog.alert("You can't put that there!")
 
-def open_pc(pc):
+def open_pc(pc): # open or close
     # pick what to open/close
-    rog.alert("Open what?{d}".format(d=dirStr))
+    rog.alert("Open/close what?{d}".format(d=dirStr))
     args=rog.get_direction()
     if not args: return
     dx,dy,dz=args
@@ -446,22 +446,81 @@ def quaff(ent, drink):
     # TODO: make sure this works...
     world.delete_entity(drink)
 
+def standup(ent):
+    actor = rog.world().component_for_entity(ent, cmp.Actor)
+    if rog.get_status(ent, cmp.StatusBPos_Crouched):
+        rog.remove_status(ent, cmp.StatusBPos_Crouched)
+        ap_cost = 40
+    elif rog.get_status(ent, cmp.StatusBPos_Seated):
+        rog.remove_status(ent, cmp.StatusBPos_Seated)
+        ap_cost = 100
+    elif rog.get_status(ent, cmp.StatusBPos_Prone):
+        rog.remove_status(ent, cmp.StatusBPos_Prone)
+        ap_cost = 200
+    elif rog.get_status(ent, cmp.StatusBPos_Supine):
+        rog.remove_status(ent, cmp.StatusBPos_Supine)
+        ap_cost = 200
+    actor.ap -= ap_cost
 def crouch(ent):
     rog.set_status(ent, cmp.StatusBPos_Crouched)
     actor = rog.world().component_for_entity(ent, cmp.Actor)
-    actor.ap -= 20
+    if rog.get_status(ent, cmp.StatusBPos_Seated):
+        rog.remove_status(ent, cmp.StatusBPos_Seated)
+        ap_cost = 100
+    elif rog.get_status(ent, cmp.StatusBPos_Prone):
+        rog.remove_status(ent, cmp.StatusBPos_Prone)
+        ap_cost = 160
+    elif rog.get_status(ent, cmp.StatusBPos_Supine):
+        rog.remove_status(ent, cmp.StatusBPos_Supine)
+        ap_cost = 160
+    else:
+        ap_cost = 25
+    actor.ap -= ap_cost
 def sit(ent):
     rog.set_status(ent, cmp.StatusBPos_Seated)
     actor = rog.world().component_for_entity(ent, cmp.Actor)
-    actor.ap -= 40
+    if rog.get_status(ent, cmp.StatusBPos_Crouched):
+        rog.remove_status(ent, cmp.StatusBPos_Crouched)
+        ap_cost = 25
+    elif rog.get_status(ent, cmp.StatusBPos_Prone):
+        rog.remove_status(ent, cmp.StatusBPos_Prone)
+        ap_cost = 100
+    elif rog.get_status(ent, cmp.StatusBPos_Supine):
+        rog.remove_status(ent, cmp.StatusBPos_Supine)
+        ap_cost = 100
+    else:
+        ap_cost = 50
+    actor.ap -= ap_cost
 def lieprone(ent):
     rog.set_status(ent, cmp.StatusBPos_Prone)
     actor = rog.world().component_for_entity(ent, cmp.Actor)
-    actor.ap -= 100
+    if rog.get_status(ent, cmp.StatusBPos_Crouched):
+        rog.remove_status(ent, cmp.StatusBPos_Crouched)
+        ap_cost = 100
+    elif rog.get_status(ent, cmp.StatusBPos_Seated):
+        rog.remove_status(ent, cmp.StatusBPos_Seated)
+        ap_cost = 150
+    elif rog.get_status(ent, cmp.StatusBPos_Supine):
+        rog.remove_status(ent, cmp.StatusBPos_Supine)
+        ap_cost = 100
+    else:
+        ap_cost = 100
+    actor.ap -= ap_cost
 def liesupine(ent):
     rog.set_status(ent, cmp.StatusBPos_Supine)
     actor = rog.world().component_for_entity(ent, cmp.Actor)
-    actor.ap -= 200
+    if rog.get_status(ent, cmp.StatusBPos_Crouched):
+        rog.remove_status(ent, cmp.StatusBPos_Crouched)
+        ap_cost = 100
+    elif rog.get_status(ent, cmp.StatusBPos_Seated):
+        rog.remove_status(ent, cmp.StatusBPos_Seated)
+        ap_cost = 50
+    elif rog.get_status(ent, cmp.StatusBPos_Prone):
+        rog.remove_status(ent, cmp.StatusBPos_Prone)
+        ap_cost = 100
+    else:
+        ap_cost = 100
+    actor.ap -= ap_cost
     
 def move(ent,dx,dy, mx=1):  # actor locomotion
     '''
@@ -581,15 +640,6 @@ def _strike(attkr,dfndr,aweap,dweap,
     arm =   rog.getms(dfndr,'arm')//MULT_STATS
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
-
-    # change advantage based on weapon length (TODO: Test)
-    aweaplen = world.component_for_entity(aweap, cmp.Form).length
-    dweaplen = world.component_for_entity(dweap, cmp.Form).length
-    # give some length from the arm length
-    aweaplen += rog.get_arm_length(abody.plan, abody.height)
-    dweaplen += rog.get_arm_length(dbody.plan, dbody.height)
-    diff=aweaplen - dweaplen
-    adv += rog.sign(diff) #* max(1, int(abs(diff)/LEN_ADVANTAGE_BP))
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
@@ -808,7 +858,7 @@ def _strike(attkr,dfndr,aweap,dweap,
     return (hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,)
 
 
-def fight(attkr,dfndr,adv=0,power=0):
+def fight(attkr,dfndr,adv=0,power=0,grap=False):
     '''
     Combat function. Engage in combat:
     # Arguments:
@@ -816,6 +866,7 @@ def fight(attkr,dfndr,adv=0,power=0):
         # dfndr:    defender (entity being attacked by attacker)
         # adv:      advantage attacker has over defender (bonus to-hit)
         # power:    amount of umph to use in the attack
+        # grap:     grappling attack? (if False, do a striking attack)
         
         TODO: implement this!
         # power:    how much force putting in the attack?
@@ -837,25 +888,60 @@ def fight(attkr,dfndr,adv=0,power=0):
     dpos = world.component_for_entity(dfndr, cmp.Position)
     aname=world.component_for_entity(attkr, cmp.Name)
     dname=world.component_for_entity(dfndr, cmp.Name)
-    # weapons of the combatants
-    aweap = rog.dominant_arm(attkr).hand.slot.item
-    dweap = rog.dominant_arm(dfndr).hand.slot.item
+        # weapons of the combatants (temporary ?)
+    abody = Rogue.world.component_for_entity(grplr, cmp.Body)
+    dbody = Rogue.world.component_for_entity(target, cmp.Body)
+    aarms = abody.parts.get(cmp.BPC_Arms, None)
+    darms = dbody.parts.get(cmp.BPC_Arms, None)
+    if aarms:
+        aarm1 = aarms.arms[0]
+        aarm2 = aarms.arms[1]
+    else:
+        aarm1=aarm2=None
+    aweap1 = aarm1.hand.slot.item if aarm1 else None
+    aweap2 = aarm2.hand.slot.item if aarm1 else None
+    if darms:
+        darm1 = darms.arms[0]
+        darm2 = darms.arms[1]
+    else:
+        darm1=darm2=None
+    dweap1 = darm1.hand.slot.item if darm1 else None
+    dweap2 = darm2.hand.slot.item if darm1 else None
+    #
+    
+    # attack type: strike or grapple?
+    strike = not grap
     
     # ensure you have the proper amount of Stamina
-    if aweap:
-        equipable = world.component_for_entity(aweap, cmp.EquipableInHandSlot)
-        stamina_cost = equipable.stamina
+    if strike:
+        if aweap1:
+            equipable = world.component_for_entity(aweap1, cmp.EquipableInHoldSlot)
+            stamina_cost = equipable.stamina
+        else:
+            stamina_cost = STA_PUNCH
+        if stamina_cost > rog.getms(attkr, "mp"):
+            power=-1
     else:
-        stamina_cost = 12 # TEMPORARY
-    if stamina_cost > rog.getms(attkr, "mp"):
-        power=-1
+        stamina_cost = STA_GRAB
     
-    # strike!
-    counterable = True # TODO: this is affected by range/reach!
-    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
-        attkr, dfndr, aweap, dweap,
-        adv=adv, power=power, counterable=counterable
-        )
+    # counterability is affected by range/reach TODO!
+##    dist=max(abs(apos.x - dpos.x), abs(apos.x - dpos.x))
+##    if rog.withinreach(areach1, dist):
+##        counterable = True
+##    else:
+##        counterable = False
+    counterable = True
+    
+    if strike: # strike!
+        hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
+            attkr, dfndr, aweap1, dweap1,
+            adv=adv, power=power, counterable=counterable
+            )
+    else: # grab / bind / grapple
+        hit,grabd,killed,rol,ctrd,feelStrings,grazed = _grab(
+            attkr, dfndr, aweap1, aweap2, dweap1, dweap2,
+            adv=adv, power=power, counterable=counterable
+            )
     
     # AP cost
     aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
@@ -880,8 +966,8 @@ def fight(attkr,dfndr,adv=0,power=0):
                 ex=" ({dr}:{ro})".format(dr=dr, ro=rol)
         else: # hit
             if rog.is_pc(attkr):
-                ex=" ({dr}:{ro}|{dm}x{p})".format(
-                    dr=dr, ro=rol, dm=trueDmg, p=pens )
+                ex=" ({dm}x{p})".format( #{dr}:{ro}|
+                    dm=trueDmg, p=pens ) #dr=dr, ro=rol, 
             if killed:
                 v="kills"
             else:
@@ -889,8 +975,8 @@ def fight(attkr,dfndr,adv=0,power=0):
                     v="grazes"
                 else:
                     v = "crits" if crit else "hits"
-        if ctrd:
-            m = "and {dt}{n} counters".format(dt=dt,n=n)
+        if ctrd: # TODO: more detailed counter message (i.e., " and ... counters (8x2)")
+            m = " and {dt}{n} counters".format(dt=dt,n=n)
         rog.event_sight(
             dpos.x,dpos.y,
             "{at}{a} {v} {dt}{n}{ex}{m}{x}".format(
@@ -898,6 +984,66 @@ def fight(attkr,dfndr,adv=0,power=0):
         )
         rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
 #
+
+### grappling #
+##def grab(grplr, target): # should this just be incorporated into fight?
+##    ''' entity grplr tries to grab (grappling) a target entity '''
+##    
+##    # setting up
+##    world = rog.world()
+##    aactor = world.component_for_entity(attkr, cmp.Actor)
+##    apos = world.component_for_entity(attkr, cmp.Position)
+##    dpos = world.component_for_entity(dfndr, cmp.Position)
+##    aname=world.component_for_entity(attkr, cmp.Name)
+##    dname=world.component_for_entity(dfndr, cmp.Name)
+##    # weapons of the combatants
+##    abody = Rogue.world.component_for_entity(grplr, cmp.Body)
+##    dbody = Rogue.world.component_for_entity(target, cmp.Body)
+##    aarms = abody.parts.get(cmp.BPC_Arms, None)
+##    darms = dbody.parts.get(cmp.BPC_Arms, None)
+##    if aarms: # temporary
+##        aarm1 = aarms.arms[0]
+##        aarm2 = aarms.arms[1]
+##        aweap1 = aarm1.hand.slot.item if aarm1 else None
+##        aweap2 = aarm2.hand.slot.item if aarm1 else None
+##    if darms:
+##        darm1 = darms.arms[0]
+##        darm2 = darms.arms[1]
+##        dweap1 = darm1.hand.slot.item if darm1 else None
+##        dweap2 = darm2.hand.slot.item if darm1 else None
+##    
+##    # ensure you have the proper amount of Stamina
+##    stamina_cost = 4 # TEMPORARY
+##    if stamina_cost > rog.getms(attkr, "mp"):
+##        power=-1
+##    
+##    # AP cost
+##    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
+##    
+##    # stamina cost
+##    rog.sap(attkr, stamina_cost)
+##                 
+##    # metabolism
+##    rog.metabolism(attkr, CALCOST_HEAVYACTIVITY)
+##    
+##    # finishing up
+##    message = True # TEMPORARY!!!!
+##    a=aname.name; n=dname.name; at=aname.title; dt=dname.title;
+##    x='.'; ex="";
+##    dr="d{}".format(CMB_ROLL_ATK) #"d20"
+##        # make a message describing the fight
+##    if message:
+##        v="grabs"
+##        if ctrd:
+##            m = "and {dt}{n} counters".format(dt=dt,n=n)
+##        rog.event_sight(
+##            dpos.x,dpos.y,
+##            "{at}{a} {v} {dt}{n}{ex}{m}{x}".format(
+##                a=a,v=v,n=n,at=at,dt=dt,ex=ex,x=x,m=m )
+##        )
+##        rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
+###
+    
 
 
 

@@ -116,9 +116,8 @@ class Stats: #base stats
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
                  respain=100,resbleed=100,reslight=100,ressound=100,
-                 atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,
-                 ratk=0,rdmg=0,rpen=0,minrng=0,maxrng=0,trng=0,
-                 gra=0,ctr=0,bal=0,spd=0,asp=0,msp=0,rasp=0,
+                 atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,reach=0,
+                 gra=0,ctr=0,bal=0,spd=0,asp=0,msp=0,
                  encmax=0,sight=0,hearing=0,
                  courage=0,scary=0,beauty=0
                  ):
@@ -142,7 +141,6 @@ class Stats: #base stats
         self.resbleed=int(resbleed) # BLD
         self.reslight=int(reslight) # LGT
         self.ressound=int(ressound) # SND
-        self.courage=int(courage)   # COU
         # stats
         self.mass=int(mass)
         self.hpmax=int(hp)          # life
@@ -155,31 +153,26 @@ class Stats: #base stats
         self.spd=int(spd)    # Speed -- AP gained per turn
         self.asp=int(asp)    # Attack Speed (affects AP cost of attacking)
         self.msp=int(msp)    # Move Speed (affects AP cost of moving)
-        self.rasp=int(rasp)  # Ranged Attack Speed
         self.atk=int(atk)    # Attack -- accuracy
         self.dmg=int(dmg)    # Damage, physical (melee)
         self.pen=int(pen)    # Penetration
-        self.ratk=int(ratk)  # Ranged Attack -- accuracy
-        self.rdmg=int(rdmg)  # Ranged Damage, physical (melee)
-        self.rpen=int(rpen)  # Ranged Penetration
-        self.minrng=int(minrng) # Ranged attack minimum range
-        self.maxrng=int(maxrng) # Ranged attack maximum range
-        self.trng=int(trng)  # Throwing Range
+        self.reach=int(reach)# Reach -- melee range
         self.dfn=int(dfn)    # Defense -- DV (dodge value)
         self.arm=int(arm)    # Armor -- AV (armor value)
         self.pro=int(pro)    # Protection
         self.gra=int(gra)    # Grappling (wrestling)
         self.ctr=int(ctr)    # Counter-attack chance
-        self.bal=int(bal)    # Maximum Balance
+        self.bal=int(bal)    # Balance
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
-        self.scary=int(scary) # intimidation / scariness
-        self.beauty=int(beauty) # factors into persuasion / love
-
+        self.cou=int(courage)   # courage -- resistance to fear
+        self.idn=int(scary) # intimidation / scariness
+        self.bea=int(beauty) # factors into persuasion / love
 
 class ModdedStats: # stores the modified stat values for an entity
     def __init__(self):
         pass
+
 
 class LightSource:
     __slots__=['lightID','light']
@@ -827,7 +820,14 @@ class EquipableInNeckSlot:
         self.mods=mods
         self.fit=fit
         self.strReq=strReq
-class EquipableInHandSlot: #melee weapon/ ranged weapon/ shield
+##class EquipableInHandSlot: #gloves/gaunlets
+##    __slots__=['ap','mods','fit','strReq']
+##    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+##        self.ap=ap
+##        self.mods=mods
+##        self.fit=fit
+##        self.strReq=strReq
+class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
     __slots__=['ap','mods','stamina','fit','strReq','dexReq',]
     def __init__(self, ap, sta, mods, fit=0, strReq=0, dexReq=0): #{var : modf,}
         self.ap=ap
@@ -1027,6 +1027,10 @@ class Tool_Machete: # clearing shrubs, dense brush and jungle
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_Saw: # sawing removes material out of the way, good for big cutting jobs, but does not perform fine work.
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Scalpel: # for surgery / superfine cutting jobs
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality

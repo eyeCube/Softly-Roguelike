@@ -3847,7 +3847,7 @@ RECIPES={
     'sound'     : 60,
     'construct' : 2400,
     'components': (
-        [ ('parcel of plastic', 7,), ],
+        [ ('parcel of plastic', 8,), ],
         ),
     'tools'     : (
         [ (cmp.Tool_Tongs, 2,), ],
@@ -3857,7 +3857,7 @@ RECIPES={
         [ (cmp.Tool_Crucible, 1,), ],
         [ (cmp.Mold_PlasticStaff, 1,), ],
         ),
-    'byproducts': ( ('scrap plastic', 1,), ),
+    'byproducts': ( ('scrap plastic', 2,), ),
     },
 'wooden staff':{
     'quantity'  : 1,

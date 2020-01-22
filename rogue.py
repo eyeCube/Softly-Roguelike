@@ -43,8 +43,8 @@ import tilemap
 
 
 EQUIPABLE_CONSTS={
-EQ_MAINHAND : cmp.EquipableInHandSlot,
-EQ_OFFHAND  : cmp.EquipableInHandSlot,
+EQ_MAINHAND : cmp.EquipableInHoldSlot,
+EQ_OFFHAND  : cmp.EquipableInHoldSlot,
 EQ_MAINARM  : cmp.EquipableInArmSlot,
 EQ_OFFARM   : cmp.EquipableInArmSlot,
 EQ_MAINLEG  : cmp.EquipableInLegSlot,
@@ -1044,65 +1044,81 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
         #               indicates the type of damage to be dealt
     '''
     # progressive damage:
-    # two applications of same status => next status up in priority
+    # two applications of same status => next status up in priority (if of the same type of damage)
     if bpptype == BPP_MUSCLE:
-        for ii in range(4): # sore up to torn, not to burned
-            if (status == ii+1 and
-                bpp.status==ii+1 ):
-                bpp.status = ii+2
-                assert( (bpp.status != MUSCLESTATUS_BURNED and
-                         bpp.status != MUSCLESTATUS_DEEPBURNED) )
-                return True
-        if (status == MUSCLESTATUS_TORN and
-            bpp.status == MUSCLESTATUS_TORN ):
+        if (status == MUSCLESTATUS_SORE and bpp.status == status ):
+            bpp.status = MUSCLESTATUS_KNOTTED
+            return True
+        if (status == MUSCLESTATUS_KNOTTED and bpp.status == status ):
+            bpp.status = MUSCLESTATUS_CONTUSION
+            return True
+        if (status == MUSCLESTATUS_CONTUSION and bpp.status == status ):
+            bpp.status = MUSCLESTATUS_STRAINED
+            return True
+        if (status == MUSCLESTATUS_STRAINED and bpp.status == status ):
+            bpp.status = MUSCLESTATUS_TORN
+            return True
+        if (status == MUSCLESTATUS_TORN and bpp.status == status ):
             bpp.status = MUSCLESTATUS_RIPPED
             return True
-        if (status == MUSCLESTATUS_RIPPED and
-            bpp.status == MUSCLESTATUS_RIPPED ):
+        if (status == MUSCLESTATUS_RIPPED and bpp.status == status ):
             bpp.status = MUSCLESTATUS_RUPTURED
             return True
-        if (status == MUSCLESTATUS_RUPTURED and
-            bpp.status == MUSCLESTATUS_RUPTURED ):
+        if (status == MUSCLESTATUS_RUPTURED and bpp.status == status ):
             bpp.status = MUSCLESTATUS_MANGLED
             return True
     elif bpptype == BPP_BONE:
-        for ii in range(NBONESTATUSES):
-            if (status == ii+1 and
-                bpp.status==ii+1 ):
-                bpp.status = ii+2
-                return True
+        if (status == BONESTATUS_DAMAGED and bpp.status == status ):
+            bpp.status = BONESTATUS_FRACTURED
+            return True
+        if (status == BONESTATUS_FRACTURED and bpp.status == status ):
+            bpp.status = BONESTATUS_CRACKED
+            return True
+        if (status == BONESTATUS_CRACKED and bpp.status == status ):
+            bpp.status = BONESTATUS_BROKEN
+            return True
+        if (status == BONESTATUS_BROKEN and bpp.status == status ):
+            bpp.status = BONESTATUS_MULTIBREAKS
+            return True
+        if (status == BONESTATUS_MULTIBREAKS and bpp.status == status ):
+            bpp.status = BONESTATUS_SHATTERED
+            return True
+        if (status == BONESTATUS_SHATTERED and bpp.status == status ):
+            bpp.status = BONESTATUS_MUTILATED
+            return True
     elif bpptype == BPP_SKIN:
-        for ii in range(3): # rash up to mild abrasion, not to cut
-            if (status == ii+1 and
-                bpp.status==ii+1 ):
-                bpp.status = ii+2
-                assert( (bpp.status != SKINSTATUS_CUT and
-                         bpp.status != SKINSTATUS_DEEPCUT) )
-                return True
-        if (status == SKINSTATUS_MINORABRASION and
-            bpp.status == SKINSTATUS_MINORABRASION ):
+        if (status == SKINSTATUS_RASH and bpp.status == status ):
+            bpp.status = SKINSTATUS_BLISTER
+            return True
+        if (status == SKINSTATUS_BLISTER and bpp.status == status ):
+            bpp.status = SKINSTATUS_SCRAPED
+            return True
+        if (status == SKINSTATUS_SCRAPED and bpp.status == status ):
+            bpp.status = SKINSTATUS_MINORABRASION
+            return True
+        if (status == SKINSTATUS_MINORABRASION and bpp.status == status ):
             bpp.status = SKINSTATUS_MAJORABRASION
             return True
-        if (status == SKINSTATUS_MAJORABRASION and
-            bpp.status == SKINSTATUS_MAJORABRASION ):
+        if (status == SKINSTATUS_MAJORABRASION and bpp.status == status ):
             bpp.status = SKINSTATUS_SKINNED
             return True
-        if ((status == SKINSTATUS_SKINNED or
-             status == SKINSTATUS_MAJORABRASION) and
-            bpp.status == SKINSTATUS_SKINNED ):
+        if (status == SKINSTATUS_SKINNED and bpp.status == status ):
             bpp.status = SKINSTATUS_FULLYSKINNED
             return True
-        if (status == SKINSTATUS_FULLYSKINNED and
-            bpp.status == SKINSTATUS_FULLYSKINNED ):
+        if (status == SKINSTATUS_FULLYSKINNED and bpp.status == status ):
             bpp.status = SKINSTATUS_MANGLED
             return True
-        if (status == SKINSTATUS_BURNED and
-            bpp.status == SKINSTATUS_BURNED ):
+        if (status == SKINSTATUS_BURNED and bpp.status == status ):
             bpp.status = SKINSTATUS_DEEPBURNED
             return True
-        if (status == SKINSTATUS_CUT and
-            bpp.status == SKINSTATUS_CUT ):
+        if (status == SKINSTATUS_DEEPBURNED and bpp.status == status ):
+            bpp.status = SKINSTATUS_MANGLED
+            return True
+        if (status == SKINSTATUS_CUT and bpp.status == status ):
             bpp.status = SKINSTATUS_DEEPCUT
+            return True
+        if (status == SKINSTATUS_DEEPCUT and bpp.status == status ):
+            bpp.status = SKINSTATUS_SKINNED
             return True
     
     # default
@@ -1396,6 +1412,14 @@ def dominant_head(ent): # get a BPM object
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     bpc = body.parts[cmp.BPC_Heads]
     return bpc.heads[0] # dominant is always in slot 0 as a rule
+def off_arm(ent): # get a BPM object (assumes you have the necessary components / parts)
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    bpc = body.parts[cmp.BPC_Arms]
+    return bpc.arms[1] # dominant is always in slot 0 as a rule
+def off_leg(ent): # get a BPM object
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    bpc = body.parts[cmp.BPC_Legs]
+    return bpc.legs[1] # dominant is always in slot 0 as a rule
 
 def homeostasis(ent): entities.homeostasis(ent)
 def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst)
@@ -1447,7 +1471,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # this is to ensure you don't end up with MORE during a
         #   penalty application; as in the case the value was negative
     
-    # init
+# init #----------------------------------------------------------------#
     offhandItem = False
     addMods=[]
     multMods=[]
@@ -1467,7 +1491,11 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # RESET all modded stats to their base
     for k,v in base.__dict__.items():
         modded.__dict__[k] = v
-    # /init
+    # init pseudo-stats (stats which have no base value)
+    modded.tatk=modded.tdmg=modded.tpen=modded.tasp=modded.trng=0
+    modded.ratk=modded.rdmg=modded.rpen=modded.rasp=modded.minrng=modded.maxrng=0
+# /init #--------------------------------------------------------------#
+    
     
 #~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #  good multiplier statuses  # 
@@ -1542,12 +1570,13 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for k,v in mod.items():
             modded.__dict__[k] = v + modded.__dict__[k]
             
+            
 #~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #   skills   #
         #------------#
 
     if athlete:
-        modded.msp = modded.msp + athlete*SKL_ATHLETE_MSP
+        modded.msp = modded.msp + athlete*SKL_ATHLETE_MSP*SKILL_EFFECTIVENESS_MULTIPLIER
 
             
 #~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -1634,7 +1663,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.arm += _str * ATT_STR_AV*MULT_STATS
         modded.gra += _str * ATT_STR_GRA*MULT_STATS
         modded.encmax += _str * ATT_STR_ENCMAX
-        modded.scary += _str * ATT_STR_SCARY
+        modded.idn += _str * ATT_STR_SCARY
         modded.trng += _str * ATT_STR_TRNG
     
     # Agility
@@ -2021,6 +2050,7 @@ def queue_action(ent, act):
 
 
 
+
     #----------#
     # managers #
     #----------#
@@ -2092,11 +2122,95 @@ def routine_print_charPage():
 def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
     return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
 
-def get_direction():
-    return IO.get_direction()
-
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
+
+#
+# aim find target entity
+# target entity using a dumb line traversing algorithm
+# returns an entity or None
+# TODO: move these to some other module
+#
+def aim_find_target():
+    targeted = None
+    pos = Rogue.world.component_for_entity(Rogue.pc, cmp.Position)
+    while True:
+        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
+        for act,arg in pcAct:
+            
+            if (act=="context-dir" or act=="move"):
+                interesting = [] # possible targets
+                checkdir = arg
+                t = 0
+                
+                while t < sight:
+                    t += 1
+                    
+                    # check this tile
+                    xx = pos.x + checkdir[0]*t
+                    yy = pos.y + checkdir[1]*t
+                    here = monat(xx,yy)
+                    if here:
+                        score = t
+                        interesting.append( (here, score) )
+                        
+                    # check tiles in 2 lines spreading outward from this tile
+                    for dir1, dir2 in adjacent_directions(checkdir):
+                        g = 0
+                        while t + g < sight:
+                            pass
+                        # end while
+                    # end for
+                # end while
+
+                for ent, score in interesting:
+                    if score < lowscore:
+                        lowscore = score
+                        targeted = ent
+                # end for
+            #                        
+            elif act=="exit":
+                alert("")
+                return None
+            elif act=="select":
+                return targeted
+            elif act=="lclick":
+                mousex,mousey,z=arg
+                pc=Rogue.pc
+                dx=mousex - getx(pc.x)
+                dy=mousey - gety(pc.y)
+                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
+                    return (dx,dy,0,)
+            #
+            
+        # end for
+    # end while
+# end def
+
+#
+# get direction
+# player chooses a direction using key bindings or the mouse,
+# returns a tuple or None
+#
+def get_direction():
+    while True:
+        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
+        for act,arg in pcAct:
+            if (act=="context-dir" or act=="move"):
+                return arg
+            if act=="exit":
+                alert("")
+                return None
+            if act=="select":
+                return (0,0,0,)
+            if act=="lclick":
+                mousex,mousey,z=arg
+                pc=Rogue.pc
+                dx=mousex - getx(pc.x)
+                dy=mousey - gety(pc.y)
+                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
+                    return (dx,dy,0,)
+
 
 #prompt
 # show a message and ask the player for input

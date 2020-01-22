@@ -70,6 +70,9 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',   100,0,  False,1,),
     DOORCLOSED  : Tile(DOORCLOSED,'yellow', 'brown',   0,0,    True,5,),
+    DOOROPEN2   : Tile(LOCKEDOPEN,  'red', 'dkbrown',   100,0,  False,1,),
+    DOORCLOSED2 : Tile(LOCKEDCLOSED,'red', 'dkbrown',   0,0,    True,5,),
+    # use the "vaults" for doors that cannot be opened by hand.
     VAULTOPEN   : Tile(VAULTOPEN, 'metal', 'deep',    100,0,  False,1,),
     VAULTCLOSED : Tile(VAULTCLOSED,'metal', 'deep',   0,0,    True,100,),
     }

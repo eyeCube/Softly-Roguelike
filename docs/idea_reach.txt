@@ -1,0 +1,105 @@
+
+
+reach 0 -- (~0m) 0 to 0.5m weapons
+	shiv / punch / grappling / dagger / knife
+reach 1 -- (~0.5m) 0.25 to 0.75m weapons
+	club / axe / hammer / sword / javelin / poleaxe / polehammer / mallet
+reach 2 -- (~1m) 0.75 to 1.25m weapons
+	longsword / dane axe / battleaxe / shortspear
+reach 3 -- (~1.5m) 1.25 to 1.75m weapons
+	staff
+reach 4 -- (~2m) 1.75 to 2.25m weapons
+	spear
+reach 5 -- (~2.5m) 2 to 2.5m weapons
+	halberd / naginata / longstaff
+
+
+if reach > opponent reach: where x is the diff in reach,
+	Atk +1x
+	AP cost -5x
+	
+
+if reach < opponent reach:
+	Atk -1x
+	AP cost +5x
+	
+
+reach +2 from arm length for most humans.
+	some creatures with short arms may have 1 reach or 0, etc. or tall/super long arms -> 3 reach etc. 4 reach would be reserved for absolute units, like 12 ft giants. 0 reach would be like microscopic pixies... almost all humanoid creatures would just have 2 reach.
+
+min reach required to hit certain tiles: (from center tile)
+	*reach -x if attacking a target that is significantly shorter than you (-1 for each 40cm shorter)
+      
+			2
+		  2 0 2
+			2 
+		  
+		  3 2 3
+		  2 0 2
+		  3 2 3
+		
+			4
+		  3 2 3
+		4 2 0 2 4
+		  3 2 3
+			4
+		
+		  5 4 5
+		5 3 2 3 5
+		4 2 0 2 4
+		5 3 2 3 5
+		  5 4 5
+		
+			6 
+		6 5 4 5 6
+		5 3 2 3 5 
+	  6 4 2 0 2 4 6
+		5 3 2 3 5 
+		6 5 4 5 6
+			6 
+		
+		  
+		7 7 6 7 7
+	  7 6 5 4 5 6 7
+	  7 5 3 2 3 5 7
+	  6 4 2 0 2 4 6
+	  7 5 3 2 3 5 7
+	  7 6 5 4 5 6 7
+		7 7 6 7 7
+		
+		  8 8 8
+		7 7 6 7 7
+	  7 6 5 4 5 6 7
+	8 7 5 3 2 3 5 7 8
+	8 6 4 2 0 2 4 6 8
+	8 7 5 3 2 3 5 7 8
+	  7 6 5 4 5 6 7
+		7 7 6 7 7
+		  8 8 8
+		  
+		
+		9 8 8 8 9
+	  9 7 7 6 7 7 9
+	9 7 6 5 4 5 6 7 9
+	8 7 5 3 2 3 5 7 8
+	8 6 4 2 0 2 4 6 8
+	8 7 5 3 2 3 5 7 8
+	9 7 6 5 4 5 6 7 9
+	  9 7 7 6 7 7 9
+		9 8 8 8 9
+		  
+	  
+		  0 0 0
+	  0 9 8 8 8 9 0
+	0 9 7 7 6 7 7 9 0
+	9 7 6 5 4 5 6 7 9
+  0 8 7 5 3 2 3 5 7 8 0
+  0 8 6 4 2 0 2 4 6 8 0
+  0 8 7 5 3 2 3 5 7 8 0
+	9 7 6 5 4 5 6 7 9
+	0 9 7 7 6 7 7 9 0
+	  0 9 8 8 8 9 0
+		  0 0 0
+		
+	
+	

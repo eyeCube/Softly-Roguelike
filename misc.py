@@ -142,7 +142,7 @@ def _get_equipment(body):
             if arm is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
             equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
-                           cmp.EquipableInHandSlot)
+                           cmp.EquipableInHoldSlot)
             equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
                            cmp.EquipableInArmSlot)
         i=-1
@@ -513,13 +513,13 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     world = rog.world()
     con = libtcod.console_new(w,h)
     name = world.component_for_entity(pc, cmp.Name)
-    meters = world.component_for_entity(pc, cmp.Meters)
+    meterscompo = world.component_for_entity(pc, cmp.Meters)
     creature = world.component_for_entity(pc, cmp.Creature)
     body=world.component_for_entity(pc, cmp.Body)
     effects = _get_effects(world, pc)
     bodystatus = _get_body_effects(world, pc)
-    gauges = _get_gauges(world.component_for_entity(pc, cmp.Meters))
-    equipment=_get_equipment(world.component_for_entity(pc, cmp.Body))
+    gauges = _get_gauges(meterscompo)
+    equipment=_get_equipment(body)
     skills = _get_skills(world.component_for_entity(pc, cmp.Skills))
     augs=""
     npaugs=0
@@ -527,12 +527,19 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     satstr=_get_satiation(body)
     hydstr=_get_hydration(body)
     encmods=_get_encumberance_mods(pc)
-
+    minrng=0 #TODO: get from ranged weapon equipped in mainhand if applicable else 0
+    
+    basemass=rog.around((_getb('mass') + body.hydrationMax//MULT_HYD + body.bodyfat + body.blood)/MULT_MASS)
+    
     # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
+
+    # TODO: change atk to ratk, dmg to rdmg, pen to rpen when a ranged weapon is equipped
+    # change range to throwing range otherwise
     
     # create the display format string
     return '''{p1}
 {p1}                        {subdelim} identification {subdelim}
+{p1}
 {p1}                        name{idelim}{name}
 {p1}                     species{idelim}{species}
 {p1}                     faction{idelim}{fact}
@@ -541,6 +548,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}                      height{idelim}{cm} cm
 {p1}                  
 {p1}                        {subdelim} condition {subdelim}
+{p1}
 {p1}                   satiation:{tab}{satstr}
 {p1}                   hydration:{tab}{hydstr}
 {p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}
@@ -548,6 +556,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
 {p1}        
 {p1}                        {subdelim} attribute {subdelim}
+{p1}
 {p1}       (constitution)----CON{predelim}{_con:<2}{attdelim}({bcon}){tab}physical aug.: {paugs} / {paugsmax}
 {p1}       (intelligence)----INT{predelim}{_int:<2}{attdelim}({bint}){tab}  mental aug.: {maugs} / {maugsmax}
 {p1}           (strength)----STR{predelim}{_str:<2}{attdelim}({bstr})
@@ -556,6 +565,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}          (endurance)----END{predelim}{_end:<2}{attdelim}({bend})
 {p1}       
 {p1}                        {subdelim} statistic {subdelim}
+{p1}
 {p1}              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
 {p1}     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
 {p1}       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
@@ -572,6 +582,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
 {p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
 {p1}
+{p1}              (reach)----REA{predelim}{reach:<4}{statdelim}({breach})
+{p1}   (min. - max.range)----RNG{predelim}{minrng:<4} - {maxrng}
+{p1}
 {p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
 {p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
 {p1}
@@ -580,12 +593,13 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}             (beauty)----BEA{predelim}{bea:<4}{statdelim}({bbea})
 {p1}
 {p1}               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
-{p1}             (height)-----CM{predelim}{cm:<4}{statdelim}({cm})
+{p1}             (height)-----CM{predelim}{cm:<4}{statdelim}({bcm})
 {p1}           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})
 {p1}        (max.stamina)--SPMAX{predelim}{spmax:<4}{statdelim}({bspmax})
 {p1}   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
-{p1}       
+{p1}
 {p1}                        {subdelim} resistance {subdelim}
+{p1}
 {p1}               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<6}
 {p1}               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<6}
 {p1}         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<6}{immbio:>8}
@@ -600,6 +614,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}              (water)----WET{predelim}{wet:<4}{resdelim}{bwet:<6}{immwater:>8}
 {p1}
 {p1}                        {subdelim} status {subdelim}
+{p1}
 {p1}    status effects:
 {p1}{effects}
 {p1}
@@ -611,12 +626,15 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}{gauges}
 {p1}
 {p1}                        {subdelim} equipment {subdelim}
+{p1}
 {p1}{equipment}
 {p1}
 {p1}                        {subdelim} skill {subdelim}
+{p1}
 {p1}{skills}
 {p1}
 {p1}                        {subdelim} augmentation {subdelim}
+{p1}
 {p1}{augs}
 {p1}
 {p1}'''.format(
@@ -647,11 +665,11 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         species=SPECIES.get(creature.species, "unknown"),
         fact=FACTIONS.get(creature.faction, "unknown"),
         job=creature.job,
-        temp=meters.temp,
+        temp=meterscompo.temp,
         normalbodytemp=37, #TEMPORARY
         kg="{__:.3f}".format(__=_get('mass')/MULT_MASS),
-        bkg="{__:.3f}".format(__=_getb('mass')//MULT_MASS),
-        cm=int(_getheight()),
+        bkg=basemass,
+        cm=int(_getheight()),bcm=int(_getheight()),
         hp=_getb('hp'),hpmax=_get('hpmax'),
         sp=_getb('mp'),spmax=_get('mpmax'),
         hppc=(_getb('hp')/_get('hpmax')*100),
@@ -669,9 +687,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
-        spr=_gets('mpregen'),
+        spr=_gets('mpregen'),reach=_gets('reach'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        crg=_get('courage'),idn=_get('scary'),bea=_get('beauty'),
+        crg=_get('cou'),idn=_get('idn'),bea=_get('bea'),
         vis=_get('sight'),aud=_get('hearing'),
         enc=_get('enc'),encmax=_get('encmax'),
         encpc=(_get('enc') / _get('encmax') * 100),
@@ -679,12 +697,14 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
-        bspr=_getbs('mpregen'),
+        bspr=_getbs('mpregen'),breach=_getbs('reach'),
         bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
-        bcrg=_getb('courage'),bidn=_getb('scary'),bbea=_getb('beauty'),
+        bcrg=_getb('cou'),bidn=_getb('idn'),bbea=_getb('bea'),
         bvis=_getb('sight'),baud=_getb('hearing'),
         bencmax=_getb('encmax'),
         bhpmax=_getb('hpmax'),bspmax=_getb('mpmax'),
+        # range
+        minrng=minrng,minrng=_get('rng'),
         # res
         fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
         bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
@@ -698,7 +718,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     )
 # end def
 
-def render_itempage_string(w, h, item):
+def render_itempage_string(w, h, item): # very unfinished! Only shows weapon stats..?
     world=rog.world()
     def _getmaux(item): # melee auxiliary elemental effects
         strng=""
@@ -710,7 +730,7 @@ def render_itempage_string(w, h, item):
                     )
     def _eq_weap_s(header, item):
         md=equipable.mods
-        equipable = world.component_for_entity(item, cmp.EquipableInHandSlot)
+        equipable = world.component_for_entity(item, cmp.EquipableInHoldSlot)
         auxeffects=_getmaux(item)
         return '''{p1}        {subdelim} {header} {subdelim}
 {p1}                StrReq. {strreq<20}DexReq. {dexreq}
@@ -751,7 +771,7 @@ def render_itempage_string(w, h, item):
     else:
         skill=""
     
-    if world.has_component(item, cmp.EquipableInHandSlot):
+    if world.has_component(item, cmp.EquipableInHoldSlot):
         equipstats=_eq_weap_s("equipment statistic")
     else:
         equipstats=""
@@ -795,7 +815,7 @@ def render_hud(w,h,pc,turn,dlvl):
     name = rog.world().component_for_entity(pc, cmp.Name)
     # TODO: update HUD:
     #  change to show more relevant stats, resistances are less important
-    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{asp}/{msp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
+    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
         name=name.name,
         hp=_get('hp'),mp=_get('mp'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),

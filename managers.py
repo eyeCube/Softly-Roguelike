@@ -392,6 +392,7 @@ class Manager_MoveView(GameStateManager):
         super(Manager_MoveView, self).close()
         
         rog.update_game()
+        rog.update_hud()
         if self.result == "select":
             rog.view_center_player()
         

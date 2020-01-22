@@ -180,9 +180,10 @@ def get_weapon_enc(gData):          return gData[6][7]
 def get_weapon_gra(gData):          return gData[6][8]
 def get_weapon_ctr(gData):          return gData[6][9]
 def get_weapon_staminacost(gData):  return gData[6][10]
-def get_weapon_force(gData):        return gData[6][11] # knockback / knockdown / off-balance / stagger
-def get_weapon_bal(gData):          return gData[6][12] # how much balance the weapon gives you
-def get_weapon_grip(gData):         return gData[6][13]
+def get_weapon_reach(gData):        return gData[6][11]
+def get_weapon_force(gData):        return gData[6][12] # knockback / knockdown / off-balance / stagger
+def get_weapon_bal(gData):          return gData[6][13] # how much balance the weapon gives you
+def get_weapon_grip(gData):         return gData[6][14]
 def get_weapon_skill(gData):        return gData[7]
 def get_weapon_script(gData):       return gData[8]
 
@@ -251,7 +252,7 @@ def getMonScript(_char):    return bestiary[_char][3]
     # GENERIC SCRIPTS
 
 def _clothes(item):
-    rog.world.add_component(item, cmp.Clothes)
+    rog.world().add_component(item, cmp.Clothes)
 
 def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=0,twoh=False,skill=None):
     world=rog.world()
@@ -264,7 +265,7 @@ def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=0,twoh=False,skill
     if pro !=0: dmod['pro'] = pro
     if asp !=0: dmod['asp'] = asp
     if enc !=0: dmod['enc'] = enc
-    world.add_component(item, cmp.EquipableInHandSlot(NRG_WIELD,mods))
+    world.add_component(item, cmp.EquipableInHoldSlot(NRG_WIELD,mods))
     if twoh: rog.make(item, TWOHANDS)
     if skill: world.add_component(item, cmp.WeaponSkill(skill))
 
@@ -370,9 +371,9 @@ def _amputate(item, value):
     # gear #
 
 def _cloak(tt):
-    if not rog.has(tt, cmp.EquipableInHandSlot):
+    if not rog.has(tt, cmp.EquipableInHoldSlot):
         modDict = {"atk":3,"dfn":1,"pro":0.5,}
-        rog.world().add_component(tt, cmp.EquipableInHandSlot(NRG_WIELD,modDict))
+        rog.world().add_component(tt, cmp.EquipableInHoldSlot(NRG_WIELD,modDict))
         
 def _fireBlanket(tt):
     pass
@@ -385,6 +386,10 @@ def _nvisionGoggles(tt):
 
 def _earPlugs(tt):
     pass
+
+def _runningShoe(item):
+    compo = rog.world().component_for_entity(item, cmp.EquipableInFootSlot)
+    compo.mods['msp'] = 5
 
 
 
@@ -624,10 +629,10 @@ def _towel(ent):
 ##    statMods={cmp.BasisStats : {"rescold":20,},} # THat's not a resistance stat yet. Dunno if we should add it...
 ##    world.add_component(ent, cmp.EquipableInAboutSlot(300,statMods))
     statMods={"dfn":1,"arm":1,"pro":1,} # if wet, gives double as much stats. How to handle this?
-    world.add_component(ent, cmp.EquipableInHandSlot(NRG_WIELD,statMods))
+    world.add_component(ent, cmp.EquipableInHoldSlot(NRG_WIELD,statMods))
 def _towel_wield(ent): #prepare a towel for wielding. Transforms it into a wielding item.
     statMods={"atk":3, "dmg":1, "dfn":3,}
-    world.add_component(ent, cmp.EquipableInHandSlot(NRG_WIELD,statMods))
+    world.add_component(ent, cmp.EquipableInHoldSlot(NRG_WIELD,statMods))
 def _towel_wearOnHead(ent): #prepare a towel for headwear. Transforms it into head gear
     statMods={"resbio":15,}
     world.add_component(ent, cmp.EquipableInHeadSlot(300,statMods))
@@ -1989,13 +1994,13 @@ def _staff(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=-6, rng=10, skill=SKL_TIPFIRST)
-    _length(item, 115)
+    _length(item, 160)
 def _longstaff(item):
     rog.make(item, TWOHANDS)
     rog.make(item, REACH)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=-5, rng=15, skill=SKL_TIPFIRST)
-    _length(item, 230)
+    _length(item, 320)
     # spears
 def _spear(item, cut=3, hammer=1, chisel=0, acc=0, rng=20, bleed=0, cm=235):
     _melee_bleed(item, bleed)
@@ -2160,7 +2165,13 @@ def _daneAxe(item): # light-weight battleaxe
     _length(item, 120)
 
     # tools that double as weapons #
-    
+
+def _scalpel(item):
+    rog.world().add_component(item, cmp.Tool_Cut(6))
+    rog.world().add_component(item, cmp.Tool_Scalpel(3))
+    _bonusToFlesh(item, 4)
+    _bleed(item, BLEED_GLASS)
+    _length(item, 5)
 def _scissors(item):
     rog.world().add_component(item, cmp.Tool_Cut(7))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
@@ -2883,7 +2894,7 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
     # equipment
     if hand.slot.item:
         item=hand.slot.item
-        equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
+        equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
         weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
         
         for k,v in equipable.mods.items(): # collect add modifiers
@@ -2895,8 +2906,17 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
             if skillLv:
                 _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
         
-        # offhand offensive penalty for offhand weapons
-        if not ismainhand:
+        if ismainhand:
+            # throwing stats
+            if world.has_component(item, cmp.Throwable):
+                compo=world.component_for_entity(item, cmp.Throwable)
+                dadd['trng'] = compo.rng
+                dadd['tatk'] = compo.atk
+                dadd['tdmg'] = compo.dmg
+                dadd['tpen'] = compo.pen
+                dadd['tasp'] = compo.asp
+        else:
+            # offhand offensive penalty for offhand weapons
             dadd['atk'] = 0
             dadd['dmg'] = 0
             dadd['pen'] = 0
@@ -3080,8 +3100,8 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
     # examine body part
     if face.skin.status:
         _add(dadd, ADDMODS_BPP_FACE_SKINSTATUS.get(face.skin.status, {}))
-    dadd['beauty'] = dadd.get('beauty', 0) + face.features.beauty
-    dadd['scary']  = dadd.get('scary', 0) + face.features.scary
+    dadd['bea'] = dadd.get('bea', 0) + face.features.beauty
+    dadd['idn']  = dadd.get('idn', 0) + face.features.scary
     return dadd,dmul
 # end def
 
@@ -3870,6 +3890,7 @@ def create_weapon(name, x,y, quality=1) -> int:
     ctr         = rog.around(get_weapon_ctr(data)*MULT_STATS)
     gra         = rog.around(get_weapon_gra(data)*MULT_STATS)
     stamina_cost= get_weapon_staminacost(data)
+    reach       = rog.around(get_weapon_reach(data)*MULT_STATS)
 ##    grp         = get_weapon_grip(data)
     skill       = get_weapon_skill(data)
     script      = get_weapon_script(data)
@@ -3904,7 +3925,8 @@ def create_weapon(name, x,y, quality=1) -> int:
     if not enc==0: modDict.update({'enc':enc})
     if not ctr==0: modDict.update({'ctr':ctr})
     if not gra==0: modDict.update({'gra':gra})
-    world.add_component(ent, cmp.EquipableInHandSlot(
+    if not reach==0: modDict.update({'reach':reach})
+    world.add_component(ent, cmp.EquipableInHoldSlot(
         NRG_WIELD, stamina_cost, modDict, strReq=strReq, dexReq=dexReq) )
     if skill:
         world.add_component(ent,cmp.WeaponSkill(skill))
@@ -3923,6 +3945,8 @@ def create_monster(_type, x, y, col=None, mutate=0) -> int:
               # THIS IS BROKEN AND NEEDS A LOT OF WORK
 
               # TODO: import bestiary from Excel file
+
+              # TODO: add all new stats to bestiary
 
               # TODO: get body type from excel, and from that info, make a body and assign it as component to the monster entity.
 
@@ -4072,7 +4096,7 @@ def create_steel_weapon(itemName, x, y) -> int:
     else:
         form.value = 1 + round(form.value * 2.5)
     # equipable stats
-    compo=world.component_for_entity(weap, cmp.EquipableInHandSlot)
+    compo=world.component_for_entity(weap, cmp.EquipableInHoldSlot)
     pen=compo.mods['pen']
     compo.mods['dmg'] = round(compo.mods['dmg'] * 1.25)
     compo.mods['pen'] = max(pen + 1, round(pen * 1.2))
@@ -4346,38 +4370,102 @@ STUFF={
     }
 
 JOBS={
-# I feel like these should be consolidated with the bestiary.
-
+    # occupations the player can choose from when starting the game.
+    # affects starting stats and gear/items.
+    
     # KG, $$$: mass, money
     #Access keys:
     #S  level of security clearance
     #Keys:
-        #J  janitor's closets
-        #C  computer closets
-        #K  key to the city
-        #P  hangar access
-        #L  lab access
-    #stats: additional stat bonuses or nerfs
-    #skills: starting skills
-
+        #J  janitor key : janitor's closets
+        #C  computer scientist key : computer closets
+        #K  politician's key : key to the city
+        #P  pilot key : hangar access
+        #L  lab tech key : lab access
+    #stats: stat bonuses or nerfs
+    #skills: major occupation skills that this character begins with (the exact level is determined elsewhere)
+    #items: items you start with
+        #(itemName, dictionary, quantity)
+            # where dictionary is the item table where the item can be found.
+    
     # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
     
-#ID                Char,Name         KG, $$$$,S|Key--------stats---------------skills
-CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'', {'str':4,'con':2,'agi':4,'end':8,'int':-4,'msp':10,'gra':2,},(SKL_ATHLETE,),),
-CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',{'int':8,'end':-2,'con':-2,'agi':-2,},(SKL_CHEMISTRY,),),
-CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'', {'sight':-10,'hearing':-40,'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,'hpmax':-5,'mpmax':-20,},(SKL_SURVIVAL,SKL_ASSEMBLY,),),
-CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',{'int':6,'dex':6,'end':-4,'agi':-4,'con':-2,},(SKL_MEDICINE,SKL_SURGERY,),),
-CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',{'int':-4,'con':2,'end':2,},(),),
-CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'', {'hearing':-40,'str':4,'con':6,'dex':4,'int':4,'end':6,'agi':4,'gra':6,},(SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),),
-CLS_SECURITY    : ("O", "security",  80, 300, 5,'', {'dex':4,'con':4,'end':2,'int':-4,'gra':2,},(SKL_BLUDGEONS,SKL_ENERGY,),),
-CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',{'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},(SKL_PILOT,),),
-CLS_RIOTPOLICE  : ("P", "police",    85, 500, 2,'', {'str':4,'con':4,'dex':2,'end':2,'int':-2,},(SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),),
-CLS_PROGRAMMER  : ("q", "programmer",70, 2000,0,'', {'int':4,'agi':-2,'con':-2,},(SKL_COMPUTERS,),),
-CLS_POLITICIAN  : ("I", "politician",65,20000,4,'K',{'con':-2,'end':-2,'int':4,},(SKL_PERSUASION,),),
-CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'', {'con':4,'int':2,'dex':2,'agi':2,'str':-2,},(SKL_PERSUASION,SKL_PISTOLS,),),
-CLS_TECHNICIAN  : ("T", "technician",75, 500, 1,'', {'int':2,'dex':2,'end':-2,'agi':-2,},(SKL_MECHANIC,SKL_HARDWARE,),),
-CLS_THIEF       : ("t", "thief",     60, 5000,0,'', {'con':2,'str':2,'int':2,'agi':2,'dex':2,'end':2,'dfn':2,},(SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),),
-CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'', {'sight':-10,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':12,},(SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),),
+#ID                Char,Name         KG, $$$$,S|Key, stats, skills, items
+CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
+    {'con':2,'agi':4,'end':8,'int':-4,'msp':10,},
+    (SKL_ATHLETE,),
+    (('running shoe', FOOTARMOR, 2,),),
+                   ),
+CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',
+    {'int':8,'end':-2,'con':-2,'agi':-2,},
+    (SKL_CHEMISTRY,),
+    (),
+                   ),
+CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
+    {'sight':-10,'hearing':-40,'str':-4,'con':-4,'int':-4,'end':-4,'dex':-4,'agi':-4,},
+    (SKL_SURVIVAL,SKL_ASSEMBLY,),
+    ('wooden club', WEAPONS, 1,),),
+                   ),
+CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',
+    {'int':6,'dex':6,'end':-4,'agi':-4,'con':-4,},
+    (SKL_MEDICINE,SKL_SURGERY,),
+    (('scalpel', WEAPONS, 1,),),
+                   ),
+CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
+    {},
+    (),
+    (),
+                   ),
+CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'',
+    {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
+    (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
+    (),
+                   ),
+CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
+    {'dex':4,'con':4,'int':-4,'gra':2,},
+    (SKL_BLUDGEONS,SKL_ENERGY,),
+    (('metal baton', WEAPONS, 1,),),
+                   ),
+CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
+    {'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},
+    (SKL_PILOT,),
+    (),
+                   ),
+CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
+    {'str':4,'con':4,'dex':2,'end':2,'int':-2,},
+    (SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),
+    (('metal truncheon', WEAPONS, 1,),),
+                   ),
+CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
+    {'int':4,'agi':-2,'con':-2,},
+    (SKL_COMPUTERS,),
+    (),
+                   ),
+CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
+    {'con':-2,'end':-4,'int':4,},
+    (SKL_PERSUASION,),
+    (),
+                   ),
+CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'',
+    {'con':2,'int':2,'dex':2,'agi':2,'encmax':10,},
+    (SKL_PERSUASION,SKL_PISTOLS,),
+    (),
+                   ),
+CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
+    {'int':2,'dex':2,'end':-2,'agi':-2,},
+    (SKL_HARDWARE,),
+    (),
+                   ),
+CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
+    {'agi':6,'dex':4,'end':2,'con':-2,'encmax':30,},
+    (SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),
+    (),
+                   ),
+CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'',
+    {'sight':-5,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':2,},
+    (SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),
+    (),
+                   ),
     }
 
 FLUIDS = {
@@ -4691,277 +4779,278 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 
     # 1-handed weapons #
 
-    # cudgels             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic cudgel"        :(2,    1.4, 220, PLAS,10,2, (2,  2,  5,  0,  1,  1,  -15,5,  -5, 1,  18,),SKL_BLUDGEONS,_pCudgel,),
-"wooden cudgel"         :(13,   1.35,375, WOOD,10,2, (3,  4,  5,  0,  1,  1,  -9, 5,  -5, 1,  17,),SKL_BLUDGEONS,_wCudgel,),
-"stone cudgel"          :(10,   1.2, 340, WOOD,10,2, (3,  6,  6,  0,  1,  1,  -9, 5,  -5, 1,  15,),SKL_BLUDGEONS,_sCudgel,),
-"bone cudgel"           :(16,   1.3, 300, WOOD,10,2, (3,  5,  5,  0,  1,  1,  -9, 5,  -5, 1,  16,),SKL_BLUDGEONS,_bCudgel,),
-"glass cudgel"          :(18,   1.3, 10,  WOOD,10,3, (3,  9,  4,  0,  0,  0,  -6, 5,  -5, 1,  16,),SKL_BLUDGEONS,_gCudgel,),
-"metal cudgel"          :(32,   1.2, 650, WOOD,10,2, (3,  7,  7,  0,  1,  1,  -6, 5,  -5, 1,  15,),SKL_BLUDGEONS,_mCudgel,),
-    # clubs               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic club"          :(2,    1.55,275, PLAS,13,2, (2,  3,  4,  0,  2,  1,  -21,6,  -5, 1,  20,),SKL_BLUDGEONS,_pClub,),
-"wooden club"           :(10,   1.45,420, WOOD,12,2, (3,  6,  5,  0,  2,  1,  -15,6,  -5, 1,  18,),SKL_BLUDGEONS,_wClub,),
-"stone club"            :(12,   1.3, 500, STON,11,2, (3,  7,  6,  0,  2,  1,  -12,5,  -5, 1,  18,),SKL_BLUDGEONS,_sClub,),
-"bone club"             :(22,   1.4, 365, BONE,12,2, (4,  7,  7,  0,  2,  1,  -12,5,  -5, 1,  18,),SKL_BLUDGEONS,_bClub,),
-"glass club"            :(32,   1.2, 3,   GLAS,10,3, (3,  10, 5,  0,  0,  0,  -9, 4,  -5, 1,  16,),SKL_BLUDGEONS,_gClub,),
-"metal club"            :(59,   1.15,950, METL,11,2, (3,  8,  8,  0,  1,  1,  -12,4,  -5, 1,  16,),SKL_BLUDGEONS,_mClub,),
-    # spiked clubs        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic spiked club"   :(2,    1.6, 50,  PLAS,14,4, (1,  6,  5,  0,  2,  1,  -36,7,  -8, 1,  22,),SKL_BLUDGEONS,_pSpikedClub,),
-"wooden spiked club"    :(10,   1.5, 120, WOOD,14,4, (2,  9,  6,  0,  2,  1,  -33,7,  -8, 1,  20,),SKL_BLUDGEONS,_wSpikedClub,),
-    # maces               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic mace"          :(2,    1.45,75,  PLAS,12,3, (2,  6,  5,  0,  1,  1,  -33,6,  -6, 1,  18,),SKL_BLUDGEONS,_pMace,),
-"wooden mace"           :(20,   1.35,160, WOOD,12,3, (3,  9,  7,  0,  1,  1,  -27,6,  -6, 1,  16,),SKL_BLUDGEONS,_wMace,),
-"stone mace"            :(24,   1.3, 220, WOOD,12,3, (3,  12, 8,  0,  1,  1,  -24,6,  -6, 1,  16,),SKL_BLUDGEONS,_sMace,),
-"bone mace"             :(27,   1.3, 100, WOOD,12,3, (4,  10, 9,  0,  1,  1,  -24,6,  -6, 1,  16,),SKL_BLUDGEONS,_bMace,),
-"glass mace"            :(65,   1.4, 5,   WOOD,12,4, (3,  24, 7,  0,  0,  0,  -30,5,  -6, 1,  14,),SKL_BLUDGEONS,_gMace,),
-"metal mace"            :(72,   1.35,325, WOOD,12,3, (4,  14, 10, 0,  1,  1,  -27,5,  -6, 1,  16,),SKL_BLUDGEONS,_mMace,),
-    # morning stars       $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal morning star"    :(75,   1.25,240, METL,12,2, (4,  16, 12, 0,  1,  1,  -39,8,  -7, 1,  20,),SKL_BLUDGEONS,_mMace,),
-    # warhammers          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic warhammer"     :(2,    1.4, 190, PLAS,12,4, (1,  4,  10, 0,  0,  0,  -24,4,  -5, 1,  18,),SKL_HAMMERS,_pWarhammer,),
-"wooden warhammer"      :(24,   1.35,280, WOOD,12,4, (2,  5,  13, 0,  0,  0,  -21,4,  -5, 1,  16,),SKL_HAMMERS,_wWarhammer,),
-"stone warhammer"       :(18,   1.3, 200, WOOD,12,4, (2,  7,  15, 0,  0,  0,  -21,4,  -5, 1,  18,),SKL_HAMMERS,_sWarhammer,),
-"bone warhammer"        :(28,   1.15,260, WOOD,10,4, (2,  6,  14, 0,  0,  0,  -15,4,  -5, 1,  16,),SKL_HAMMERS,_bWarhammer,),
-"metal warhammer"       :(51,   1.25,500, WOOD,10,4, (2,  8,  16, 0,  0,  0,  -18,4,  -5, 1,  16,),SKL_HAMMERS,_mWarhammer,),
-    # war axes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic war axe"       :(2,    1.35,60,  PLAS,11,5, (1,  8,  4,  1,  0,  0,  -12,5,  -2, 2,  18,),SKL_AXES,_pWarAxe,),
-"wooden war axe"        :(26,   1.3, 90,  WOOD,11,5, (2,  10, 7,  1,  0,  0,  -9, 5,  -2, 2,  16,),SKL_AXES,_wWarAxe,),
-"stone war axe"         :(22,   1.25,120, WOOD,11,5, (2,  12, 8,  1,  0,  0,  -15,5,  -2, 2,  18,),SKL_AXES,_sWarAxe,),
-"bone war axe"          :(32,   1.25,180, WOOD,11,5, (2,  11, 9,  1,  0,  0,  -6, 5,  -2, 2,  16,),SKL_AXES,_bWarAxe,),
-"metal war axe"         :(62,   1.2, 260, WOOD,11,5, (3,  14, 10, 1,  0,  0,  -12,5,  -2, 2,  15,),SKL_AXES,_mWarAxe,),
-    # tomahawks           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic tomahawk"      :(2,    1.1, 20,  PLAS,10,5, (1,  6,  7,  1,  0,  0,  -21,3,  -2, 3,  16,),SKL_AXES,_pTomahawk,),
-"wooden tomahawk"       :(12,   0.9, 40,  WOOD,9, 6, (2,  7,  9,  1,  0,  0,  -18,3,  -2, 3,  15,),SKL_AXES,_wTomahawk,),
-"stone tomahawk"        :(16,   1.1, 80,  WOOD,9, 5, (2,  9,  10, 1,  0,  0,  -24,3,  -2, 3,  16,),SKL_AXES,_sTomahawk,),
-"bone tomahawk"         :(23,   0.95,60,  WOOD,8, 6, (2,  8,  11, 1,  0,  0,  -18,3,  -2, 3,  15,),SKL_AXES,_bTomahawk,),
-"metal tomahawk"        :(40,   1.0, 120, WOOD,8, 6, (2,  11, 12, 1,  0,  0,  -21,3,  -2, 3,  14,),SKL_AXES,_mTomahawk,),
-    # Shivs               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic shiv"          :(0,    0.3, 15,  PLAS,2, 4, (2,  2,  7,  0,  0,  0,  42, 2,  -5, 1,  5,),SKL_KNIVES,_pShiv,),
-"wooden shiv"           :(0,    0.3, 20,  WOOD,2, 4, (2,  3,  8,  0,  0,  0,  48, 2,  -5, 1,  4,),SKL_KNIVES,_wShiv,),
-"stone shiv"            :(0,    0.25,40,  STON,2, 4, (3,  4,  9,  0,  0,  0,  45, 2,  -5, 1,  5,),SKL_KNIVES,_sShiv,),
-"bone shiv"             :(0,    0.2, 35,  BONE,2, 4, (3,  4,  10, 0,  0,  0,  51, 2,  -5, 1,  4,),SKL_KNIVES,_bShiv,),
-"glass shiv"            :(1,    0.15,3,   GLAS,2, 5, (5,  6,  8,  0,  0,  0,  63, 2,  -5, 1,  2,),SKL_KNIVES,_gShiv,),
-"metal shiv"            :(6,    0.2, 50,  METL,2, 4, (4,  4,  12, 0,  0,  0,  54, 2,  -5, 1,  3,),SKL_KNIVES,_mShiv,),
-"ceramic shiv"          :(2,    0.22,10,  CERA,2, 5, (5,  8,  9,  0,  0,  0,  60, 2,  -5, 1,  2,),SKL_KNIVES,_cShiv,),#"a ceramic knife will shatter if dropped on the ground."
-    # knives              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic knife"         :(0,    0.2, 35,  PLAS,2, 2, (3,  2,  10, 0,  0,  0,  48, 2,  -3, 2,  7,),SKL_KNIVES,_pKnife,),
-"wooden knife"          :(2,    0.15,60,  WOOD,2, 2, (3,  3,  14, 0,  0,  0,  54, 2,  -3, 2,  5,),SKL_KNIVES,_wKnife,),
-"stone knife"           :(6,    0.15,110, STON,2, 2, (4,  5,  16, 0,  0,  0,  51, 2,  -3, 2,  6,),SKL_KNIVES,_sKnife,),
-"bone knife"            :(5,    0.12,90,  BONE,1, 3, (4,  5,  18, 0,  0,  0,  57, 2,  -3, 2,  5,),SKL_KNIVES,_bKnife,),
-"glass knife"           :(12,   0.08,3,   GLAS,1, 5, (6,  8,  12, 0,  0,  0,  66, 2,  -3, 3,  3,),SKL_KNIVES,_gKnife,),
-"metal knife"           :(14,   0.15,200, METL,1, 4, (5,  5,  20, 0,  0,  0,  60, 2,  -3, 3,  4,),SKL_KNIVES,_mKnife,),
-"ceramic knife"         :(20,   0.12,15,  CERA,1, 5, (6,  10, 14, 0,  0,  0,  66, 2,  -3, 3,  3,),SKL_KNIVES,_cKnife,),#"a ceramic knife will shatter if dropped on the ground."
-    # serrated knives     $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic serrated knife":(0,    0.18,15,  PLAS,2, 4, (2,  3,  8,  0,  0,  0,  24, 2,  -4, 1,  8,),SKL_KNIVES,_pSerrated,),
-"wooden serrated knife" :(4,    0.13,35,  WOOD,2, 4, (2,  4,  11, 0,  0,  0,  30, 2,  -4, 1,  6,),SKL_KNIVES,_wSerrated,),
-"stone serrated knife"  :(8,    0.13,60,  STON,2, 4, (3,  6,  12, 0,  0,  0,  27, 2,  -4, 1,  7,),SKL_KNIVES,_sSerrated,),
-"bone serrated knife"   :(7,    0.1, 45,  BONE,2, 5, (3,  6,  13, 0,  0,  0,  33, 2,  -4, 1,  6,),SKL_KNIVES,_bSerrated,),
-"metal serrated knife"  :(18,   0.13,100, METL,2, 6, (4,  7,  15, 0,  0,  0,  30, 2,  -4, 2,  5,),SKL_KNIVES,_mSerrated,),
-    # war knives          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic war knife"     :(1,    0.55,50,  PLAS,5, 6, (3,  3,  12, 1,  0,  0,  51, 2.5,-2, 5,  6,),SKL_KNIVES,_pWarKnife,),
-"wooden war knife"      :(5,    0.45,80,  WOOD,4, 7, (4,  4,  16, 1,  0,  0,  57, 2.5,-2, 6,  5,),SKL_KNIVES,_wWarKnife,),
-"bone war knife"        :(10,   0.5, 125, BONE,4, 8, (5,  6,  18, 1,  0,  0,  54, 2.5,-2, 7,  5,),SKL_KNIVES,_bWarKnife,),
-"glass war knife"       :(28,   0.32,10,  GLAS,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,),SKL_KNIVES,_gWarKnife,),
-"metal war knife"       :(26,   0.42,250, METL,4, 8, (6,  7,  20, 2,  0,  0,  69, 2.5,-2, 9,  4,),SKL_KNIVES,_mWarKnife,),
-"ceramic war knife"     :(35,   0.35,20,  CERA,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,),SKL_KNIVES,_cWarKnife,),
-    # daggers             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"bone dagger"           :(10,   0.35,115, BONE,3, 4, (4,  6,  21, 1,  0,  0,  69, 3,  -2, 5,  5,),SKL_KNIVES,_bDagger,),
-"glass dagger"          :(28,   0.22,5,   GLAS,2, 7, (6,  12, 18, 1,  0,  0,  90, 3,  -2, 7,  4,),SKL_KNIVES,_gDagger,),
-"metal dagger"          :(30,   0.3, 190, METL,3, 6, (5,  7,  24, 2,  0,  0,  75, 3,  -2, 6,  4,),SKL_KNIVES,_mDagger,),
-"rondel dagger"         :(70,   0.4, 320, METL,4, 7, (4,  8,  28, 2,  0,  0,  54, 3,  -2, 6,  5,),SKL_KNIVES,_rondelDagger,),#STEEL
-    # bayonets            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic bayonet"       :(0,    0.45,40,  PLAS,5, 4, (2,  2,  10, 0,  0,  0,  36, 3,  -3, 2,  7,),SKL_KNIVES,_pBayonet,),
-"wooden bayonet"        :(5,    0.4, 70,  WOOD,4, 4, (3,  3,  14, 0,  0,  0,  33, 3,  -3, 2,  6,),SKL_KNIVES,_wBayonet,),
-"bone bayonet"          :(8,    0.3, 100, BONE,3, 4, (3,  5,  16, 0,  0,  0,  39, 3,  -3, 2,  5,),SKL_KNIVES,_bBayonet,),
-"metal bayonet"         :(22,   0.35,225, METL,4, 5, (4,  5,  18, 0,  0,  0,  36, 3,  -3, 3,  6,),SKL_KNIVES,_mBayonet,),
-    # javelins            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic javelin"       :(1,    0.75,35,  PLAS,7, 2, (6,  4,  7,  0,  0,  0,  -24,9,  -6, 3,  12,),SKL_JAVELINS,_pJavelin,),
-"wooden javelin"        :(5,    0.7, 50,  WOOD,7, 2, (8,  6,  10, 0,  0,  0,  -27,9,  -6, 3,  10,),SKL_JAVELINS,_wJavelin,),
-"metal javelin"         :(32,   0.5, 200, METL,6, 3, (9,  8,  12, 0,  0,  0,  -18,9,  -6, 3,  8,),SKL_JAVELINS,_mJavelin,),
-    # shortspears         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic shortspear"    :(1,    1.0, 15,  PLAS,12,1, (6,  5,  6,  0,  0,  0,  -12,9,  -8, 5,  12,),SKL_JAVELINS,_pShortSpear,),
-"wooden shortspear"     :(8,    1.05,30,  WOOD,12,1, (7,  7,  8,  0,  0,  0,  -12,9,  -8, 5,  12,),SKL_JAVELINS,_wShortSpear,),
-"stone shortspear"      :(8,    1.1, 65,  WOOD,13,1, (7,  9,  10, 0,  0,  0,  -15,9,  -8, 5,  12,),SKL_JAVELINS,_sShortSpear,),
-"bone shortspear"       :(15,   1.05,100, WOOD,12,2, (7,  8,  9,  0,  0,  0,  -12,9,  -8, 5,  12,),SKL_JAVELINS,_bShortSpear,),
-"glass shortspear"      :(25,   0.95,5,   WOOD,9, 3, (9,  12, 7,  0,  0,  0,  -9, 9,  -8, 5,  12,),SKL_JAVELINS,_gShortSpear,),
-"metal shortspear"      :(22,   1.05,135, WOOD,11,2, (8,  10, 12, 0,  0,  0,  -12,9,  -8, 5,  12,),SKL_JAVELINS,_mShortSpear,),
-"ceramic shortspear"    :(28,   0.95,10,  CERA,9, 3, (9,  14, 9,  0,  0,  0,  -9, 9,  -8, 5,  12,),SKL_JAVELINS,_cShortSpear,),
-    # boomerangs          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic boomerang"     :(1,    0.7, 20,  PLAS,8, 2, (2,  2,  3,  0,  0,  0,  -15,7,  -6, 1,  14,),SKL_BLUDGEONS,_pBoomerang,),
-"wooden boomerang"      :(4,    0.5, 30,  WOOD,7, 3, (3,  4,  5,  0,  0,  0,  -12,7,  -4, 1,  14,),SKL_BLUDGEONS,_wBoomerang,),
-"bone boomerang"        :(5,    0.45,25,  BONE,6, 4, (3,  4,  5,  0,  0,  0,  -9, 4,  -4, 1,  12,),SKL_BLUDGEONS,_bBoomerang,),
-"glass boomerang"       :(22,   0.5, 2,   GLAS,5, 6, (5,  7,  4,  0,  0,  0,  -9, 4,  -4, 1,  12,),SKL_BLUDGEONS,_gBoomerang,),
-"metal boomerang"       :(25,   0.4, 90,  METL,5, 5, (4,  5,  6,  0,  0,  0,  -6, 4,  -4, 2,  12,),SKL_BLUDGEONS,_mBoomerang,),
-"ceramic boomerang"     :(38,   0.4, 1,   CERA,5, 6, (5,  8,  4,  0,  0,  0,  -9, 4,  -3, 1,  12,),SKL_BLUDGEONS,_cBoomerang,),
-    # bucklers            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic buckler"       :(2,    1.7, 30,  PLAS,17,12,(1,  1,  1,  5,  1,  1,  -9, 4,  -3, 3,  16,),SKL_SHIELDS,_buckler,),
-"wooden buckler"        :(12,   1.65,75,  WOOD,16,12,(1,  2,  3,  6,  1,  1,  -6, 4,  -3, 4,  16,),SKL_SHIELDS,_buckler,),
-"bone buckler"          :(24,   1.4, 40,  BONE,14,12,(2,  3,  4,  6,  1,  1,  -3, 4,  -2, 5,  12,),SKL_SHIELDS,_buckler,),#made of one large bone sculpted into shape + some leather
-"metal buckler"         :(90,   1.5, 150, METL,15,12,(2,  5,  5,  7,  2,  1,  -6, 4,  -3, 6,  16,),SKL_SHIELDS,_buckler,),
-    # rotellas            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic rotella"       :(4,    4.0, 50,  PLAS,24,8, (2,  2,  1,  5,  2,  2,  -33,6,  -6, 4,  32,),SKL_SHIELDS,_rotella,),
-"wooden rotella"        :(24,   3.6, 115, WOOD,22,8, (3,  3,  2,  6,  2,  2,  -27,6,  -5, 6,  30,),SKL_SHIELDS,_rotella,),
-"bone rotella"          :(49,   3.4, 75,  BONE,20,8, (3,  5,  3,  5,  2,  2,  -24,6,  -4, 6,  28,),SKL_SHIELDS,_rotella,),#made of one, two or three big pieces of bone glued together. The pieces of bone (esp. for 1 or 2-piece rotellas) are difficult to acquire and manufacture for shield use so this is a relatively expensive item.
-"metal rotella"         :(175,  3.0, 240, METL,18,8, (3,  7,  4,  6,  3,  2,  -18,6,  -4, 7,  26,),SKL_SHIELDS,_rotella,), # one stamina cost for each 100g, +2 for being metal. - some percentage b/c shields are easy to attack with. Encumbering non-weapons should get *1.5 stamina cost or some shit. Auto-generated of course.
-    # shields             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"wicker shield"         :(20,   4.2, 35,  WOOD,18,6, (1,  2,  0,  4,  2,  2,  -36,7,  -10,4,  44,),SKL_SHIELDS,_shield,),
-"plastic shield"        :(7,    6.5, 80,  PLAS,22,6, (1,  3,  0,  3,  2,  3,  -54,7,  -12,5,  52,),SKL_SHIELDS,_shield,),
-"wooden shield"         :(75,   5.25,180, WOOD,20,6, (3,  5,  1,  4,  3,  3,  -45,7,  -10,7,  44,),SKL_SHIELDS,_shield,),
-"bone shield"           :(145,  6.2, 100, BONE,22,6, (2,  7,  2,  4,  4,  2,  -48,7,  -8, 7,  52,),SKL_SHIELDS,_shield,),
-"boiled leather shield" :(190,  5.05,120, BOIL,20,6, (3,  4,  1,  5,  4,  3,  -42,7,  -12,6,  44,),SKL_SHIELDS,_shield,),
-"metal shield"          :(380,  6.0, 360, METL,22,6, (2,  9,  3,  4,  5,  3,  -51,7,  -6, 8,  48,),SKL_SHIELDS,_shield,),
-    # scutums             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic scutum"        :(10,   9.8, 80,  PLAS,29,4, (-1, 2,  -6, 2,  3,  3,  -69,9,  -12,6,  76,),SKL_SHIELDS,_scutum,),
-"wooden scutum"         :(120,  8.7, 180, WOOD,27,4, (1,  4,  -5, 3,  4,  3,  -57,9,  -10,7,  66,),SKL_SHIELDS,_scutum,),
-"bone scutum"           :(255,  9.3, 100, BONE,28,4, (0,  5,  -2, 3,  5,  2,  -60,9,  -8, 8,  72,),SKL_SHIELDS,_scutum,),
-"boiled leather scutum" :(305,  7.7, 120, BOIL,24,4, (1,  4,  -3, 4,  5,  3,  -54,9,  -12,8,  66,),SKL_SHIELDS,_scutum,),
-"metal scutum"          :(495,  8.1, 360, METL,26,4, (0,  6,  -1, 3,  6,  3,  -63,9,  -6, 8,  72,),SKL_SHIELDS,_scutum,),
-    # tower shields       $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic tower shield"  :(15,   13.5,140, PLAS,33,1, (-3, 2,  -12,-6, 4,  5,  -81,10, -32,7,  120,),SKL_SHIELDS,_towerShield,),
-"wooden tower shield"   :(165,  12.0,400, WOOD,31,1, (-2, 2,  -12,-5, 5,  6,  -72,10, -30,8,  100,),SKL_SHIELDS,_towerShield,),
-"bone tower shield"     :(360,  12.7,320, BONE,32,1, (-2, 3,  -6, -6, 6,  4,  -81,10, -28,9,  100,),SKL_SHIELDS,_towerShield,),
-"metal tower shield"    :(620,  10.8,800, METL,30,1, (-1, 4,  -6, -4, 8,  6,  -75,10, -24,9,  90,),SKL_SHIELDS,_towerShield,),
-"riot shield"           :(1060, 8.2, 250, PLAS,24,1, (0,  2,  -9, -3, 7,  6,  -69,8,  -20,10, 70,),SKL_SHIELDS,_towerShield,),
-    # whips / bullwhips   $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"rubber flail"          :(2,    0.1, 3,   RUBB,1, 3, (-8, 3,  2,  0,  0,  0,  -51,3,  -1, 0,  1,),None,_rubberBandWhip,),#2h only. This is a heavy metal ball attached to a rubber band like a primitive flail.
-"rubber whip"           :(6,    0.3, 30,  RUBB,3, 5, (4,  1,  0,  0,  0,  0,  -15,2,  -10,1,  7,),SKL_BLUDGEONS,_whip,),
-"plastic duel whip"     :(2,    1.6, 90,  PLAS,12,2, (2,  2,  2,  0,  0,  0,  -30,3,  -6, 1,  16,),SKL_BLUDGEONS,_heavyWhip,),
-"leather duel whip"     :(75,   1.45,150, LETH,12,2, (2,  3,  4,  0,  0,  0,  -24,3,  -10,1,  20,),SKL_BLUDGEONS,_heavyWhip,),
-"leather bullwhip"      :(40,   0.6, 60,  LETH,4, 16,(-5, 4,  2,  0,  0,  0,  -51,2.5,-5, 0,  5,),SKL_BULLWHIPS,_bullWhip,),
-"graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, 20,(-2, 5,  5,  0,  0,  0,  -42,2.5,-5, 1,  4,),SKL_BULLWHIPS,_bullWhip,),
-    # swords              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic sword"         :(2,    1.15,20,  PLAS,11,6, (4,  3,  6,  1,  0,  0,  15, 5,  -7, 3,  12,),SKL_SWORDS,_pSword,),
-"wooden sword"          :(22,   1.05,40,  WOOD,10,8, (6,  4,  9,  2,  0,  0,  24, 4,  -6, 4,  10,),SKL_SWORDS,_wSword,),
-"bone sword"            :(51,   0.75,60,  BONE,7, 10,(5,  5,  12, 1,  0,  0,  21, 3,  -5, 4,  8,),SKL_SWORDS,_bSword,),
-"metal sword"           :(65,   1.0, 120, METL,9, 12,(7,  6,  14, 2,  0,  0,  39, 4,  -4, 5,  10,),SKL_SWORDS,_mSword,),
-"diamonite sword"       :(2650, 0.9, 400, CARB,7, 15,(8,  9,  18, 3,  0,  0,  51, 4,  -4, 7,  8,),SKL_SWORDS,_dSword,),
-"graphene sword"        :(11500,0.8, 1200,CARB,5, 18,(9,  12, 22, 3,  0,  0,  60, 3,  -3, 12, 8,),SKL_SWORDS,_grSword,),
-    # other swords        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"leaf blade"            :(45,   0.7, 180, METL,6, 10,(6,  6,  13, 2,  0,  0,  42, 3,  -3, 2,  8,),SKL_SWORDS,_leafSword,),
-"hanger"                :(60,   0.8, 90,  METL,8, 8, (10, 4,  11, 4,  0,  0,  54, 4,  -3, 4,  8,),SKL_SWORDS,_hanger,),#POOR STEEL
-"messer"                :(90,   1.4, 210, METL,12,6, (5,  6,  10, 3,  1,  1,  30, 6,  -3, 3,  14,),SKL_SWORDS,_messer,),#POOR STEEL
-"smallsword"            :(105,  0.4, 40,  METL,5, 13,(8,  3,  11, 4,  0,  0,  69, 3,  -6, 8,  4,),SKL_SWORDS,_smallSword,),#STEEL
-"curved sword"          :(120,  1.1, 80,  METL,8, 15,(7,  6,  7,  3,  0,  0,  54, 6,  -2, 6,  10,),SKL_SWORDS,_curvedSword,),#POOR STEEL
-"broadsword"            :(130,  1.3, 240, METL,12,7, (5,  8,  12, 2,  0,  0,  24, 6,  -5, 3,  14,),SKL_SWORDS,_broadsword,),#POOR STEEL
-"cutlass"               :(130,  1.35,450, METL,13,12,(6,  6,  10, 3,  0,  1,  39, 5,  -2, 6,  12,),SKL_SWORDS,_cutlass,),#POOR STEEL, made entirely of metal (no wood)
-"sabre"                 :(135,  1.25,200, METL,12,12,(8,  6,  9,  4,  0,  0,  48, 6,  -4, 5,  12,),SKL_SWORDS,_sabre,),#POOR STEEL
-"falchion"              :(160,  1.4, 345, METL,14,10,(5,  8,  11, 1,  1,  0,  18, 6,  -5, 4,  14,),SKL_SWORDS,_falchion,),#POOR STEEL
-"arming sword"          :(235,  1.35,260, METL,12,14,(8,  7,  16, 2,  0,  0,  42, 7,  -4, 5,  14,),SKL_SWORDS,_armingSword,),#STEEL
-"basket-hilted sword"   :(295,  1.45,220, METL,14,16,(9,  5,  12, 5,  1,  2,  51, 7,  -6, 7,  14,),SKL_SWORDS,_basketHiltedSword,),#STEEL
-"rapier"                :(345,  1.5, 110, METL,16,16,(11, 5,  15, 4,  0,  1,  60, 8,  -7, 8,  18,),SKL_SWORDS,_rapier,),#STEEL
-    # other misc weapons  $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
+    # cudgels             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic cudgel"        :(2,    1.4, 220, PLAS,10,2, (2,  2,  5,  0,  1,  1,  -15,5,  -5, 1,  18, 1,),SKL_BLUDGEONS,_pCudgel,),
+"wooden cudgel"         :(13,   1.35,375, WOOD,10,2, (3,  4,  5,  0,  1,  1,  -9, 5,  -5, 1,  17, 1,),SKL_BLUDGEONS,_wCudgel,),
+"stone cudgel"          :(10,   1.2, 340, WOOD,10,2, (3,  6,  6,  0,  1,  1,  -9, 5,  -5, 1,  15, 1,),SKL_BLUDGEONS,_sCudgel,),
+"bone cudgel"           :(16,   1.3, 300, WOOD,10,2, (3,  5,  5,  0,  1,  1,  -9, 5,  -5, 1,  16, 1,),SKL_BLUDGEONS,_bCudgel,),
+"glass cudgel"          :(18,   1.3, 10,  WOOD,10,3, (3,  9,  4,  0,  0,  0,  -6, 5,  -5, 1,  16, 1,),SKL_BLUDGEONS,_gCudgel,),
+"metal cudgel"          :(32,   1.2, 650, WOOD,10,2, (3,  7,  7,  0,  1,  1,  -6, 5,  -5, 1,  15, 1,),SKL_BLUDGEONS,_mCudgel,),
+    # clubs               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic club"          :(2,    1.55,275, PLAS,13,2, (2,  3,  4,  0,  2,  1,  -21,6,  -5, 1,  20, 1,),SKL_BLUDGEONS,_pClub,),
+"wooden club"           :(10,   1.45,420, WOOD,12,2, (3,  6,  5,  0,  2,  1,  -15,6,  -5, 1,  18, 1,),SKL_BLUDGEONS,_wClub,),
+"stone club"            :(12,   1.3, 500, STON,11,2, (3,  7,  6,  0,  2,  1,  -12,5,  -5, 1,  18, 1,),SKL_BLUDGEONS,_sClub,),
+"bone club"             :(22,   1.4, 365, BONE,12,2, (4,  7,  7,  0,  2,  1,  -12,5,  -5, 1,  18, 1,),SKL_BLUDGEONS,_bClub,),
+"glass club"            :(32,   1.2, 3,   GLAS,10,3, (3,  10, 5,  0,  0,  0,  -9, 4,  -5, 1,  16, 1,),SKL_BLUDGEONS,_gClub,),
+"metal club"            :(59,   1.15,950, METL,11,2, (3,  8,  8,  0,  1,  1,  -12,4,  -5, 1,  16, 1,),SKL_BLUDGEONS,_mClub,),
+    # spiked clubs        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic spiked club"   :(2,    1.6, 50,  PLAS,14,4, (1,  6,  5,  0,  2,  1,  -36,7,  -8, 1,  22, 1,),SKL_BLUDGEONS,_pSpikedClub,),
+"wooden spiked club"    :(10,   1.5, 120, WOOD,14,4, (2,  9,  6,  0,  2,  1,  -33,7,  -8, 1,  20, 1,),SKL_BLUDGEONS,_wSpikedClub,),
+    # maces               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic mace"          :(2,    1.45,75,  PLAS,12,3, (2,  6,  5,  0,  1,  1,  -33,6,  -6, 1,  18, 1,),SKL_BLUDGEONS,_pMace,),
+"wooden mace"           :(20,   1.35,160, WOOD,12,3, (3,  9,  7,  0,  1,  1,  -27,6,  -6, 1,  16, 1,),SKL_BLUDGEONS,_wMace,),
+"stone mace"            :(24,   1.3, 220, WOOD,12,3, (3,  12, 8,  0,  1,  1,  -24,6,  -6, 1,  16, 1,),SKL_BLUDGEONS,_sMace,),
+"bone mace"             :(27,   1.3, 100, WOOD,12,3, (4,  10, 9,  0,  1,  1,  -24,6,  -6, 1,  16, 1,),SKL_BLUDGEONS,_bMace,),
+"glass mace"            :(65,   1.4, 5,   WOOD,12,4, (3,  24, 7,  0,  0,  0,  -30,5,  -6, 1,  14, 1,),SKL_BLUDGEONS,_gMace,),
+"metal mace"            :(72,   1.35,325, WOOD,12,3, (4,  14, 10, 0,  1,  1,  -27,5,  -6, 1,  16, 1,),SKL_BLUDGEONS,_mMace,),
+    # morning stars       $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal morning star"    :(75,   1.25,240, METL,12,2, (4,  16, 12, 0,  1,  1,  -39,8,  -7, 1,  20, 1,),SKL_BLUDGEONS,_mMace,),
+    # warhammers          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic warhammer"     :(2,    1.4, 190, PLAS,12,4, (1,  4,  10, 0,  0,  0,  -24,4,  -5, 1,  18, 1,),SKL_HAMMERS,_pWarhammer,),
+"wooden warhammer"      :(24,   1.35,280, WOOD,12,4, (2,  5,  13, 0,  0,  0,  -21,4,  -5, 1,  16, 1,),SKL_HAMMERS,_wWarhammer,),
+"stone warhammer"       :(18,   1.3, 200, WOOD,12,4, (2,  7,  15, 0,  0,  0,  -21,4,  -5, 1,  18, 1,),SKL_HAMMERS,_sWarhammer,),
+"bone warhammer"        :(28,   1.15,260, WOOD,10,4, (2,  6,  14, 0,  0,  0,  -15,4,  -5, 1,  16, 1,),SKL_HAMMERS,_bWarhammer,),
+"metal warhammer"       :(51,   1.25,500, WOOD,10,4, (2,  8,  16, 0,  0,  0,  -18,4,  -5, 1,  16, 1,),SKL_HAMMERS,_mWarhammer,),
+    # war axes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic war axe"       :(2,    1.35,60,  PLAS,11,5, (1,  8,  4,  1,  0,  0,  -12,5,  -2, 2,  18, 1,),SKL_AXES,_pWarAxe,),
+"wooden war axe"        :(26,   1.3, 90,  WOOD,11,5, (2,  10, 7,  1,  0,  0,  -9, 5,  -2, 2,  16, 1,),SKL_AXES,_wWarAxe,),
+"stone war axe"         :(22,   1.25,120, WOOD,11,5, (2,  12, 8,  1,  0,  0,  -15,5,  -2, 2,  18, 1,),SKL_AXES,_sWarAxe,),
+"bone war axe"          :(32,   1.25,180, WOOD,11,5, (2,  11, 9,  1,  0,  0,  -6, 5,  -2, 2,  16, 1,),SKL_AXES,_bWarAxe,),
+"metal war axe"         :(62,   1.2, 260, WOOD,11,5, (3,  14, 10, 1,  0,  0,  -12,5,  -2, 2,  15, 1,),SKL_AXES,_mWarAxe,),
+    # tomahawks           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic tomahawk"      :(2,    1.1, 20,  PLAS,10,5, (1,  6,  7,  1,  0,  0,  -21,3,  -2, 3,  16, 1,),SKL_AXES,_pTomahawk,),
+"wooden tomahawk"       :(12,   0.9, 40,  WOOD,9, 6, (2,  7,  9,  1,  0,  0,  -18,3,  -2, 3,  15, 1,),SKL_AXES,_wTomahawk,),
+"stone tomahawk"        :(16,   1.1, 80,  WOOD,9, 5, (2,  9,  10, 1,  0,  0,  -24,3,  -2, 3,  16, 1,),SKL_AXES,_sTomahawk,),
+"bone tomahawk"         :(23,   0.95,60,  WOOD,8, 6, (2,  8,  11, 1,  0,  0,  -18,3,  -2, 3,  15, 1,),SKL_AXES,_bTomahawk,),
+"metal tomahawk"        :(40,   1.0, 120, WOOD,8, 6, (2,  11, 12, 1,  0,  0,  -21,3,  -2, 3,  14, 1,),SKL_AXES,_mTomahawk,),
+    # Shivs               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic shiv"          :(0,    0.3, 15,  PLAS,2, 4, (2,  2,  7,  0,  0,  0,  42, 2,  -5, 1,  5,  0,),SKL_KNIVES,_pShiv,),
+"wooden shiv"           :(0,    0.3, 20,  WOOD,2, 4, (2,  3,  8,  0,  0,  0,  48, 2,  -5, 1,  4,  0,),SKL_KNIVES,_wShiv,),
+"stone shiv"            :(0,    0.25,40,  STON,2, 4, (3,  4,  9,  0,  0,  0,  45, 2,  -5, 1,  5,  0,),SKL_KNIVES,_sShiv,),
+"bone shiv"             :(0,    0.2, 35,  BONE,2, 4, (3,  4,  10, 0,  0,  0,  51, 2,  -5, 1,  4,  0,),SKL_KNIVES,_bShiv,),
+"glass shiv"            :(1,    0.15,3,   GLAS,2, 5, (5,  6,  8,  0,  0,  0,  63, 2,  -5, 1,  2,  0,),SKL_KNIVES,_gShiv,),
+"metal shiv"            :(6,    0.2, 50,  METL,2, 4, (4,  4,  12, 0,  0,  0,  54, 2,  -5, 1,  3,  0,),SKL_KNIVES,_mShiv,),
+"ceramic shiv"          :(2,    0.22,10,  CERA,2, 5, (5,  8,  9,  0,  0,  0,  60, 2,  -5, 1,  2,  0,),SKL_KNIVES,_cShiv,),#"a ceramic knife will shatter if dropped on the ground."
+    # knives              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic knife"         :(0,    0.2, 35,  PLAS,2, 2, (3,  2,  10, 0,  0,  0,  48, 2,  -3, 2,  7,  0,),SKL_KNIVES,_pKnife,),
+"wooden knife"          :(2,    0.15,60,  WOOD,2, 2, (3,  3,  14, 0,  0,  0,  54, 2,  -3, 2,  5,  0,),SKL_KNIVES,_wKnife,),
+"stone knife"           :(6,    0.15,110, STON,2, 2, (4,  5,  16, 0,  0,  0,  51, 2,  -3, 2,  6,  0,),SKL_KNIVES,_sKnife,),
+"bone knife"            :(5,    0.12,90,  BONE,1, 3, (4,  5,  18, 0,  0,  0,  57, 2,  -3, 2,  5,  0,),SKL_KNIVES,_bKnife,),
+"glass knife"           :(12,   0.08,3,   GLAS,1, 5, (6,  8,  12, 0,  0,  0,  66, 2,  -3, 3,  3,  0,),SKL_KNIVES,_gKnife,),
+"metal knife"           :(14,   0.15,200, METL,1, 4, (5,  5,  20, 0,  0,  0,  60, 2,  -3, 3,  4,  0,),SKL_KNIVES,_mKnife,),
+"ceramic knife"         :(20,   0.12,15,  CERA,1, 5, (6,  10, 14, 0,  0,  0,  66, 2,  -3, 3,  3,  0,),SKL_KNIVES,_cKnife,),#"a ceramic knife will shatter if dropped on the ground."
+    # serrated knives     $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic serrated knife":(0,    0.18,15,  PLAS,2, 4, (2,  3,  8,  0,  0,  0,  24, 2,  -4, 1,  8,  0,),SKL_KNIVES,_pSerrated,),
+"wooden serrated knife" :(4,    0.13,35,  WOOD,2, 4, (2,  4,  11, 0,  0,  0,  30, 2,  -4, 1,  6,  0,),SKL_KNIVES,_wSerrated,),
+"stone serrated knife"  :(8,    0.13,60,  STON,2, 4, (3,  6,  12, 0,  0,  0,  27, 2,  -4, 1,  7,  0,),SKL_KNIVES,_sSerrated,),
+"bone serrated knife"   :(7,    0.1, 45,  BONE,2, 5, (3,  6,  13, 0,  0,  0,  33, 2,  -4, 1,  6,  0,),SKL_KNIVES,_bSerrated,),
+"metal serrated knife"  :(18,   0.13,100, METL,2, 6, (4,  7,  15, 0,  0,  0,  30, 2,  -4, 2,  5,  0,),SKL_KNIVES,_mSerrated,),
+    # war knives          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic war knife"     :(1,    0.55,50,  PLAS,5, 6, (3,  3,  12, 1,  0,  0,  51, 2.5,-2, 5,  6,  0,),SKL_KNIVES,_pWarKnife,),
+"wooden war knife"      :(5,    0.45,80,  WOOD,4, 7, (4,  4,  16, 1,  0,  0,  57, 2.5,-2, 6,  5,  0,),SKL_KNIVES,_wWarKnife,),
+"bone war knife"        :(10,   0.5, 125, BONE,4, 8, (5,  6,  18, 1,  0,  0,  54, 2.5,-2, 7,  5,  0,),SKL_KNIVES,_bWarKnife,),
+"glass war knife"       :(28,   0.32,10,  GLAS,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,  0,),SKL_KNIVES,_gWarKnife,),
+"metal war knife"       :(26,   0.42,250, METL,4, 8, (6,  7,  20, 2,  0,  0,  69, 2.5,-2, 9,  4,  0,),SKL_KNIVES,_mWarKnife,),
+"ceramic war knife"     :(35,   0.35,20,  CERA,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,  0,),SKL_KNIVES,_cWarKnife,),
+    # daggers             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"bone dagger"           :(10,   0.35,115, BONE,3, 4, (4,  6,  21, 1,  0,  0,  69, 3,  -2, 5,  5,  0,),SKL_KNIVES,_bDagger,),
+"glass dagger"          :(28,   0.22,5,   GLAS,2, 7, (6,  12, 18, 1,  0,  0,  90, 3,  -2, 7,  4,  0,),SKL_KNIVES,_gDagger,),
+"metal dagger"          :(30,   0.3, 190, METL,3, 6, (5,  7,  24, 2,  0,  0,  75, 3,  -2, 6,  4,  0,),SKL_KNIVES,_mDagger,),
+"rondel dagger"         :(70,   0.4, 320, METL,4, 7, (4,  8,  28, 2,  0,  0,  54, 3,  -2, 6,  5,  0,),SKL_KNIVES,_rondelDagger,),#STEEL
+    # bayonets            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic bayonet"       :(0,    0.45,40,  PLAS,5, 4, (2,  2,  10, 0,  0,  0,  36, 3,  -3, 2,  7,  0,),SKL_KNIVES,_pBayonet,),
+"wooden bayonet"        :(5,    0.4, 70,  WOOD,4, 4, (3,  3,  14, 0,  0,  0,  33, 3,  -3, 2,  6,  0,),SKL_KNIVES,_wBayonet,),
+"bone bayonet"          :(8,    0.3, 100, BONE,3, 4, (3,  5,  16, 0,  0,  0,  39, 3,  -3, 2,  5,  0,),SKL_KNIVES,_bBayonet,),
+"metal bayonet"         :(22,   0.35,225, METL,4, 5, (4,  5,  18, 0,  0,  0,  36, 3,  -3, 3,  6,  0,),SKL_KNIVES,_mBayonet,),
+    # javelins            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic javelin"       :(1,    0.75,35,  PLAS,7, 2, (6,  4,  7,  0,  0,  0,  -24,9,  -6, 3,  12, 2,),SKL_JAVELINS,_pJavelin,),
+"wooden javelin"        :(5,    0.7, 50,  WOOD,7, 2, (8,  6,  10, 0,  0,  0,  -27,9,  -6, 3,  10, 2,),SKL_JAVELINS,_wJavelin,),
+"metal javelin"         :(32,   0.5, 200, METL,6, 3, (9,  8,  12, 0,  0,  0,  -18,9,  -6, 3,  8,  2,),SKL_JAVELINS,_mJavelin,),
+    # shortspears         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic shortspear"    :(1,    1.0, 15,  PLAS,12,1, (6,  5,  6,  0,  0,  0,  -12,9,  -8, 5,  12, 2,),SKL_JAVELINS,_pShortSpear,),
+"wooden shortspear"     :(8,    1.05,30,  WOOD,12,1, (7,  7,  8,  0,  0,  0,  -12,9,  -8, 5,  12, 2,),SKL_JAVELINS,_wShortSpear,),
+"stone shortspear"      :(8,    1.1, 65,  WOOD,13,1, (7,  9,  10, 0,  0,  0,  -15,9,  -8, 5,  12, 2,),SKL_JAVELINS,_sShortSpear,),
+"bone shortspear"       :(15,   1.05,100, WOOD,12,2, (7,  8,  9,  0,  0,  0,  -12,9,  -8, 5,  12, 2,),SKL_JAVELINS,_bShortSpear,),
+"glass shortspear"      :(25,   0.95,5,   WOOD,9, 3, (9,  12, 7,  0,  0,  0,  -9, 9,  -8, 5,  12, 2,),SKL_JAVELINS,_gShortSpear,),
+"metal shortspear"      :(22,   1.05,135, WOOD,11,2, (8,  10, 12, 0,  0,  0,  -12,9,  -8, 5,  12, 2,),SKL_JAVELINS,_mShortSpear,),
+"ceramic shortspear"    :(28,   0.95,10,  CERA,9, 3, (9,  14, 9,  0,  0,  0,  -9, 9,  -8, 5,  12, 2,),SKL_JAVELINS,_cShortSpear,),
+    # boomerangs          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic boomerang"     :(1,    0.7, 20,  PLAS,8, 2, (2,  2,  3,  0,  0,  0,  -15,7,  -6, 1,  14, 1,),SKL_BLUDGEONS,_pBoomerang,),
+"wooden boomerang"      :(4,    0.5, 30,  WOOD,7, 3, (3,  4,  5,  0,  0,  0,  -12,7,  -4, 1,  14, 1,),SKL_BLUDGEONS,_wBoomerang,),
+"bone boomerang"        :(5,    0.45,25,  BONE,6, 4, (3,  4,  5,  0,  0,  0,  -9, 4,  -4, 1,  12, 1,),SKL_BLUDGEONS,_bBoomerang,),
+"glass boomerang"       :(22,   0.5, 2,   GLAS,5, 6, (5,  7,  4,  0,  0,  0,  -9, 4,  -4, 1,  12, 1,),SKL_BLUDGEONS,_gBoomerang,),
+"metal boomerang"       :(25,   0.4, 90,  METL,5, 5, (4,  5,  6,  0,  0,  0,  -6, 4,  -4, 2,  12, 1,),SKL_BLUDGEONS,_mBoomerang,),
+"ceramic boomerang"     :(38,   0.4, 1,   CERA,5, 6, (5,  8,  4,  0,  0,  0,  -9, 4,  -3, 1,  12, 1,),SKL_BLUDGEONS,_cBoomerang,),
+    # bucklers            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic buckler"       :(2,    1.7, 30,  PLAS,17,12,(1,  1,  1,  5,  1,  1,  -9, 4,  -3, 3,  16, 0,),SKL_SHIELDS,_buckler,),
+"wooden buckler"        :(12,   1.65,75,  WOOD,16,12,(1,  2,  3,  6,  1,  1,  -6, 4,  -3, 4,  16, 0,),SKL_SHIELDS,_buckler,),
+"bone buckler"          :(24,   1.4, 40,  BONE,14,12,(2,  3,  4,  6,  1,  1,  -3, 4,  -2, 5,  12, 0,),SKL_SHIELDS,_buckler,),#made of one large bone sculpted into shape + some leather
+"metal buckler"         :(90,   1.5, 150, METL,15,12,(2,  5,  5,  7,  2,  1,  -6, 4,  -3, 6,  16, 0,),SKL_SHIELDS,_buckler,),
+    # rotellas            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic rotella"       :(4,    4.0, 50,  PLAS,24,8, (2,  2,  1,  5,  2,  2,  -33,6,  -6, 4,  32, 0,),SKL_SHIELDS,_rotella,),
+"wooden rotella"        :(24,   3.6, 115, WOOD,22,8, (3,  3,  2,  6,  2,  2,  -27,6,  -5, 6,  30, 0,),SKL_SHIELDS,_rotella,),
+"bone rotella"          :(49,   3.4, 75,  BONE,20,8, (3,  5,  3,  5,  2,  2,  -24,6,  -4, 6,  28, 0,),SKL_SHIELDS,_rotella,),#made of one, two or three big pieces of bone glued together. The pieces of bone (esp. for 1 or 2-piece rotellas) are difficult to acquire and manufacture for shield use so this is a relatively expensive item.
+"metal rotella"         :(175,  3.0, 240, METL,18,8, (3,  7,  4,  6,  3,  2,  -18,6,  -4, 7,  26, 0,),SKL_SHIELDS,_rotella,), # one stamina cost for each 100g, +2 for being metal. - some percentage b/c shields are easy to attack with. Encumbering non-weapons should get *1.5 stamina cost or some shit. Auto-generated of course.
+    # shields             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"wicker shield"         :(20,   4.2, 35,  WOOD,18,6, (1,  2,  0,  4,  2,  2,  -36,7,  -10,4,  44, 0,),SKL_SHIELDS,_shield,),
+"plastic shield"        :(7,    6.5, 80,  PLAS,22,6, (1,  3,  0,  3,  2,  3,  -54,7,  -12,5,  52, 0,),SKL_SHIELDS,_shield,),
+"wooden shield"         :(75,   5.25,180, WOOD,20,6, (3,  5,  1,  4,  3,  3,  -45,7,  -10,7,  44, 0,),SKL_SHIELDS,_shield,),
+"bone shield"           :(145,  6.2, 100, BONE,22,6, (2,  7,  2,  4,  4,  2,  -48,7,  -8, 7,  52, 0,),SKL_SHIELDS,_shield,),
+"boiled leather shield" :(190,  5.05,120, BOIL,20,6, (3,  4,  1,  5,  4,  3,  -42,7,  -12,6,  44, 0,),SKL_SHIELDS,_shield,),
+"metal shield"          :(380,  6.0, 360, METL,22,6, (2,  9,  3,  4,  5,  3,  -51,7,  -6, 8,  48, 0,),SKL_SHIELDS,_shield,),
+    # scutums             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic scutum"        :(10,   9.8, 80,  PLAS,29,4, (-1, 2,  -6, 2,  3,  3,  -69,9,  -12,6,  76, 0,),SKL_SHIELDS,_scutum,),
+"wooden scutum"         :(120,  8.7, 180, WOOD,27,4, (1,  4,  -5, 3,  4,  3,  -57,9,  -10,7,  66, 0,),SKL_SHIELDS,_scutum,),
+"bone scutum"           :(255,  9.3, 100, BONE,28,4, (0,  5,  -2, 3,  5,  2,  -60,9,  -8, 8,  72, 0,),SKL_SHIELDS,_scutum,),
+"boiled leather scutum" :(305,  7.7, 120, BOIL,24,4, (1,  4,  -3, 4,  5,  3,  -54,9,  -12,8,  66, 0,),SKL_SHIELDS,_scutum,),
+"metal scutum"          :(495,  8.1, 360, METL,26,4, (0,  6,  -1, 3,  6,  3,  -63,9,  -6, 8,  72, 0,),SKL_SHIELDS,_scutum,),
+    # tower shields       $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic tower shield"  :(15,   13.5,140, PLAS,33,1, (-3, 2,  -12,-6, 4,  5,  -81,10, -32,7,  120,0,),SKL_SHIELDS,_towerShield,),
+"wooden tower shield"   :(165,  12.0,400, WOOD,31,1, (-2, 2,  -12,-5, 5,  6,  -72,10, -30,8,  100,0,),SKL_SHIELDS,_towerShield,),
+"bone tower shield"     :(360,  12.7,320, BONE,32,1, (-2, 3,  -6, -6, 6,  4,  -81,10, -28,9,  100,0,),SKL_SHIELDS,_towerShield,),
+"metal tower shield"    :(620,  10.8,800, METL,30,1, (-1, 4,  -6, -4, 8,  6,  -75,10, -24,9,  90, 0,),SKL_SHIELDS,_towerShield,),
+"riot shield"           :(1060, 8.2, 250, PLAS,24,1, (0,  2,  -9, -3, 7,  6,  -69,8,  -20,10, 70, 0,),SKL_SHIELDS,_towerShield,),
+    # whips / bullwhips   $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"rubber flail"          :(2,    0.1, 3,   RUBB,1, 3, (-8, 3,  2,  0,  0,  0,  -51,3,  -1, 0,  1,  0,),None,_rubberBandWhip,),#2h only. This is a heavy metal ball attached to a rubber band like a primitive flail.
+"rubber whip"           :(6,    0.3, 30,  RUBB,3, 5, (4,  1,  0,  0,  0,  0,  -15,2,  -10,1,  7,  1,),SKL_BLUDGEONS,_whip,),
+"plastic duel whip"     :(2,    1.6, 90,  PLAS,12,2, (2,  2,  2,  0,  0,  0,  -30,3,  -6, 1,  16, 1,),SKL_BLUDGEONS,_heavyWhip,),
+"leather duel whip"     :(75,   1.45,150, LETH,12,2, (2,  3,  4,  0,  0,  0,  -24,3,  -10,1,  20, 1,),SKL_BLUDGEONS,_heavyWhip,),
+"leather bullwhip"      :(40,   0.6, 60,  LETH,4, 16,(-5, 4,  2,  0,  0,  0,  -51,2.5,-5, 0,  5,  3,),SKL_BULLWHIPS,_bullWhip,),
+"graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, 20,(-2, 5,  5,  0,  0,  0,  -42,2.5,-5, 1,  4,  3,),SKL_BULLWHIPS,_bullWhip,),
+    # swords              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic sword"         :(2,    1.15,20,  PLAS,11,6, (4,  3,  6,  1,  0,  0,  15, 5,  -7, 3,  12, 1,),SKL_SWORDS,_pSword,),
+"wooden sword"          :(22,   1.05,40,  WOOD,10,8, (6,  4,  9,  2,  0,  0,  24, 4,  -6, 4,  10, 1,),SKL_SWORDS,_wSword,),
+"bone sword"            :(51,   0.75,60,  BONE,7, 10,(5,  5,  12, 1,  0,  0,  21, 3,  -5, 4,  8,  1,),SKL_SWORDS,_bSword,),
+"metal sword"           :(65,   1.0, 120, METL,9, 12,(7,  6,  14, 2,  0,  0,  39, 4,  -4, 5,  10, 1,),SKL_SWORDS,_mSword,),
+"diamonite sword"       :(2650, 0.9, 400, CARB,7, 15,(8,  9,  18, 3,  0,  0,  51, 4,  -4, 7,  8,  1,),SKL_SWORDS,_dSword,),
+"graphene sword"        :(11500,0.8, 1200,CARB,5, 18,(9,  12, 22, 3,  0,  0,  60, 3,  -3, 12, 8,  2,),SKL_SWORDS,_grSword,),
+    # other swords        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"leaf blade"            :(45,   0.7, 180, METL,6, 10,(6,  6,  13, 2,  0,  0,  42, 3,  -3, 2,  8,  1,),SKL_SWORDS,_leafSword,),
+"hanger"                :(60,   0.8, 90,  METL,8, 8, (10, 4,  11, 4,  0,  0,  54, 4,  -3, 4,  8,  1,),SKL_SWORDS,_hanger,),#POOR STEEL
+"messer"                :(90,   1.4, 210, METL,12,6, (5,  6,  10, 3,  1,  1,  30, 6,  -3, 3,  14, 1,),SKL_SWORDS,_messer,),#POOR STEEL
+"smallsword"            :(105,  0.4, 40,  METL,5, 13,(8,  3,  11, 4,  0,  0,  69, 3,  -6, 8,  4,  1,),SKL_SWORDS,_smallSword,),#STEEL
+"curved sword"          :(120,  1.1, 80,  METL,8, 15,(7,  6,  7,  3,  0,  0,  54, 6,  -2, 6,  10, 1,),SKL_SWORDS,_curvedSword,),#POOR STEEL
+"broadsword"            :(130,  1.3, 240, METL,12,7, (5,  8,  12, 2,  0,  0,  24, 6,  -5, 3,  14, 1,),SKL_SWORDS,_broadsword,),#POOR STEEL
+"cutlass"               :(130,  1.35,450, METL,13,12,(6,  6,  10, 3,  0,  1,  39, 5,  -2, 6,  12, 1,),SKL_SWORDS,_cutlass,),#POOR STEEL, made entirely of metal (no wood)
+"sabre"                 :(135,  1.25,200, METL,12,12,(8,  6,  9,  4,  0,  0,  48, 6,  -4, 5,  12, 1,),SKL_SWORDS,_sabre,),#POOR STEEL
+"falchion"              :(160,  1.4, 345, METL,14,10,(5,  8,  11, 1,  1,  0,  18, 6,  -5, 4,  14, 1,),SKL_SWORDS,_falchion,),#POOR STEEL
+"arming sword"          :(235,  1.35,260, METL,12,14,(8,  7,  16, 2,  0,  0,  42, 7,  -4, 5,  14, 2,),SKL_SWORDS,_armingSword,),#STEEL
+"basket-hilted sword"   :(295,  1.45,220, METL,14,16,(9,  5,  12, 5,  1,  2,  51, 7,  -6, 7,  14, 1,),SKL_SWORDS,_basketHiltedSword,),#STEEL
+"rapier"                :(345,  1.5, 110, METL,16,16,(11, 5,  15, 4,  0,  1,  60, 8,  -7, 8,  18, 2,),SKL_SWORDS,_rapier,),#STEEL
+    # other misc weapons  $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
     # knives
-"kukri"                 :(70,   0.5, 90,  METL,5, 14,(4,  6,  8,  1,  0,  0,  51, 2.5,-3, 10, 6,),SKL_KNIVES,_kukri,),#POOR STEEL
-"metal throwing knife"  :(8,    0.1, 20,  METL,1, 16,(5,  3,  16, 0,  0,  0,  54, 1.5,-8, 1,  4,),SKL_KNIVES,_mThrowingKnife,),
-"metal butcher knife"   :(16,   0.3, 120, METL,3, 8, (2,  5,  3,  0,  0,  0,  12, 4,  -10,1,  8,),SKL_KNIVES,_butcherKnife,),
+"kukri"                 :(70,   0.5, 90,  METL,5, 14,(4,  6,  8,  1,  0,  0,  51, 2.5,-3, 10, 6,  0,),SKL_KNIVES,_kukri,),#POOR STEEL
+"metal throwing knife"  :(8,    0.1, 20,  METL,1, 16,(5,  3,  16, 0,  0,  0,  54, 1.5,-8, 1,  4,  0,),SKL_KNIVES,_mThrowingKnife,),
+"metal butcher knife"   :(16,   0.3, 120, METL,3, 8, (2,  5,  3,  0,  0,  0,  12, 4,  -10,1,  8,  0,),SKL_KNIVES,_butcherKnife,),
     # boxing weapons
-"metal knuckles"        :(6,    0.1, 320, METL,2, 2, (2,  4,  4,  0,  0,  0,  18, 2,  -6, 0,  16,),SKL_BOXING,_knuckles,),
-"metal spiked knuckles" :(14,   0.2, 150, METL,2, 2, (2,  5,  6,  0,  0,  0,  6,  3,  -8, 0,  24,),SKL_BOXING,_knuckles,),
-"boxing wrap"           :(4,    0.25,20,  CLTH,2, 6, (2,  2,  1,  1,  0,  0,  33, 2,  -8, 2,  12,),SKL_BOXING,_boxingWraps,),
+"metal knuckles"        :(6,    0.1, 320, METL,2, 2, (2,  4,  4,  0,  0,  0,  18, 2,  -6, 0,  16, 0,),SKL_BOXING,_knuckles,),
+"metal spiked knuckles" :(14,   0.2, 150, METL,2, 2, (2,  5,  6,  0,  0,  0,  6,  3,  -8, 0,  24, 0,),SKL_BOXING,_knuckles,),
+"boxing wrap"           :(4,    0.25,20,  CLTH,2, 6, (2,  2,  1,  1,  0,  0,  33, 2,  -8, 2,  12, 0,),SKL_BOXING,_boxingWraps,),
     # bludgeons
-"metal baton"           :(25,   0.5, 175, METL,4, 3, (4,  3,  5,  1,  0,  0,  9,  2,  -2, 3,  4,),SKL_BLUDGEONS,_baton,),
-"metal bat"             :(35,   0.7, 220, METL,7, 1, (3,  6,  6,  0,  1,  0,  -6, 5,  -8, 1,  8,),SKL_BLUDGEONS,_baton,),
-"wooden truncheon"      :(4,    0.85,250, WOOD,8, 2, (3,  5,  6,  1,  0,  0,  -3, 4,  -6, 2,  12,),SKL_BLUDGEONS,_club,),
-"metal truncheon"       :(46,   0.75,500, METL,8, 3, (3,  7,  8,  1,  0,  0,  6,  4,  -4, 2,  10,),SKL_BLUDGEONS,_club,),
+"metal baton"           :(25,   0.5, 175, METL,4, 3, (4,  3,  5,  1,  0,  0,  9,  2,  -2, 3,  4,  0,),SKL_BLUDGEONS,_baton,),
+"metal bat"             :(35,   0.7, 220, METL,7, 1, (3,  6,  6,  0,  1,  0,  -6, 5,  -8, 1,  8,  0,),SKL_BLUDGEONS,_baton,),
+"wooden truncheon"      :(4,    0.85,250, WOOD,8, 2, (3,  5,  6,  1,  0,  0,  -3, 4,  -6, 2,  12, 1,),SKL_BLUDGEONS,_club,),
+"metal truncheon"       :(46,   0.75,500, METL,8, 3, (3,  7,  8,  1,  0,  0,  6,  4,  -4, 2,  10, 1,),SKL_BLUDGEONS,_club,),
     # misc
-"metal push dagger"     :(30,   0.3, 180, METL,3, 4, (3,  9,  15, 0,  0,  0,  90, 3,  -12,0,  12,),SKL_PUSHDAGGERS,_pushDagger,), 
-"crescent moon blade"   :(125,  0.3, 60,  METL,3, 14,(2,  4,  8,  1,  0,  0,  75, 6,  -4, 1,  4,),None,_crescentBlade,), 
+"metal push dagger"     :(30,   0.3, 180, METL,3, 4, (3,  9,  15, 0,  0,  0,  90, 3,  -12,0,  12, 0,),SKL_PUSHDAGGERS,_pushDagger,), 
+"crescent moon blade"   :(125,  0.3, 60,  METL,3, 14,(2,  4,  8,  1,  0,  0,  75, 6,  -4, 1,  4,  0,),None,_crescentBlade,), 
 ##"scissors katar"     :(25,   0.3, 180, METL,2,(3,  9,  15, 0,  0,  0,  90, 0,  -12,0,  4,),SKL_PUSHDAGGERS,_pushDagger,), 
 
     # 2-handed weapons #
 
 # Some weapons can only be built with steel, like longswords, greatswords.
 #   So these are expensive, and have no material designation.
-    # longswords          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"bastard sword"         :(245,  1.55,300, METL,18,14,(4,  9,  12, 1,  1,  1,  15, 10, -5, 6,  24,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game (just by not having the TWOHANDS flag, it is a one-handed weapon that can be wielded with two hands alternatively.))
-"longsword"             :(260,  1.6, 210, METL,10,12,(10, 12, 18, 5,  3,  3,  51, 11, -6, 12, 14,),SKL_LONGSWORDS,_longSword,),#STEEL
-"kriegsmesser"          :(265,  1.8, 250, METL,14,8, (9,  14, 14, 2,  3,  3,  36, 12, -16,9,  18,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
-"katana"                :(285,  1.45,80,  METL,8, 14,(11, 11, 16, 3,  2,  2,  45, 9,  -12,14, 12,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
-"estoc"                 :(305,  1.65,100, METL,10,16,(12, 10, 20, 6,  1,  2,  60, 10, -12,16, 16,),SKL_LONGSWORDS,_estoc,),#STEEL
-    # greatswords         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"greatsword"            :(540,  3.5, 450, METL,26,12,(9,  18, 15, 3,  3,  3,  -15,28, -6, 10, 32,),SKL_GREATSWORDS,_greatSword,),
-"flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -14,10, 26,),SKL_GREATSWORDS,_flamberge,),
-    # short staves        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic staff"         :(1,    1.3, 100, PLAS,9, 10,(6,  5,  4,  4,  2,  3,  69, 8,  -5, 13, 13,),SKL_STAVES,_staff,),
-"wooden staff"          :(10,   1.2, 300, WOOD,9, 10,(7,  7,  6,  4,  4,  3,  75, 8,  -5, 15, 12,),SKL_STAVES,_staff,),
-"metal staff"           :(62,   1.0, 500, METL,9, 10,(8,  9,  8,  4,  3,  3,  81, 8,  -5, 16, 11,),SKL_STAVES,_staff,),
-    # longstaves          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic longstaff"     :(2,    2.45,150, PLAS,22,10,(9,  8,  6,  3,  2,  3,  54, 16, -18,5,  24,),SKL_POLEARMS,_longstaff,),
-"wooden longstaff"      :(16,   2.25,400, WOOD,21,10,(10, 10, 8,  3,  4,  3,  57, 16, -18,6,  22,),SKL_POLEARMS,_longstaff,),
-"metal longstaff"       :(88,   2.05,500, METL,20,10,(11, 12, 10, 3,  3,  3,  60, 16, -18,7,  20,),SKL_POLEARMS,_longstaff,),
-    # spears              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic spear"         :(2,    2.1, 30,  PLAS,12,8, (8,  10, 10, 3,  2,  3,  51, 16, -12,8,  20,),SKL_SPEARS,_pSpear,),
-"wooden spear"          :(20,   2.05,60,  WOOD,11,8, (10, 11, 12, 3,  3,  3,  48, 16, -12,9,  20,),SKL_SPEARS,_wSpear,),
-"stone spear"           :(22,   2.15,100, WOOD,12,8, (9,  13, 13, 3,  3,  3,  42, 16, -12,9,  20,),SKL_SPEARS,_bSpear,),
-"bone spear"            :(25,   2.05,150, WOOD,11,8, (10, 12, 14, 3,  3,  3,  45, 16, -12,10, 20,),SKL_SPEARS,_sSpear,),
-"glass spear"           :(34,   1.9, 5,   WOOD,9, 12,(12, 22, 10, 3,  3,  3,  51, 16, -12,14, 18,),SKL_SPEARS,_gSpear,),
-"metal spear"           :(32,   2.1, 200, WOOD,11,10,(11, 14, 16, 3,  3,  3,  45, 16, -12,12, 20,),SKL_SPEARS,_mSpear,),
-"metal winged spear"    :(40,   2.0, 300, WOOD,10,12,(10, 16, 15, 3,  3,  3.5,36, 16, -8, 12, 20,),SKL_SPEARS,_mSpear,),
-"ceramic spear"         :(36,   1.95,10,  WOOD,9, 12,(12, 24, 12, 3,  3,  3,  48, 16, -12,14, 18,),SKL_SPEARS,_cSpear,),
-    # partizans           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal partizan"        :(65,   2.2, 240, WOOD,14,6, (8,  18, 14, 2,  3,  3,  24, 20, -12,10, 22,),SKL_SPEARS,_mPartizan,),
-    # naginatas           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal naginata"        :(80,   2.6, 120, WOOD,18,10,(9,  12, 13, 2,  3,  2,  15, 24, -14,8,  26,),SKL_SPEARS,_mNaginata,),
-    # bills               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal bill"            :(110,  2.2, 80,  WOOD,16,14,(12, 14, 18, 2,  3,  2,  24, 28, -4, 10, 22,),SKL_POLEARMS,_mBill,),#requires some steel
-    # halberds            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal halberd"         :(135,  2.25,280, WOOD,15,12,(8,  18, 20, 2,  3,  2,  9,  28, -6, 8,  22,),SKL_POLEARMS,_mHalberd,),#all polearms have REACH
-    # poleaxes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"metal poleaxe"         :(150,  2.35,450, WOOD,13,13,(7,  22, 20, 2,  4,  2,  -15,12, -4, 6,  24,),SKL_POLEARMS,_mPoleAxe,),
-    # polehammers         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic polehammer"    :(3,    2.7, 110, PLAS,20,9, (4,  11, 16, 1,  2,  2,  -27,16, -9, 3,  30,),SKL_POLEARMS,_pPoleHammer,),
-"wooden polehammer"     :(18,   2.6, 200, WOOD,19,10,(5,  13, 16, 1,  3,  2,  -24,16, -9, 4,  28,),SKL_POLEARMS,_wPoleHammer,),
-"metal polehammer"      :(105,  2.4, 675, WOOD,18,11,(6,  16, 24, 1,  3,  2,  -21,16, -9, 5,  26,),SKL_POLEARMS,_mPoleHammer,),
-    # war mallets         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic war mallet"    :(3,    2.4, 320, PLAS,17,3, (3,  11, 12, -1, 2,  2,  -45,14, -14,3,  28,),SKL_MALLETS,_1mallet,),
-"wooden war mallet"     :(19,   2.3, 600, WOOD,17,3, (4,  13, 13, -1, 3,  2,  -42,14, -14,4,  25,),SKL_MALLETS,_1mallet,),
-"stone war mallet"      :(22,   2.1, 400, WOOD,16,3, (5,  17, 14, 0,  3,  2,  -36,14, -14,4,  25,),SKL_MALLETS,_1mallet,),
-"bone war mallet"       :(25,   2.2, 500, WOOD,16,3, (4,  15, 15, 0,  3,  2,  -39,14, -14,5,  25,),SKL_MALLETS,_1mallet,),
-"metal war mallet"      :(72,   2.0, 950, WOOD,16,3, (5,  19, 16, 0,  4,  2,  -39,14, -14,6,  22,),SKL_MALLETS,_2mallet,),
-    # great clubs         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic great club"    :(3,    2.7, 450, PLAS,22,2, (5,  11, 7,  -2, 2,  2,  -33,16, -26,2,  32,),SKL_BLUDGEONS,_heavyClub,),
-"wooden great club"     :(18,   2.6, 1000,WOOD,22,2, (6,  15, 9,  -2, 3,  2,  -27,16, -26,3,  29,),SKL_BLUDGEONS,_heavyClub,),
-"stone great club"      :(22,   2.5, 280, STON,20,2, (7,  19, 10, -2, 3,  2,  -24,16, -26,4,  29,),SKL_BLUDGEONS,_heavyClub,),
-"bone great club"       :(13,   1.75,360, BONE,18,2, (8,  14, 9,  -1, 3,  2,  -15,16, -26,5,  26,),SKL_BLUDGEONS,_heavyClub,),
-"metal great club"      :(95,   1.8, 1900,METL,21,2, (8,  21, 12, -1, 3,  2,  -18,16, -26,6,  26,),SKL_BLUDGEONS,_heavyClub,),
-    # great axes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic great axe"     :(3,    2.2, 110, PLAS,14,8, (2,  14, 9,  1,  2,  2,  -27,22, -6, 3,  24,),SKL_GREATAXES,_pGreatAxe,),
-"wooden great axe"      :(22,   1.9, 210, WOOD,12,8, (3,  18, 10, 2,  3,  2,  -21,22, -6, 4,  23,),SKL_GREATAXES,_wGreatAxe,),
-"stone great axe"       :(15,   2.0, 230, WOOD,12,9, (3,  24, 12, 1,  3,  2,  -27,22, -6, 5,  23,),SKL_GREATAXES,_sGreatAxe,),
-"bone great axe"        :(34,   1.85,290, WOOD,12,9, (3,  22, 11, 2,  3,  2,  -21,22, -6, 6,  22,),SKL_GREATAXES,_bGreatAxe,),
-"glass great axe"       :(75,   1.65,10,  WOOD,12,11,(5,  32, 10, 2,  3,  2,  -12,22, -6, 7,  18,),SKL_GREATAXES,_gGreatAxe,),
-"metal great axe"       :(92,   1.8, 420, WOOD,12,10,(4,  28, 14, 2,  3,  2,  -24,22, -6, 8,  20,),SKL_GREATAXES,_mGreatAxe,),
-    # battleaxes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-    # misc 2-h weapons    $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"dane axe"              :(275,  1.6, 300, WOOD,10,12,(6,  22, 12, 3,  3,  3,  6,  12, -2, 12, 16,),SKL_GREATAXES,_daneAxe,),#STEEL and IRON
-"executioner sword"     :(1180, 4.7, 665, METL,36,4, (2,  32, 8,  -4, 4,  1,  -75,38, -40,1,  96,),SKL_GREATSWORDS,_executionerSword,),#POOR STEEL
+    # longswords          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"bastard sword"         :(245,  1.55,300, METL,18,14,(4,  9,  12, 1,  1,  1,  15, 10, -5, 6,  24, 2,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game (just by not having the TWOHANDS flag, it is a one-handed weapon that can be wielded with two hands alternatively.))
+"longsword"             :(260,  1.6, 210, METL,10,12,(10, 12, 18, 5,  3,  3,  51, 11, -6, 12, 14, 2,),SKL_LONGSWORDS,_longSword,),#STEEL
+"kriegsmesser"          :(265,  1.8, 250, METL,14,8, (9,  14, 14, 2,  3,  3,  36, 12, -16,9,  18, 2,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
+"katana"                :(285,  1.45,80,  METL,8, 14,(11, 11, 16, 3,  2,  2,  45, 9,  -12,14, 12, 2,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
+"estoc"                 :(305,  1.65,100, METL,10,16,(12, 10, 20, 6,  1,  2,  60, 10, -12,16, 16, 2,),SKL_LONGSWORDS,_estoc,),#STEEL
+    # greatswords         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"greatsword"            :(540,  3.5, 450, METL,26,12,(9,  18, 15, 3,  3,  3,  -15,28, -6, 10, 32, 3,),SKL_GREATSWORDS,_greatSword,),
+"flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -14,10, 26, 3,),SKL_GREATSWORDS,_flamberge,),
+    # short staves        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic staff"         :(1.5,  1.5, 100, PLAS,9, 10,(6,  5,  4,  4,  2,  3,  69, 12, -5, 13, 13, 3,),SKL_STAVES,_staff,),
+"wooden staff"          :(11,   1.3, 300, WOOD,9, 10,(7,  7,  6,  4,  4,  3,  75, 12, -5, 15, 12, 3,),SKL_STAVES,_staff,),
+"steel staff"           :(142,  1.1, 500, METL,9, 10,(8,  9,  8,  4,  3,  3,  81, 12, -5, 16, 11, 3,),SKL_STAVES,_staff,), # regular metal will not hold for such a long staff.
+    # longstaves          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic longstaff"     :(3,    3.1, 150, PLAS,22,10,(9,  8,  6,  3,  2,  3,  54, 24, -18,5,  24, 6,),SKL_POLEARMS,_longstaff,),
+"wooden longstaff"      :(24,   2.7, 400, WOOD,21,10,(10, 10, 8,  3,  4,  3,  57, 24, -18,6,  22, 6,),SKL_POLEARMS,_longstaff,),
+"steel longstaff"       :(88,   2.4, 500, METL,20,10,(11, 12, 10, 3,  3,  3,  60, 24, -18,7,  20, 6,),SKL_POLEARMS,_longstaff,),
+    # spears              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic spear"         :(2,    2.1, 30,  PLAS,12,8, (8,  10, 10, 3,  2,  3,  51, 16, -12,8,  20, 4,),SKL_SPEARS,_pSpear,),
+"wooden spear"          :(20,   2.05,60,  WOOD,11,8, (10, 11, 12, 3,  3,  3,  48, 16, -12,9,  20, 4,),SKL_SPEARS,_wSpear,),
+"stone spear"           :(22,   2.15,100, WOOD,12,8, (9,  13, 13, 3,  3,  3,  42, 16, -12,9,  20, 4,),SKL_SPEARS,_bSpear,),
+"bone spear"            :(25,   2.05,150, WOOD,11,8, (10, 12, 14, 3,  3,  3,  45, 16, -12,10, 20, 4,),SKL_SPEARS,_sSpear,),
+"glass spear"           :(34,   1.9, 5,   WOOD,9, 12,(12, 22, 10, 3,  3,  3,  51, 16, -12,14, 18, 4,),SKL_SPEARS,_gSpear,),
+"metal spear"           :(32,   2.1, 200, WOOD,11,10,(11, 14, 16, 3,  3,  3,  45, 16, -12,12, 20, 4,),SKL_SPEARS,_mSpear,),
+"metal winged spear"    :(40,   2.0, 300, WOOD,10,12,(10, 16, 15, 3,  3,  3.5,36, 16, -8, 12, 20, 4,),SKL_SPEARS,_mSpear,),
+"ceramic spear"         :(36,   1.95,10,  WOOD,9, 12,(12, 24, 12, 3,  3,  3,  48, 16, -12,14, 18, 4,),SKL_SPEARS,_cSpear,),
+    # partizans           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal partizan"        :(65,   2.2, 240, WOOD,14,6, (8,  18, 14, 2,  3,  3,  24, 20, -12,10, 22, 5,),SKL_SPEARS,_mPartizan,),
+    # naginatas           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal naginata"        :(80,   2.6, 120, WOOD,18,10,(9,  12, 13, 2,  3,  2,  15, 24, -14,8,  26, 5,),SKL_SPEARS,_mNaginata,),
+    # bills               $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal bill"            :(110,  2.2, 80,  WOOD,16,14,(12, 14, 18, 2,  3,  2,  24, 28, -4, 10, 22, 5,),SKL_POLEARMS,_mBill,),#requires some steel
+    # halberds            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal halberd"         :(135,  2.25,280, WOOD,15,12,(8,  18, 20, 2,  3,  2,  9,  28, -6, 8,  22, 5,),SKL_POLEARMS,_mHalberd,),#all polearms have REACH
+    # poleaxes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"metal poleaxe"         :(150,  2.35,450, WOOD,13,13,(7,  22, 20, 2,  4,  2,  -15,12, -4, 6,  24, 2,),SKL_POLEARMS,_mPoleAxe,),
+    # polehammers         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic polehammer"    :(3,    2.7, 110, PLAS,20,9, (4,  11, 16, 1,  2,  2,  -27,12, -9, 3,  30, 2,),SKL_POLEARMS,_pPoleHammer,),
+"wooden polehammer"     :(18,   2.6, 200, WOOD,19,10,(5,  13, 16, 1,  3,  2,  -24,12, -9, 4,  28, 2,),SKL_POLEARMS,_wPoleHammer,),
+"metal polehammer"      :(105,  2.4, 675, WOOD,18,11,(6,  16, 24, 1,  3,  2,  -21,12, -9, 5,  26, 2,),SKL_POLEARMS,_mPoleHammer,),
+    # war mallets         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic war mallet"    :(3,    2.4, 320, PLAS,17,3, (3,  11, 12, -1, 2,  2,  -45,14, -14,3,  28, 2,),SKL_MALLETS,_1mallet,),
+"wooden war mallet"     :(19,   2.3, 600, WOOD,17,3, (4,  13, 13, -1, 3,  2,  -42,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
+"stone war mallet"      :(22,   2.1, 400, WOOD,16,3, (5,  17, 14, 0,  3,  2,  -36,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
+"bone war mallet"       :(25,   2.2, 500, WOOD,16,3, (4,  15, 15, 0,  3,  2,  -39,14, -14,5,  25, 2,),SKL_MALLETS,_1mallet,),
+"metal war mallet"      :(72,   2.0, 950, WOOD,16,3, (5,  19, 16, 0,  4,  2,  -39,14, -14,6,  22, 2,),SKL_MALLETS,_2mallet,),
+    # great clubs         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic great club"    :(3,    2.7, 450, PLAS,22,2, (5,  11, 7,  -2, 2,  2,  -33,16, -26,2,  32, 1,),SKL_BLUDGEONS,_heavyClub,),
+"wooden great club"     :(18,   2.6, 1000,WOOD,22,2, (6,  15, 9,  -2, 3,  2,  -27,16, -26,3,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
+"stone great club"      :(22,   2.5, 280, STON,20,2, (7,  19, 10, -2, 3,  2,  -24,16, -26,4,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
+"bone great club"       :(13,   1.75,360, BONE,18,2, (8,  14, 9,  -1, 3,  2,  -15,16, -26,5,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
+"metal great club"      :(95,   1.8, 1900,METL,21,2, (8,  21, 12, -1, 3,  2,  -18,16, -26,6,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
+    # great axes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic great axe"     :(3,    2.2, 110, PLAS,14,8, (2,  14, 9,  1,  2,  2,  -27,16, -6, 3,  24, 2,),SKL_GREATAXES,_pGreatAxe,),
+"wooden great axe"      :(22,   1.9, 210, WOOD,12,8, (3,  18, 10, 2,  3,  2,  -21,16, -6, 4,  23, 2,),SKL_GREATAXES,_wGreatAxe,),
+"stone great axe"       :(15,   2.0, 230, WOOD,12,9, (3,  24, 12, 1,  3,  2,  -27,16, -6, 5,  23, 2,),SKL_GREATAXES,_sGreatAxe,),
+"bone great axe"        :(34,   1.85,290, WOOD,12,9, (3,  22, 11, 2,  3,  2,  -21,16, -6, 6,  22, 2,),SKL_GREATAXES,_bGreatAxe,),
+"glass great axe"       :(75,   1.65,10,  WOOD,12,11,(5,  32, 10, 2,  3,  2,  -12,16, -6, 7,  18, 2,),SKL_GREATAXES,_gGreatAxe,),
+"metal great axe"       :(92,   1.8, 420, WOOD,12,10,(4,  28, 14, 2,  3,  2,  -24,16, -6, 8,  20, 2,),SKL_GREATAXES,_mGreatAxe,),
+    # battleaxes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+    # misc 2-h weapons    $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"dane axe"              :(275,  1.6, 300, WOOD,10,12,(6,  22, 12, 3,  3,  3,  6,  12, -2, 12, 16, 2,),SKL_GREATAXES,_daneAxe,),#STEEL and IRON
+"executioner sword"     :(1180, 4.7, 665, METL,36,4, (2,  32, 8,  -4, 4,  1,  -75,38, -40,1,  144,2,),SKL_GREATSWORDS,_executionerSword,),#POOR STEEL
 
 # TOOLS #
 
-# misc                $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-'scissors'          :(11,   0.16,140, METL,1, 6, (0,  4,  5,  0,  0,  0,  0,  2,  -9, 0,  8,),_scissors),
-'pliers'            :(24,   0.3, 650, METL,3, 2, (-2, 2,  4,  0,  0,  0,  -36,2,  -9, 0,  8,),_pliers),
-'needle-nose pliers':(32,   0.3, 500, METL,2, 4, (-2, 1,  3,  0,  0,  0,  -36,2,  -9, 0,  8,),_needleNosePliers),
-'metal screwdriver' :(16,   0.25,250, METL,3, 4, (0,  3,  4,  0,  0,  0,  0,  2,  -9, 0,  8,),_screwdriver),
-"sharpening stone"  :(10,   2.5, 200, STON,24,12,(0,  3,  3,  0,  0,  0,  -60,3,  -12,0,  24,),_sChunk,),
-# hammers             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic hammer"    :(1,    1.8, 200, PLAS,16,2, (1,  3,  6,  0,  0,  0,  -15,4,),_2hammer,),
-"wooden hammer"     :(12,   1.7, 260, WOOD,15,2, (1,  4,  7,  0,  0,  0,  -12,4,),_3hammer,),
-"stone hammer"      :(8,    1.5, 300, WOOD,14,4, (1,  5,  8,  0,  0,  0,  -12,4,),_3hammer,),
-"bone hammer"       :(16,   1.6, 350, WOOD,14,4, (1,  4,  9,  0,  0,  0,  -9, 4,),_3hammer,),
-"metal hammer"      :(36,   1.4, 600, WOOD,12,6, (2,  7,  11, 0,  0,  0,  -9, 4,),_4hammer,),
-"fine hammer"       :(77,   2.0, 550, METL,18,10,(2,  8,  12, 0,  0,  0,  -51,4,),_5hammer,),
-# axes                $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic axe"       :(4,    1.9, 80,  PLAS,18,3, (0,  6,  0,  0,  0,  0,  -51,7,),_pAxe,),
-"wooden axe"        :(22,   1.8, 120, WOOD,17,4, (0,  8,  0,  0,  0,  0,  -48,7,),_wAxe,),
-"stone axe"         :(18,   1.75,200, WOOD,16,5, (0,  10, 0,  0,  0,  0,  -42,7,),_sAxe,),
-"bone axe"          :(26,   1.85,160, WOOD,16,6, (0,  9,  0,  0,  0,  0,  -45,7,),_bAxe,),
-"metal axe"         :(42,   1.7, 420, WOOD,15,8, (1,  12, 1,  0,  0,  0,  -36,7,),_mAxe,),
-# machetes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta),TYPE,script
-"plastic machete"   :(5,    1.8, 70,  PLAS,17,6, (2,  3,  3,  0,  0,  0,  3,  7,),_pMachete,),
-"wooden machete"    :(13,   1.7, 90,  WOOD,16,7, (3,  4,  5,  0,  0,  0,  6,  7,),_wMachete,),
-"bone machete"      :(16,   1.6, 60,  BONE,15,8, (3,  5,  7,  0,  0,  0,  9,  5,),_bMachete,),
-"metal machete"     :(20,   1.5, 260, METL,14,9, (4,  6,  9,  1,  0,  0,  15, 5,),_mMachete,),
+# misc                $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+'scalpel'           :(30,   0.02,10,  METL,1, 10,(0,  3,  12, 0,  0,  0,  0,  2,  -9, 0,  4,  0,),_scalpel),
+'scissors'          :(11,   0.16,140, METL,1, 6, (0,  4,  5,  0,  0,  0,  0,  2,  -9, 0,  8,  0,),_scissors),
+'pliers'            :(24,   0.3, 650, METL,3, 2, (-2, 2,  4,  0,  0,  0,  -36,2,  -9, 0,  8,  0,),_pliers),
+'needle-nose pliers':(32,   0.3, 500, METL,2, 4, (-2, 1,  3,  0,  0,  0,  -36,2,  -9, 0,  8,  0,),_needleNosePliers),
+'metal screwdriver' :(16,   0.25,250, METL,3, 4, (0,  3,  4,  0,  0,  0,  0,  2,  -9, 0,  8,  0,),_screwdriver),
+"sharpening stone"  :(10,   2.5, 200, STON,24,8, (0,  3,  3,  0,  0,  0,  -60,3,  -12,0,  24, 0,),_sChunk,),
+# hammers             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic hammer"    :(1,    1.8, 200, PLAS,16,2, (1,  3,  6,  0,  0,  0,  -15,4,  -7, 0,  18, 1,),_2hammer,),
+"wooden hammer"     :(12,   1.7, 260, WOOD,15,2, (1,  4,  7,  0,  0,  0,  -12,4,  -7, 0,  17, 1,),_3hammer,),
+"stone hammer"      :(8,    1.5, 300, WOOD,14,4, (1,  5,  8,  0,  0,  0,  -12,4,  -7, 0,  16, 1,),_3hammer,),
+"bone hammer"       :(16,   1.6, 350, WOOD,14,4, (1,  4,  9,  0,  0,  0,  -9, 4,  -7, 0,  16, 1,),_3hammer,),
+"metal hammer"      :(36,   1.4, 600, WOOD,12,6, (2,  7,  11, 0,  0,  0,  -9, 4,  -7, 0,  15, 1,),_4hammer,),
+"fine hammer"       :(77,   2.0, 550, METL,18,10,(2,  8,  12, 0,  0,  0,  -51,4,  -7, 0,  20, 1,),_5hammer,),
+# axes                $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic axe"       :(4,    1.9, 80,  PLAS,18,3, (0,  6,  0,  0,  0,  0,  -51,7,  -5, 0,  18, 1,),_pAxe,),
+"wooden axe"        :(22,   1.8, 120, WOOD,17,4, (0,  8,  0,  0,  0,  0,  -48,7,  -5, 0,  17, 1,),_wAxe,),
+"stone axe"         :(18,   1.75,200, WOOD,16,5, (0,  10, 0,  0,  0,  0,  -42,7,  -5, 0,  17, 1,),_sAxe,),
+"bone axe"          :(26,   1.85,160, WOOD,16,6, (0,  9,  0,  0,  0,  0,  -45,7,  -5, 0,  18, 1,),_bAxe,),
+"metal axe"         :(42,   1.7, 420, WOOD,15,8, (1,  12, 1,  0,  0,  0,  -36,7,  -5, 0,  16, 1,),_mAxe,),
+# machetes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
+"plastic machete"   :(5,    1.8, 70,  PLAS,17,6, (2,  3,  3,  0,  0,  0,  3,  7,  -7, 0,  20, 1,),_pMachete,),
+"wooden machete"    :(13,   1.7, 90,  WOOD,16,7, (3,  4,  5,  0,  0,  0,  6,  7,  -7, 0,  18, 1,),_wMachete,),
+"bone machete"      :(16,   1.6, 60,  BONE,15,8, (3,  5,  7,  0,  0,  0,  9,  5,  -7, 0,  14, 1,),_bMachete,),
+"metal machete"     :(20,   1.5, 260, METL,14,9, (4,  6,  9,  1,  0,  0,  15, 5,  -7, 0,  14, 1,),_mMachete,),
 
 }
     
@@ -5157,10 +5246,11 @@ HANDARMOR={
 
 FOOTARMOR={ # enc- boot +3. metal +3. inherint +3. bad fit +3 (matters more for shoes.) Wooden shoes are very encumbering due to being super uncomfortable and/or not ergonomic
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script
-"wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  15, -2, 0,  0,  0,  0,  0,),None,),
-"leather shoe"          :(3,     0.15, 30,  300,  LETH,(0,  0,  0.1,6,  -3, 3,  0,  1,  0,  1,),None,),
-"leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,9,  -5, 5,  0,  2,  0,  1,),None,),
-"metal boot"            :(20,    0.45, 130, 500,  LETH,(0,  0.1,0.5,12, -6, 3,  0,  2,  0,  1,),None,),
+"running shoe"          :(65,    0.25, 75,  300,  LETH,(0.2,0,  0,  12, -2, 2,  0,  3,  0,  0,),_runningShoe,),
+"wooden shoe"           :(1,     0.15, 15,  100,  WOOD,(0,  0,  0,  30, 0,  0,  0,  0,  0,  0,),None,),
+"leather shoe"          :(3,     0.15, 30,  300,  LETH,(0,  0,  0.1,12, -3, 3,  0,  1,  0,  1,),None,),
+"leather boot"          :(7,     0.3,  65,  500,  LETH,(0,  0,  0.2,15, -5, 5,  0,  2,  0,  1,),None,),
+"metal boot"            :(20,    0.45, 150, 500,  LETH,(0,  0.1,0.5,24, -6, 3,  0,  2,  0,  1,),None,),
 }
 
 ABOUTARMOR={ # Actual Encumberance == encumberance * mass
@@ -5258,17 +5348,17 @@ RAWMATERIALS={
 
     # Scrap, particles (tiny pieces of material)
 # name                    type,$$$$,KG,  Dur, Mat, Color,  script
-"dust"                  :(RAWM,0,   0.04,1,   DUST,C_DUST,_dust,),# dust of non-specific kind
-"sand"                  :(RAWM,0,   0.04,1,   DUST,C_SAND,_dust,),# quartz dust
-"dirt"                  :(RAWM,0,   0.04,1,   DUST,C_DIRT,_dust,),
-"quartz"                :(RAWM,0,   0.04,5,   QRTZ,C_QRTZ,_rawMat,),
-"gravel"                :(RAWM,0,   0.04,15,  STON,C_STON,_particles,), # particles can be thrown to cause blindness
+"dust"                  :(RAWM,0,   0.008,1,  DUST,C_DUST,_dust,),# dust of non-specific kind
+"sand"                  :(RAWM,0,   0.008,1,  DUST,C_SAND,_dust,),# quartz dust
+"dirt"                  :(RAWM,0,   0.008,1,  DUST,C_DIRT,_dust,),
+"quartz"                :(RAWM,0,   0.008,5,  QRTZ,C_QRTZ,_rawMat,),
+"gravel"                :(RAWM,0,   0.008,15, STON,C_STON,_particles,), # particles can be thrown to cause blindness
 "scrap clay"            :(SCRP,0,   0.06,10,  CLAY,C_CLAY,_rawMat,),
 "scrap ceramic"         :(SCRP,0,   0.02,1,   CERA,C_CERA,_particles,),
 "scrap cloth"           :(SCRP,0.1, 0.008,1,  CLTH,C_CLTH,None,),
-"scrap plastic"         :(SCRP,0,   0.01,1,   PLAS,C_PLAS,_particles,),
-"scrap wood"            :(SCRP,0,   0.01,1,   WOOD,C_WOOD,_particles,),
-"scrap bone"            :(SCRP,0.08,0.01,4,   BONE,C_BONE,_particles,),
+"scrap plastic"         :(SCRP,0,   0.04,1,   PLAS,C_PLAS,_particles,),
+"scrap wood"            :(SCRP,0,   0.04,1,   WOOD,C_WOOD,_particles,),
+"scrap bone"            :(SCRP,0.08,0.02,4,   BONE,C_BONE,_particles,),
 "scrap metal"           :(SCRP,1,   0.02,6,   METL,C_METL,_particles,),
 "scrap leather"         :(SCRP,0.4, 0.02,4,   LETH,C_LETH,_rawMat,),
 "scrap boiled leather"  :(SCRP,0.6, 0.02,12,  LETH,C_LETH,_rawMat,),
