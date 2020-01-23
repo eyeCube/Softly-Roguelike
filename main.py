@@ -104,12 +104,15 @@ def main():
 ##    rog.sets(rog.pc(), 'agi', 300)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
-##    rog.equip(
-##        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-##        )
+    rog.equip(
+        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
+        )
+    rog.equip(
+        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
+        )
+    rog.equip(
+        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
 ##        )

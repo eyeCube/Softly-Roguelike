@@ -3843,7 +3843,7 @@ RECIPES={
 'plastic staff':{
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
-    'skills'    : ((SKL_PLASTIC,5,),),
+    'skills'    : ((SKL_PLASTIC,6,),),
     'sound'     : 60,
     'construct' : 2400,
     'components': (
@@ -3862,7 +3862,7 @@ RECIPES={
 'wooden staff':{
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
-    'skills'    : ((SKL_WOOD,10,),),
+    'skills'    : ((SKL_WOOD,12,),),
     'sound'     : 60,
     'construct' : 7200,
     'components': (
@@ -3879,22 +3879,70 @@ RECIPES={
         ('scrap wood', 2,),
         ),
     },
+'bone staff':{
+    'quantity'  : 1,
+    'table'     : CRT_WEAPONS,
+    'skills'    : ((SKL_WOOD,20,),(SKL_BONE,10,),),
+    'sound'     : 60,
+    'construct' : 12000,
+    'components': (
+        [ ('chunk of wood', 1,), ],
+        [ ('bone', 2,), ],
+        [ ('cordage', 2,), ('glue', 4,), ],
+        ),
+    'tools'     : (
+        [ (cmp.Tool_Saw, 3,), ],
+        [ (cmp.Tool_Hammer, 3,), ],
+        [ (cmp.Tool_Chisel, 2,), ],
+        ),
+    'byproducts': (
+        ('piece of wood', 2,),
+        ('parcel of wood', 2,),
+        ('scrap wood', 2,),
+        ('parcel of bone', 1,),
+        ('scrap bone', 2,),
+        ),
+    },
 'metal staff':{
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
-    'skills'    : ((SKL_METAL,10,),),
-    'sound'     : 120,
+    'skills'    : ((SKL_WOOD,15,),(SKL_METAL,10,),),
+    'sound'     : 60,
     'construct' : 12000,
     'components': (
-        [ ('parcel of metal', 10,), ],
+        [ ('chunk of wood', 1,), ],
+        [ ('parcel of metal', 3,), ],
         ),
     'tools'     : (
+        [ (cmp.Tool_Hammer, 3,), ],
         [ (cmp.Tool_Furnace, 2,), ],
-        [ (cmp.Tool_Hammer, 2,), ],
+        [ (cmp.Tool_Saw, 3,), ],
+        [ (cmp.Tool_Anvil, 2,), ],
+        [ (cmp.Tool_Chisel, 2,), ],
+        [ (cmp.Tool_Crucible, 2,), ],
+        [ (cmp.Tool_Tongs, 2,), ],
+        ),
+    'byproducts': (
+        ('piece of wood', 2,),
+        ('parcel of wood', 2,),
+        ('scrap wood', 2,),
+        ),
+    },
+'steel staff':{
+    'quantity'  : 1,
+    'table'     : CRT_WEAPONS,
+    'skills'    : ((SKL_METAL,20,),),
+    'sound'     : 120,
+    'construct' : 14400,
+    'components': (
+        [ ('parcel of steel', 11,), ],
+        ),
+    'tools'     : (
+        [ (cmp.Tool_Hammer, 4,), ],
+        [ (cmp.Tool_Furnace, 3,), ],
         [ (cmp.Tool_Crucible, 2,), ],
         [ (cmp.Tool_Anvil, 2,), ],
         [ (cmp.Tool_Swage, 1,), ],
-        [ (cmp.Mold_StaffMetal, 1,), ],
         ),
     'byproducts': (),
     },

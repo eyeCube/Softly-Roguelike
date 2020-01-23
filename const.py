@@ -356,10 +356,12 @@ RUSTEDNESS={
 # vm    - value modifier (value cannot go below the cost of the raw mats)
 #amt : (sm,  vm,  name mod)
 40   : (1.0, 0.95,"rusting ",),
-160  : (0.9, 0.8, "rusty ",),
-333  : (0.75,0.5, "rusted ",),
-667  : (0.5, 0.25,"badly rusted ",),
-1000 : (0.25,0.1, "fully rusted ",),
+160  : (0.94,0.8, "rusty ",),
+333  : (0.83,0.5, "rusted ",),
+667  : (0.7, 0.25,"badly rusted ",),
+900  : (0.5, 0.1, "fully rusted ",),
+950  : (0.25,0.05,"fully rusted ",),
+1000 : (0.1, 0,   "fully rusted ",),
     }
 ROTTEDNESS={
 # amt   - rot amount
@@ -406,7 +408,7 @@ BASE_SCARY      = 32
 BASE_BEAUTY     = 16
 BASE_RESFIRE    = 20
 BASE_RESCOLD    = 20
-BASE_RESBIO     = 40
+BASE_RESBIO     = 20
 BASE_RESPHYS    = 20
 BASE_RESELEC    = 20
 BASE_RESPAIN    = 20

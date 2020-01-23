@@ -536,9 +536,10 @@ class BP_Arm: # upper / middle arm and shoulder
         self.skin=BPP_Skin()
         self.covered=False
 class BP_Hand: # hand and lower forearm
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','held','bone','artery','muscle','skin','covered']
     def __init__(self):
-        self.slot=Slot()
+        self.slot=Slot() # armor slot (gloves etc.)
+        self.held=Slot() # grabbed slot (weapon equip, etc.)
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
@@ -820,13 +821,13 @@ class EquipableInNeckSlot:
         self.mods=mods
         self.fit=fit
         self.strReq=strReq
-##class EquipableInHandSlot: #gloves/gaunlets
-##    __slots__=['ap','mods','fit','strReq']
-##    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
-##        self.ap=ap
-##        self.mods=mods
-##        self.fit=fit
-##        self.strReq=strReq
+class EquipableInHandSlot: #gloves/gaunlets
+    __slots__=['ap','mods','fit','strReq']
+    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+        self.ap=ap
+        self.mods=mods
+        self.fit=fit
+        self.strReq=strReq
 class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
     __slots__=['ap','mods','stamina','fit','strReq','dexReq',]
     def __init__(self, ap, sta, mods, fit=0, strReq=0, dexReq=0): #{var : modf,}

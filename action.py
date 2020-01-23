@@ -663,7 +663,7 @@ def _strike(attkr,dfndr,aweap,dweap,
             dfndr_ready = rog.on(dfndr,CANCOUNTER)
             if dfndr_ready:
                 if (dice.roll(100) <= ctr):
-                    dweap = rog.dominant_arm(dfndr).hand.slot.item
+                    dweap = rog.dominant_arm(dfndr).hand.held.item
                     _strike(
                         dfndr, attkr, dweap, aweap,
                         power=0, counterable=False
@@ -898,15 +898,15 @@ def fight(attkr,dfndr,adv=0,power=0,grap=False):
         aarm2 = aarms.arms[1]
     else:
         aarm1=aarm2=None
-    aweap1 = aarm1.hand.slot.item if aarm1 else None
-    aweap2 = aarm2.hand.slot.item if aarm1 else None
+    aweap1 = aarm1.hand.held.item if aarm1 else None
+    aweap2 = aarm2.hand.held.item if aarm1 else None
     if darms:
         darm1 = darms.arms[0]
         darm2 = darms.arms[1]
     else:
         darm1=darm2=None
-    dweap1 = darm1.hand.slot.item if darm1 else None
-    dweap2 = darm2.hand.slot.item if darm1 else None
+    dweap1 = darm1.hand.held.item if darm1 else None
+    dweap2 = darm2.hand.held.item if darm1 else None
     #
     
     # attack type: strike or grapple?
@@ -1004,13 +1004,13 @@ def fight(attkr,dfndr,adv=0,power=0,grap=False):
 ##    if aarms: # temporary
 ##        aarm1 = aarms.arms[0]
 ##        aarm2 = aarms.arms[1]
-##        aweap1 = aarm1.hand.slot.item if aarm1 else None
-##        aweap2 = aarm2.hand.slot.item if aarm1 else None
+##        aweap1 = aarm1.hand.held.item if aarm1 else None
+##        aweap2 = aarm2.hand.held.item if aarm1 else None
 ##    if darms:
 ##        darm1 = darms.arms[0]
 ##        darm2 = darms.arms[1]
-##        dweap1 = darm1.hand.slot.item if darm1 else None
-##        dweap2 = darm2.hand.slot.item if darm1 else None
+##        dweap1 = darm1.hand.held.item if darm1 else None
+##        dweap2 = darm2.hand.held.item if darm1 else None
 ##    
 ##    # ensure you have the proper amount of Stamina
 ##    stamina_cost = 4 # TEMPORARY

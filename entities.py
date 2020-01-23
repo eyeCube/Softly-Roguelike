@@ -2705,7 +2705,7 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
     dadd['dfn'] = min(dadd.get('dfn',0), dadd.get('dfn',0) * _5050)
 # end def
 def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
-    if not skillLv: return
+    if skillLv <=0: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
     dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
@@ -2715,49 +2715,28 @@ def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
     dadd['dfn']=dadd.get('dfn',0) + MULT_STATS*SKLMOD_ARMOR_DV*sm
 # end def
 def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
-    if not skillLv: return
+    if skillLv <=0: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_UNARMORED_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_UNARMORED_AV*sm
     dadd['dfn']=dadd.get('dfn',0) + MULT_STATS*SKLMOD_UNARMORED_DV*sm
 # end def
-def _apply_skill_bonus_weapon(dadd, skillLv, skill):
-    if not skillLv: return
+def _apply_skill_bonus_weapon(dadd, skillLv, skill, enc=True):
+    if skillLv <=0: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
-    dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
+    if enc: # only for weapons with encumberance values (not for unarmed combat)
+        dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
     # custom or default stat modifiers for specific skills
-    dadd['atk']=max( dadd.get('atk',0), dadd.get('atk',0) + (
-        MULT_STATS * sm * SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)) )
-    dadd['pen']=max( dadd.get('pen',0), dadd.get('pen',0) + (
-        MULT_STATS * sm * SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)) )
-    dadd['dmg']=max( dadd.get('dmg',0), dadd.get('dmg',0) + (
-        MULT_STATS * sm * SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)) )
-    dadd['dfn']=max( dadd.get('dfn',0), dadd.get('dfn',0) + (
-        MULT_STATS * sm * SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)) )
-    dadd['pro']=max( dadd.get('pro',0), dadd.get('pro',0) + (
-        MULT_STATS * sm * SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)) )
-    dadd['arm']=max( dadd.get('arm',0), dadd.get('arm',0) + (
-        MULT_STATS * sm * SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)) )
-    dadd['asp']=max( dadd.get('asp',0), dadd.get('asp',0) + (
-        sm * SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)) )
-    dadd['gra']=max( dadd.get('gra',0), dadd.get('gra',0) + (
-        MULT_STATS * sm * SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)) )
-    dadd['ctr']=max( dadd.get('ctr',0), dadd.get('ctr',0) + (
-        MULT_STATS * sm * SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)) )
-# end def
-def _apply_skill_bonus_unarmed(dadd, skillLv, skill): # similar as above but it adds instead of multiplying the added value
-    if not skillLv: return
-    sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
-    dadd['atk'] = dadd.get('atk',0) + MULT_STATS*sm*SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
-    dadd['pen'] = dadd.get('pen',0) + MULT_STATS*sm*SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
-    dadd['dmg'] = dadd.get('dmg',0) + MULT_STATS*sm*SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)
-    dadd['dfn'] = dadd.get('dfn',0) + MULT_STATS*sm*SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)
-    dadd['pro'] = dadd.get('pro',0) + MULT_STATS*sm*SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)
-    dadd['arm'] = dadd.get('arm',0) + MULT_STATS*sm*SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)
-    dadd['asp'] = dadd.get('asp',0) + sm*SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)
-    dadd['gra'] = dadd.get('gra',0) + MULT_STATS*sm*SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)
-    dadd['ctr'] = dadd.get('ctr',0) + MULT_STATS*sm*SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)
+    dadd['atk']=dadd.get('atk',0) + MULT_STATS * sm * SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
+    dadd['pen']=dadd.get('pen',0) + MULT_STATS * sm * SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
+    dadd['dmg']=dadd.get('dmg',0) + MULT_STATS * sm * SKLMOD_DMG.get(skill,DEFAULT_SKLMOD_DMG)
+    dadd['dfn']=dadd.get('dfn',0) + MULT_STATS * sm * SKLMOD_DFN.get(skill,DEFAULT_SKLMOD_DFN)
+    dadd['pro']=dadd.get('pro',0) + MULT_STATS * sm * SKLMOD_PRO.get(skill,DEFAULT_SKLMOD_PRO)
+    dadd['arm']=dadd.get('arm',0) + MULT_STATS * sm * SKLMOD_ARM.get(skill,DEFAULT_SKLMOD_ARM)
+    dadd['asp']=dadd.get('asp',0) + sm * SKLMOD_ASP.get(skill,DEFAULT_SKLMOD_ASP)
+    dadd['gra']=dadd.get('gra',0) + MULT_STATS * sm * SKLMOD_GRA.get(skill,DEFAULT_SKLMOD_GRA)
+    dadd['ctr']=dadd.get('ctr',0) + MULT_STATS * sm * SKLMOD_CTR.get(skill,DEFAULT_SKLMOD_CTR)
 # end def
 ##def _apply_mass(ent, item, dadd, equipable):
 ##    mass=rog.getms(item, 'mass')
@@ -2892,20 +2871,26 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
     skillsCompo=world.component_for_entity(ent, cmp.Skills)
 
     # equipment
-    if hand.slot.item:
-        item=hand.slot.item
+    
+    # TODO: gloves / gauntlets (hand armor)
+    
+    # held item (weapon)
+    if hand.held.item:
+        item=hand.held.item
         equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
         weapClass = world.component_for_entity(item, cmp.WeaponSkill).skill
         
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
         
-        # weapon skill bonus
+        # weapon skill bonus for item-weapons (armed combat)
         if (ismainhand and world.has_component(item, cmp.WeaponSkill)):
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
             if skillLv:
                 _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+        #
         
+        # mainhand / offhand - specific stats
         if ismainhand:
             # throwing stats
             if world.has_component(item, cmp.Throwable):
@@ -2915,14 +2900,24 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
                 dadd['tdmg'] = compo.dmg
                 dadd['tpen'] = compo.pen
                 dadd['tasp'] = compo.asp
-        else:
+            # ranged stats
+            if world.has_component(item, cmp.Shootable):
+                compo=world.component_for_entity(item, cmp.Shootable)
+                dadd['maxrng'] = compo.rng
+                dadd['minrng'] = compo.minrng
+                dadd['ratk'] = compo.atk
+                dadd['rdmg'] = compo.dmg
+                dadd['rpen'] = compo.pen
+                dadd['rasp'] = compo.asp
+        else: # offhand
             # offhand offensive penalty for offhand weapons
+            dadd['reach'] = 0
             dadd['atk'] = 0
             dadd['dmg'] = 0
             dadd['pen'] = 0
             dadd['asp'] = 0
             dadd['gra'] = dadd.get('gra', 0) + OFFHAND_PENALTY_GRA
-
+        # end if
         # offhand defensive penalty for offhand (non-shield) weapons
         #   AND for shields held in mainhand.
         offpenalty=False            
@@ -2933,24 +2928,37 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
             dadd['dfn'] = dadd.get('dfn', 0) * OFFHAND_PENALTY_DFNMOD
             dadd['arm'] = dadd.get('arm', 0) * OFFHAND_PENALTY_ARMMOD
             dadd['pro'] = dadd.get('pro', 0) * OFFHAND_PENALTY_PROMOD
+        #
+        
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_weapon(
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
-
+        
         # armed wrestling still grants you some Gra, but significantly
         #   less than if you were unarmed.
         wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
         wreLv = wreLv // 3 # penalty to effective skill Lv
-        _apply_skill_bonus_unarmed(dadd, wreLv, SKL_WRESTLING)
-    else:
+        if not ismainhand:
+            wreLv = wreLv * 0.5 # penalty for offhand
+        _apply_skill_bonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+    #
+    # unarmed combat
+    else: 
         if ismainhand:
             # unarmed combat (hand-to-hand combat)
             boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
-            _apply_skill_bonus_unarmed(dadd, boxLv, SKL_BOXING)
+            _apply_skill_bonus_weapon(dadd, boxLv, SKL_BOXING, enc=False)
             # wrestling unarmed
             wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
-            _apply_skill_bonus_unarmed(dadd, wreLv, SKL_WRESTLING)
+            wreLv = wreLv * 0.66666667 # most from mainhand, rest from offhand
+            _apply_skill_bonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+        else: # offhand
+            # wrestling unarmed (offhand)
+            wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
+            wreLv = wreLv * 0.33333334
+            _apply_skill_bonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+    # end if
         
     # examine body part
     if hand.bone.status:
@@ -3045,10 +3053,10 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
             dadd.update({k:v})
         # automatically convert the sight and hearing modifiers
         #  into multipliers for headwear, facewear, eye/earwear, etc.
-        if 'sight' in dadd.keys():
+        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
             dmul['sight'] = dadd['sight']
             del dadd['sight']
-        if 'hearing' in dadd.keys():
+        if 'hearing' in dadd.keys(): # sense mod acts as multiplier not adder
             dmul['hearing'] = dadd['hearing']
             del dadd['hearing']
         
@@ -3089,7 +3097,7 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInFaceSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        if 'sight' in dadd.keys():
+        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
             dmul['sight'] = dadd['sight']
             del dadd['sight']
         
@@ -3145,7 +3153,7 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEyesSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        if 'sight' in dadd.keys():
+        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
             dmul['sight'] = dadd['sight']
             del dadd['sight']
         
@@ -3169,7 +3177,7 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
             dadd.update({k:v})
-        if 'hearing' in dadd.keys():
+        if 'hearing' in dadd.keys(): # sense mod acts as multiplier not adder
             dmul['hearing'] = dadd['hearing']
             del dadd['hearing']
         
@@ -4369,105 +4377,6 @@ STUFF={
 ##"foliage, dead"     :(T_FOLIAGE,WOOD,1, 'brown', 1, 0.05,False,_foliageDead,),
     }
 
-JOBS={
-    # occupations the player can choose from when starting the game.
-    # affects starting stats and gear/items.
-    
-    # KG, $$$: mass, money
-    #Access keys:
-    #S  level of security clearance
-    #Keys:
-        #J  janitor key : janitor's closets
-        #C  computer scientist key : computer closets
-        #K  politician's key : key to the city
-        #P  pilot key : hangar access
-        #L  lab tech key : lab access
-    #stats: stat bonuses or nerfs
-    #skills: major occupation skills that this character begins with (the exact level is determined elsewhere)
-    #items: items you start with
-        #(itemName, dictionary, quantity)
-            # where dictionary is the item table where the item can be found.
-    
-    # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
-    
-#ID                Char,Name         KG, $$$$,S|Key, stats, skills, items
-CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
-    {'con':2,'agi':4,'end':8,'int':-4,'msp':10,},
-    (SKL_ATHLETE,),
-    (('running shoe', FOOTARMOR, 2,),),
-                   ),
-CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',
-    {'int':8,'end':-2,'con':-2,'agi':-2,},
-    (SKL_CHEMISTRY,),
-    (),
-                   ),
-CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
-    {'sight':-10,'hearing':-40,'str':-4,'con':-4,'int':-4,'end':-4,'dex':-4,'agi':-4,},
-    (SKL_SURVIVAL,SKL_ASSEMBLY,),
-    ('wooden club', WEAPONS, 1,),),
-                   ),
-CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',
-    {'int':6,'dex':6,'end':-4,'agi':-4,'con':-4,},
-    (SKL_MEDICINE,SKL_SURGERY,),
-    (('scalpel', WEAPONS, 1,),),
-                   ),
-CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
-    {},
-    (),
-    (),
-                   ),
-CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'',
-    {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
-    (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
-    (),
-                   ),
-CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
-    {'dex':4,'con':4,'int':-4,'gra':2,},
-    (SKL_BLUDGEONS,SKL_ENERGY,),
-    (('metal baton', WEAPONS, 1,),),
-                   ),
-CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
-    {'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},
-    (SKL_PILOT,),
-    (),
-                   ),
-CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
-    {'str':4,'con':4,'dex':2,'end':2,'int':-2,},
-    (SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),
-    (('metal truncheon', WEAPONS, 1,),),
-                   ),
-CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
-    {'int':4,'agi':-2,'con':-2,},
-    (SKL_COMPUTERS,),
-    (),
-                   ),
-CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
-    {'con':-2,'end':-4,'int':4,},
-    (SKL_PERSUASION,),
-    (),
-                   ),
-CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'',
-    {'con':2,'int':2,'dex':2,'agi':2,'encmax':10,},
-    (SKL_PERSUASION,SKL_PISTOLS,),
-    (),
-                   ),
-CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
-    {'int':2,'dex':2,'end':-2,'agi':-2,},
-    (SKL_HARDWARE,),
-    (),
-                   ),
-CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
-    {'agi':6,'dex':4,'end':2,'con':-2,'encmax':30,},
-    (SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),
-    (),
-                   ),
-CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'',
-    {'sight':-5,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':2,},
-    (SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),
-    (),
-                   ),
-    }
-
 FLUIDS = {
 #attributes:
 #   d       : density
@@ -4970,13 +4879,15 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "greatsword"            :(540,  3.5, 450, METL,26,12,(9,  18, 15, 3,  3,  3,  -15,28, -6, 10, 32, 3,),SKL_GREATSWORDS,_greatSword,),
 "flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -14,10, 26, 3,),SKL_GREATSWORDS,_flamberge,),
     # short staves        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"plastic staff"         :(1.5,  1.5, 100, PLAS,9, 10,(6,  5,  4,  4,  2,  3,  69, 12, -5, 13, 13, 3,),SKL_STAVES,_staff,),
+"plastic staff"         :(1.5,  1.5, 100, PLAS,11,10,(6,  5,  4,  2,  2,  2.5,66, 12, -7, 13, 13, 3,),SKL_STAVES,_staff,),
 "wooden staff"          :(11,   1.3, 300, WOOD,9, 10,(7,  7,  6,  4,  4,  3,  75, 12, -5, 15, 12, 3,),SKL_STAVES,_staff,),
-"steel staff"           :(142,  1.1, 500, METL,9, 10,(8,  9,  8,  4,  3,  3,  81, 12, -5, 16, 11, 3,),SKL_STAVES,_staff,), # regular metal will not hold for such a long staff.
+"bone staff"            :(20,   1.4, 200, WOOD,12,10,(5,  9,  7,  2,  4,  3,  51, 14, -3, 11, 18, 3,),SKL_STAVES,_staff,), # bone-headed staff (wooden staff with bone tip)
+"metal staff"           :(30,   1.2, 250, WOOD,11,10,(6,  9,  8,  3,  4,  3,  66, 12, -5, 13, 15, 3,),SKL_STAVES,_staff,), # metal-headed staff (metal not tough enough to make a staff fully made of metal)
+"steel staff"           :(142,  1.1, 500, METL,10,10,(8,  10, 9,  4,  3,  3,  81, 12, -5, 16, 11, 3,),SKL_STAVES,_staff,), # regular metal will cannot make an entire staff shaft, but steel can.
     # longstaves          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"plastic longstaff"     :(3,    3.1, 150, PLAS,22,10,(9,  8,  6,  3,  2,  3,  54, 24, -18,5,  24, 6,),SKL_POLEARMS,_longstaff,),
-"wooden longstaff"      :(24,   2.7, 400, WOOD,21,10,(10, 10, 8,  3,  4,  3,  57, 24, -18,6,  22, 6,),SKL_POLEARMS,_longstaff,),
-"steel longstaff"       :(88,   2.4, 500, METL,20,10,(11, 12, 10, 3,  3,  3,  60, 24, -18,7,  20, 6,),SKL_POLEARMS,_longstaff,),
+"plastic longstaff"     :(3,    3.1, 150, PLAS,24,8, (9,  8,  6,  3,  2,  2,  54, 24, -18,5,  24, 6,),SKL_POLEARMS,_longstaff,),
+"wooden longstaff"      :(24,   2.7, 400, WOOD,22,8, (10, 10, 8,  3,  4,  2.5,57, 24, -18,6,  22, 6,),SKL_POLEARMS,_longstaff,),
+"steel longstaff"       :(88,   2.6, 500, METL,22,8, (11, 12, 10, 3,  3,  2.5,60, 24, -18,7,  20, 6,),SKL_POLEARMS,_longstaff,),
     # spears              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "plastic spear"         :(2,    2.1, 30,  PLAS,12,8, (8,  10, 10, 3,  2,  3,  51, 16, -12,8,  20, 4,),SKL_SPEARS,_pSpear,),
 "wooden spear"          :(20,   2.05,60,  WOOD,11,8, (10, 11, 12, 3,  3,  3,  48, 16, -12,9,  20, 4,),SKL_SPEARS,_wSpear,),
@@ -4984,7 +4895,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "bone spear"            :(25,   2.05,150, WOOD,11,8, (10, 12, 14, 3,  3,  3,  45, 16, -12,10, 20, 4,),SKL_SPEARS,_sSpear,),
 "glass spear"           :(34,   1.9, 5,   WOOD,9, 12,(12, 22, 10, 3,  3,  3,  51, 16, -12,14, 18, 4,),SKL_SPEARS,_gSpear,),
 "metal spear"           :(32,   2.1, 200, WOOD,11,10,(11, 14, 16, 3,  3,  3,  45, 16, -12,12, 20, 4,),SKL_SPEARS,_mSpear,),
-"metal winged spear"    :(40,   2.0, 300, WOOD,10,12,(10, 16, 15, 3,  3,  3.5,36, 16, -8, 12, 20, 4,),SKL_SPEARS,_mSpear,),
+"metal winged spear"    :(40,   2.15,300, WOOD,14,12,(10, 16, 15, 3,  3,  3.5,36, 16, -8, 12, 20, 4,),SKL_SPEARS,_mSpear,),
 "ceramic spear"         :(36,   1.95,10,  WOOD,9, 12,(12, 24, 12, 3,  3,  3,  48, 16, -12,14, 18, 4,),SKL_SPEARS,_cSpear,),
     # partizans           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "metal partizan"        :(65,   2.2, 240, WOOD,14,6, (8,  18, 14, 2,  3,  3,  24, 20, -12,10, 22, 5,),SKL_SPEARS,_mPartizan,),
@@ -4995,23 +4906,23 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
     # halberds            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "metal halberd"         :(135,  2.25,280, WOOD,15,12,(8,  18, 20, 2,  3,  2,  9,  28, -6, 8,  22, 5,),SKL_POLEARMS,_mHalberd,),#all polearms have REACH
     # poleaxes            $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"metal poleaxe"         :(150,  2.35,450, WOOD,13,13,(7,  22, 20, 2,  4,  2,  -15,12, -4, 6,  24, 2,),SKL_POLEARMS,_mPoleAxe,),
+"metal poleaxe"         :(150,  2.35,450, WOOD,14,13,(7,  22, 20, 2,  4,  2,  -15,12, -4, 6,  24, 2,),SKL_POLEARMS,_mPoleAxe,),
     # polehammers         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"plastic polehammer"    :(3,    2.7, 110, PLAS,20,9, (4,  11, 16, 1,  2,  2,  -27,12, -9, 3,  30, 2,),SKL_POLEARMS,_pPoleHammer,),
-"wooden polehammer"     :(18,   2.6, 200, WOOD,19,10,(5,  13, 16, 1,  3,  2,  -24,12, -9, 4,  28, 2,),SKL_POLEARMS,_wPoleHammer,),
-"metal polehammer"      :(105,  2.4, 675, WOOD,18,11,(6,  16, 24, 1,  3,  2,  -21,12, -9, 5,  26, 2,),SKL_POLEARMS,_mPoleHammer,),
+"plastic polehammer"    :(3,    2.7, 110, PLAS,18,9, (4,  11, 16, 1,  2,  2,  -27,12, -9, 3,  30, 2,),SKL_POLEARMS,_pPoleHammer,),
+"wooden polehammer"     :(18,   2.6, 200, WOOD,17,10,(5,  13, 16, 1,  3,  2,  -24,12, -9, 4,  28, 2,),SKL_POLEARMS,_wPoleHammer,),
+"metal polehammer"      :(105,  2.4, 675, WOOD,16,11,(6,  16, 24, 1,  3,  2,  -21,12, -9, 5,  26, 2,),SKL_POLEARMS,_mPoleHammer,),
     # war mallets         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"plastic war mallet"    :(3,    2.4, 320, PLAS,17,3, (3,  11, 12, -1, 2,  2,  -45,14, -14,3,  28, 2,),SKL_MALLETS,_1mallet,),
-"wooden war mallet"     :(19,   2.3, 600, WOOD,17,3, (4,  13, 13, -1, 3,  2,  -42,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
-"stone war mallet"      :(22,   2.1, 400, WOOD,16,3, (5,  17, 14, 0,  3,  2,  -36,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
-"bone war mallet"       :(25,   2.2, 500, WOOD,16,3, (4,  15, 15, 0,  3,  2,  -39,14, -14,5,  25, 2,),SKL_MALLETS,_1mallet,),
-"metal war mallet"      :(72,   2.0, 950, WOOD,16,3, (5,  19, 16, 0,  4,  2,  -39,14, -14,6,  22, 2,),SKL_MALLETS,_2mallet,),
+"plastic war mallet"    :(3,    2.4, 320, PLAS,16,3, (3,  11, 12, -1, 2,  2,  -45,14, -14,3,  28, 2,),SKL_MALLETS,_1mallet,),
+"wooden war mallet"     :(19,   2.3, 600, WOOD,16,3, (4,  13, 13, -1, 3,  2,  -42,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
+"stone war mallet"      :(22,   2.1, 400, WOOD,15,3, (5,  17, 14, 0,  3,  2,  -36,14, -14,4,  25, 2,),SKL_MALLETS,_1mallet,),
+"bone war mallet"       :(25,   2.2, 500, WOOD,15,3, (4,  15, 15, 0,  3,  2,  -39,14, -14,5,  25, 2,),SKL_MALLETS,_1mallet,),
+"metal war mallet"      :(72,   2.0, 950, WOOD,15,3, (5,  19, 16, 0,  4,  2,  -39,14, -14,6,  22, 2,),SKL_MALLETS,_2mallet,),
     # great clubs         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
-"plastic great club"    :(3,    2.7, 450, PLAS,22,2, (5,  11, 7,  -2, 2,  2,  -33,16, -26,2,  32, 1,),SKL_BLUDGEONS,_heavyClub,),
-"wooden great club"     :(18,   2.6, 1000,WOOD,22,2, (6,  15, 9,  -2, 3,  2,  -27,16, -26,3,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
-"stone great club"      :(22,   2.5, 280, STON,20,2, (7,  19, 10, -2, 3,  2,  -24,16, -26,4,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
-"bone great club"       :(13,   1.75,360, BONE,18,2, (8,  14, 9,  -1, 3,  2,  -15,16, -26,5,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
-"metal great club"      :(95,   1.8, 1900,METL,21,2, (8,  21, 12, -1, 3,  2,  -18,16, -26,6,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
+"plastic great club"    :(3,    2.7, 450, PLAS,26,2, (5,  11, 7,  -2, 2,  2,  -33,16, -26,2,  32, 1,),SKL_BLUDGEONS,_heavyClub,),
+"wooden great club"     :(18,   2.6, 1000,WOOD,24,2, (6,  15, 9,  -2, 3,  2,  -27,16, -26,3,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
+"stone great club"      :(22,   2.5, 280, STON,26,2, (7,  19, 10, -2, 3,  2,  -24,16, -26,4,  29, 1,),SKL_BLUDGEONS,_heavyClub,),
+"bone great club"       :(13,   1.75,360, BONE,22,2, (8,  14, 9,  -1, 3,  2,  -15,16, -26,5,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
+"metal great club"      :(95,   1.8, 1900,METL,24,2, (8,  21, 12, -1, 3,  2,  -18,16, -26,6,  26, 1,),SKL_BLUDGEONS,_heavyClub,),
     # great axes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "plastic great axe"     :(3,    2.2, 110, PLAS,14,8, (2,  14, 9,  1,  2,  2,  -27,16, -6, 3,  24, 2,),SKL_GREATAXES,_pGreatAxe,),
 "wooden great axe"      :(22,   1.9, 210, WOOD,12,8, (3,  18, 10, 2,  3,  2,  -21,16, -6, 4,  23, 2,),SKL_GREATAXES,_wGreatAxe,),
@@ -5605,6 +5516,105 @@ RAWMATERIALS={
 
 }
 
+
+JOBS={
+    # occupations the player can choose from when starting the game.
+    # affects starting stats and gear/items.
+    
+    # KG, $$$: mass, money
+    #Access keys:
+    #S  level of security clearance
+    #Keys:
+        #J  janitor key : janitor's closets
+        #C  computer scientist key : computer closets
+        #K  politician's key : key to the city
+        #P  pilot key : hangar access
+        #L  lab tech key : lab access
+    #stats: stat bonuses or nerfs
+    #skills: major occupation skills that this character begins with (the exact level is determined elsewhere)
+    #items: items you start with
+        #(itemName, dictionary, quantity)
+            # where dictionary is the item table where the item can be found.
+    
+    # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
+    
+#ID                Char,Name         KG, $$$$,S|Key, stats, skills, items
+CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
+    {'con':2,'agi':4,'end':8,'int':-4,'msp':10,},
+    (SKL_ATHLETE,),
+    (('running shoe', FOOTARMOR, 2,),),
+                   ),
+CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',
+    {'int':8,'end':-2,'con':-2,'agi':-2,},
+    (SKL_CHEMISTRY,),
+    (),
+                   ),
+CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
+    {'sight':-10,'hearing':-40,'str':-4,'con':-4,'int':-4,'end':-4,'dex':-4,'agi':-4,},
+    (SKL_SURVIVAL,SKL_ASSEMBLY,),
+    ('wooden club', WEAPONS, 1,),
+                   ),
+CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',
+    {'int':6,'dex':6,'end':-4,'agi':-4,'con':-4,},
+    (SKL_MEDICINE,SKL_SURGERY,),
+    (('scalpel', WEAPONS, 1,),),
+                   ),
+CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
+    {},
+    (),
+    (),
+                   ),
+CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'',
+    {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
+    (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
+    (),
+                   ),
+CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
+    {'dex':4,'con':4,'int':-4,'gra':2,},
+    (SKL_BLUDGEONS,SKL_ENERGY,),
+    (('metal baton', WEAPONS, 1,),),
+                   ),
+CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
+    {'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},
+    (SKL_PILOT,),
+    (),
+                   ),
+CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
+    {'str':4,'con':4,'dex':2,'end':2,'int':-2,},
+    (SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),
+    (('metal truncheon', WEAPONS, 1,),),
+                   ),
+CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
+    {'int':4,'agi':-2,'con':-2,},
+    (SKL_COMPUTERS,),
+    (),
+                   ),
+CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
+    {'con':-2,'end':-4,'int':4,},
+    (SKL_PERSUASION,),
+    (),
+                   ),
+CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'',
+    {'con':2,'int':2,'dex':2,'agi':2,'encmax':10,},
+    (SKL_PERSUASION,SKL_PISTOLS,),
+    (),
+                   ),
+CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
+    {'int':2,'dex':2,'end':-2,'agi':-2,},
+    (SKL_HARDWARE,),
+    (),
+                   ),
+CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
+    {'agi':6,'dex':4,'end':2,'con':-2,'encmax':30,},
+    (SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),
+    (),
+                   ),
+CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'',
+    {'sight':-5,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':2,},
+    (SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),
+    (),
+                   ),
+    }
 
 
 

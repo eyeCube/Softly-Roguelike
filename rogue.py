@@ -1684,7 +1684,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.rpen += _dex * ATT_DEX_RPEN*MULT_STATS
         modded.ratk += _dex * ATT_DEX_RATK*MULT_STATS
         modded.rasp += _dex * ATT_DEX_RASP
-        modded.maxrng += _dex * ATT_DEX_RNG
+##        modded.maxrng += _dex * ATT_DEX_RNG
         modded.trng += _dex * ATT_DEX_TRNG
     # TODO: context-sensitive dex bonuses (crafting, any tasks with hands...) (Not in this function of course!!!!)
     
@@ -1715,6 +1715,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.reselec += _con * ATT_CON_RESELEC
         modded.resbleed += _con * ATT_CON_RESBLEED
         modded.respain += _con * ATT_CON_RESPAIN
+        modded.resbio += _con * ATT_CON_RESBIO
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 

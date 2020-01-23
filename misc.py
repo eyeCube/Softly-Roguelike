@@ -62,9 +62,9 @@ class _HUD_Stat(): # helper classes/ functions for the render functions
 def _HUD_get_color(stat):
     col=COL['white']
     if stat[:3] == 'HP:':
-        col=COL['crystal']
+        col=COL['yellow']
     elif stat[:3] == 'SP:':
-        col=COL['magenta']
+        col=COL['orange']
     elif stat[:4] == 'Atk:':
         col=COL['scarlet']
     elif stat[:4] == 'Dmg:':
@@ -72,11 +72,11 @@ def _HUD_get_color(stat):
     elif stat[:4] == 'Pen:':
         col=COL['scarlet']
     elif stat[:3] == 'DV:':
-        col=COL['ltblue']
+        col=COL['red']
     elif stat[:3] == 'AV:':
-        col=COL['ltblue']
+        col=COL['red']
     elif stat[:4] == 'Pro:':
-        col=COL['ltblue']
+        col=COL['red']
     return col
 def _getheight():
     return rog.world().component_for_entity(rog.pc(), cmp.Body).height
@@ -141,7 +141,7 @@ def _get_equipment(body):
             i+=1
             if arm is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
+            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.held,
                            cmp.EquipableInHoldSlot)
             equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
                            cmp.EquipableInArmSlot)
@@ -301,9 +301,8 @@ def __sbps(fxlist,bppname,status, bpstatusdict, amd=None, mmd=None):
             (priority, "        {bpn}: {eff}{am}{mm}\n".format(
             bpn=bppname, eff=bpstatusdict[status], am=am, mm=mm ),)
             )
-def _get_body_effects(world, pc): # TODO: finish all of these for each body part, and each BPP for each body part
+def _get_body_effects(world, body): # TODO: finish all of these for each body part, and each BPP for each body part
     fxlist=[] # [ (priority, string,), ... ]
-    body = world.component_for_entity(pc, cmp.Body)
     
     # what body type are we?
     # humanoid
@@ -487,8 +486,10 @@ def _get_hydration(body):
     return "severely dehydrated"
 def _get_encumberance_mods(pc):
     mods = "\n    [ "
-    encmax = rog.getms(pc,'encmax')
     enc = rog.getms(pc,'enc')
+    if enc <= 0:
+        return ""
+    encmax = rog.getms(pc,'encmax')
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
@@ -509,32 +510,59 @@ def _get_encumberance_mods(pc):
 # render character page / render char page / render charpage
 # render the entire character info page in one big string
 def render_charpage_string(w, h, pc, turn, dlvl):
-    # Setup #
+# setup #
+    statdelim="......"
     world = rog.world()
     con = libtcod.console_new(w,h)
     name = world.component_for_entity(pc, cmp.Name)
     meterscompo = world.component_for_entity(pc, cmp.Meters)
     creature = world.component_for_entity(pc, cmp.Creature)
-    body=world.component_for_entity(pc, cmp.Body)
     effects = _get_effects(world, pc)
-    bodystatus = _get_body_effects(world, pc)
     gauges = _get_gauges(meterscompo)
-    equipment=_get_equipment(body)
     skills = _get_skills(world.component_for_entity(pc, cmp.Skills))
     augs=""
     npaugs=0
     nmaugs=0
+    encmods=_get_encumberance_mods(pc)
+    #
+    # body (and equipment)
+    body=world.component_for_entity(pc, cmp.Body)
+    bodystatus=_get_body_effects(world, body)
+    equipment=_get_equipment(body)
+    basemass=rog.around((_getb('mass') + body.hydrationMax//MULT_HYD + body.bodyfat + body.blood)/MULT_MASS)
     satstr=_get_satiation(body)
     hydstr=_get_hydration(body)
-    encmods=_get_encumberance_mods(pc)
-    minrng=0 #TODO: get from ranged weapon equipped in mainhand if applicable else 0
-    
-    basemass=rog.around((_getb('mass') + body.hydrationMax//MULT_HYD + body.bodyfat + body.blood)/MULT_MASS)
+    #
+    # weapon information
+    mainweap=rog.dominant_arm(pc).hand.held.item # temporary
+    _asp_from="melee"
+    if mainweap:
+        if world.has_component(mainweap, cmp.Shootable):
+            shootable=world.component_for_entity(mainweap, cmp.Shootable)
+        else: shootable=None
+        if world.has_component(mainweap, cmp.Throwable):
+            throwable=world.component_for_entity(mainweap, cmp.Throwable)
+        else: throwable=None
+        minrng = shootable.minrng if shootable else 0
+        if shootable: # ranged
+            maxrng=_get('maxrng')
+            _asp_from="ranged"
+        else: # melee
+            if throwable: # show throwing range if throwing weapon is equipped
+                maxrng=_get('trng')
+            _asp_from="melee"
+    else:
+        minrng=maxrng=0
+    #
+    # asp
+    if _asp_from=="melee":
+        asp = "{asp:<4}{statdelim}({basp})".format(
+                asp=_get('asp'),basp=_getb('asp'),statdelim=statdelim)
+    elif _asp_from=="ranged":
+        asp = "{rasp}".format(rasp=_get('rasp'))
+# /setup #
     
     # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
-
-    # TODO: change atk to ratk, dmg to rdmg, pen to rpen when a ranged weapon is equipped
-    # change range to throwing range otherwise
     
     # create the display format string
     return '''{p1}
@@ -568,7 +596,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}
 {p1}              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
 {p1}     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
-{p1}       (attack speed)----ASP{predelim}{asp:<4}{statdelim}({basp})
+{p1}       (attack speed)----ASP{predelim}{asp}
 {p1}
 {p1}        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
 {p1}         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
@@ -583,7 +611,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
 {p1}
 {p1}              (reach)----REA{predelim}{reach:<4}{statdelim}({breach})
-{p1}   (min. - max.range)----RNG{predelim}{minrng:<4} - {maxrng}
+{p1}   (min. | max.range)----RNG{predelim}{minrng} | {maxrng}
 {p1}
 {p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
 {p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
@@ -646,7 +674,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         subdelim ="--",
         predelim =": ",
         attdelim ="........",
-        statdelim="......",
+        statdelim=statdelim, #"......"
         resdelim ="......",
         shortdelim ="...",
         dlv=dlvl,t=turn,
@@ -687,8 +715,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
-        spr=_gets('mpregen'),reach=_gets('reach'),
-        spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
+        spr=_gets('mpregen'),
+        reach="{__:.1f}".format(__=_gets('reach')/2),
+        spd=_get('spd'),msp=_get('msp'),asp=asp,
         crg=_get('cou'),idn=_get('idn'),bea=_get('bea'),
         vis=_get('sight'),aud=_get('hearing'),
         enc=_get('enc'),encmax=_get('encmax'),
@@ -697,14 +726,15 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
-        bspr=_getbs('mpregen'),breach=_getbs('reach'),
-        bspd=_getb('spd'),basp=_getb('asp'),bmsp=_getb('msp'),
+        bspr=_getbs('mpregen'),
+        breach="{__:.1f}".format(__=_getbs('reach')/2),
+        bspd=_getb('spd'),bmsp=_getb('msp'),
         bcrg=_getb('cou'),bidn=_getb('idn'),bbea=_getb('bea'),
         bvis=_getb('sight'),baud=_getb('hearing'),
         bencmax=_getb('encmax'),
         bhpmax=_getb('hpmax'),bspmax=_getb('mpmax'),
         # range
-        minrng=minrng,minrng=_get('rng'),
+        minrng=minrng,maxrng=maxrng,
         # res
         fir=_get('resfire'),ice=_get('rescold'),phs=_get('resphys'),
         bld=_get('resbleed'),bio=_get('resbio'),elc=_get('reselec'),
