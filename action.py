@@ -736,65 +736,101 @@ def _strike(attkr,dfndr,aweap,dweap,
 
         if bphit:
             bphit = min(2, bphit)
-            
-            dmgtype = DMGTYPES[skillCompo.skill]
+
+            # get damage type
+            if world.has_component(aweap, cmp.DamageTypeMelee): # custom?
+                compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
+                dmgtype = compo.type
+            else: # damage type based on skill of the weapon by default
+                dmgtype = DMGTYPES[skillCompo.skill]
             
             # abrasions
             if dmgtype==DMGTYPE_ABRASION:
-                rog.damagebpp(
-                    bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[bphit])
-                # deep skin abrasions may result in muscle abrasion
-                if bptarget.skin.status >= SKINSTATUS_MAJORABRASION:
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
                     rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[bphit])
+                        bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[bphit])
+                    # deep skin abrasions may result in muscle abrasion
+                    if ( BPP_MUSCLE in cd and
+                         bptarget.skin.status >= SKINSTATUS_MAJORABRASION ):
+                        rog.damagebpp(
+                            bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[bphit])
             # burns
             elif dmgtype==DMGTYPE_BURN:
-                rog.damagebpp(
-                    bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[bphit])
-                # deep skin burns may result in muscle burns
-                if bptarget.skin.status >= SKINSTATUS_DEEPBURNED:
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
                     rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[bphit])
-            # lacerations and puncture wounds
+                        bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[bphit])
+                    # deep skin burns may result in muscle burns
+                    if ( BPP_MUSCLE in cd and
+                         bptarget.skin.status >= SKINSTATUS_DEEPBURNED ):
+                        rog.damagebpp(
+                            bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[bphit])
+            # lacerations
             elif dmgtype==DMGTYPE_CUT:
-##                if targettype==BP_LIMB:# or targettype==BP_:
-##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
+                    rog.damagebpp(
+                        bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
+            # puncture wounds
+            elif dmgtype==DMGTYPE_PIERCE:
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
+                    rog.damagebpp(
+                        bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
+                # TODO: damage organs
                 
-                rog.damagebpp(
-                    bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
-                rog.damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
             # hacking / picking damage
             elif dmgtype==DMGTYPE_HACK:
-##                if targettype==BP_LIMB:# or targettype==BP_:
-##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
-                
-                rog.damagebpp(
-                    bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
-                rog.damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
-                rog.damagebpp(
-                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
+                    rog.damagebpp(
+                        bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
+                if BPP_BONE in cd:
+                    rog.damagebpp(
+                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
             # blunt / crushing damage
             elif dmgtype==DMGTYPE_BLUNT:
-##                if targettype==BP_LIMB:# or targettype==BP_:
-##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
-                
-                rog.damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
-                rog.damagebpp(
-                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
-            # mace/morning-star-like weapons
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
+                if BPP_BONE in cd:
+                    rog.damagebpp(
+                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            # mace-like weapons
+            elif dmgtype==DMGTYPE_SPUDS:            
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
+                    rog.damagebpp(
+                        bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[bphit])
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
+                if BPP_BONE in cd:
+                    rog.damagebpp(
+                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            # morning-star like long-spiked weapons
             elif dmgtype==DMGTYPE_SPIKES:
-##                if targettype==BP_LIMB:# or targettype==BP_:
-##                # ALL BPS EXCEPT CORE, ANY W/O BONES,... (TODO: other sections (other BP_ consts))
-                
-                rog.damagebpp(
-                    bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[bphit])
-                rog.damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
-                rog.damagebpp(
-                    bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+                cd=cmp.BP_BPPS[type(bptarget).__name__]
+                if BPP_SKIN in cd:
+                    rog.damagebpp(
+                        bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[bphit])
+                if BPP_MUSCLE in cd:
+                    rog.damagebpp(
+                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
+                if BPP_BONE in cd:
+                    rog.damagebpp(
+                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
             
             #-------------------------------------#
             # deal damage, physical and elemental #
@@ -858,7 +894,7 @@ def _strike(attkr,dfndr,aweap,dweap,
     return (hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,)
 
 
-def fight(attkr,dfndr,adv=0,power=0,grap=False):
+def fight(attkr,dfndr,adv=0,power=0):
     '''
     Combat function. Engage in combat:
     # Arguments:
@@ -909,20 +945,14 @@ def fight(attkr,dfndr,adv=0,power=0,grap=False):
     dweap2 = darm2.hand.held.item if darm1 else None
     #
     
-    # attack type: strike or grapple?
-    strike = not grap
-    
     # ensure you have the proper amount of Stamina
-    if strike:
-        if aweap1:
-            equipable = world.component_for_entity(aweap1, cmp.EquipableInHoldSlot)
-            stamina_cost = equipable.stamina
-        else:
-            stamina_cost = STA_PUNCH
-        if stamina_cost > rog.getms(attkr, "mp"):
-            power=-1
+    if aweap1:
+        equipable = world.component_for_entity(aweap1, cmp.EquipableInHoldSlot)
+        stamina_cost = equipable.stamina
     else:
-        stamina_cost = STA_GRAB
+        stamina_cost = STA_PUNCH
+    if stamina_cost > rog.getms(attkr, "mp"):
+        power=-1
     
     # counterability is affected by range/reach TODO!
 ##    dist=max(abs(apos.x - dpos.x), abs(apos.x - dpos.x))
@@ -932,16 +962,11 @@ def fight(attkr,dfndr,adv=0,power=0,grap=False):
 ##        counterable = False
     counterable = True
     
-    if strike: # strike!
-        hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
-            attkr, dfndr, aweap1, dweap1,
-            adv=adv, power=power, counterable=counterable
-            )
-    else: # grab / bind / grapple
-        hit,grabd,killed,rol,ctrd,feelStrings,grazed = _grab(
-            attkr, dfndr, aweap1, aweap2, dweap1, dweap2,
-            adv=adv, power=power, counterable=counterable
-            )
+    # strike!
+    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
+        attkr, dfndr, aweap1, dweap1,
+        adv=adv, power=power, counterable=counterable
+        )
     
     # AP cost
     aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
@@ -986,7 +1011,7 @@ def fight(attkr,dfndr,adv=0,power=0,grap=False):
 #
 
 ### grappling #
-##def grab(grplr, target): # should this just be incorporated into fight?
+##def _grab(grplr, target): # should this just be incorporated into fight?
 ##    ''' entity grplr tries to grab (grappling) a target entity '''
 ##    
 ##    # setting up

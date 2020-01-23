@@ -939,6 +939,10 @@ class WeaponSkill: #equipping as weapon benefits from having skill in this weapo
     __slots__=['skill']
     def __init__(self, skill):
         self.skill=skill    # skill ID constant
+class DamageTypeMelee:
+    __slots__=['type']
+    def __init__(self, t):
+        self.type=t         # DMGTYPE_ contant
 
 class Shootable:
     __slots__=['ammoTypes','atk','dmg','pen','asp','rng','minrng','ammo','capacity','reloadTime','failChance','skill','func']
@@ -1738,6 +1742,25 @@ Tool_Drillbit_c         : 'drillbit type c',
 Tool_Drillbit_d         : 'drillbit type d',
 Tool_Drillbit_e         : 'drillbit type e',
 Tool_Drillbit_f         : 'drillbit type f',
+    }
+
+# BP -> list of BPPs
+BP_BPPS={ # TODO: add all BP_ classes to this dict
+BP_Arm          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_Hand         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_Leg          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_Foot         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_TorsoCore    : (BPP_SKIN, BPP_MUSCLE, BPP_ARTERY, BPP_GUTS,),
+BP_TorsoFront   : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_TorsoBack    : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_Hips         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+BP_Head         : (BPP_SKIN, BPP_BONE, BPP_BRAIN, BPP_HAIR,),
+BP_Face         : (BPP_SKIN, BPP_FACE,),
+BP_Eyes         : (BPP_VISUAL,),
+BP_Nose         : (BPP_OLFACTORY,),
+BP_Mouth        : (BPP_GUSTATORY, BPP_TEETH, BPP_MUSCLE),
+BP_Ears         : (BPP_AUDITORY,),
+BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
     }
 
 

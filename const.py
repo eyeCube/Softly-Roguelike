@@ -792,13 +792,21 @@ BP_FOOT     = i; i+=1;
 # body parts pieces
 
 i=0;
-BPP_MUSCLE  = i; i+=1;
-BPP_SKIN    = i; i+=1;
-BPP_BONE    = i; i+=1;
-BPP_HEART   = i; i+=1;
-BPP_LUNG    = i; i+=1;
-BPP_GUTS    = i; i+=1;
-BPP_BRAIN   = i; i+=1;
+BPP_MUSCLE      = i; i+=1;
+BPP_SKIN        = i; i+=1;
+BPP_BONE        = i; i+=1;
+BPP_HEART       = i; i+=1;
+BPP_LUNG        = i; i+=1;
+BPP_GUTS        = i; i+=1;
+BPP_BRAIN       = i; i+=1;
+BPP_TEETH       = i; i+=1;
+BPP_VISUAL      = i; i+=1;
+BPP_AUDITORY    = i; i+=1;
+BPP_GUSTATORY   = i; i+=1;
+BPP_OLFACTORY   = i; i+=1;
+BPP_ARTERY      = i; i+=1;
+BPP_FACE        = i; i+=1;
+BPP_HAIR        = i; i+=1;
 
 # body part statuses
 
@@ -1285,6 +1293,9 @@ LUNGSTATUS_MANGLED      : 0,
 
 # damage types -> bpp classes constants
 SKINSTATUSES_SPIKES=(
+    SKINSTATUS_MAJORABRASION, SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
+    )
+SKINSTATUSES_SPUDS=(
     SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION, SKINSTATUS_MAJORABRASION,
     )
 SKINSTATUSES_CUT=(
@@ -1433,13 +1444,13 @@ HASTE_SPDMOD        = 1.5    # speed bonus when hasty (mult modifier)
 SLOW_SPDMOD         = 0.6666667 # speed penalty while slowed (mult modifier)
 
 # jog
-JOG_MSPMOD          = 2.0   # move speed modifier when you jog
+JOG_MSPMOD          = 1.5   # move speed modifier when you jog
 
 # run
-RUN_MSPMOD          = 3.0   # move speed modifier when you run
+RUN_MSPMOD          = 2.0   # move speed modifier when you run
 
 #sprint
-SPRINT_MSPMOD       = 4.0   # move speed modifier when you sprint
+SPRINT_MSPMOD       = 3.0   # move speed modifier when you sprint
 
 # drunk
 DRUNK_BALMOD        = 0.5
@@ -2538,48 +2549,42 @@ DMGTYPE_CUT         = i; i += 1;
 DMGTYPE_HACK        = i; i += 1;
 DMGTYPE_BLUNT       = i; i += 1;
 DMGTYPE_SPIKES      = i; i += 1;
+DMGTYPE_SPUDS       = i; i += 1; # small spikes / flanges
 DMGTYPE_BURN        = i; i += 1;
 DMGTYPE_ABRASION    = i; i += 1;
+DMGTYPE_PIERCE      = i; i += 1;
 
 DMGTYPES={ # default damage types for specific weapon classes
-    # (in order of the constants' allocation low->high)
-    # C cut
-    # H hack
-    # B blunt
-    # S spikes
-    # F burn
-    # A abrasion
-# skill         : (C,   H,   B,   S,   F,   A,)
-SKL_SHIELDS     : (0,   0,   1,   0,   0,   0,),
-SKL_BOXING      : (0,   0,   1,   0,   0,   0,),
-SKL_WRESTLING   : (0,   0,   1,   0,   0,   0,),
-SKL_AXES        : (0,   0.75,0.25,0,   0,   0,),
-SKL_GREATAXES   : (0,   0.75,0.25,0,   0,   0,),
-SKL_HAMMERS     : (0,   0,   1,   0,   0,   0,),
-SKL_MALLETS     : (0,   0,   1,   0,   0,   0,),
-SKL_JAVELINS    : (1,   0,   0,   0,   0,   0,),
-SKL_SPEARS      : (1,   0,   0,   0,   0,   0,),
-SKL_SWORDS      : (1,   0,   0,   0,   0,   0,),
-SKL_LONGSWORDS  : (1,   0,   0,   0,   0,   0,),
-SKL_POLEARMS    : (0.25,0.5, 0.25,0,   0,   0,),
-SKL_GREATSWORDS : (0.5, 0.5, 0,   0,   0,   0,),
-SKL_KNIVES      : (1,   0,   0,   0,   0,   0,),
-SKL_BLUDGEONS   : (0,   0,   1,   0,   0,   0,),
-SKL_STAVES      : (0,   0,   1,   0,   0,   0,),
-SKL_BULLWHIPS   : (0,   0,   0,   0,   0,   1,),
-# all ranged weapons -> blunt melee weapons.
+SKL_SHIELDS     : DMGTYPE_BLUNT,
+SKL_BOXING      : DMGTYPE_BLUNT,
+SKL_WRESTLING   : DMGTYPE_BLUNT,
+SKL_AXES        : DMGTYPE_HACK,
+SKL_GREATAXES   : DMGTYPE_HACK,
+SKL_HAMMERS     : DMGTYPE_BLUNT,
+SKL_MALLETS     : DMGTYPE_BLUNT,
+SKL_JAVELINS    : DMGTYPE_PIERCE,
+SKL_SPEARS      : DMGTYPE_PIERCE,
+SKL_SWORDS      : DMGTYPE_CUT,
+SKL_LONGSWORDS  : DMGTYPE_CUT,
+SKL_POLEARMS    : DMGTYPE_HACK,
+SKL_GREATSWORDS : DMGTYPE_CUT,
+SKL_KNIVES      : DMGTYPE_CUT,
+SKL_BLUDGEONS   : DMGTYPE_BLUNT,
+SKL_STAVES      : DMGTYPE_BLUNT,
+SKL_BULLWHIPS   : DMGTYPE_ABRASION,
+# all ranged weapons == blunt melee weapons.
     # ranged damage type depends on the ammunition.
-SKL_SLINGS      : (0,   0,   1,   0,   0,   0,),
-SKL_BOWS        : (0,   0,   1,   0,   0,   0,),
-SKL_CROSSBOWS   : (0,   0,   1,   0,   0,   0,),
-SKL_CANNONS     : (0,   0,   1,   0,   0,   0,),
-SKL_PISTOLS     : (0,   0,   1,   0,   0,   0,),
-SKL_RIFLES      : (0,   0,   1,   0,   0,   0,),
-SKL_SHOTGUNS    : (0,   0,   1,   0,   0,   0,),
-SKL_SMGS        : (0,   0,   1,   0,   0,   0,),
-SKL_MACHINEGUNS : (0,   0,   1,   0,   0,   0,),
-SKL_HEAVY       : (0,   0,   1,   0,   0,   0,),
-SKL_ENERGY      : (0,   0,   1,   0,   0,   0,),
+SKL_SLINGS      : DMGTYPE_BLUNT,
+SKL_BOWS        : DMGTYPE_BLUNT,
+SKL_CROSSBOWS   : DMGTYPE_BLUNT,
+SKL_CANNONS     : DMGTYPE_BLUNT,
+SKL_PISTOLS     : DMGTYPE_BLUNT,
+SKL_RIFLES      : DMGTYPE_BLUNT,
+SKL_SHOTGUNS    : DMGTYPE_BLUNT,
+SKL_SMGS        : DMGTYPE_BLUNT,
+SKL_MACHINEGUNS : DMGTYPE_BLUNT,
+SKL_HEAVY       : DMGTYPE_BLUNT,
+SKL_ENERGY      : DMGTYPE_BLUNT,
     }
 
 

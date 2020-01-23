@@ -363,6 +363,10 @@ def _amputate(item, value):
     if value > 0:
         rog.world().add_component(item, cmp.HacksOffLimbs(value))
 
+def _spikes(item):
+    rog.world().add_component(item, cmp.DamageTypeMelee(DMGTYPE_SPIKES))
+def _spuds(item):
+    rog.world().add_component(item, cmp.DamageTypeMelee(DMGTYPE_SPUDS))
 
     # /
 
@@ -1285,6 +1289,7 @@ def _mMorningStar(item):
     _melee_bleed(item, 25)
     _canThrow(item, acc=-3, rng=7, skill=SKL_ENDOVEREND)
     _length(item, 50)
+    _spikes(item)
     # maces
 def _mace(item, toArmor=10, cm=40):
     _melee_pain(item, 10)
@@ -1292,6 +1297,7 @@ def _mace(item, toArmor=10, cm=40):
     _bonusToArmor(item, toArmor)
     _canThrow(item, acc=-2, rng=8, skill=SKL_ENDOVEREND)
     _length(item, cm)
+    _studs(item)
 def _pMace(item):
     _mace(item, toArmor=1)
 def _wMace(item):
@@ -2708,7 +2714,7 @@ def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
     if skillLv <=0: return
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
-    dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
+    dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, skillLv*DEFAULT_SKLMOD_ENC)) )
     # custom or default stat modifiers for specific skills
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_ARMOR_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_ARMOR_AV*sm
@@ -2726,7 +2732,7 @@ def _apply_skill_bonus_weapon(dadd, skillLv, skill, enc=True):
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
     if enc: # only for weapons with encumberance values (not for unarmed combat)
-        dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, sm*DEFAULT_SKLMOD_ENC)) )
+        dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, skillLv*DEFAULT_SKLMOD_ENC)) )
     # custom or default stat modifiers for specific skills
     dadd['atk']=dadd.get('atk',0) + MULT_STATS * sm * SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
     dadd['pen']=dadd.get('pen',0) + MULT_STATS * sm * SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
@@ -2884,10 +2890,14 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
             dadd.update({k:v})
         
         # weapon skill bonus for item-weapons (armed combat)
-        if (ismainhand and world.has_component(item, cmp.WeaponSkill)):
+        if world.has_component(item, cmp.WeaponSkill):
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
-            if skillLv:
-                _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+            if ismainhand:
+                if skillLv:
+                    _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+            else:
+                if weapClass==SKL_SHIELDS:
+                    _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
         #
         
         # mainhand / offhand - specific stats

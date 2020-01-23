@@ -141,8 +141,10 @@ def _get_equipment(body):
             i+=1
             if arm is None: continue
             a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.held,
+            equipment=__add_eq(equipment,"{}hand -- wielding".format(a),arm.hand.held,
                            cmp.EquipableInHoldSlot)
+            equipment=__add_eq(equipment,"{}hand -- wearing".format(a),arm.hand.slot,
+                           cmp.EquipableInHandSlot)
             equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
                            cmp.EquipableInArmSlot)
         i=-1

@@ -1276,8 +1276,12 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     grid_remove(item)
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
-        
-    compo.slot.item = item
+    
+    # put it in the right slot
+    if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
+        compo.held.item = item
+    else:
+        compo.slot.item = item
     compo.covered = True # True indicates: cannot equip in that slot
     
     # covers
