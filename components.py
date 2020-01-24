@@ -19,6 +19,11 @@
 
 from const import *
 
+class Child:
+    __slots__=['parent']
+    def __init__(self, parent):
+        self.parent=parent
+
 class Observable:
     __slots__=['observers']
     def __init__(self):
@@ -536,7 +541,8 @@ class BP_Arm: # upper / middle arm and shoulder
         self.skin=BPP_Skin()
         self.covered=False
 class BP_Hand: # hand and lower forearm
-    __slots__=['slot','held','bone','artery','muscle','skin','covered']
+    __slots__=['slot','held','bone','artery','muscle','skin',
+               'covered','holding']
     def __init__(self):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
@@ -545,6 +551,7 @@ class BP_Hand: # hand and lower forearm
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
         self.covered=False
+        self.holding=False # holding something?
 class BP_Leg: # thigh and knee
     __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
@@ -1762,6 +1769,8 @@ BP_Mouth        : (BPP_GUSTATORY, BPP_TEETH, BPP_MUSCLE),
 BP_Ears         : (BPP_AUDITORY,),
 BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
     }
+
+BPS_HOLD=(EQ_MAINHAND, EQ_OFFHAND,)
 
 
 

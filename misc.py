@@ -107,7 +107,23 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
         for cover in slot.covers:
             covers += "| {} ".format(cmp.BPNAMES[cover])
         #
-        equipment += '''    < {bp} {cov}>
+        # requirements
+        req=""
+        # str requirement
+        if rog.getms(rog.pc(),'str')//MULT_STATS < equipable.strReq:
+            req+=" STRENGTH"
+        # dex requirement
+        if ( equipableCompo is cmp.EquipableInHoldSlot and
+             rog.getms(rog.pc(),'dex')//MULT_STATS < equipable.dexReq ):
+            req+=" DEXTERITY"
+        if req: req = " INSUFFICIENT{}".format(req)
+        #
+        
+        # TODO: modify enc values to reflect true values
+            # skill modifiers
+            # insufficient str/dex modifiers
+        
+        equipment += '''    < {bp} {cov}>{req}
         {n}  ({hp} / {hpmax})  (ENC: +{enc})
 '''.format(
             bp=bpname,
@@ -115,7 +131,8 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
             hp=rog.getms(slot.item, "hp"),
             hpmax=rog.getms(slot.item, "hpmax"),
             cov=covers,
-            enc=int(equipable.mods['enc'])
+            enc=int(equipable.mods['enc']),
+            req=req
 ##            mods=mods,
             )
     return equipment

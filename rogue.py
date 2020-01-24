@@ -1250,65 +1250,103 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     equipableConst = EQUIPABLE_CONSTS[equipType]
     
     if not world.has_component(item, equipableConst):
-        return (-100,None,) # item can't be equipped in this slot
+        return (-1,None,) # item can't be equipped in this slot
     
     # ensure body type indicates presence of this body part
     # (TODO)
 ##    if EQTYPES_TO_BODYPARTS[equipType] in BODYPLAN_BPS[body.plan]:
 ##        ...
     
-    compo = _get_eq_compo(ent, equipType)
+    eqcompo = _get_eq_compo(ent, equipType)
     # component selected. Does this component exist?
-    if not compo:
-        return (-101,None,) # something weird happened
+    if not eqcompo:
+        return (-2,None,) # something weird happened
     
-    if compo.covered:
-        return (-102,None,) # already have something covering that slot
-    
+    if eqcompo.covered:
+        return (-3,None,) # already have something covering that slot
+
+    if (equipType==EQ_OFFHAND and on(item, TWOHANDS)):
+        return (-10,None,) # reject 2-h weapons not equipped in mainhand.
+
+    if ( equipType in cmp.BPS_HOLD and eqcompo.holding ):
+        return (-11,None,) # reject held item if already holding something
+        
     equipable = world.component_for_entity(item, equipableConst)
-    # ensure has the str and dex required
-    if equipable.strReq > getms(ent, 'str'):
-        return (-110,None,) # not enough STR
-    if (equipType == EQ_MAINHAND or equipType == EQ_OFFHAND):
-        if equipable.dexReq > getms(ent, 'dex'):
-            return (-111,None,) # not enough DEX
+    
+    # figure out what additional slots the equipment covers, if any
+    def __cov(ent, clis, hlis, flis, eqtype, cls): # cover additional body part
+        holdtype=(eqtype in cmp.BPS_HOLD)
+        for _com in findbps(ent, cls):
+            # held type or armor type?
+            if holdtype: # holding type
+                if _com.holding: # make sure you can't equip something if ...
+                    flis.append(_com) # ... any required slots are occupied.
+                else:
+                    hlis.append(_com)
+                    clslis.append(cls)
+            else: # cover type
+                if _com.covered: # make sure you can't equip something if ...
+                    flis.append(_com) # ... any required slots are occupied.
+                else:
+                    clis.append(_com)
+                    clslis.append(cls)
+    # end def
+    clis = [] # success list - covered
+    hlis = [] # success list - holding
+    flis = [] # failure list
+    clslis = [] # covers list (class types)
+    if ( equipType==EQ_MAINHAND and on(item, TWOHANDS) ):
+        __cov(ent,clis,hlis,flis,equipType,cmp.BP_Hand) # Fixme: this covers ALL hands. 
+    if equipType==EQ_FRONT:
+        if equipable.coversBack:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_TorsoBack)
+        if equipable.coversCore:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_TorsoCore)
+        if equipable.coversHips:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Hips)
+    if equipType==EQ_MAINHEAD:
+        if equipable.coversFace:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Face)
+        if equipable.coversNeck:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Neck)
+        if equipable.coversEyes:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Eyes)
+        if equipable.coversEars:
+            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Ears)
+    if flis:
+        return (-4, flis,) # failed to equip because the BPs in flis are already covered.
+    #
     
         #-------------------------#
         # success! Equip the item #
         #-------------------------#
     
+    # remove item from the map
     grid_remove(item)
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
-    
+    # make item a child of its equipper so it has equipper's position
+    world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
+
+        # BUGGY CODE: FIXME! TODO: distinguish between covered and holding, for held items vs armor that covers the slot....
     # put it in the right slot -- is it a held item or a worn item?
     if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
-        compo.held.item = item # wielded / held
+        eqcompo.held.item = item # wielded / held
+        eqcompo.holding = True # cover this BP
     else:
-        compo.slot.item = item # worn
-    compo.covered = True # True indicates: cannot equip in that slot
+        eqcompo.slot.item = item # worn
+        eqcompo.covered = True # cover this BP
+        eqcompo.slot.covers = tuple(clslis)
     
-    # covers
-    def __cov(ent, lis, cls): # cover additional body part
-        lis.append(cls)
-        for compo in findbps(ent, cls):
-            compo.covered = True
-    # end def
-    
-    lis = []
-    if equipType==EQ_FRONT:
-        if equipable.coversBack: __cov(ent,lis,cmp.BP_TorsoBack)
-        if equipable.coversCore: __cov(ent,lis,cmp.BP_TorsoCore)
-        if equipable.coversHips: __cov(ent,lis,cmp.BP_Hips)
-    if equipType==EQ_MAINHEAD:
-        if equipable.coversFace: __cov(ent,lis,cmp.BP_Face)
-        if equipable.coversNeck: __cov(ent,lis,cmp.BP_Neck)
-        if equipable.coversEyes: __cov(ent,lis,cmp.BP_Eyes)
-        if equipable.coversEars: __cov(ent,lis,cmp.BP_Ears)
-    compo.slot.covers = tuple(lis)
+    # cover the BPs
+    for _com in clis:
+        _com.covered=True
+    for _com in hlis:
+        _com.holding=True
+    #
     
     make(ent, DIRTY_STATS)
-    return (1,compo,) # yey success
+    return (1,eqcompo,) # yey success
     
 # end def
 
@@ -1425,11 +1463,11 @@ def dominant_head(ent): # get a BPM object
 def off_arm(ent): # get a BPM object (assumes you have the necessary components / parts)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     bpc = body.parts[cmp.BPC_Arms]
-    return bpc.arms[1] # dominant is always in slot 0 as a rule
+    return bpc.arms[1] # temporary
 def off_leg(ent): # get a BPM object
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     bpc = body.parts[cmp.BPC_Legs]
-    return bpc.legs[1] # dominant is always in slot 0 as a rule
+    return bpc.legs[1] # temporary
 
 def homeostasis(ent): entities.homeostasis(ent)
 def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst)
@@ -1736,8 +1774,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             # Dexterity Requirement and penalties
             dexd = bps.equip.dexReq - modded.dex//MULT_STATS
             if dexd > 0:
-                # Lose 2 Atk for each missing Dex point.
-                modded.atk -= dexd*2*MULT_STATS
+                modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+                modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+                modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
             #
     # end for
     

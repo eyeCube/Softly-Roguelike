@@ -1,0 +1,8 @@
+
+TODO:
+in _update_stats, if you are wielding a weapon in dominant hand and not in offhand, then you get the bonus to stats for 2-h wielding.
+
+
+DONE:
+when you equip 2-h weapon, it covers off-hand, too.
+cannot equip 2-h weapon in the offhand. Just rejects it.

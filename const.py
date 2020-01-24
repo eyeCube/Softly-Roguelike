@@ -521,7 +521,10 @@ PAUG_LIMITBREAKER_STR   : ("str",5,),
     }
 
 
-
+# weapons
+INSUFF_DEX_ATK_PENALTY  = 2
+INSUFF_DEX_PEN_PENALTY  = 1.5
+INSUFF_DEX_ASP_PENALTY  = 5
 # 1-h / 2-h constants
 # attribute bonuses and multipliers
 MULT_1HANDBONUS_STR_DMG = 0.5     # strength bonus for 1-h wielding per STR
@@ -532,11 +535,11 @@ MULT_2HANDBONUS_STR_PEN = 0.5     # strength bonus for 2-h wielding per STR
 OFFHAND_PENALTY_DFNMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_ARMMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_PROMOD  = 0.5   # multiplier
-OFFHAND_PENALTY_GRA     = -5    # adder
+OFFHAND_PENALTY_GRA     = -2    # adder
 # bonuses for when you fight with a 1-handed weapon in 2 hands
 MOD_2HANDBONUS_ASPMOD = 1.3333334 # attack speed MULTIPLIER modifier
 MOD_2HANDBONUS_ATK    = 4       # attack you gain
-MULT_2HANDBONUS_DMG   = 1.2     # damage MULTIPLIER
+##MULT_2HANDBONUS_DMG   = 1.2     # damage MULTIPLIER (DO STRENGTH BONUS INSTEAD)
 MOD_2HANDBONUS_PEN    = 2       # penetration you gain
 MOD_2HANDBONUS_DFN    = 2       # defense you gain
 MOD_2HANDBONUS_ARM    = 1       # armor you gain

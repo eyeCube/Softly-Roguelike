@@ -105,7 +105,7 @@ def main():
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
     rog.equip(
-        rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
+        rog.pc(),rog.create_weapon("metal poleaxe", 0,0),EQ_MAINHAND
         )
     rog.equip(
         rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND

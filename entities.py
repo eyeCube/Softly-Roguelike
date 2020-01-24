@@ -2073,7 +2073,7 @@ def _poleAxe(item, bleed=20, toArmor=0, amputate=10, chop=1, cm=140):
     _canThrow(item, acc=-10, rng=4, pen=-12, skill=SKL_TIPFIRST)
     _length(item, cm)
 def _mPoleAxe(item):
-    _poleAxe(item, intbleed=1.5*BLEED_METAL, toArmor=2, amputate=10, chop=1)
+    _poleAxe(item, bleed=1.5*BLEED_METAL, toArmor=2, amputate=10, chop=1)
     _addRes(item, resrust=0)
     # bills
 def _bill(item, bleed=20, rng=12, pen=-2, toFlesh=2, cm=200):
@@ -2816,9 +2816,24 @@ def _update_from_bpc_arms(lis, ent, bpc, armorSkill, unarmored):
     for bpm in bpc.arms: # for each arm you possess,
         ismainhand = (i==0)
         i += 1
+        
         # hand
         bps=_update_from_bp_hand(ent, bpm.hand, ismainhand)
+        
+        # check for two-handed bonus to 1-h weapons
+        if ( ismainhand and bps.equip):
+            if ( not rog.on(bpm.hand.held.item, TWOHANDS) and
+                 not rog.off_arm(ent).hand.held.item ):
+                bps.equip.addMods['atk'] += MOD_2HANDBONUS_ATK
+                bps.equip.addMods['pen'] += MOD_2HANDBONUS_PEN
+                bps.equip.addMods['dfn'] += MOD_2HANDBONUS_DFN
+                bps.equip.addMods['arm'] += MOD_2HANDBONUS_ARM
+                bps.equip.addMods['pro'] += MOD_2HANDBONUS_PRO
+                bps.equip.addMods['asp'] *= MOD_2HANDBONUS_ASPMOD
+        #
+        
         lis.append(bps)
+        
         # arm
         bps=_update_from_bp_arm(ent, bpm.arm, armorSkill, unarmored)
         lis.append(bps)
@@ -2900,6 +2915,9 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
     # equipment
     
     # TODO: gloves / gauntlets (hand armor)
+
+    # TODO: enforce two-handed requirement for 2-h weapons,
+    # implement bonus for 1-h weapons wielded in 2 hands.
     
     # held item (weapon)
     if hand.held.item:
