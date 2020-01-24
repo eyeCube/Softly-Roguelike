@@ -462,7 +462,6 @@ def chargen(sx, sy):
                 if _gender == 'male':
                     _genderName = "male"
                     _pronouns = ('he','him','his',)
-                    print("YOOOO")
                 elif _gender == 'female':
                     _genderName = "female"
                     _pronouns = ('she','her','hers',)

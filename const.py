@@ -310,6 +310,7 @@ DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 # Gameplay Constants
 #
 
+MAX_LEVEL           = 100   # skill level
 LEN_ADVANTAGE_BP    = 12    # how much extra length you need to gain +1 Atk in combat (+1 is guaranteed)
 
 # global multipliers

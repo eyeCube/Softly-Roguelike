@@ -531,11 +531,15 @@ def setskill(ent, skill, lvl): # set skill level
 def train(ent, skill, pts): # train (improve) skill
     # diminishing returns on skill gainz
     pts = pts - getskill(ent)*EXP_DIMINISH_RATE
+    # train one level at a time
     if pts > 0:
         make(ent,DIRTY_STATS)
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
         __train(skills, skill, pts)
 def __train(skills, skill, pts):
+    if skills.skills[skill] >= MAX_LEVEL*EXP_LEVEL:
+        skills.skills[skill] = MAX_LEVEL*EXP_LEVEL
+        return
     skills.skills[skill] = skills.skills.get(skill, 0) + min(pts,EXP_LEVEL)
     pts = pts - EXP_LEVEL - EXP_DIMINISH_RATE
     if pts > 0:
@@ -1277,11 +1281,11 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
     
-    # put it in the right slot
+    # put it in the right slot -- is it a held item or a worn item?
     if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
-        compo.held.item = item
+        compo.held.item = item # wielded / held
     else:
-        compo.slot.item = item
+        compo.slot.item = item # worn
     compo.covered = True # True indicates: cannot equip in that slot
     
     # covers
@@ -1289,6 +1293,8 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         lis.append(cls)
         for compo in findbps(ent, cls):
             compo.covered = True
+    # end def
+    
     lis = []
     if equipType==EQ_FRONT:
         if equipable.coversBack: __cov(ent,lis,cmp.BP_TorsoBack)
@@ -1477,8 +1483,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     
 # init #----------------------------------------------------------------#
     offhandItem = False
-    addMods=[]
-    multMods=[]
+    bpdata=[]
     world=Rogue.world
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
@@ -1499,17 +1504,10 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded.tatk=modded.tdmg=modded.tpen=modded.tasp=modded.trng=0
     modded.ratk=modded.rdmg=modded.rpen=modded.rasp=modded.minrng=modded.maxrng=0
 # /init #--------------------------------------------------------------#
-    
-    
-#~~~~~~~#----------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-        #  good multiplier statuses  # 
-        #----------------------------#-----------------#
-        # bonuses that are applied before gear bonuses #
-        #----------------------------------------------#
-
 
 #~~~~~~~#-------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-        # Body Status / Equipment #
+        # Get Body Data / Equips  #
+        #  - Do not apply yet. -  #
         #-------------------------#
     
     if world.has_component(ent, cmp.Body):
@@ -1521,11 +1519,11 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         
         # body component top level vars
         entities._update_from_body_class(body, modded)
-
+        
         # core
         if body.plan==BODYPLAN_HUMANOID:
             entities._update_from_bpc_torso(
-                addMods,multMods,
+                bpdata,
                 ent, body.core,
                 armorSkill, unarmored
                 )
@@ -1533,46 +1531,41 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         # parts
         if cmp.BPC_Heads in keys:
             entities._update_from_bpc_heads(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Heads],
                 armorSkill, unarmored
                 )
         if cmp.BPC_Arms in keys:
             entities._update_from_bpc_arms(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Arms],
                 armorSkill, unarmored
                 )
         if cmp.BPC_Legs in keys:
             entities._update_from_bpc_legs(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Legs],
                 armorSkill, unarmored
                 )
         if cmp.BPC_Pseudopods in keys:
             entities._update_from_bpc_pseudopods(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Pseudopods],
                 armorSkill, unarmored
                 )
         if cmp.BPC_Wings in keys:
             entities._update_from_bpc_wings(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Wings],
                 armorSkill, unarmored
                 )
         if cmp.BPC_Tails in keys:
             entities._update_from_bpc_tails(
-                addMods,multMods,
+                bpdata,
                 ent, body.parts[cmp.BPC_Tails],
                 armorSkill, unarmored
                 )
     # end if
-    
-    # apply mods -- addMods
-    for mod in addMods:
-        for k,v in mod.items():
-            modded.__dict__[k] = v + modded.__dict__[k]
             
             
 #~~~~~~~#------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -1720,6 +1713,33 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.resbleed += _con * ATT_CON_RESBLEED
         modded.respain += _con * ATT_CON_RESPAIN
         modded.resbio += _con * ATT_CON_RESBIO
+
+    
+#~~~~~~~~~~~#------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+            #   Equipment Add Mods   #
+            #------------------------#
+            # ** After Attributes have been calculated.
+            # (b/c strReq/dexReq)
+    
+    # apply mods -- addMods
+    for bps in bpdata:
+        for k,v in bps.addMods.items():
+            modded.__dict__[k] = v + modded.__dict__[k]
+        if bps.equip:
+            for k,v in bps.equip.addMods.items():
+                modded.__dict__[k] = v + modded.__dict__[k]
+            # Strength Requirement and penalties
+            strd = bps.equip.strReq - modded.str//MULT_STATS
+            if strd > 0:
+                # Multiply gear's enc. by ratio based on missing STR
+                modded.enc += bps.equip.enc * strd * 0.1
+            # Dexterity Requirement and penalties
+            dexd = bps.equip.dexReq - modded.dex//MULT_STATS
+            if dexd > 0:
+                # Lose 2 Atk for each missing Dex point.
+                modded.atk -= dexd*2*MULT_STATS
+            #
+    # end for
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -1892,12 +1912,16 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 #~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #   finalize   #
         #--------------#
-    
+            
     # apply mods -- mult mods
-    for mod in multMods:
-        for k,v in mod.items():
+    for bps in bpdata:
+        for k,v in bps.multMods.items():
             if modded.__dict__[k] > 0:
                 modded.__dict__[k] = v * modded.__dict__[k]
+        if bps.equip:
+            for k,v in bps.equip.multMods.items():
+                if modded.__dict__[k] > 0:
+                    modded.__dict__[k] = v * modded.__dict__[k]
     
     # round values as the final step
     for k,v in modded.__dict__.items():

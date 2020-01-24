@@ -100,22 +100,22 @@ def main():
     
 ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
 ##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
-    rog.setskill(rog.pc(), SKL_SHIELDS, 0)
-##    rog.sets(rog.pc(), 'agi', 300)
+##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
+##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
-    print(rog.equip(
+    rog.equip(
         rog.pc(),rog.create_weapon("metal sword", 0,0),EQ_MAINHAND
-        ))
-    print(rog.equip(
+        )
+    rog.equip(
         rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
-        ))
-    print(rog.equip(
+        )
+    rog.equip(
         rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-        ))
-##    rog.equip(
-##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
-##        )
+        )
+    rog.equip(
+        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
 ##        )
