@@ -233,7 +233,8 @@ def sprint_pc(pc):
 def target_pc(pc):
     target = IO.aim_find_target()
     if target:
-        pass
+        rog.alert("Target: {n} at ({x}, {y}) | x: strike / f: fire".format(
+            n=entname, x=pos.x,y=pos.y))
 
 def examine_self_pc(pc):
     choices=['body (whole body)']
@@ -546,15 +547,14 @@ def move(ent,dx,dy, mx=1):  # actor locomotion
     
     # AP cost
     mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
-    mult = mult * rog.getms(ent, 'mass')/MULT_MASS/75
     ap_cost = max(1, rog.around(
         mx * NRG_MOVE * mult * terrainCost / max(MIN_MSP, msp) ))
     actor.ap -= ap_cost
-
+    
     # Stamina cost (TODO FOR ALL ACTIONS!)
     sta_cost = int(mx * STA_MOVE * mult)
     rog.sap(ent, sta_cost)
-
+    
     # Satiation, hydration, fatigue (TODO FOR ALL ACTIONS!)
     cal_cost = int(mx * CALCOST_LIGHTACTIVITY * mult)
     rog.metabolism(ent, cal_cost)

@@ -1250,7 +1250,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     world = Rogue.world
     equipableConst = EQUIPABLE_CONSTS[equipType]
     eqcompo = _get_eq_compo(ent, equipType)
-    holdtype=(equipType in cmp.BPS_HOLD) # holding type or armor type?
+    holdtype=(equipType in cmp.EQ_BPS_HOLD) # holding type or armor type?
     if not world.has_component(item, equipableConst):
         return (-1,None,) # item can't be equipped in this slot
     if not eqcompo: # component selected. Does this component exist?
@@ -1270,7 +1270,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
     # figure out what additional slots the equipment covers, if any
     def __cov(ent, clis, hlis, flis, eqtype, cls): # cover additional body part
-        holdtype=(eqtype in cmp.BPS_HOLD)
+        holdtype=(eqtype in cmp.EQ_BPS_HOLD)
         for _com in findbps(ent, cls):
             # held type or armor type?
             if holdtype: # holding type
@@ -1766,14 +1766,23 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if strd > 0:
                 # Multiply gear's enc. by ratio based on missing STR
                 modded.enc += bps.equip.enc * strd * 0.1
-                modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
-                modded.asp -= strd*INSUFF_STR_ASP_PENALTY
+                modded.dfn -= strd*INSUFF_STR_DFN_PENALTY*MULT_STATS
+                # for held items only, reduce offensive stats
+                if (bps.equip.bptype in cmp.BP_BPS_HOLD):
+                    modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+                    modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
+                    modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
+                    modded.asp -= strd*INSUFF_STR_ASP_PENALTY
             # Dexterity Requirement and penalties
             dexd = bps.equip.dexReq - modded.dex//MULT_STATS
             if dexd > 0:
-                modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
-                modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
-                modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
+                modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
+                # for held items only, reduce offensive stats
+                if (bps.equip.bptype in cmp.BP_BPS_HOLD):
+                    modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+                    modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+                    modded.gra -= dexd*INSUFF_DEX_GRA_PENALTY*MULT_STATS
+                    modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
             #
     # end for
     
@@ -1833,8 +1842,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.dfn      = modded.dfn        + IRRIT_DFN*MULT_STATS
     # cough
     if world.has_component(ent, cmp.StatusCough):
-        modded.atk = modded.atk + COUGH_ATK
-        modded.dfn = modded.dfn + COUGH_DFN
+        modded.atk = modded.atk + COUGH_ATK*MULT_STATS
+        modded.dfn = modded.dfn + COUGH_DFN*MULT_STATS
         
     # paralyzed
     if world.has_component(ent, cmp.StatusParalyzed):
@@ -1884,11 +1893,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # drunk
     if world.has_component(ent, cmp.StatusDrunk):
         compo = world.component_for_entity(ent, cmp.StatusDrunk)
-        modded.bal = modded.bal - compo.quality
+        modded.int = modded.int - compo.quality*DRUNK_INT*MULT_STATS
+        modded.bal = modded.bal - compo.quality*DRUNK_BAL*MULT_STATS
     # off-balance staggered
     if world.has_component(ent, cmp.StatusOffBalance):
         compo = world.component_for_entity(ent, cmp.StatusOffBalance)
-        modded.bal = modded.bal - compo.quality
+        modded.bal = modded.bal - compo.quality*MULT_STATS
         
     # crouched
     if world.has_component(ent, cmp.StatusBPos_Crouched):
@@ -2152,8 +2162,8 @@ def routine_move_view():
     clear_active_manager()
     game_set_state("move view")
     Rogue.manager=managers.Manager_MoveView(
-        Rogue.view, Rogue.map.get_map_state())
-    alert("Direction? (<hjklyubn>; <select> to center view)")
+        Rogue.view, Rogue.map.get_map_state(),
+        "Direction? (<hjklyubn>; <select> to center; <Esc> to save position)")
     Rogue.view.fixed_mode_disable()
 
 def routine_print_msgHistory():

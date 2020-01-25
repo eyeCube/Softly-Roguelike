@@ -371,12 +371,14 @@ class Manager_SoundsHeard(Manager):
 #
 
 class Manager_MoveView(GameStateManager):
-    def __init__(self,view, con):
+    def __init__(self, view, con, message):
         super(Manager_MoveView, self).__init__()
         
         self.NUDGESPD   = 10
         self.view       = view
         self.con        = con
+        self.message    = message # instruction string to splash on screen
+        self.splash()
         self.refresh()
     
     def run(self, pcAct):
@@ -385,15 +387,15 @@ class Manager_MoveView(GameStateManager):
         for act,args in pcAct:
             if (act=="context-dir" or act=="move" or act=="menu-nav"):
                 self.move(args)
-            elif act=="select": self.set_result("select")
-            elif act=="exit":   self.set_result("exit")
+            elif act=="exit":   self.set_result("setPos")
+            elif act=="select": self.set_result("center")
     
     def close(self):
         super(Manager_MoveView, self).close()
         
         rog.update_game()
         rog.update_hud()
-        if self.result == "select":
+        if self.result == "center":
             rog.view_center_player()
         
         
@@ -401,17 +403,20 @@ class Manager_MoveView(GameStateManager):
         dx,dy,dz = arg
         rog.clear_final() # to fill the out-of-bounds areas
         self.view.nudge(dx*self.NUDGESPD, dy*self.NUDGESPD)
-        print("x,y: ")
-        print(self.view.x)
-        print(self.view.y)
+        self.splash()
         self.refresh()
 
     def refresh(self):
-        libtcod.console_blit(self.con,
-                             self.view.x, self.view.y, self.view.w, self.view.h,
-                             rog.con_final(),
-                             rog.view_port_x(), rog.view_port_y())
+        libtcod.console_blit(
+            self.con,
+            self.view.x, self.view.y, self.view.w, self.view.h,
+            rog.con_final(),
+            rog.view_port_x(), rog.view_port_y()
+            )
         rog.refresh()
+
+    def splash(self):
+        rog.alert(self.message)
     #
 #
 

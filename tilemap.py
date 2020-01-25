@@ -36,8 +36,6 @@ import misc
 import dice
 
 
-
-
 @dataclass
 class Tile:
     '''
@@ -56,26 +54,37 @@ class Tile:
     dampen:     int     #volume dampen amount
 
 
-# BUG: costLeave not working right. Rough next to wall allows you to walk into the wall. Related to the cost calculation for moving (probably).
+# Unique Tile types dictionary
+TILES={
+#   create some global constant Tile instances, one for each Tile type.
+# NOTE:::
+#   Do not reference this dict directly from outside of this module.
+#   Instead use public functions tile_change and tile_get_...
 
-TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
+# For solid wall-like obstacle tiles, set Cost to enter == 0
+#   this indicates that you can't walk there.
+#   Also set cost to leave == 100; this makes it so you can leave
+#   the tile if you somehow get stuck inside of it. (that's the idea anyway -- TEST)
+
+# unique const  :      char,      fgcol,     bgcol, enter,leave,opaque,damp
     FLOOR       : Tile(FLOOR,     'neutral', 'deep',    100,0,  False,1,),
-    ROUGH       : Tile(ROUGH,     'dkgreen', 'blue', 150,50,False,1,),
-    SHRUB       : Tile(SHRUB,     'green',  'vdkgreen', 300,100,False,1,),
-    BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 500,200,False,1,),
-    JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen',1200,300,False,2,),
-    JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen',1200,300,False,2,),
-    WALL        : Tile(WALL,      'dkred', 'orange',   0,  0,  True, 50,),
-    STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',  100,0,  False,1,),
-    STAIRUP     : Tile(STAIRUP,   'accent', 'purple',  100,0,  False,1,),
-    DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',   100,0,  False,1,),
-    DOORCLOSED  : Tile(DOORCLOSED,'yellow', 'brown',   0,0,    True,5,),
+    ROUGH       : Tile(ROUGH,     'dkgreen', 'blue',    150,50, False,1,),
+    SHRUB       : Tile(SHRUB,     'green',  'vdkgreen', 200,100,False,1,),
+    BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 400,200,False,1,),
+    JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen', 900,300,False,2,),
+    JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen', 900,300,False,2,),
+    WALL        : Tile(WALL,      'dkred', 'orange',    0,  100,True, 50,),
+    STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',   100,0,  False,1,),
+    STAIRUP     : Tile(STAIRUP,   'accent', 'purple',   100,0,  False,1,),
+    DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',    100,0,  False,1,),
+    DOORCLOSED  : Tile(DOORCLOSED,'yellow', 'brown',    0,  100,True,5,),
     DOOROPEN2   : Tile(LOCKEDOPEN,  'red', 'dkbrown',   100,0,  False,1,),
-    DOORCLOSED2 : Tile(LOCKEDCLOSED,'red', 'dkbrown',   0,0,    True,5,),
-    # use the "vaults" for doors that cannot be opened by hand.
-    VAULTOPEN   : Tile(VAULTOPEN, 'metal', 'deep',    100,0,  False,1,),
-    VAULTCLOSED : Tile(VAULTCLOSED,'metal', 'deep',   0,0,    True,100,),
+    DOORCLOSED2 : Tile(LOCKEDCLOSED,'red', 'dkbrown',   0,  100,True,5,),
+    VAULTOPEN   : Tile(VAULTOPEN, 'metal', 'deep',      100,0,  False,1,),
+    VAULTCLOSED : Tile(VAULTCLOSED,'metal', 'deep',     0,  100,True,100,),
     }
+    # use the "vaults" for doors that cannot be opened by hand.
+
     # these should prolly be entities, not tiles.
 ##    FUNGUS      : Tile(FUNGUS,    'purple', 'vdkgreen',100,20, False,1,),
 ##    SHROOM      : Tile(SHROOM,    'green', 'vdkgreen', 150,20,  True,2,),
@@ -88,35 +97,52 @@ TILES={         #                 fgcolor ,  bg,costEnter,Leave, opaque,damp
 
 class TileMap:
     '''
-The grid class that stores data about:
-    terrain, things, lights,   -fluids?? -fires??
-    grid_things must be in a particular order:
-        creature goes on top
-            * currently only one creature allowed per tile
-        inanimate things below that.
+GRID:
+This is the grid class that stores data about:
+    terrain (grid_terrain)
+    entities w/ Position component (grid_things)
+        grid_things follows a strict ordering rule:
+            - Creature goes on top if there is one
+                (currently only one Creature allowed per tile)
+            - inanimate (non-Creature) things below that.
+    lights (grid_lights)
+    FOV map (fov_map)
+    player's memory of the map (con_memories)
+    current state of the game view console (con_map_state)
 
-This class currently also handles rendering.
-TODO: move rendering code to a new, different class.
+RENDERER:
+    This class currently also handles rendering of the game map.
+    TODO:(?) move rendering code to a new, different class
+    
+    # TODO: do not use put_char or map_set_properties, they are deprecated
+       in the newest version of tcod.
+    # This should apparently improve performance of renderer !
+    
     '''
-    
-    # TODO: do not use put_char or map_set_properties, they are deprecated in the newest version of tcod.
-    
     def __init__(self,w,h):
         '''
             Note: see func "init_specialGrids",
                 and other "init_" functions, for other initializations
         '''
-        
-        self.BG_COLOR_MAIN = COL['deep']
-
         self.w = w
         self.h = h
-        
+        self.BG_COLOR_MAIN = COL['deep']
         #baseTemp=32 # room temperature #should not be stored in tilemap object
         self.grid_terrain =     [ [ None for y in range(h)] for x in range(w) ]
-
 ##        self.levels = {}
-    #
+    # end def
+
+    # functions to get information about generic tile types #
+    
+    def tile_get_char(self, tileconst): return TILES[tileconst].char
+    def tile_get_fg(self, tileconst): return TILES[tileconst].fg
+    def tile_get_bg(self, tileconst): return TILES[tileconst].bg
+    def tile_get_ap_enter(self, tileconst): return TILES[tileconst].nrg_enter
+    def tile_get_ap_leave(self, tileconst): return TILES[tileconst].nrg_leave
+    def tile_get_opaque(self, tileconst): return TILES[tileconst].opaque
+    def tile_get_dampen(self, tileconst): return TILES[tileconst].dampen
+    
+    # functions to get information about specific tiles #
     
     def tileat(self, x, y):
         if (x >= self.w or x < 0 or y >= self.h or y < 0):
@@ -134,6 +160,8 @@ TODO: move rendering code to a new, different class.
             bgCol=COL[choices[dice.roll(len(choices)) - 1]]
         else: bgCol=COL[ self.grid_terrain[x][y].bg ]
         return bgCol
+    
+    # functions to get information about entities on the grid #
     
     def nthings(self,x,y):              return len(self.grid_things[x][y])
     def thingsat(self,x,y):             return self.grid_things[x][y]
@@ -242,15 +270,22 @@ TODO: move rendering code to a new, different class.
             else:
                 return False
         except IndexError:
-            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
-Reason: out of bounds of grid array.'''.format(x,y,typ) )
+            print( '''Warning: Cannot change tile at {},{} to {}.
+  Reason: out of bounds of grid array.'''.format(x,y,typ) )
             return False
 ##        except Exception as e:
 ##            print( '''TILE CHANGE ERROR at {},{}. Cannot change to {}.
 ##Reason: {}.'''.format(x,y,typ, e) )
 ##            return False
     #
-
+    char:       str     #ASCII character to represent the tile
+    fg:         str     #foreground color
+    bg:         str     #background color
+    nrg_enter:  int     #action points it takes to enter this tile
+    nrg_leave:  int     #action points it takes to exit this tile
+    opaque:     bool    #False if you can see through it
+    dampen:     int     #volume dampen amount
+    
     def fill_edges(self, tile=None):
         '''
             fill in the edges with a tile type
@@ -296,9 +331,9 @@ Reason: entity has no position component.'''.format(ent))
 ##Reason: entity not in grid.'''.format(ent))
         return False #thing was not in the grid.
     
-    def countNeighbors(self, x,y, char):
+    def countNeighbors(self, x,y, tileid):
         '''
-            count number tiles of char char adjacent to (x,y)
+            count number tiles of id tileid adjacent to (x,y)
             (on the terrain grid)
         '''
         num=0
@@ -344,7 +379,12 @@ Reason: entity has no position component.'''.format(ent))
     def path_delete(self, path):    libtcod.path_delete(path)
     # path data functions
     def path_get_cost_movement(self,xFrom,yFrom,xTo,yTo, data):
-        return self.get_nrg_cost_enter(xTo,yTo) + self.get_nrg_cost_leave(xFrom,yFrom)
+        enter = self.get_nrg_cost_enter(xTo,yTo)
+        if enter == 0: # if enter cost is 0, then you cannot move here ...
+            return 0   # ... no matter what. Value of 0 indicates this.
+        # else add up the cost of entering the next tile with
+        #   the cost of exiting the current tile.
+        return enter + self.get_nrg_cost_leave(xFrom,yFrom)
     def path_get_cost_sound(self,xFrom,yFrom,xTo,yTo, data):
         return self.get_audio_dampen(xTo,yTo)
     

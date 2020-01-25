@@ -110,12 +110,12 @@ def main():
 ##    rog.equip(
 ##        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
 ##        )
-    rog.equip(
-        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-        )
-    rog.equip(
-        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
-        )
+##    rog.equip(
+##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+##        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
 ##        )
@@ -233,16 +233,6 @@ def main():
 #-----------------------------------------------#
 
     rog.game_set_state("normal")
-##    # temporary...
-##    rog.update_base()
-##    rog.update_game()
-##    rog.update_final()
-
-##    # initialize fov for creatures with sight
-##    # IS THIS NOT WORKING???? WHAT'S GOING ON?
-##    for creat in rog.list_creatures():
-##        if creat.stats.sight > 0:
-##            rog.fov_compute(creat)
     
     while rog.game_is_running():
         pc=rog.pc()

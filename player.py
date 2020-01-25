@@ -82,6 +82,7 @@ def commands_pages(pc, pcAct):
 
 def _Update():
     rog.update_game()
+    rog.update_pcfov() # should this be in here?
 ##    rog.update_final()
     rog.update_hud()
 def commands(pc, pcAct):
@@ -107,6 +108,8 @@ def commands(pc, pcAct):
         
         if act =='context-dir':
             act=directional_command
+##        if act =='context':
+##            pass
         # moving using the menu move keys
         if (act =='menu-nav' and rog.game_state()=="normal"):
             act=directional_command
@@ -172,6 +175,8 @@ def commands(pc, pcAct):
                 if action.move(pc, dx,dy):
                     _Update()
                     rog.view_center_player()
+            else:
+                rog.alert("That tile is occupied.")
         # end conditional
         
         # "attack" : (x, y, z,)
@@ -199,20 +204,34 @@ def commands(pc, pcAct):
                 else:
                     rog.msg("You strike out at thin air, losing your balance.")
                     actor.ap = 0
-                    rog.topple(pc, STRIKE_AIR_IMBALANCE_AMOUNT)
+                    rog.set_status( pc, cmp.StatusOffBalance,
+                                    t=2,
+                                    q=-MISS_BAL_PENALTY )
         # end conditional
 
-        if act == "get":
+        if act == "target-prompt": #target entity + fire / throw / attack
+            action.target_pc(pc)
+            return
+        if act == "get-prompt":
             action.pickup_pc(pc)
             return
-        if act == "open": #open or close
+        if act == "openclose-prompt": #open or close
             action.open_pc(pc)
+            return
+        if act == "open-prompt": #open or close
+            action.open_pc(pc)
+            return
+        if act == "close-prompt": #open or close
+            action.open_pc(pc)
+            return
+        if act == "jog": #begin jogging
+            action.jog_pc(pc)
+            return
+        if act == "run": #begin running
+            action.run_pc(pc)
             return
         if act == "sprint": #begin sprinting
             action.sprint_pc(pc)
-            return
-        if act == "target": #target entity + fire / throw / attack
-            action.target_pc(pc)
             return
 
         #unused actions

@@ -2756,12 +2756,13 @@ def _apply_skill_bonus_weapon(dadd, skillLv, skill, enc=True):
 '''
 
 class __EQ:
-    def __init__(self, enc, strReq, dexReq, addMods, multMods):
+    def __init__(self, enc, strReq, dexReq, addMods, multMods, bptype=None):
         self.enc=enc
         self.strReq=strReq
         self.dexReq=dexReq
         self.addMods=addMods
         self.multMods=multMods
+        self.bptype=bptype
 class __BPS: # Body Part Stats
     def __init__(self, addMods, multMods, equip=None):
         self.addMods=addMods
@@ -2835,7 +2836,9 @@ def _update_from_bpc_arms(lis, ent, bpc, armorSkill, unarmored):
                 bps.equip.addMods['pro'] = bps.equip.addMods.get(
                     'pro', 0 ) + MOD_2HANDBONUS_PRO*MULT_STATS
                 bps.equip.addMods['asp'] = bps.equip.addMods.get(
-                    'asp', 1 ) * MOD_2HANDBONUS_ASPMOD
+                    'asp', 1 ) * MULT_2HANDBONUS_ASP
+                bps.equip.addMods['dmg'] = bps.equip.addMods.get(
+                    'dmg', 1 ) * MULT_2HANDBONUS_DMG
         #
         
         lis.append(bps)
@@ -2893,7 +2896,10 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
             eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_LIMB
+            )
     else: # unarmored combat
         equip=None
         _apply_skill_bonus_unarmored(dadd, unarmored, cov)
@@ -3000,7 +3006,8 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, equipable.dexReq,
-            eqdadd, eqdmul
+            eqdadd, eqdmul,
+            BP_HAND
             )
     #
     # unarmed combat
@@ -3059,7 +3066,10 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_LIMB
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -3096,7 +3106,10 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_FOOT
+            )
     else:
         equip=None
         
@@ -3147,7 +3160,10 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_HEAD
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -3188,7 +3204,10 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_FACE
+            )
     else:
         equip=None
         
@@ -3220,7 +3239,10 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_NECK
+            )
     else:
         equip=None
         
@@ -3258,7 +3280,10 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_EYES
+            )
     else:
         equip=None
         
@@ -3289,7 +3314,10 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_EARS
+            )
     else:
         equip=None
         
@@ -3352,7 +3380,10 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_TORSO
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -3397,7 +3428,10 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_TORSO
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -3442,7 +3476,10 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_TORSO
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -3487,7 +3524,10 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
             dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
-            equipable.mods['enc'], equipable.strReq, 0, eqdadd, eqdmul )
+            equipable.mods['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_TORSO
+            )
                                 
     else: # unarmored combat
         equip=None
@@ -5697,7 +5737,7 @@ CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',
     (),
                    ),
 CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
-    {'sight':-10,'hearing':-40,'str':-4,'con':-4,'int':-4,'end':-4,'dex':-4,'agi':-4,},
+    {'sight':-5,'hearing':-20,'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,},
     (SKL_SURVIVAL,SKL_ASSEMBLY,),
     ('wooden club', WEAPONS, 1,),
                    ),

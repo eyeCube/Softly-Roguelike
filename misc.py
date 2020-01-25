@@ -106,6 +106,8 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
         covers = ""
         for cover in slot.covers:
             covers += "| {} ".format(cmp.BPNAMES[cover])
+        if ( 'hand' in bpname and rog.on(slot.item, TWOHANDS) ):
+            covers += "| offhand wielding "
         #
         # requirements
         req=""
@@ -157,10 +159,10 @@ def _get_equipment(body):
         for arm in body.parts[cmp.BPC_Arms].arms:
             i+=1
             if arm is None: continue
-            a="dominant " if i==0 else "" # first item in list is dominant
-            equipment=__add_eq(equipment,"{}hand -- wielding".format(a),arm.hand.held,
+            a="main" if i==0 else "off" # first item in list is dominant
+            equipment=__add_eq(equipment,"{}hand wielding".format(a),arm.hand.held,
                            cmp.EquipableInHoldSlot)
-            equipment=__add_eq(equipment,"{}hand -- wearing".format(a),arm.hand.slot,
+            equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
                            cmp.EquipableInHandSlot)
             equipment=__add_eq(equipment,"{}arm".format(a),arm.arm.slot,
                            cmp.EquipableInArmSlot)
@@ -624,13 +626,13 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
 {p1}        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
 {p1}
+{p1}              (reach)----REA{predelim}{reach:<4}{statdelim}({breach})
+{p1}  (range min. | max.)----RNG{predelim}{minrng:<4}| {maxrng}
+{p1}
 {p1}            (balance)----BAL{predelim}{bal:<4}{statdelim}({bbal})
 {p1}          (grappling)----GRA{predelim}{gra:<4}{statdelim}({bgra})
 {p1}     (counter-strike)----CTR{predelim}{ctr:<4}{statdelim}({bctr})
 {p1}   (stamina recovery)----SPR{predelim}{spr:<4}{statdelim}({bspr})
-{p1}
-{p1}              (reach)----REA{predelim}{reach:<4}{statdelim}({breach})
-{p1}   (min. | max.range)----RNG{predelim}{minrng} | {maxrng}
 {p1}
 {p1}  (visual perception)----VIS{predelim}{vis:<4}{statdelim}({bvis})
 {p1}(auditory perception)----AUD{predelim}{aud:<4}{statdelim}({baud})
@@ -862,13 +864,19 @@ def render_hud(w,h,pc,turn,dlvl):
     # TODO: minimum display values (but only after debugging stats/HUD!!!)
     con = libtcod.console_new(w,h)
     name = rog.world().component_for_entity(pc, cmp.Name)
+    tt = turn + STARTING_TIME
+    day = 1 + tt // 86400
+    hour = (tt // 3600) % 24
+    minute = (tt // 60) % 60
+    second = tt % 60
+    time = "Day {}; {}:{}:{}".format(day, hour, minute, second)
     # TODO: update HUD:
     #  change to show more relevant stats, resistances are less important
-    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|T: {t}".format(
+    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}| {t}".format(
         name=name.name,
         hp=_get('hp'),mp=_get('mp'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        dlv=dlvl,t=turn,
+        dlv=dlvl,t=time,
         hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
         fir=_get('resfire'),bio=_get('resbio'),elc=_get('reselec'),

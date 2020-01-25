@@ -231,22 +231,7 @@ NONE
 NONE
 
 // context-sensitive action
-c
 SPACE
-NONE
-
-// get
-g
-,
-NONE
-
-// open/Close
-o
-Shift+=
-NONE
-
-// sprint
-s
 NONE
 NONE
 
@@ -255,10 +240,80 @@ t
 NONE
 NONE
 
-// examine or Look
+// move prompt
+m
+NONE
+NONE
+
+// attack prompt
 x
+NONE
+NONE
+
+// shoot ranged weapon
+f
+NONE
+NONE
+
+// throw item in dominant hand
+shift+t
+NONE
+NONE
+
+// get item (pickup & place in inventory)
+g
+,
+NONE
+
+// grab (grappling OR pickup item & hold in hand)
+shift+g
+NONE
+NONE
+
+// grab item (pickup item & hold in hand)
+ctrl+,
+NONE
+NONE
+
+// grapple (grab foe's limbs, etc.)
+ctrl+g
+NONE
+NONE
+
+// open/Close
+o
+None
+NONE
+
+// close
+Shift+=
+None
+NONE
+
+// open
+-
+None
+NONE
+
+// enable / disable jog
+shift+j
+NONE
+NONE
+
+// enable / disable run
+shift+r
+NONE
+NONE
+
+// enable / disable sprint
+shift+s
+NONE
+NONE
+
+// examine or Look
 /
 Shift+L
+NONE
 
 // wait
 w
@@ -267,16 +322,6 @@ NONE
 
 // rest
 r
-Shift+t
-NONE
-
-// move prompt
-m
-NONE
-NONE
-
-// attack prompt
-f
 NONE
 NONE
 
@@ -295,11 +340,6 @@ Ctrl+f
 NONE
 NONE
 
-// quit game
-Alt+q
-NONE
-NONE
-
 // inventory
 i
 NONE
@@ -312,6 +352,11 @@ NONE
 
 // show character page
 a
+Shift+c
+NONE
+
+// quit game
+Alt+q
 NONE
 NONE
 
@@ -422,22 +467,31 @@ COMMANDS = {        # translate commands into actions
     'up'            : {'context-dir': (0,  0, -1,) },
     'down'          : {'context-dir': (0,  0,  1,) },
     'context'       : {'context': True},
-    'get'           : {'get': True},
-    'open'          : {'open': True},
+    'target-prompt' : {'target-prompt': True},
+    'move-prompt'   : {'move-prompt': True},
+    'attack-prompt' : {'attack-prompt': True},
+    'shoot-prompt'  : {'shoot-prompt': True},
+    'throw-prompt'  : {'throw-prompt': True},
+    'get'           : {'get-prompt': True},
+    'grab-prompt'   : {'grab-prompt': True},
+    'grabitem-prompt':{'grabitem-prompt': True},
+    'grapple-prompt': {'grapple-prompt': True},
+    'openclose-prompt':{'openclose-prompt': True},
+    'close-prompt'  : {'close-prompt': True},
+    'open-prompt'   : {'open-prompt': True},
+    'jog'           : {'jog': True},
+    'run'           : {'run': True},
     'sprint'        : {'sprint': True},
-    'target'        : {'target': True},
     'look'          : {'look': True},
     'wait'          : {'wait': True},
     'rest'          : {'rest': True},
-    'move-prompt'   : {'move-prompt': True},
-    'attack-prompt' : {'attack-prompt': True},
     'move view'     : {'move view': True},
     'fixed view'    : {'fixed view': True},
     'find player'   : {'find player': True},
-    'quit'          : {'quit game': True},
     'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
     'char page'     : {'character page': True},
+    'quit'          : {'quit game': True},
 
     'menu-up'       : {'menu-nav': (0, -1,  0,) },
     'menu-left'     : {'menu-nav': (-1, 0,  0,) },

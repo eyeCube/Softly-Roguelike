@@ -18,7 +18,7 @@
 '''
 
 
-from enum import Flag, auto
+##from enum import Flag, auto
 
 import tcod as libtcod
 
@@ -65,6 +65,7 @@ ROOMH       = 50
 MAXLEVEL    = 20            #deepest dungeon level
 TILES_PER_ROW = 16          # Num tiles per row (size of the char sheet 
 TILES_PER_COL = 16          # " per column         used for ASCII display)
+STARTING_TIME = 25200
 
 CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes
 
@@ -376,7 +377,26 @@ ROTTEDNESS={
     }
 
 
-# base stats for player
+    # equipment #
+
+# insufficient strength penalties
+INSUFF_STR_PEN_PENALTY  = 2 # each is a penalty PER Str point missing
+INSUFF_STR_ATK_PENALTY  = 2
+INSUFF_STR_DFN_PENALTY  = 1
+INSUFF_STR_GRA_PENALTY  = 2
+INSUFF_STR_ASP_PENALTY  = 10
+# insufficient dexterity penalties
+INSUFF_DEX_PEN_PENALTY  = 2 # each is a penalty PER Dex point missing
+INSUFF_DEX_ATK_PENALTY  = 3
+INSUFF_DEX_DFN_PENALTY  = 1
+INSUFF_DEX_GRA_PENALTY  = 1
+INSUFF_DEX_ASP_PENALTY  = 10
+
+
+
+# Stats #
+
+    # base stats for player
 BASE_HP         = 2
 BASE_MP         = 20
 BASE_MPREGEN    = 1
@@ -397,7 +417,7 @@ BASE_DFN        = 10
 BASE_ARM        = 0
 BASE_PRO        = 6
 BASE_SPD        = 100
-BASE_MSP        = 40
+BASE_MSP        = 100
 BASE_ASP        = 0
 BASE_BAL        = 2
 BASE_GRA        = 0
@@ -421,7 +441,6 @@ BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
 
 
-
 # attributes
 
 # Strength
@@ -439,7 +458,7 @@ ATT_STR_SCARY           = 1 # intimidation +
 ATT_AGI_DV              = 0.5 # dodge value
 ATT_AGI_PRO             = 0.25 # protection
 ATT_AGI_BAL             = 1 # balance / poise
-ATT_AGI_MSP             = 3 # movement speed +
+ATT_AGI_MSP             = 2 # movement speed +
 ATT_AGI_ASP             = 5 # melee attack speed
 
 # Dexterity
@@ -447,8 +466,8 @@ ATT_DEX_ATK             = 0.5 # melee accuracy
 ATT_DEX_RATK            = 0.75 # ranged Accuracy bonus
 ATT_DEX_PEN             = 0.3333334 # melee penetration
 ATT_DEX_RPEN            = 0.3333334 # ranged Penetration bonus
-ATT_DEX_ASP             = 4 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
-ATT_DEX_RASP            = 5 # speed bonus for ranged attacks
+ATT_DEX_ASP             = 3 # speed bonus for all tasks using hands -- attacking, crafting, reloading, throwing, etc. NOT a bonus to "speed" attribute itself, but applied across various domains.
+ATT_DEX_RASP            = 3 # speed bonus for ranged attacks
 ATT_DEX_RNG             = 1 # range of bows and guns
 ATT_DEX_TRNG            = 0.25 # throwing range bonus -- less than Str bonus
 
@@ -521,12 +540,6 @@ PAUG_LIMITBREAKER_STR   : ("str",5,),
     }
 
 
-# weapons
-INSUFF_STR_ATK_PENALTY  = 2
-INSUFF_STR_ASP_PENALTY  = 5
-INSUFF_DEX_ATK_PENALTY  = 2
-INSUFF_DEX_PEN_PENALTY  = 1.5
-INSUFF_DEX_ASP_PENALTY  = 5
 # 1-h / 2-h constants
 # attribute bonuses and multipliers
 MULT_1HANDBONUS_STR_DMG = 0.5     # strength bonus for 1-h wielding per STR
@@ -539,9 +552,9 @@ OFFHAND_PENALTY_ARMMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_PROMOD  = 0.5   # multiplier
 OFFHAND_PENALTY_GRA     = -2    # adder
 # bonuses for when you fight with a 1-handed weapon in 2 hands
-MOD_2HANDBONUS_ASPMOD = 1.3333334 # attack speed MULTIPLIER modifier
+MULT_2HANDBONUS_ASP   = 1.3333334 # attack speed MULTIPLIER modifier
 MOD_2HANDBONUS_ATK    = 4       # attack you gain
-##MULT_2HANDBONUS_DMG   = 1.2     # damage MULTIPLIER (DO STRENGTH BONUS INSTEAD)
+MULT_2HANDBONUS_DMG   = 1.2     # damage MULTIPLIER (DO STRENGTH BONUS INSTEAD)
 MOD_2HANDBONUS_PEN    = 2       # penetration you gain
 MOD_2HANDBONUS_DFN    = 2       # defense you gain
 MOD_2HANDBONUS_ARM    = 1       # armor you gain
@@ -574,8 +587,23 @@ CMB_ROLL_PEN        = 6     # dice roll for penetration bonus
 CMB_ROLL_ATK        = 20    # dice roll for to-hit bonus (Attack)
 CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
-STRIKE_AIR_IMBALANCE_AMOUNT = 8 # balance penalty for attacking nothing
+MISS_BAL_PENALTY    = 5     # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
+
+REACHGRID=[ #0==10, @==origin
+    [' ',' ',' ',' ','0','0','0',' ',' ',' ',' ',]
+    [' ',' ','0','9','8','8','8','9','0',' ',' ',]
+    [' ','0','9','7','7','6','7','7','9','0',' ',]
+    [' ','9','7','6','5','4','5','6','7','9',' ',]
+    ['0','8','7','5','3','2','3','5','7','8','0',]
+    ['0','8','6','4','2','@','2','4','6','8','0',]
+    ['0','8','7','5','3','2','3','5','7','8','0',]
+    [' ','9','7','6','5','4','5','6','7','9',' ',]
+    [' ','0','9','7','7','6','7','7','9','0',' ',]
+    [' ',' ','0','9','8','8','8','9','0',' ',' ',]
+    [' ',' ',' ',' ','0','0','0',' ',' ',' ',' ',]
+]
+
                 
 #sounds
 VOLUME_DEAFEN       = 500
@@ -790,10 +818,13 @@ SUPINE_DFN              = -30
 i=0;
 BP_LIMB     = i; i+=1;
 BP_HEAD     = i; i+=1;
+BP_NECK     = i; i+=1;
+BP_FACE     = i; i+=1;
 BP_TORSO    = i; i+=1;
-BP_CORE     = i; i+=1;
 BP_HAND     = i; i+=1;
 BP_FOOT     = i; i+=1;
+BP_EYES     = i; i+=1;
+BP_EARS     = i; i+=1;
 
 # body parts pieces
 
@@ -1449,17 +1480,21 @@ HASTE_SPDMOD        = 1.5    # speed bonus when hasty (mult modifier)
 #slow
 SLOW_SPDMOD         = 0.6666667 # speed penalty while slowed (mult modifier)
 
+# trot
+TROT_MSPMOD         = 1.5   # move speed modifier when you trot
+
 # jog
-JOG_MSPMOD          = 1.5   # move speed modifier when you jog
+JOG_MSPMOD          = 2.0   # move speed modifier when you jog
 
 # run
-RUN_MSPMOD          = 2.0   # move speed modifier when you run
+RUN_MSPMOD          = 3.0   # move speed modifier when you run
 
 #sprint
-SPRINT_MSPMOD       = 3.0   # move speed modifier when you sprint
+SPRINT_MSPMOD       = 4.0   # move speed modifier when you sprint
 
 # drunk
-DRUNK_BALMOD        = 0.5
+DRUNK_BAL           = -0.2 # higher negative value => being drunk ...
+DRUNK_INT           = -0.1 # ... affects you more.
 
 # hazy
 HAZY_SIGHTMOD       = 0.75
