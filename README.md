@@ -3,7 +3,7 @@ Softly Into the Night: a sci-fi, dystopian roguelike with Lovecraftian & surviva
 
 Repository includes some of my modules that may be useful for roguelike devs, such as OrangIO, a user-interface system built on TCOD that supports complex key bindings, text input, dialogue boxes, menus, and more. *That said, I cannot guarantee the utility of any of the software presented here; it is shared solely for the purposes of education and recreation.*
 
-Email: jacob.wharton789@gmail.com
+Email: eyecube1@protonmail.com
 
 How to play:
 
