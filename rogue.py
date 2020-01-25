@@ -1245,33 +1245,28 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         
 ##                #TODO: add special effects; light, etc. How to??
     '''
+# init and failure checking #
     # first check that the entity can equip the item in the indicated slot.
     world = Rogue.world
     equipableConst = EQUIPABLE_CONSTS[equipType]
-    
+    eqcompo = _get_eq_compo(ent, equipType)
+    holdtype=(equipType in cmp.BPS_HOLD) # holding type or armor type?
     if not world.has_component(item, equipableConst):
         return (-1,None,) # item can't be equipped in this slot
+    if not eqcompo: # component selected. Does this component exist?
+        return (-2,None,) # something weird happened
+    if ( not holdtype and eqcompo.covered ):
+        return (-3,None,) # already have something covering that slot
+    if ( holdtype and eqcompo.holding ):
+        return (-4,None,) # reject held item if already holding something
+    if ( equipType==EQ_OFFHAND and on(item, TWOHANDS)):
+        return (-5,None,) # reject 2-h weapons not equipped in mainhand.
+    equipable = world.component_for_entity(item, equipableConst)
     
     # ensure body type indicates presence of this body part
     # (TODO)
 ##    if EQTYPES_TO_BODYPARTS[equipType] in BODYPLAN_BPS[body.plan]:
 ##        ...
-    
-    eqcompo = _get_eq_compo(ent, equipType)
-    # component selected. Does this component exist?
-    if not eqcompo:
-        return (-2,None,) # something weird happened
-    
-    if eqcompo.covered:
-        return (-3,None,) # already have something covering that slot
-
-    if (equipType==EQ_OFFHAND and on(item, TWOHANDS)):
-        return (-10,None,) # reject 2-h weapons not equipped in mainhand.
-
-    if ( equipType in cmp.BPS_HOLD and eqcompo.holding ):
-        return (-11,None,) # reject held item if already holding something
-        
-    equipable = world.component_for_entity(item, equipableConst)
     
     # figure out what additional slots the equipment covers, if any
     def __cov(ent, clis, hlis, flis, eqtype, cls): # cover additional body part
@@ -1314,8 +1309,8 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         if equipable.coversEars:
             __cov(ent,clis,hlis,flis,equipType,cmp.BP_Ears)
     if flis:
-        return (-4, flis,) # failed to equip because the BPs in flis are already covered.
-    #
+        return (-10, flis,) # failed to equip because the BPs in flis are already covered.
+# /init #
     
         #-------------------------#
         # success! Equip the item #
@@ -1771,6 +1766,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if strd > 0:
                 # Multiply gear's enc. by ratio based on missing STR
                 modded.enc += bps.equip.enc * strd * 0.1
+                modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+                modded.asp -= strd*INSUFF_STR_ASP_PENALTY
             # Dexterity Requirement and penalties
             dexd = bps.equip.dexReq - modded.dex//MULT_STATS
             if dexd > 0:

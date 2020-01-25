@@ -2824,12 +2824,18 @@ def _update_from_bpc_arms(lis, ent, bpc, armorSkill, unarmored):
         if ( ismainhand and bps.equip):
             if ( not rog.on(bpm.hand.held.item, TWOHANDS) and
                  not rog.off_arm(ent).hand.held.item ):
-                bps.equip.addMods['atk'] += MOD_2HANDBONUS_ATK
-                bps.equip.addMods['pen'] += MOD_2HANDBONUS_PEN
-                bps.equip.addMods['dfn'] += MOD_2HANDBONUS_DFN
-                bps.equip.addMods['arm'] += MOD_2HANDBONUS_ARM
-                bps.equip.addMods['pro'] += MOD_2HANDBONUS_PRO
-                bps.equip.addMods['asp'] *= MOD_2HANDBONUS_ASPMOD
+                bps.equip.addMods['atk'] = bps.equip.addMods.get(
+                    'atk', 0 ) + MOD_2HANDBONUS_ATK*MULT_STATS
+                bps.equip.addMods['pen'] = bps.equip.addMods.get(
+                    'pen', 0 ) + MOD_2HANDBONUS_PEN*MULT_STATS
+                bps.equip.addMods['dfn'] = bps.equip.addMods.get(
+                    'dfn', 0 ) + MOD_2HANDBONUS_DFN*MULT_STATS
+                bps.equip.addMods['arm'] = bps.equip.addMods.get(
+                    'arm', 0 ) + MOD_2HANDBONUS_ARM*MULT_STATS
+                bps.equip.addMods['pro'] = bps.equip.addMods.get(
+                    'pro', 0 ) + MOD_2HANDBONUS_PRO*MULT_STATS
+                bps.equip.addMods['asp'] = bps.equip.addMods.get(
+                    'asp', 1 ) * MOD_2HANDBONUS_ASPMOD
         #
         
         lis.append(bps)
