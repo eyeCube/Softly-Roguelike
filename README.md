@@ -7,6 +7,6 @@ Email: jacob.wharton789@gmail.com
 
 How to play:
 
-Download repository. Run main.py with Python 3 in directory Softly-Roguelike.
+Make sure you have Python 3 installed on your computer. Download this repository. Run main.py with Python 3 in directory Softly-Roguelike.
 
 NOTE: this game is a WIP (Work In Progress) and it is far from representing its final state. *The game is currently in an unplayable state as far as actual gameplay and is in a test-heavy version*
