@@ -318,13 +318,17 @@ LEN_ADVANTAGE_BP    = 12    # how much extra length you need to gain +1 Atk in c
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
-MULT_MASS           = 1000  # 1 mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
+MULT_MASS           = 1000  # @1000, smallest mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
-MULT_ATT            = 10    # finer scale for Attributes but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
+MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 10 (assuming the value is 10) makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
 EXP_LEVEL           = 1000  # experience needed to level up skills
 EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 MIN_MSP             = 5     # minimum movement speed under normal conditions
+
+__MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
+             'str','con','int','agi','dex','end',)
+##__MULTATT=('str','con','int','agi','dex','end',)
 
 # fire / ice
 FIRE_THRESHOLD  = 800 # average combustion temperature (ignition temperature)
@@ -339,58 +343,47 @@ MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
 
 
 #misc
-DURMOD_ASP = 50
-DUR_STATMODS={ # durability % affects stats (multipliers)
-    # stm1: stat mod 1 affects:
-        # Atk, Prot, Pen, 
-    # stm2: stat mod 2 affects:
-        # Dmg, AV, DV, 
-# %  : (stm1, stm2)
-0.90 : (0.92,0.961538,),
-0.75 : (0.85,0.9,),
-0.50 : (0.7, 0.8,),
-0.25 : (0.5, 0.666667,),
-0.10 : (0.3333334,0.5,),
-    }
+DURMOD_ASP = -50
 RUSTEDNESS={
 # amt   - rustedness amount
 # sm    - stat modifier
 # vm    - value modifier (value cannot go below the cost of the raw mats)
 #amt : (sm,  vm,  name mod)
-40   : (1.0, 0.95,"rusting ",),
-160  : (0.94,0.8, "rusty ",),
-333  : (0.83,0.5, "rusted ",),
-667  : (0.7, 0.25,"badly rusted ",),
-900  : (0.5, 0.1, "fully rusted ",),
-950  : (0.25,0.05,"fully rusted ",),
-1000 : (0.1, 0,   "fully rusted ",),
+42   : (0.99,0.95,"rusting ",),
+167  : (0.97,0.83,"rusty ",),
+333  : (0.91,0.6, "rusted ",),
+667  : (0.8, 0.33,"deeply rusted ",),
+900  : (0.6, 0.2, "thoroughly rusted ",),
+950  : (0.3, 0.1, "thoroughly rusted ",),
+1000 : (0.1, 0.04,"thoroughly rusted ",),
     }
 ROTTEDNESS={
 # amt   - rot amount
 # sm    - stat modifier
 # vm    - value modifier
 #amt : (sm,  vm,  name mod)
-100  : (0.9, 0.75,"rotting ",),
-333  : (0.7, 0.33,"rotted ",),
-667  : (0.3, 0.1, "badly rotted ",),
-1000 : (0.1, 0.01,"fully rotted ",),
+25   : (0.98,0.8, "moldy ",),
+100  : (0.9, 0.5, "rotting ",),
+333  : (0.7, 0.1, "rotted ",),
+667  : (0.3, 0.01,"deeply rotted ",),
+1000 : (0,   0.001,"thoroughly rotted ",),
     }
 
 
     # equipment #
 
 # insufficient strength penalties
-INSUFF_STR_PEN_PENALTY  = 2 # each is a penalty PER Str point missing
-INSUFF_STR_ATK_PENALTY  = 2
-INSUFF_STR_DFN_PENALTY  = 1
+INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
+INSUFF_STR_ATK_PENALTY  = 3
+INSUFF_STR_DFN_PENALTY  = 1.5
 INSUFF_STR_GRA_PENALTY  = 2
-INSUFF_STR_ASP_PENALTY  = 10
+INSUFF_STR_ASP_PENALTY  = 24
 # insufficient dexterity penalties
 INSUFF_DEX_PEN_PENALTY  = 2 # each is a penalty PER Dex point missing
-INSUFF_DEX_ATK_PENALTY  = 3
-INSUFF_DEX_DFN_PENALTY  = 1
-INSUFF_DEX_GRA_PENALTY  = 1
-INSUFF_DEX_ASP_PENALTY  = 10
+INSUFF_DEX_ATK_PENALTY  = 4
+INSUFF_DEX_DFN_PENALTY  = 1.25
+INSUFF_DEX_GRA_PENALTY  = 1.5
+INSUFF_DEX_ASP_PENALTY  = 12
 
 
 
@@ -589,20 +582,6 @@ CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 MISS_BAL_PENALTY    = 5     # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
-
-REACHGRID=[ #0==10, @==origin
-    [' ',' ',' ',' ','0','0','0',' ',' ',' ',' ',]
-    [' ',' ','0','9','8','8','8','9','0',' ',' ',]
-    [' ','0','9','7','7','6','7','7','9','0',' ',]
-    [' ','9','7','6','5','4','5','6','7','9',' ',]
-    ['0','8','7','5','3','2','3','5','7','8','0',]
-    ['0','8','6','4','2','@','2','4','6','8','0',]
-    ['0','8','7','5','3','2','3','5','7','8','0',]
-    [' ','9','7','6','5','4','5','6','7','9',' ',]
-    [' ','0','9','7','7','6','7','7','9','0',' ',]
-    [' ',' ','0','9','8','8','8','9','0',' ',' ',]
-    [' ',' ',' ',' ','0','0','0',' ',' ',' ',' ',]
-]
 
                 
 #sounds

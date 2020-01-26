@@ -472,7 +472,7 @@ COMMANDS = {        # translate commands into actions
     'attack-prompt' : {'attack-prompt': True},
     'shoot-prompt'  : {'shoot-prompt': True},
     'throw-prompt'  : {'throw-prompt': True},
-    'get'           : {'get-prompt': True},
+    'get-prompt'    : {'get-prompt': True},
     'grab-prompt'   : {'grab-prompt': True},
     'grabitem-prompt':{'grabitem-prompt': True},
     'grapple-prompt': {'grapple-prompt': True},

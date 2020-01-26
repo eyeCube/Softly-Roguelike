@@ -2674,8 +2674,6 @@ def paralyze(ent, dur):
 ##    if dmul:
 ##        multMods.append(dmul)
 # stats that need to be multiplied by MULT_STATS
-__MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
-             'str','con','int','agi','dex','end',)#MULT_STATS==MULT_ATT
 # for adding just 1 mod dict into dadd or dmul
 def _add(dadd, modDict):
     for stat,val in modDict.items():
@@ -2685,16 +2683,14 @@ def _add(dadd, modDict):
 def _mult(dmul, modDict):
     for stat,val in modDict.items():
         dmul[stat] = dmul.get(stat, 1) * val
-# ADD DICT MULTIPLIER FUNCTIONS
-# multipliers that affect individual add mod dicts
-#   * For instance, a weapon that gives +5 Atk but has a poor condition,
-#   so it only gives +3 Atk for the purposes of wielding it in this moment.
+        
+# ADD DICT MULTIPLIER FUNCTIONS (dadd)
 def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
-    modi = (1 - (hp / hpMax))**2
+    modi = ( 1 - (hp / max(1,hpMax)) )**2
     modf = 1 - modi
     _2575 = (0.25 + 0.75*modf)
     _5050 = (0.5 + 0.5*modf)
-    dadd['asp'] = dadd.get('asp',0) - DURMOD_ASP*modi
+    dadd['asp'] = dadd.get('asp',0) + DURMOD_ASP*modi
     dadd['atk'] = min( dadd.get('atk',0), dadd.get('atk',0) * _5050 )
     dadd['dmg'] = min( dadd.get('dmg',0), dadd.get('dmg',0) * _2575 )
     dadd['pen'] = min( dadd.get('pen',0), dadd.get('pen',0) * modf )
@@ -2704,7 +2700,7 @@ def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
     dadd['ctr'] = min( dadd.get('ctr',0), dadd.get('ctr',0) * _5050 )
 # end def
 def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
-    modf = 1 - (1 - (hp / hpMax))**2
+    modf = 1 - ( 1 - (hp / max(1,hpMax)) )**2
     _2575 = (0.25 + 0.75*modf)
     _5050 = (0.5 + 0.5*modf)
     dadd['pro'] = min(dadd.get('pro',0), dadd.get('pro',0) * modf)
@@ -5058,10 +5054,10 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 #   So these are expensive, and have no material designation.
     # longswords          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "bastard sword"         :(245,  1.55,300, METL,18,14,(4,  9,  12, 1,  1,  1,  15, 10, -5, 6,  24, 2,),SKL_LONGSWORDS,_bastardSword,),#STEEL # weapon is a longsword but can be wielded in 1 hand (which it is by default due to the mechanics in this game (just by not having the TWOHANDS flag, it is a one-handed weapon that can be wielded with two hands alternatively.))
-"longsword"             :(260,  1.6, 210, METL,10,12,(10, 12, 18, 5,  3,  3,  51, 11, -6, 12, 14, 2,),SKL_LONGSWORDS,_longSword,),#STEEL
+"longsword"             :(260,  1.6, 210, METL,10,12,(10, 12, 18, 5,  3,  3,  51, 10, -6, 12, 14, 2,),SKL_LONGSWORDS,_longSword,),#STEEL
 "kriegsmesser"          :(265,  1.8, 250, METL,14,8, (9,  14, 14, 2,  3,  3,  36, 12, -16,9,  18, 2,),SKL_LONGSWORDS,_kriegsmesser,),#STEEL
-"katana"                :(285,  1.45,80,  METL,8, 14,(11, 11, 16, 3,  2,  2,  45, 9,  -12,14, 12, 2,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
-"estoc"                 :(305,  1.65,100, METL,10,16,(12, 10, 20, 6,  1,  2,  60, 10, -12,16, 16, 2,),SKL_LONGSWORDS,_estoc,),#STEEL
+"katana"                :(285,  1.45,80,  METL,8, 14,(11, 11, 16, 3,  2,  2,  45, 10, -12,14, 12, 2,),SKL_LONGSWORDS,_katana,),#STEEL # VERY DIFFICULT TO FIND RECIPE FOR THIS/VERY DIFFICULT TO MAKE! SO VERY EXPENSIVE
+"estoc"                 :(305,  1.65,100, METL,10,16,(12, 10, 20, 6,  1,  2,  60, 11, -12,16, 16, 2,),SKL_LONGSWORDS,_estoc,),#STEEL
     # greatswords         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "greatsword"            :(540,  3.5, 450, METL,26,12,(9,  18, 15, 3,  3,  3,  -15,28, -6, 10, 32, 3,),SKL_GREATSWORDS,_greatSword,),
 "flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -14,10, 26, 3,),SKL_GREATSWORDS,_flamberge,),

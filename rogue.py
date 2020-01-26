@@ -191,12 +191,19 @@ def playableJobs():
     return entities.getJobs().items() #Rogue.savedGame.playableJobs
 
 # log
+def get_time(turn):
+    tt = turn + STARTING_TIME
+    day = 1 + tt // 86400
+    hour = (tt // 3600) % 24
+    minute = (tt // 60) % 60
+    second = tt % 60
+    return "D{},{:02d}:{:02d}:{:02d}".format(day, hour, minute, second)
 def logNewEntry():
     Rogue.log.drawNew()
 def msg(txt, col=None):
     if col is None: #default text color
         col=COL['white']
-    Rogue.log.add(txt, str(get_turn()) )
+    Rogue.log.add(txt, str(get_time(get_turn())) )
 def msg_clear():
     clr=libtcod.console_new(msgs_w(), msgs_h())
     libtcod.console_blit(clr, 0,0, msgs_w(),msgs_h(),  con_game(), 0,0)
@@ -399,7 +406,6 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 # end def
 
 
-
     # "Fun"ctions #
 
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
@@ -408,6 +414,7 @@ def sign(n):
     if n>0: return 1
     if n<0: return -1
     return 0
+
 # tilemap
 def thingat(x,y):       return Rogue.map.thingat(x,y) #Thing object
 def thingsat(x,y):      return Rogue.map.thingsat(x,y) #list
@@ -746,6 +753,30 @@ def zombify(ent):
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
 
+_REACHGRID=[ #0==10, @==origin
+    ['0','0',' ',' ',' ',' ',],
+    ['8','8','9','0',' ',' ',],
+    ['6','7','7','9','0',' ',],
+    ['4','5','6','7','9',' ',],
+    ['2','3','5','7','8','0',],
+    ['@','2','4','6','8','0',],
+]
+def inreach(x1,y1, x2,y2, reach):
+    xd = abs(x2 - x1)
+    yd = -abs(y2 - y1)
+    if (xd > 5 or yd < -5): return False
+    char = _REACHGRID[5+yd][xd]
+    if char==' ':
+        return False
+    if char=='@':
+        return True
+    if char=='0':
+        reachNeeded=10
+    else:
+        reachNeeded=int(char)
+    if reach >= reachNeeded:
+        return True
+    return False
 
 
 
@@ -2199,68 +2230,6 @@ def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
 
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
-
-#
-# aim find target entity
-# target entity using a dumb line traversing algorithm
-# returns an entity or None
-# TODO: move these to some other module
-#
-def aim_find_target():
-    targeted = None
-    pos = Rogue.world.component_for_entity(Rogue.pc, cmp.Position)
-    while True:
-        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
-        for act,arg in pcAct:
-            
-            if (act=="context-dir" or act=="move"):
-                interesting = [] # possible targets
-                checkdir = arg
-                t = 0
-                
-                while t < sight:
-                    t += 1
-                    
-                    # check this tile
-                    xx = pos.x + checkdir[0]*t
-                    yy = pos.y + checkdir[1]*t
-                    here = monat(xx,yy)
-                    if here:
-                        score = t
-                        interesting.append( (here, score) )
-                        
-                    # check tiles in 2 lines spreading outward from this tile
-                    for dir1, dir2 in adjacent_directions(checkdir):
-                        g = 0
-                        while t + g < sight:
-                            pass
-                        # end while
-                    # end for
-                # end while
-
-                for ent, score in interesting:
-                    if score < lowscore:
-                        lowscore = score
-                        targeted = ent
-                # end for
-            #                        
-            elif act=="exit":
-                alert("")
-                return None
-            elif act=="select":
-                return targeted
-            elif act=="lclick":
-                mousex,mousey,z=arg
-                pc=Rogue.pc
-                dx=mousex - getx(pc.x)
-                dy=mousey - gety(pc.y)
-                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
-                    return (dx,dy,0,)
-            #
-            
-        # end for
-    # end while
-# end def
 
 #
 # get direction

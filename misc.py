@@ -864,19 +864,13 @@ def render_hud(w,h,pc,turn,dlvl):
     # TODO: minimum display values (but only after debugging stats/HUD!!!)
     con = libtcod.console_new(w,h)
     name = rog.world().component_for_entity(pc, cmp.Name)
-    tt = turn + STARTING_TIME
-    day = 1 + tt // 86400
-    hour = (tt // 3600) % 24
-    minute = (tt // 60) % 60
-    second = tt % 60
-    time = "Day {}; {}:{}:{}".format(day, hour, minute, second)
     # TODO: update HUD:
     #  change to show more relevant stats, resistances are less important
-    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}| {t}".format(
+    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|{t}".format(
         name=name.name,
         hp=_get('hp'),mp=_get('mp'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),
-        dlv=dlvl,t=time,
+        dlv=dlvl,t=rog.get_time(turn),
         hit=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
         dfn=_gets('dfn'),arm=_gets('arm'),pro=_gets('pro'),
         fir=_get('resfire'),bio=_get('resbio'),elc=_get('reselec'),
