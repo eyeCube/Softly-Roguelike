@@ -652,7 +652,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         #   get width and height from items
         widest=0
         for k,v in self.keysItems.items():
-            leni=len(self.get_name(v)) + 4
+            leni=len(self.get_name(v)) + 4 + self.border_w*2
             if leni > widest:
                 widest=leni
         lenTitlePadding=4
@@ -669,6 +669,8 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             self.y = max(0, rog.window_h() - self.h)
         #   sort
         self.sort()
+        #   scrolling
+        self.scrolling = (self.drawh < self.h)
         #   draw
         self.con=libtcod.console_new(self.w, self.drawh)
         self.con_text=libtcod.console_new(
@@ -720,29 +722,32 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         rog.refresh()
 
     def scroll_up(self):
+        if not self.scrolling: return
         self.view_pos = max(0, self.view_pos - 1)
         self.draw()
     def scroll_down(self):
-        if self.drawh < self.h:
-            self.view_pos = min(self.h - self.drawh, self.view_pos + 1)
-            self.draw()
+        if not self.scrolling: return
+        self.view_pos = min(self.h - self.drawh, self.view_pos + 1)
+        self.draw()
     def page_up(self):
+        if not self.scrolling: return
         self.view_pos = max(0, self.view_pos - (self.h - 4))
         self.draw()
     def page_down(self):
-        if self.drawh < self.h:
-            self.view_pos = min(
-                self.h - self.drawh,
-                self.view_pos + (self.h - 4)
-                )
-            self.draw()
+        if not self.scrolling: return
+        self.view_pos = min(
+            self.h - self.drawh,
+            self.view_pos + (self.h - 4)
+            )
+        self.draw()
     def scroll_top(self):
+        if not self.scrolling: return
         self.view_pos = 0
         self.draw()
     def scroll_bottom(self):
-        if self.drawh < self.h:
-            self.view_pos = self.h - self.drawh
-            self.draw()
+        if not self.scrolling: return
+        self.view_pos = self.h - self.drawh
+        self.draw()
 
     def sort(self):
         def sorter(val):
@@ -790,6 +795,14 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             self.con, 0,0, self.w, self.h,
             0, self.x, self.y
         )
+        if self.scrolling:
+            add=""
+            if self.view_pos < self.h - self.drawh:
+                add+="(v)"
+            if self.view_pos > 0:
+                if add: add+=" "
+                add+="(^)"
+            libtcod.console_print(0, self.x+2, self.y+self.drawh-1, add)
         libtcod.console_flush()
 
 
