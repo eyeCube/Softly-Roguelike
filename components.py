@@ -193,7 +193,7 @@ class Fuel: # fuel for fires
 class SenseSight:
     __slots__=['fov_map','events']
     def __init__(self):
-        self.fov_map = None #rog.init_fov_map(FOV_NORMAL)
+        self.fov_map = -1
         self.events = []
 class SenseHearing:
     __slots__=['events']

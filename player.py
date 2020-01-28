@@ -527,7 +527,7 @@ def chargen(sx, sy):
         _skillNames=[]
         _skillIDs=[]
         skilldict={}
-        ptsRemaining=0#SKILL_POINTS
+        ptsRemaining=30#SKILL_POINTS
         cancel=False
         
         for k, sk in SKILLS.items():
@@ -659,12 +659,14 @@ wrap=False,con=rog.con_final(),disp='mono'
             rog.alts(pc, stat, value)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.setskill(pc, sk_id, 1)
+            rog.setskill(pc, sk_id, rog.getskill(pc, sk_id) + 5)
         print("skills = ", rog.world().component_for_entity(pc, cmp.Skills).skills)
     # end if
     
     # init
-    rog.register_creature(pc)
+    rog.register_entity(pc)
+    rog.add_listener_sights(pc)
+    rog.add_listener_sounds(pc)
     rog.grid_insert(pc)
     init(pc)
     return pc

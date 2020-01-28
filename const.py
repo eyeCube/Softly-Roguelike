@@ -306,6 +306,11 @@ IMMUNEBLEED = i; i+=1;  # Immune to bleeding
 IMMUNEPAIN  = i; i+=1;  # Immune to pain
 DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
 
+#
+# FOV maps | FOVmaps
+#
+i=0;
+FOVMAP_NORMAL       = i; i+=1;
 
 #
 # Gameplay Constants
@@ -582,7 +587,7 @@ CMB_MDMGMIN         = 0.6   # multplier for damage (minimum)
 CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 MISS_BAL_PENALTY    = 5     # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
-
+MAXREACH            = 5     # meters
                 
 #sounds
 VOLUME_DEAFEN       = 500

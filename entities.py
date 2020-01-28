@@ -4212,7 +4212,7 @@ def create_monster(_type, x, y, col=None, mutate=0) -> int:
         cmp.Flags(),
         cmp.EquipHand1(), cmp.EquipHand2(),
         cmp.Mutable(),
-##        cmp.Targetable(), # so it can be targeted by the player
+        cmp.Targetable(), # so it can be targeted by the player
         )
     if sight:
         rog.world().add_component(ent, cmp.SenseSight(sight))
@@ -4221,8 +4221,6 @@ def create_monster(_type, x, y, col=None, mutate=0) -> int:
     for flag in flags:
         rog.make(ent, flag)
     if script: script(ent)
-    rog.fov_init(ent) # TODO: update fov code... is this the right place to put this???
-    rog.grid_insert(ent) # TODO: test this
     return ent
 
 

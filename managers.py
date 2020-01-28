@@ -642,6 +642,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         self.bound_h=bound_h
         self.border_w=1
         self.border_h=1
+        self.view_pos = 0
         if autoItemize:
             new={}
             for k,v in misc.itemize(keysItems):
@@ -658,15 +659,18 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         borderPadding=2
         lenn=len(self.name) + borderPadding + lenTitlePadding
         if lenn > widest: widest=lenn
-        self.w=widest
-        self.h=len(self.keysItems)
-        self.w += self.border_w*2
-        self.h += self.border_h*2
+        self.w = widest + self.border_w*2
+        self.h = len(self.keysItems) + self.border_h*2
+        self.drawh = rog.window_h()
     #   make sure it doesn't go off-screen
-        self.x -= max(0, self.x + self.w - self.bound_w)
-        self.y -= max(0, self.y + self.h - self.bound_h)
+        if self.x + self.w > rog.window_w():
+            self.x = max(0, rog.window_w() - self.w)
+        if self.y + self.h > rog.window_h():
+            self.y = max(0, rog.window_h() - self.h)
     #   draw
-        self.con=libtcod.console_new(self.w, self.h)
+        self.con=libtcod.console_new(self.w, self.drawh)
+        self.con_text=libtcod.console_new(
+            self.w - self.border_w*2, self.h - self.border_h*2)
         self.draw()
     #   clear buffer
         IO.get_raw_input()
@@ -689,26 +693,47 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         if libtcod.console_is_key_pressed(key.vk):
             if key.vk == libtcod.KEY_ESCAPE:
                 self.set_result(-1)
+            if key.vk == libtcod.KEY_UP:
+                self.scroll_up()
+            if key.vk == libtcod.KEY_DOWN:
+                self.scroll_down()
         if key.vk == libtcod.KEY_TEXT: # select
             self.refresh()
             n=self.keysItems.get(key.text,None) #.decode()
-            if n: self.set_result(n)
+            if n:
+                self.set_result(n)
     
     def close(self):
         super(Manager_Menu, self).close()
         
         libtcod.console_delete(self.con)
         rog.refresh()
+
+    def scroll_up(self):
+        self.view_pos = max(0, self.view_pos - 1)
+        self.draw()
+    def scroll_down(self):
+        if self.drawh < self.h:
+            self.view_pos = min(self.h - self.drawh, self.view_pos + 1)
+            self.draw()
         
     def draw(self):
         def sorter(val):
             k,v = val
-            #if (ord(k) < (65+26) and ord(k) >= 65): #this code makes capital and lowercase appear in inconsistent orders in the list...
-            #    k=chr(ord(k)+32) #offset CAPS chars to make capital and lowercase equal (with capital coming second)
-            return k
+            ordk=ord(k)
+            if ordk == 42: # asterisk first
+                return 0
+            if (ordk < (65+26) and ordk >= 65): 
+                return ordk+256 #caps after lowercase keys
+            if ordk < 60: 
+                return ordk+512 #numbers last
+            return ord(k)
         y=0
     #   draw title and box
-        misc.rectangle(self.con, 0,0, self.w,self.h, 0)
+        misc.rectangle(
+            self.con, 0,0,
+            self.w,min(self.drawh,self.h),
+            0)
         title="<{}>".format(self.name)
         tx=math.floor( (self.w - len(title)) /2)
         libtcod.console_print(self.con, tx, 0, title)
@@ -718,18 +743,25 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         for key,item in lis:
             name=self.get_name(item)
             libtcod.console_print(
-                self.con, 1, y + 1, '({i}) {nm}'.format(i=key, nm=name) )
+                self.con_text, 1, y, '({i}) {nm}'.format(i=key, nm=name) )
             y += 1
+        # blit text onto box
+        libtcod.console_blit(
+            self.con_text, 0,self.view_pos,
+            self.w, min(self.h, self.drawh) - 2,
+            self.con, 1, 1
+        )
+        self.refresh()
+
+    def get_name(self,item):
+        return item.name if hasattr(item,'name') else item
+    def refresh(self):
+        # blit whole thing onto screen
         libtcod.console_blit(
             self.con, 0,0, self.w, self.h,
             0, self.x, self.y
         )
         libtcod.console_flush()
-
-    def get_name(self,item):
-        return item.name if hasattr(item,'name') else item
-    def refresh(self):
-        self.draw()
 
 
 

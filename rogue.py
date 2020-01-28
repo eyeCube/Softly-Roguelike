@@ -744,39 +744,37 @@ def kill(ent): #remove a thing from the world
                 create_ashes(ent)
     #remove dead thing
     if Rogue.world.has_component(ent, cmp.Position):
-        if isCreature:
-            release_creature(ent)
-        else:
-            release_entity(ent)
+        release_entity(ent)
+# end def
+
 def zombify(ent):
     kill(ent) # temporary
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
 
-_REACHGRID=[ #0==10, @==origin
-    ['0','0',' ',' ',' ',' ',],
-    ['8','8','9','0',' ',' ',],
-    ['6','7','7','9','0',' ',],
-    ['4','5','6','7','9',' ',],
-    ['2','3','5','7','8','0',],
-    ['@','2','4','6','8','0',],
+# inreach | in reach | in_reach 
+# Calculate if your target is within your reach (melee range).
+# Instead of calculating with a slow* sqrt func, we access this cute grid:
+_REACHGRIDQUAD=[ #0==origin
+    [10,10,99,99,99,99,], # we only need 1 quadrant of the total
+    [8, 8, 9, 10,99,99,], # grid to calculate if you are in reach.
+    [6, 7, 7, 9, 10,99,],
+    [4, 5, 6, 7, 9, 99,],
+    [2, 3, 5, 7, 8, 10,],
+    [0, 2, 4, 6, 8, 10,],
 ]
+#   *not sure if this is actually faster, but it also gives me direct
+#    control over which tiles are covered by which reach values.
 def inreach(x1,y1, x2,y2, reach):
-    xd = abs(x2 - x1)
-    yd = -abs(y2 - y1)
-    if (xd > 5 or yd < -5): return False
-    char = _REACHGRID[5+yd][xd]
-    if char==' ':
-        return False
-    if char=='@':
-        return True
-    if char=='0':
-        reachNeeded=10
-    else:
-        reachNeeded=int(char)
+    ''' reach is the stat //MULT_STATS but not divided by 2 '''
+    xd = abs(x2 - x1) # put the coordinates in the upper right quadrant ...
+    yd = -abs(y2 - y1) # ... to match with the quadrant grid above
+    if (xd > MAXREACH or yd < -MAXREACH): return False # max distance exceeded
+    reachNeeded = _REACHGRIDQUAD[MAXREACH+yd][xd]
     if reach >= reachNeeded:
         return True
     return False
+# end def
 
 
 
@@ -847,6 +845,7 @@ def run_pcfov_manager():
     
 def fov_init():  # normal type FOV map init
     #TODO: THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
+    # Is it really worth it to change this?
     fovMap=libtcod.map_new(ROOMW,ROOMH)
     libtcod.map_copy(Rogue.map.fov_map,fovMap)  # get properties from Map
     return fovMap
@@ -944,7 +943,11 @@ def register_entity(ent): # NOTE!! this no longer adds to grid.
     create_moddedStats(ent) # is there a place this would belong better?
     make(ent,DIRTY_STATS)
 def release_entity(ent):
-    grid_remove(ent) # precautionary ... this may be a bad place to have this
+    # do a bunch of precautionary stuff / remove entity from registers ...
+    remove_listener_sights(ent) 
+    remove_listener_sounds(ent)
+    grid_remove(ent)
+    # esper
     delete_entity(ent)
 def delete_entity(ent):
     Rogue.world.delete_entity(ent)
@@ -965,12 +968,6 @@ def create_entity():
 
 #  creature/monsters  #
 
-def register_creature(ent):
-    register_entity(ent)
-def release_creature(ent):
-    release_entity(ent)
-    remove_listener_sights(ent)
-    remove_listener_sounds(ent)
 
 def create_monster(typ,x,y,col,mutate=3): #init from entities.py
     '''
@@ -984,8 +981,10 @@ def create_monster(typ,x,y,col,mutate=3): #init from entities.py
     ent = entities.create_monster(typ,x,y,col,mutate)
 ##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
     givehp(ent)
-    register_creature(ent)
-    return monst
+    register_entity(ent)
+    fov_init(ent)
+    grid_insert(ent)
+    return ent
 
 def create_corpse(ent):
     corpse = entities.convertTo_corpse(ent)
@@ -2302,8 +2301,53 @@ def menu(name, x,y, keysItems, autoItemize=True):
     
     
 
+#
+# aim find target entity
+# target entity using a dumb line traversing algorithm
+# returns an entity or None
+#
+def aim_find_target():
+    world=Rogue.world
+    targeted = None
+    pos = world.component_for_entity(Rogue.pc, cmp.Position)
+    sight = getms(Rogue.pc, 'sight')
+    radius = sight
+    interesting=[]
+    for mon,(tgt,monpos,) in world.get_components(
+        cmp.Targetable, cmp.Position ):
+        dist=((pos.x-monpos.x)**2 + (pos.y-monpos.y)**2)**0.5
+        if dist < radius:
+            interesting.append((mon, dist,))
+    if not interesting:
+        return None
+    
+    mostinteresting = sorted(interesting, key=lambda x: x[1])
 
-
+# USE THE LOOK MANAGER?
+    
+    while True:
+        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
+        for act,arg in pcAct:
+            
+            if (act=="context-dir" or act=="move" or act=="menu-nav"):
+                pass
+            elif act=="exit":
+                alert("")
+                return None
+            elif act=="select":
+                return targeted
+            elif act=="lclick":
+                mousex,mousey,z=arg
+                pc=Rogue.pc
+                dx=mousex - getx(pc.x)
+                dy=mousey - gety(pc.y)
+                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
+                    return (dx,dy,0,)
+            #
+            
+        # end for
+    # end while
+# end def
 
 
 
@@ -2333,7 +2377,38 @@ def menu(name, x,y, keysItems, autoItemize=True):
         
 
 
-    
+'''
+interesting = [] # possible targets
+                checkdir = arg
+                t = 0
+                
+                while True:
+                    t += 1
+                    
+                    # check this tile
+                    xd = checkdir[0]*t
+                    yd = checkdir[1]*t
+                    xx = pos.x + xd
+                    yy = pos.y + yd
+                    
+                    # check we can see this tile
+                    if (xd**2 + yd**2)**0.5 > sight:
+                        break
+                    
+                    here = monat(xx,yy)
+                    if here:
+                        score = t
+                        interesting.append( (here, score) )
+                        
+                    # check tiles in 2 lines spreading outward from this tile
+                    for dir1, dir2 in adjacent_directions(checkdir):
+                        g = 0
+                        while t + g < sight:
+                            pass
+                        # end while
+                    # end for
+                # end while
+                '''
 
 
 # Skills
