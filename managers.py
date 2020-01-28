@@ -649,7 +649,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
                 new.update({k:v})
             self.keysItems=new
         else: self.keysItems=keysItems
-    #   get width and height from items
+        #   get width and height from items
         widest=0
         for k,v in self.keysItems.items():
             leni=len(self.get_name(v)) + 4
@@ -662,17 +662,19 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         self.w = widest + self.border_w*2
         self.h = len(self.keysItems) + self.border_h*2
         self.drawh = rog.window_h()
-    #   make sure it doesn't go off-screen
+        #   make sure it doesn't go off-screen
         if self.x + self.w > rog.window_w():
             self.x = max(0, rog.window_w() - self.w)
         if self.y + self.h > rog.window_h():
             self.y = max(0, rog.window_h() - self.h)
-    #   draw
+        #   sort
+        self.sort()
+        #   draw
         self.con=libtcod.console_new(self.w, self.drawh)
         self.con_text=libtcod.console_new(
             self.w - self.border_w*2, self.h - self.border_h*2)
         self.draw()
-    #   clear buffer
+        #   clear buffer
         IO.get_raw_input()
     
     def run(self):
@@ -681,15 +683,15 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         libtcod.sys_sleep_milli(5)
         key,mouse=IO.get_raw_input()
         
-    #   mouse
+        #   mouse
         if mouse.lbutton_pressed:
             self.refresh()
-            index=mouse.cy - self.y - self.border_h
+            index=mouse.cy - self.y - self.border_h + self.view_pos
             if (index >= 0 and index < self.h - self.border_h*2):
-                result=tuple(self.keysItems.values())[index]
+                result=self.keysItems[self.sorted[index][0]]
                 self.set_result(result)
         
-    #   key
+        #   key
         if libtcod.console_is_key_pressed(key.vk):
             if key.vk == libtcod.KEY_ESCAPE:
                 self.set_result(-1)
@@ -697,6 +699,14 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
                 self.scroll_up()
             if key.vk == libtcod.KEY_DOWN:
                 self.scroll_down()
+            if key.vk == libtcod.KEY_PAGEUP:
+                self.page_up()
+            if key.vk == libtcod.KEY_PAGEDOWN:
+                self.page_down()
+            if key.vk == libtcod.KEY_HOME:
+                self.scroll_top()
+            if key.vk == libtcod.KEY_END:
+                self.scroll_bottom()
         if key.vk == libtcod.KEY_TEXT: # select
             self.refresh()
             n=self.keysItems.get(key.text,None) #.decode()
@@ -716,8 +726,25 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         if self.drawh < self.h:
             self.view_pos = min(self.h - self.drawh, self.view_pos + 1)
             self.draw()
-        
-    def draw(self):
+    def page_up(self):
+        self.view_pos = max(0, self.view_pos - (self.h - 4))
+        self.draw()
+    def page_down(self):
+        if self.drawh < self.h:
+            self.view_pos = min(
+                self.h - self.drawh,
+                self.view_pos + (self.h - 4)
+                )
+            self.draw()
+    def scroll_top(self):
+        self.view_pos = 0
+        self.draw()
+    def scroll_bottom(self):
+        if self.drawh < self.h:
+            self.view_pos = self.h - self.drawh
+            self.draw()
+
+    def sort(self):
         def sorter(val):
             k,v = val
             ordk=ord(k)
@@ -728,8 +755,12 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             if ordk < 60: 
                 return ordk+512 #numbers last
             return ord(k)
+        self.sorted=list(self.keysItems.items())
+        self.sorted.sort(key=sorter)
+        
+    def draw(self):
         y=0
-    #   draw title and box
+        #   draw title and box
         misc.rectangle(
             self.con, 0,0,
             self.w,min(self.drawh,self.h),
@@ -737,10 +768,8 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         title="<{}>".format(self.name)
         tx=math.floor( (self.w - len(title)) /2)
         libtcod.console_print(self.con, tx, 0, title)
-    #   draw options
-        lis=list(self.keysItems.items())
-        lis.sort(key=sorter)
-        for key,item in lis:
+        #   draw options
+        for key,item in self.sorted:
             name=self.get_name(item)
             libtcod.console_print(
                 self.con_text, 1, y, '({i}) {nm}'.format(i=key, nm=name) )
