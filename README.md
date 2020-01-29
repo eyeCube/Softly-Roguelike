@@ -9,6 +9,7 @@ Repository includes some of my modules that may be useful for roguelike devs, su
 *Developer*
 
 Jacob Wharton
+
 Email: eyecube1@protonmail.com
 
 *How to play*
