@@ -4,7 +4,7 @@
         An input/output extension for tcod Python
     
     Softly Into the Night, a sci-fi/Lovecraftian roguelike
-    Copyright (C) 2019 Jacob Wharton.
+    Copyright (C) 2020 Jacob Wharton.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>
-    
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Alpha: This module is currently in Alpha mode
         It is usable but not very user-friendly,
@@ -93,6 +94,7 @@ NUM_ALT_CMDS = 3
 file_keyBindings=os.path.join(
     os.path.curdir,os.path.pardir,"settings","key_bindings.txt")
 
+'''###
 #key_bindings.txt
     #This is the backup key bindings file
 
@@ -101,13 +103,14 @@ file_keyBindings=os.path.join(
     #Delete the key_bindings.txt file from the game's directory to
     #have the game recreate it using the defaults.
     #   - Do not use spaces.
-    #   - To do special keys, including SPACE, refer to the TEXT_TO_KEY dict.
+    #   - To use special keys, including spacebar:
+            refer to the TEXT_TO_KEY dict.
     #   - Take note of the placement you put the command into the text file.
     #Put that command into the dict COMMANDS in the SAME ORDER that you put
     #it into key_bindings.
     #   - Put the command into player.commands or player.const_commands.
     #       (If using this as a third party module, simply run
-    #       handle_mousekeys and check that the command == the value you want)
+    #       handle_mousekeys and check that the result == the desired command)
     
 #if you add new commands you must add new key bindings for those commands.
 #key bindings begin on a new line,
@@ -126,6 +129,8 @@ file_keyBindings=os.path.join(
             #(shift+ period key)
     #Note: NumPad is not currently supported. NumPad must be OFF during play.
     #Note: commands are not case-sensitive.
+###'''
+
 KEYBINDINGS_TEXT_DEFAULT = '''//file name: {filename}
 
 //These are comments.
@@ -171,7 +176,7 @@ KEYBINDINGS_TEXT_DEFAULT = '''//file name: {filename}
 // Bindings |
 //---------//
 
-// display help menu
+// display commands / help
 Shift+/
 NONE
 NONE

@@ -1,7 +1,7 @@
 '''
     managers.py
     Softly Into the Night, a sci-fi/Lovecraftian roguelike
-    Copyright (C) 2019 Jacob Wharton.
+    Copyright (C) 2020 Jacob Wharton.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,25 +29,21 @@ import maths
 
 
 '''
-#
-# abstract Manager class
-#
-# 
-# A manager is an object that has functions for handling a complex task,
-# which is carried out using its 'run()' function.
-# give it some starting data, then call 'run()' inside a while loop.
-# check the output of the manager with the property 'result'.
-# finish the execution by calling 'close()'.
-#
-#     * Only the 'run', 'close', and 'result' functions should be called
+    Managers
+    
+    A manager can take over the normal flow of the game by executing
+    its "run" function in a loop. The loop is ended when the manager
+    has collected a "result." Then, we call the manager's "close"
+    function which resets the game state.
+
+      * Only the 'run', 'close', and 'result' functions should be called
     outside of the manager.
       * The manager only accesses its own functions through its 'run' method.
       * You can intercept the 'run' function at the end of each iteration
     in your while loop, simply by writing code following the 'run()' call.
-    This is one of the useful things about managers.
-#
+
 '''
-class Manager(object):
+class Manager(object): #abstract Manager class
     
     def __init__(self):
         self._result=None

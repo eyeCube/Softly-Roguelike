@@ -1,7 +1,7 @@
 '''
     debug.py
     Softly Into the Night, a sci-fi/Lovecraftian roguelike
-    Copyright (C) 2019 Jacob Wharton.
+    Copyright (C) 2020 Jacob Wharton.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

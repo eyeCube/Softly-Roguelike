@@ -1,7 +1,7 @@
 '''
     rogue.py
     Softly Into the Night, a sci-fi/Lovecraftian roguelike
-    Copyright (C) 2019 Jacob Wharton.
+    Copyright (C) 2020 Jacob Wharton.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2040,30 +2040,31 @@ def create_moddedStats(ent):
     # occupations #
     #-------------#
 
-def occupations(ent):
-    return Rogue.occupations.get(ent, None)
-def occupation_add(ent,turns,fxn,args,helpless):
-    '''
-        fxn: function to call each turn.
-        args: arguments to pass into fxn
-        turns: turns remaining in current occupation
-        helpless: bool, whether ent can be interrupted
-        interrupted: bool, whether ent has been interrupted in this action
-    '''
-    Rogue.occupations.update({ ent : (fxn,args,turns,helpless,False) })
-def occupation_remove(ent):
-    del Rogue.occupations[ent]
-def occupation_elapse_turn(ent):
-    fxn,args,turns,helpless,interrupted = Rogue.occupations[ent]
-    if interrupted:
-        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
-        return False    # interrupted occupation
-    if turns:
-        setAP(ent, 0)
-        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
-    elif fxn is not None:
-        fxn(ent, args)
-    return True     # successfully continued occupation
+# OBSELETE (?)
+##def occupations(ent):
+##    return Rogue.occupations.get(ent, None)
+##def occupation_add(ent,turns,fxn,args,helpless):
+##    '''
+##        fxn: function to call each turn.
+##        args: arguments to pass into fxn
+##        turns: turns remaining in current occupation
+##        helpless: bool, whether ent can be interrupted
+##        interrupted: bool, whether ent has been interrupted in this action
+##    '''
+##    Rogue.occupations.update({ ent : (fxn,args,turns,helpless,False) })
+##def occupation_remove(ent):
+##    del Rogue.occupations[ent]
+##def occupation_elapse_turn(ent):
+##    fxn,args,turns,helpless,interrupted = Rogue.occupations[ent]
+##    if interrupted:
+##        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
+##        return False    # interrupted occupation
+##    if turns:
+##        setAP(ent, 0)
+##        Rogue.occupations.update({ ent : (fxn,args,turns - 1,helpless,interrupted) })
+##    elif fxn is not None:
+##        fxn(ent, args)
+##    return True     # successfully continued occupation
     
 
 
@@ -2182,7 +2183,7 @@ def clear_active_manager():
 
 def routine_look(xs, ys):
     clear_active_manager()
-    game_set_state("look")
+    game_set_state("manager") #look
     Rogue.manager=managers.Manager_Look(
         xs, ys, Rogue.view, Rogue.map.get_map_state())
     alert("Look where? (<hjklyubn>, mouse; <select> to confirm)")
@@ -2190,15 +2191,31 @@ def routine_look(xs, ys):
 
 def routine_move_view():
     clear_active_manager()
-    game_set_state("move view")
+    game_set_state("manager") #move view
     Rogue.manager=managers.Manager_MoveView(
         Rogue.view, Rogue.map.get_map_state(),
         "Direction? (<hjklyubn>; <select> to center; <Esc> to save position)")
     Rogue.view.fixed_mode_disable()
 
+# Manager_PrintScroll
+def help():
+    clear_active_manager()
+    game_set_state("manager") # help
+    width   = window_w()
+    height  = window_h()
+    strng   = IO.render_help()
+    nlines  = 1 + strng.count('\n')
+    hud1h   = 3
+    hud2h   = 3
+    scroll  = makeConBox(width,1000,strng)
+    top     = makeConBox(width,hud1h,"help")
+    bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
+    Rogue.manager = managers.Manager_PrintScroll(
+        scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+# end def
 def routine_print_msgHistory():
     clear_active_manager()
-    game_set_state("message history")
+    game_set_state("manager") #message history
     width   = window_w()
     height  = window_h()
     strng   = Rogue.log.printall_get_wrapped_msgs()
@@ -2208,11 +2225,12 @@ def routine_print_msgHistory():
     scroll  = makeConBox(width,1000,strng)
     top     = makeConBox(width,hud1h,"message history")
     bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
-    Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
-
+    Rogue.manager = managers.Manager_PrintScroll(
+        scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+# end def
 def routine_print_charPage():
     clear_active_manager()
-    game_set_state("character page")
+    game_set_state("manager") #character page
     width   = window_w()
     height  = window_h()
     strng   = misc.render_charpage_string(width,height,pc(),get_turn(),dlvl())
@@ -2222,7 +2240,9 @@ def routine_print_charPage():
     scroll  = makeConBox(width,200,strng)
     top     = makeConBox(width,hud1h,"character data sheet")
     bottom  = makeConBox(width,hud2h,"<Up>, <Down>, <PgUp>, <PgDn>, <Home>, <End>; <select> to return")
-    Rogue.manager = managers.Manager_PrintScroll( scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+    Rogue.manager = managers.Manager_PrintScroll(
+        scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
+# end def
 
 def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
     return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
@@ -2253,6 +2273,8 @@ def get_direction():
                 dy=mousey - gety(pc.y)
                 if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
                     return (dx,dy,0,)
+# end def
+    
 
 
 #prompt

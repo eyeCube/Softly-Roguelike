@@ -1,7 +1,7 @@
 '''
     main.py
     Softly Into the Night, a sci-fi/Lovecraftian roguelike
-    Copyright (C) 2019 Jacob Wharton.
+    Copyright (C) 2020 Jacob Wharton.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -268,14 +268,9 @@ def main():
         if gameState == "normal":
             game.play(pc, pcAct)
         #
-        # other game states #
+        # manager game states #
         #
-        elif (gameState == "move view"
-                or gameState == "look"
-                or gameState == "busy"
-                or gameState == "message history"
-                or gameState == "character page"
-                ):
+        elif gameState == "manager":
             manager=rog.get_active_manager()
             manager.run(pcAct)
             if manager.result:
