@@ -459,6 +459,8 @@ def chargen(sx, sy):
             _menuList={'m':'male','f':'female','n':'nonbinary','*':'random',}
             
             _gender=rog.menu("Gender Select",xx,yy,_menuList,autoItemize=False)
+            if _gender == -1:
+                _gender = 'random'
             if _gender == 'nonbinary':
                 _genderName = "nonbinary" # temporary...
 ##                #select gender from list of added genders
@@ -507,9 +509,9 @@ def chargen(sx, sy):
         #user selects a class
         _className = rog.menu("Class Select",xx,yy+iy,_menuList,autoItemize=False)
         #random
-        if _className == 'random':
+        if (_className == 'random' or _className == -1):
             _classID = random.choice(_randList)
-            _className = "__CLASSNAME__" #TEMP:  #jobs.getName(_classID)
+            _className = entities.JOBS[_classID][1]
         #get the relevant data
         _type = _classList[_className][0] # get the class Char value
         _mask = _type
@@ -541,6 +543,8 @@ def chargen(sx, sy):
                      )
             _skill = rog.menu( "skill points: {}".format(ptsRemaining),
                 xx,yy,skilldict.keys() )
+            if _skill == -1: # Esc
+                break
             
             #get the skill ID
             _skillID = skilldict[_skill]
@@ -576,12 +580,14 @@ wrap=False,con=rog.con_final(),disp='mono'
             
         rog.blit_to_final(rog.con_game(),0,0)
         rog.refresh()
-        _ans=rog.prompt(x1,rog.window_h()-4,ww,4,maxw=20,
-                        q="continue with this character? y/n",
-                        mode="wait"
-                        )
-        if not _ans.lower()=='y':
-            return chargen(sx,sy)
+        _ans=''
+        while _ans!='y':
+            _ans=rog.prompt(x1,rog.window_h()-4,ww,4,maxw=20,
+                            q="continue with this character? y/n",
+                            mode="wait"
+                            )
+            if _ans.lower()=='n':
+                return chargen(sx,sy)
         #
             
         #stats?
@@ -659,7 +665,7 @@ wrap=False,con=rog.con_final(),disp='mono'
             rog.alts(pc, stat, value)
         #add additional skill
         for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.setskill(pc, sk_id, rog.getskill(pc, sk_id) + 5)
+            rog.setskill(pc, sk_id, min(100, rog.getskill(pc, sk_id) + 5) )
         print("skills = ", rog.world().component_for_entity(pc, cmp.Skills).skills)
     # end if
     

@@ -851,7 +851,7 @@ def fov_init():  # normal type FOV map init
     return fovMap
 #@debug.printr
 def fov_compute(ent):
-    print("computing fov for ent {}".format(ent))
+##    print("computing fov for ent {}".format(ent))
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     senseSight = Rogue.world.component_for_entity(ent, cmp.SenseSight)
     libtcod.map_compute_fov(
@@ -2306,6 +2306,8 @@ def menu(name, x,y, keysItems, autoItemize=True):
 # target entity using a dumb line traversing algorithm
 # returns an entity or None
 #
+# TODO: convert this to a manager
+#
 def aim_find_target():
     world=Rogue.world
     targeted = None
@@ -2322,8 +2324,6 @@ def aim_find_target():
         return None
     
     mostinteresting = sorted(interesting, key=lambda x: x[1])
-
-# USE THE LOOK MANAGER?
     
     while True:
         pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()

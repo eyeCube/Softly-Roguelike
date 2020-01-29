@@ -28,11 +28,6 @@ import game
 import player
 ##import observer    # TODO: implement observer as a processor
 
-# TESTING
-from colors import COLORS as COL
-import debug
-import entities
-#
 
 #
 
@@ -91,9 +86,14 @@ def main():
     rog.Rogue.create_player(xpos, ypos) # create player
     
     rog.make(rog.pc(), NVISION)
-    import action
-##    action.sit(rog.pc())
-    import components as cmp
+    # TESTING
+##    import action
+##    import components as cmp
+##    from colors import COLORS as COL
+##    import debug
+##    import entities
+    #
+    
 ##    rog.set_status(rog.pc(), cmp.StatusCold, 8)
 ##    rog.set_status(rog.pc(), cmp.StatusDisoriented)
 ##    rog.set_status(rog.pc(), cmp.StatusDrunk, t=1920, q=-4*MULT_STATS)

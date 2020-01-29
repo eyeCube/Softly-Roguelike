@@ -304,7 +304,7 @@ IMMUNEROT   = i; i+=1;  # Immune to rotting
 IMMUNEWATER = i; i+=1;  # Immune to getting wet
 IMMUNEBLEED = i; i+=1;  # Immune to bleeding
 IMMUNEPAIN  = i; i+=1;  # Immune to pain
-DIRTY_STATS = i; i+=1;  # indicates entity needs to update stats
+DIRTY_STATS = i; i+=1;  # private -- indicates entity's stats (may) have changed
 
 #
 # FOV maps | FOVmaps
@@ -2154,7 +2154,7 @@ SKL_COOKING     :(1,'cook',),
 SKL_WOOD        :(1,'woodcraft',),
 SKL_BONE        :(1,'bonecraft',),
 SKL_LEATHER     :(2,'leathercraft',),
-SKL_PLASTIC     :(1,'plasticcraft',),
+SKL_PLASTIC     :(1,'plasticraft',),
 SKL_STONE       :(1,'stonecraft',),
 SKL_GLASS       :(3,'glasscraft',),
 SKL_METAL       :(3,'metalcraft',),

@@ -802,7 +802,9 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             if self.view_pos > 0:
                 if add: add+=" "
                 add+="(^)"
-            libtcod.console_print(0, self.x+2, self.y+self.drawh-1, add)
+            libtcod.console_print( 0,
+                self.x+2, self.y + min(self.h, self.drawh) - 1,
+                add )
         libtcod.console_flush()
 
 

@@ -594,7 +594,7 @@ VK_TO_CHAR = {      # translate key consants into a char
 # cursor
 #
     
-class Cursor():
+class Cursor:
     
     def __init__(self,x=0,y=0,rate=0.3):
         self.set_pos(x,y)
