@@ -115,6 +115,13 @@ SKL_PITCHING    = SKL_THROWING
 SKL_SPINNING    = SKL_THROWING
 SKL_TIPFIRST    = SKL_THROWING
 
+# body plans
+HUMAN = BODYPLAN_HUMANOID
+INSECT = BODYPLAN_INSECTOID
+4LEGS = BODYPLAN_4LEGGED
+8ARMS = BODYPLAN_8ARMS
+CUSTOM = BODYPLAN_CUSTOM
+
 
 
 # FUNCTIONS #
@@ -4434,26 +4441,43 @@ diplomacy={
 }
 
 bestiary={
+    # CHANGE FORMAT TO DICT-STYLE e.g. {'atk':2,'str':-2,} etc.
+    # all stats relative to BASE_ stats in const.py
+    
     # Column names in more detail:
     # Lo qi, Hi qi, Attack, Damage, Dodge, Armor, Speed, Move Speed, Attack Speed, Carrying Capacity, Mass, Gold.
     
-#Type,  Name,                   (Lo\ Hi\ At\Dm\Pen\DV\AV\Pro\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\CARRY\KG\$$\),FLAGS,script,
+#Type,  Name,                   (Lo\ Hi\ At\Dm\Pen\DV\AV\Pro\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\ENC\KG\ $$\),FLAGS,script,
+''' TODO: REMOVE
+'@' : ('human',                 (2,  20, 0, 0, 0,  10,0, 0,  100,100,0,   20, 20, 20, 20, 80,  0,  65, 96, ),(),None,),
+'a' : ('abomination',           (16, 8,  -2,4, 0,  -8,2, 2,  100,90, 110, 50, 50, 25, 6,  0,   0,  80, 0,  ),(),None,),
+'b' : ('bug-eyed business guy', (20, 30, 2, 2, 3,  2, 0, 0,  150,120,100, 50, 50, 20, 30, 80,  20, 60, 96, ),(),None,),
+'B' : ('butcher',               (40, 20, 2, 5, 2,  -4,1, 2,  100,100,100, 60, 50, 50, 10, 80,  0,  130,48, ),(),None,),
+'L' : ('raving lunatic',        (12, 25, 2, 3, 2,  2, 0, 0,  100,100,100, 25, 15, 30, 10, 0,   0,  50, 0, ),(),None,), #BABBLES,
+'r' : ('ravaged',               (4,  1,  -4,1, 0,  -8,-1,0,  100,80, 70,   0,  0, 0,  10, 0,   0,  35, 0,  ),(),None,),
+'R' : ('orctepus',              (15, 5,  4, 2, 8, -12,0, 0,  100,80, 145,  0, 80, 0,  15, 0,   20, 100,0,  ),(),None,),
+'s' : ('slithera',              (6,  15, 6, 3, 1,  -4,0, 0,  100,33, 150,  0, 50, 5,  5,  0,   0,  30, 0, ),(),None,),
+'U' : ('obese scrupula',        (20, 2,  0, 6, 2, -16,3, 6,  100,50, 90,  20, 65, 60, 10, 0,   40, 140,48,  ),(),None,),
+'V' : ('ash vampire',           (30, 80, 2, 3, 2,  8, 0, 0,  100,120,100, 10, 75, 5,  5,  200, 0,  30, 192,  ),(),None,),
+'w' : ('dire wolf',             (12, 3,  12,5, 0,  8, 0, 1,  100,225,115, 15, 15, 15, 15, 0,   0,  50, 0,  ),(),None,),
+'W' : ('whipmaster',            (50, 10, 6, 5, 4,  4, 2, 4,  100,80, 100, 25, 60, 10, 15, 0,   10, 75, 192, ),(),None,),
+'z' : ('zombie',                (8,  1,  -6,4, 0, -12,-1,0,  50, 40, 100, 10, 25, 55, 5,  0,   0,  45, 0,  ),(),None,),
+''':(), # TODO: REMOVE
 
-'@' : ('human',                 (20, 20, 2, 2, 2,  2, 0, 0,  100,100,100, 25, 25, 25, 20, 100, 60,  65, 500, ),(),None,),
-'a' : ('abomination',           (16, 8,  -2,4, 0,  -8,2, 2,  100,90, 110, 50, 50, 25, 6,  0,   30,  80, 0,  ),(),None,),
-'b' : ('bug-eyed business guy', (20, 30, 2, 2, 3,  2, 0, 0,  150,120,100, 50, 50, 20, 30, 100, 90,  60, 500, ),(),None,),
-'B' : ('butcher',               (40, 20, 2, 5, 2,  -4,1, 2,  100,100,100, 60, 50, 50, 10, 100, 90,  130,300, ),(),None,),
-'L' : ('raving lunatic',        (12, 25, 2, 3, 2,  2, 0, 0,  100,100,100, 25, 15, 30, 10, 0,   60,  50, 0, ),(),None,), #BABBLES,
-'r' : ('ravaged',               (4,  1,  -4,1, 0,  -8,-1,0,  100,80, 70,   0,  0, 0,  10, 0,   15,  35, 0,  ),(),None,),
-'R' : ('orctepus',              (15, 5,  4, 2, 8, -12,0, 0,  100,80, 145,  0, 80, 0,  8,  0,   120, 100,0,  ),(),None,),
-'s' : ('slithera',              (6,  15, 6, 3, 1,  -4,0, 0,  100,33, 150,  0, 50, 5,  5,  0,   35,  30, 0, ),(),None,),
-'U' : ('obese scrupula',        (20, 2,  0, 6, 2, -16,3, 6,  100,50, 90,  20, 65, 60, 10, 0,   85,  140,100,  ),(),None,),
-'V' : ('ash vampire',           (30, 80, 2, 3, 2,  8, 0, 0,  100,120,100, 10, 75, 5,  5,  200, 60,  30, 1000,  ),(),None,),
-'w' : ('dire wolf',             (12, 3,  12,5, 0,  8, 0, 1,  100,225,115, 15, 15, 15, 15, 0,   20,  50, 0,  ),(),None,),
-'W' : ('whipmaster',            (50, 10, 6, 5, 4,  4, 2, 4,  100,80, 100, 25, 60, 10, 15, 0,   75,  75, 1000, ),(),None,),
-'z' : ('zombie',                (8,  1,  -6,4, 0, -12,-1,0,  50, 40, 100, 10, 25, 55, 5,  0,   30,  45, 0,  ),(),None,),
+##BESTIARY={
+#TODO: new create_monster function
+# references BASE_ stats
+#  for sight and hearing, stats are considered multipliers (default value of 1)
 
-
+#Type, name, KG, bodyplan, (FLAGS), script, {Stat Dict},
+'h' : ('human', 70, HUMAN, (),None,
+    {}, ),
+'a' : ('abomination', 90, 4LEGS, (),None,
+    {'str':4,'end':-6,'dex':-12,'int':-8,'con':4,'agi':-8,'resbio':50,'sight':0.25,'hearing':0,},),
+'r' : ('ravaged', 35, HUMAN, (),None,
+    {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
+'R' : ('orctepus', 100, 8ARMS, (IMMUNEWATER,),None,
+    {'str':6,'end':-4,'dex':-6,'int':-2,'con':4,'agi':4,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
 }
 
 corpse_recurrence_percent={
@@ -5717,85 +5741,84 @@ JOBS={
         #(itemName, dictionary, quantity)
             # where dictionary is the item table where the item can be found.
     
-    # IDEA: instead of jobs, just have a chargen system where you pick the skills you want
     
 #ID                Char,Name         KG, $$$$,S|Key, stats, skills, items
 CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
     {'con':2,'agi':4,'end':8,'int':-4,'msp':10,},
     (SKL_ATHLETE,),
     (('running shoe', FOOTARMOR, 2,),),
-                   ),
+    ),
 CLS_CHEMIST     : ("C", "chemist",   65, 2000,1,'L',
     {'int':8,'end':-2,'con':-2,'agi':-2,},
     (SKL_CHEMISTRY,),
     (),
-                   ),
+    ),
 CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
     {'sight':-5,'hearing':-20,'str':-2,'con':-2,'int':-2,'end':-2,'dex':-2,'agi':-2,},
     (SKL_SURVIVAL,SKL_ASSEMBLY,),
     ('wooden club', WEAPONS, 1,),
-                   ),
+    ),
 CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',
     {'int':6,'dex':6,'end':-4,'agi':-4,'con':-4,},
     (SKL_MEDICINE,SKL_SURGERY,),
     (('scalpel', WEAPONS, 1,),),
-                   ),
+    ),
 CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
     {},
     (),
     (),
-                   ),
+    ),
 CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'',
     {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
     (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
     (),
-                   ),
+    ),
 CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
     {'dex':4,'con':4,'int':-4,'gra':2,},
     (SKL_BLUDGEONS,SKL_ENERGY,),
     (('metal baton', WEAPONS, 1,),),
-                   ),
+    ),
 CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
     {'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},
     (SKL_PILOT,),
     (),
-                   ),
+    ),
 CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
     {'str':4,'con':4,'dex':2,'end':2,'int':-2,},
     (SKL_BLUDGEONS,SKL_ENERGY,SKL_PISTOLS,SKL_SMGS,SKL_SHIELDS,SKL_ARMOR,),
     (('metal truncheon', WEAPONS, 1,),),
-                   ),
+    ),
 CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
     {'int':4,'agi':-2,'con':-2,},
     (SKL_COMPUTERS,),
     (),
-                   ),
+    ),
 CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
     {'con':-2,'end':-4,'int':4,},
     (SKL_PERSUASION,),
     (),
-                   ),
+    ),
 CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'',
     {'con':2,'int':2,'dex':2,'agi':2,'encmax':10,},
     (SKL_PERSUASION,SKL_PISTOLS,),
     (),
-                   ),
+    ),
 CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
     {'int':2,'dex':2,'end':-2,'agi':-2,},
     (SKL_HARDWARE,),
     (),
-                   ),
+    ),
 CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
     {'agi':6,'dex':4,'end':2,'con':-2,'encmax':30,},
     (SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),
     (),
-                   ),
+    ),
 CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'',
     {'sight':-5,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':2,},
     (SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),
     (),
-                   ),
-    }
+    ),
+}
 
 
 

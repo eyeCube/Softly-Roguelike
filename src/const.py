@@ -394,7 +394,7 @@ INSUFF_DEX_ASP_PENALTY  = 12
 
 # Stats #
 
-    # base stats for player
+    # base stats for typical creature
 BASE_HP         = 2
 BASE_MP         = 20
 BASE_MPREGEN    = 1
@@ -704,25 +704,30 @@ CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
 FAT_RESCOLD             = 2         # per kg of fat
-FAT_RESHEAT             = -2        # per kg of fat
+FAT_RESHEAT             = -1        # per kg of fat
 
 # body plans:
 #   body part coverage, for targeting specific body parts
 i=0;
-BODYPLAN_HUMANOID   = i; i+=1; # torso 45% head 5% legs 30% arms 20%
-BODYPLAN_INSECTOID  = i; i+=1; # torso 75% head 10% legs 15%
-BODYPLAN_4LEGGED    = i; i+=1; # torso 45% head 5% legs 50%
+BODYPLAN_HUMANOID   = i; i+=1; 
+BODYPLAN_INSECTOID  = i; i+=1; # 6-legged
+BODYPLAN_ARACHNID   = i; i+=1; # 8-legged arthropod
+BODYPLAN_4LEGGED    = i; i+=1; # canine, feline, equestrian, 
+BODYPLAN_8ARMS      = i; i+=1; # octopus
 BODYPLAN_CUSTOM     = i; i+=1; # for special cases, body plan built up manually
 #
 
 # body plan data #
 
 #formerly: BODYPLANS
-BODY_COVERAGE={ # for targeting with ranged weapons
+BODY_COVERAGE={
+    # % body coverage of various parts
+    # for targeting body parts (as with ranged weapons)
 BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
-BODYPLAN_INSECTOID  : {"core":75, "head":10, "legs":15,},
+BODYPLAN_INSECTOID  : {"core":60, "head":15, "legs":25,},
 BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
-BODYPLAN_CUSTOM     : {"core":50,},
+BODYPLAN_8LEGGED    : {"core":10, "head":25, "legs":65,},
+BODYPLAN_CUSTOM     : {"core":100,},
     }
 
 BODY_TEMP = {
@@ -1811,10 +1816,12 @@ MAT_WATER       = i; i+=1;
 MAT_OIL         = i; i+=1;
 MAT_QUARTZ      = i; i+=1;#silica, sand
 MAT_RUBBER      = i; i+=1;
+MAT_CHITIN      = i; i+=1; # fungi, arthropods, crustaceans, insects, molluscs, cephalopod beaks, fish/amphibian scales
+MAT_KERATIN     = i; i+=1; # vertebrates (reptiles, birds, amphibians, mammals, spider silk)
 ##MAT_FUNGUS      = i; i+=1; #use flesh
 ##MAT_VEGGIE      = i; i+=1; #use wood
 ##MAT_SAWDUST     = i; i+=1; # just use DUST
-##MAT_GUNPOWDER   = i; i+=1;
+##MAT_GUNPOWDER   = i; i+=1; # just use DUST
 #
 # FLUIDS are mats, too.
 #

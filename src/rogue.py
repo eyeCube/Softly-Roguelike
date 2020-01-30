@@ -130,9 +130,9 @@ class Rogue:
         cls.world.add_processor(proc.TimersProcessor(), 90)
             # after all changes have been made
         cls.world.add_processor(proc.GUIProcessor(), 71)
-            # AI function (entity turns)
+            # AI function and queued actions processor
         cls.world.add_processor(proc.ActorsProcessor(), 50)
-
+    
     @classmethod
     def create_perturn_managers(cls):
         '''
@@ -2164,6 +2164,9 @@ def queue_action(ent, act):
 def manager_sights_run():   Rogue.c_managers['sights'].run()
 def manager_sounds_run():   Rogue.c_managers['sounds'].run()
 
+def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
+    return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
+
 # constant managers #
 
 def register_timer(obj):    Rogue.bt_managers['timers'].add(obj)
@@ -2244,12 +2247,6 @@ def routine_print_charPage():
         scroll,width,height, top,bottom, h1=hud1h,h2=hud2h,maxy=nlines)
 # end def
 
-def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
-    return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
-
-def adjacent_directions(_dir):
-    return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
-
 #
 # get direction
 # player chooses a direction using key bindings or the mouse,
@@ -2275,8 +2272,6 @@ def get_direction():
                     return (dx,dy,0,)
 # end def
     
-
-
 #prompt
 # show a message and ask the player for input
 # Arguments:
@@ -2321,8 +2316,6 @@ def menu(name, x,y, keysItems, autoItemize=True):
     if result == ' ': return None
     return manager.result
     
-    
-
 #
 # aim find target entity
 # target entity using a dumb line traversing algorithm
@@ -2371,6 +2364,9 @@ def aim_find_target():
     # end while
 # end def
 
+
+def adjacent_directions(_dir):
+    return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
 
 
 

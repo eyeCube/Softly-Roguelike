@@ -439,7 +439,7 @@ class BPM_Hearts:
     usually contain a slot, covered bool, and optional BPP sub-components
     DO NOT have a STATUS
 '''
-class BP_TorsoCore:
+class BP_TorsoCore: # abdomen
     __slots__=['slot','artery','muscle','skin','guts','covered']
     def __init__(self):
         self.slot=Slot()
@@ -448,7 +448,7 @@ class BP_TorsoCore:
         self.skin=BPP_Skin()
         self.guts=BPP_Guts()
         self.covered=False
-class BP_TorsoFront:
+class BP_TorsoFront: # thorax front
     __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
@@ -457,7 +457,7 @@ class BP_TorsoFront:
         self.muscle=BPP_Muscle() # pecs
         self.skin=BPP_Skin()
         self.covered=False
-class BP_TorsoBack:
+class BP_TorsoBack: # thorax back
     __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
         self.slot=Slot()
@@ -570,6 +570,39 @@ class BP_Foot: # foot, ankle and lower leg
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
         self.covered=False
+class BP_InsectThorax:
+    __slots__=['slot','exoskeleton','muscle','covered']
+    def __init__(self):
+        self.slot=Slot()
+        self.muscle=BPP_Muscle()
+        self.exoskeleton=BPP_Exoskeleton()
+        self.covered=False
+class BP_InsectAbdomen:
+    __slots__=['slot','exoskeleton','heart','guts','covered']
+    def __init__(self):
+        self.slot=Slot()
+        self.heart=BPP_Heart()
+        self.guts=BPP_Guts()
+        self.exoskeleton=BPP_Exoskeleton()
+        self.covered=False
+class BP_InsectHead:
+    __slots__=['slot','exoskeleton','brain','antennae','visualSystem',
+               'mandible','covered']
+    def __init__(self):
+        self.slot=Slot()
+        self.exoskeleton=BPP_Exoskeleton()
+        self.brain=BPP_Brain()
+        self.antennae=BPP_Antennae()
+        self.visualSystem=BPP_VisualSystem()
+        self.mandible=BPP_Mandible()
+        self.covered=False
+class BP_InsectLeg:
+    __slots__=['slot','exoskeleton','muscle','covered']
+    def __init__(self):
+        self.slot=Slot()
+        self.muscle=BPP_Muscle()
+        self.exoskeleton=BPP_Exoskeleton()
+        self.covered=False
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
     __slots__=['slot','artery','muscle','skin','stickies','covered']
     def __init__(self, stickies=0):
@@ -646,6 +679,18 @@ class BPP_Bone:
     def __init__(self, mat=-1):
         if mat==-1: mat=MAT_BONE
         self.material=mat # determines Strength of the bone
+        self.status=0
+class BPP_Exoskeleton:
+    __slots__=['material','status']
+    def __init__(self, mat=-1):
+        if mat==-1: mat=MAT_CHITIN
+        self.material=mat
+        self.status=0
+class BPP_Shell: # chitinous shell
+    __slots__=['material','status']
+    def __init__(self, mat=-1):
+        if mat==-1: mat=MAT_CHITIN
+        self.material=mat
         self.status=0
 class BPP_Muscle:
     __slots__=['status','str']#,'fatigue','fatigueMax'
