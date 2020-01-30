@@ -221,28 +221,14 @@ def getJobSkills(jobID) -> tuple:
 
 # MONSTERS
 def getMonName(_char):      return bestiary[_char][0]
-def getMonLo(_char):        return bestiary[_char][1][0]
-def getMonHi(_char):        return bestiary[_char][1][1]
-def getMonAtk(_char):       return bestiary[_char][1][2]
-def getMonDmg(_char):       return bestiary[_char][1][3]
-def getMonPen(_char):       return bestiary[_char][1][4]
-def getMonDV(_char):        return bestiary[_char][1][5]
-def getMonAV(_char):        return bestiary[_char][1][6]
-def getMonPro(_char):       return bestiary[_char][1][7]
-def getMonSpd(_char):       return bestiary[_char][1][8]
-def getMonMsp(_char):       return bestiary[_char][1][9]
-def getMonAsp(_char):       return bestiary[_char][1][10]
-def getMonFir(_char):       return bestiary[_char][1][11]
-def getMonBio(_char):       return bestiary[_char][1][12]
-def getMonElc(_char):       return bestiary[_char][1][13]
-def getMonSight(_char):     return bestiary[_char][1][14]
-def getMonHear(_char):      return bestiary[_char][1][15]
-def getMonCarry(_char):     return bestiary[_char][1][16]
-def getMonKG(_char):        return bestiary[_char][1][17]
-def getMonMoney(_char):     return bestiary[_char][1][18]
-def getMonFlags(_char):     return bestiary[_char][2]
-def getMonScript(_char):    return bestiary[_char][3]
-
+def getMonKG(_char):        return bestiary[_char][1]
+def getMonCM(_char):        return bestiary[_char][2]
+def getMonMat(_char):       return bestiary[_char][3]
+def getMonBodyPlan(_char):  return bestiary[_char][4]
+def getMonFlags(_char):     return bestiary[_char][5]
+def getMonScript(_char):    return bestiary[_char][6]
+def getMonStats(_char):     return bestiary[_char][7]
+#name, KG, bodyplan, (FLAGS), script, {Stat Dict},
 
 
 
@@ -669,13 +655,15 @@ def _lighter(tt):
 def _grave(tt):
     rog.world().add_component(tt, cmp.Readable(random.choice(HISTORY_EPITAPHS)))
 
-
-
 def _meatFlower(item):
     rog.world().add_component(item, cmp.Harvestable(
         300, {'parcel of flesh' : 1}, {cmp.Tool_Chop : 1}
         ))
 
+
+    # monsters
+def _whipmaster(ent):
+    rog.setskill(ent, SKL_BULLWHIPS, 50)
 
 
     # raw mats
@@ -4138,86 +4126,67 @@ def create_weapon(name, x,y, quality=1) -> int:
 #
 
 # monsters
-def create_monster(_type, x, y, col=None, mutate=0) -> int:
-
-              # THIS IS BROKEN AND NEEDS A LOT OF WORK
-
-              # TODO: import bestiary from Excel file
-
-              # TODO: add all new stats to bestiary
-
-              # TODO: get body type from excel, and from that info, make a body and assign it as component to the monster entity.
-
-              
+def create_monster(_type, x, y, col=None, mutate=0, money=0) -> int:
     if not col:
         col = COL['red']
+    
     monData = bestiary[_type]
     name = getMonName(_type)
-    _str = getMonStr(_type)*MULT_ATT 
-    _con = getMonCon(_type)*MULT_ATT
-    _dex = getMonDex(_type)*MULT_ATT
-    _agi = getMonAgi(_type)*MULT_ATT
-    _int = getMonInt(_type)*MULT_ATT
-    _end = getMonEnd(_type)*MULT_ATT
-    hp = getMonLo(_type)
-    mp = getMonHi(_type)
-    atk = getMonAtk(_type)*MULT_STATS
-    dmg = getMonDmg(_type)*MULT_STATS
-    pen = getMonPen(_type)*MULT_STATS
-    pro = getMonPro(_type)*MULT_STATS
-    dv = getMonDV(_type)*MULT_STATS
-    av = getMonAV(_type)*MULT_STATS
-    gra = getMonGra(_type)*MULT_STATS
-    ctr = getMonCtr(_type)*MULT_STATS
-    bal = getMonBal(_type)*MULT_STATS
-    spd = getMonSpd(_type)
-    asp = getMonAsp(_type)
-    msp = getMonMsp(_type)
-    fir = getMonResFire(_type) # TODO: make all the get resistance functions
-    ice = getMonResCold(_type)
-    elc = getMonResElec(_type)
-    bio = getMonResBio(_type)
-    bld = getMonResBleed(_type)
-    pai = getMonResPain(_type)
-    phs = getMonResPhys(_type)
-    rus = getMonResRust(_type)
-    rot = getMonResRot(_type)
-    wet = getMonResWet(_type)
-    lgt = getMonResLight(_type)
-    snd = getMonResSound(_type)
-    sight = getMonSight(_type)
-    hear = getMonHear(_type)
-    encmax = getMonCarry(_type)
     kg = round(getMonKG(_type)*MULT_MASS)
-    money = getMonMoney(_type)*MULT_VALUE
+    cm = getMonCM(_type)
+    mat = getMonMat(_type)
+    bodyplan = getMonBodyPlan(_type)
     flags = getMonFlags(_type)
     script = getMonScript(_type)
-
-    # TODO: add fringe resistances like light, sounds, pain, bleed, etc.
-
-    # TODO: add AI component if not already added somewhere ........ (is it???)
+    stats = getMonStats(_type)
+    
+    sight=round(BASE_SIGHT*stats.get('sight',1))
+    hear=round(BASE_HEARING*stats.get('hearing',1))
+    
+    female=False #temporary
+    if bodyplan==BODYPLAN_HUMANOID:
+        body, basekg = create_body_humanoid(kg, cm, female)
     
     ent = rog.world().create_entity(
+        body,
+        cmp.AI(ai.stateless), #temporary
+        cmp.Name(name),
         cmp.Draw(_type, col, COL['deep']),
         cmp.Position(x, y),
         cmp.Actor(),
-        cmp.Form(MAT_FLESH, 0),
-        cmp.Name(name),
+        cmp.Form(mat, 0),
         cmp.Creature(faction=FACT_MONSTERS),
         cmp.Stats(
-            mass=kg,encmax=encmax,
-            hp=hp,mp=mp,
-            resfire=fir,resbio=bio,reselec=elc,resphys=phs,
-            rescold=ice,resbleed=bld,respain=pai,resrust=rus,
-            resrot=rot,reswet=wet,reslight=lgt,ressound=snd,
-            atk=atk,dmg=dmg,dfn=dv,arm=av,pen=pen,pro=pro,
-            spd=spd,asp=asp,msp=msp
+            mass=basekg,
+            encmax=BASE_ENCMAX+stats.get('encmax',0),
+            hp=BASE_HP+stats.get('hp',0),
+            mp=BASE_MP+stats.get('mp',0),
+            resfire=BASE_RESFIRE+stats.get('resfire',0),
+            resbio=BASE_RESBIO+stats.get('resbio',0),
+            reselec=BASE_RESELEC+stats.get('reselec',0),
+            resphys=BASE_RESPHYS+stats.get('resphys',0),
+            rescold=BASE_RESCOLD+stats.get('rescold',0),
+            resbleed=BASE_RESBLEED+stats.get('resbleed',0),
+            respain=BASE_RESPAIN+stats.get('respain',0),
+            resrust=BASE_RESRUST+stats.get('resrust',0),
+            resrot=BASE_RESROT+stats.get('resrot',0),
+            reswet=BASE_RESWET+stats.get('reswet',0),
+            reslight=BASE_RESLIGHT+stats.get('reslight',0),
+            ressound=BASE_RESSOUND+stats.get('ressound',0),
+            atk=BASE_ATK+stats.get('atk',0),
+            dmg=BASE_DMG+stats.get('dmg',0),
+            dfn=BASE_DFN+stats.get('dv',0),
+            arm=BASE_ARM+stats.get('av',0),
+            pen=BASE_PEN+stats.get('pen',0),
+            pro=BASE_PRO+stats.get('pro',0),
+            spd=BASE_SPD+stats.get('spd',0),
+            asp=BASE_ASP+stats.get('asp',0),
+            msp=BASE_MSP+stats.get('msp',0),
             ),
         cmp.Inventory(money=money),
         cmp.Skills(),
         cmp.Meters(),
         cmp.Flags(),
-        cmp.EquipHand1(), cmp.EquipHand2(),
         cmp.Mutable(),
         cmp.Targetable(), # so it can be targeted by the player
         )
@@ -4466,18 +4435,28 @@ bestiary={
 
 ##BESTIARY={
 #TODO: new create_monster function
-# references BASE_ stats
-#  for sight and hearing, stats are considered multipliers (default value of 1)
+# references BASE_ stats for relative values*
+#  *for sight and hearing, stats are considered multipliers (default value of 1)
 
-#Type, name, KG, bodyplan, (FLAGS), script, {Stat Dict},
-'h' : ('human', 70, HUMAN, (),None,
+#Type, name, KG, CM, Material, bodyplan, (FLAGS), script, {Stat Dict},
+'h':('human', 70, 175, MAT_FLESH, HUMAN, (), None,
     {}, ),
-'a' : ('abomination', 90, 4LEGS, (),None,
-    {'str':4,'end':-6,'dex':-12,'int':-8,'con':4,'agi':-8,'resbio':50,'sight':0.25,'hearing':0,},),
-'r' : ('ravaged', 35, HUMAN, (),None,
+'a':('abomination', 140, 140, MAT_FLESH, 4LEGS, (), None,
+    {'str':4,'end':-8,'dex':-12,'int':-8,'con':4,'agi':-8,'msp':20,'resbio':50,'sight':0.25,'hearing':0,},),
+'L':('raving lunatic', 70, 165, MAT_FLESH, HUMAN, (MEAN,), None,
+    {'str':6,'end':6,'int':-6,'dex':-6,'resbio':40,'reselec':60,}, ),
+'r':('ravaged', 35, 150, MAT_FLESH, HUMAN, (), None,
     {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
-'R' : ('orctepus', 100, 8ARMS, (IMMUNEWATER,),None,
-    {'str':6,'end':-4,'dex':-6,'int':-2,'con':4,'agi':4,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
+'R':('orctepus', 100, 140, MAT_FLESH, 8ARMS, (IMMUNEWATER,), None,
+    {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
+'U':('obese scrupula', 190, 190, MAT_FLESH, HUMAN, (), None,
+    {'str':4,'end':-10,'dex':-6,'int':-4,'con':12,'agi':-10,'sight':0.5,'hearing':0,}, ),
+'w':('wolf', 60, 60, MAT_FLESH, 4LEGS, (MEAN,), None, # to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
+    {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
+'W':('whipmaster', 85, 220, MAT_FLESH, HUMAN, (), _whipmaster,
+    {'str':2,'end':-4,'dex':2,'int':-10,'con':6,'agi':4,'sight':1,'hearing':1,}, ),
+'z':('zomb', 50, 160, MAT_FLESH, HUMAN, (), None,
+    {'str':4,'end':-8,'dex':-4,'int':-10,'con':-8,'agi':-10,'sight':1,'hearing':0,}, ),
 }
 
 corpse_recurrence_percent={
