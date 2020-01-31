@@ -971,21 +971,18 @@ def _mStick(item):
     _length(item, 100)
 def _pPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
-    rog.make(item, REACH)
     rog.make(item, TWOHANDS)
     _weapon(item, acc=5,dmg=4,pen=3,dv=1,av=1,pro=1,asp=6)
     _canThrow(item, acc=0, rng=10, skill=SKL_TIPFIRST)
     _length(item, 200)
 def _wPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
-    rog.make(item, REACH)
     rog.make(item, TWOHANDS)
     _weapon(item, acc=5,dmg=5,pen=4,dv=1,av=1,pro=1,asp=12)
     _canThrow(item, acc=0, rng=11, skill=SKL_TIPFIRST)
     _length(item, 200)
 def _mPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
-    rog.make(item, REACH)
     rog.make(item, TWOHANDS)
     _weapon(item, acc=5,dmg=6,pen=6,dv=1,av=1,pro=1,asp=18)
     _canThrow(item, acc=0, rng=12, skill=SKL_TIPFIRST)
@@ -1017,7 +1014,6 @@ def _log(item):
         4800, {'slab of wood':3}, {cmp.Tool_Saw:4}) )
 def _plank(item):
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     _weapon(item, acc=3,dmg=3,pen=1,av=1,pro=1,asp=-51)
     _canThrow(item, acc=-5, rng=3, skill=SKL_TIPFIRST)
     _length(item, 200)
@@ -1885,7 +1881,6 @@ def _rubberBandWhip(item):
     pass
 def _bullWhip(item):
     _melee_pain(item, 20)
-    rog.make(item, REACH)
 def _heavyWhip(item):
     pass
 def _pushDagger(item):
@@ -1966,7 +1961,6 @@ def _greatSword(item):
     _amputate(item, 50)
     _addRes(item, resrust=50)
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     rog.world().add_component(item, cmp.Tool_Cut(1))
     rog.world().add_component(item, cmp.Tool_Chop(1))
     _canThrow(item, acc=-5, rng=6, skill=SKL_TIPFIRST)
@@ -1977,7 +1971,6 @@ def _flamberge(item):
     _amputate(item, 66)
     _addRes(item, resrust=33)
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     rog.world().add_component(item, cmp.Tool_Cut(1))
     rog.world().add_component(item, cmp.Tool_Saw(1))
     rog.world().add_component(item, cmp.Tool_Chop(1))
@@ -1999,7 +1992,6 @@ def _staff(item):
     _length(item, 160)
 def _longstaff(item):
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=-5, rng=15, skill=SKL_TIPFIRST)
     _length(item, 320)
@@ -2007,7 +1999,6 @@ def _longstaff(item):
 def _spear(item, cut=3, hammer=1, chisel=0, acc=0, rng=20, bleed=0, cm=235):
     _melee_bleed(item, bleed)
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     rog.world().add_component(item, cmp.Tool_Cut(cut))
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_TIPFIRST)
@@ -2075,7 +2066,6 @@ def _bill(item, bleed=20, rng=12, pen=-2, toFlesh=2, cm=200):
     _melee_bleed(item, bleed)
     _bonusToFlesh(item, toFlesh)
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     _canThrow(item, acc=-5, rng=rng, pen=pen, skill=SKL_TIPFIRST)
     _length(item, cm)
 def _mBill(item):
@@ -2087,7 +2077,6 @@ def _mHalberd(item):
     rog.world().add_component(item, cmp.Tool_Chop(1))
     _amputate(item, 10)
     rog.make(item, TWOHANDS)
-    rog.make(item, REACH)
     _canThrow(item, acc=-8, rng=8, pen=-4, skill=SKL_TIPFIRST)
     _addRes(item, resrust=0)
     _length(item, 245)
@@ -4409,40 +4398,35 @@ diplomacy={
     FACT_MONSTERS   : (0,0,0,0,0,1,),
 }
 
-bestiary={
-    # CHANGE FORMAT TO DICT-STYLE e.g. {'atk':2,'str':-2,} etc.
-    # all stats relative to BASE_ stats in const.py
-    
-    # Column names in more detail:
-    # Lo qi, Hi qi, Attack, Damage, Dodge, Armor, Speed, Move Speed, Attack Speed, Carrying Capacity, Mass, Gold.
-    
-#Type,  Name,                   (Lo\ Hi\ At\Dm\Pen\DV\AV\Pro\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\ENC\KG\ $$\),FLAGS,script,
-''' TODO: REMOVE
-'@' : ('human',                 (2,  20, 0, 0, 0,  10,0, 0,  100,100,0,   20, 20, 20, 20, 80,  0,  65, 96, ),(),None,),
-'a' : ('abomination',           (16, 8,  -2,4, 0,  -8,2, 2,  100,90, 110, 50, 50, 25, 6,  0,   0,  80, 0,  ),(),None,),
-'b' : ('bug-eyed business guy', (20, 30, 2, 2, 3,  2, 0, 0,  150,120,100, 50, 50, 20, 30, 80,  20, 60, 96, ),(),None,),
-'B' : ('butcher',               (40, 20, 2, 5, 2,  -4,1, 2,  100,100,100, 60, 50, 50, 10, 80,  0,  130,48, ),(),None,),
-'L' : ('raving lunatic',        (12, 25, 2, 3, 2,  2, 0, 0,  100,100,100, 25, 15, 30, 10, 0,   0,  50, 0, ),(),None,), #BABBLES,
-'r' : ('ravaged',               (4,  1,  -4,1, 0,  -8,-1,0,  100,80, 70,   0,  0, 0,  10, 0,   0,  35, 0,  ),(),None,),
-'R' : ('orctepus',              (15, 5,  4, 2, 8, -12,0, 0,  100,80, 145,  0, 80, 0,  15, 0,   20, 100,0,  ),(),None,),
-'s' : ('slithera',              (6,  15, 6, 3, 1,  -4,0, 0,  100,33, 150,  0, 50, 5,  5,  0,   0,  30, 0, ),(),None,),
-'U' : ('obese scrupula',        (20, 2,  0, 6, 2, -16,3, 6,  100,50, 90,  20, 65, 60, 10, 0,   40, 140,48,  ),(),None,),
-'V' : ('ash vampire',           (30, 80, 2, 3, 2,  8, 0, 0,  100,120,100, 10, 75, 5,  5,  200, 0,  30, 192,  ),(),None,),
-'w' : ('dire wolf',             (12, 3,  12,5, 0,  8, 0, 1,  100,225,115, 15, 15, 15, 15, 0,   0,  50, 0,  ),(),None,),
-'W' : ('whipmaster',            (50, 10, 6, 5, 4,  4, 2, 4,  100,80, 100, 25, 60, 10, 15, 0,   10, 75, 192, ),(),None,),
-'z' : ('zombie',                (8,  1,  -6,4, 0, -12,-1,0,  50, 40, 100, 10, 25, 55, 5,  0,   0,  45, 0,  ),(),None,),
-''':(), # TODO: REMOVE
+##OLDmonsterdata={ #bestiary
+##    # Column names in more detail:
+##    # Lo qi, Hi qi, Attack, Damage, Dodge, Armor, Speed, Move Speed, Attack Speed, Carrying Capacity, Mass, Gold.
+##    
+###Type,  Name,                   (Lo\ Hi\ At\Dm\Pen\DV\AV\Pro\Spd\Msp\Asp\FIR\BIO\ELC\SIGT\HEAR\ENC\KG\ $$\),FLAGS,script,
+##''' TODO: REMOVE
+##'@' : ('human',                 (2,  20, 0, 0, 0,  10,0, 0,  100,100,0,   20, 20, 20, 20, 80,  0,  65, 96, ),(),None,),
+##'a' : ('abomination',           (16, 8,  -2,4, 0,  -8,2, 2,  100,90, 110, 50, 50, 25, 6,  0,   0,  80, 0,  ),(),None,),
+##'b' : ('bug-eyed business guy', (20, 30, 2, 2, 3,  2, 0, 0,  150,120,100, 50, 50, 20, 30, 80,  20, 60, 96, ),(),None,),
+##'B' : ('butcher',               (40, 20, 2, 5, 2,  -4,1, 2,  100,100,100, 60, 50, 50, 10, 80,  0,  130,48, ),(),None,),
+##'L' : ('raving lunatic',        (12, 25, 2, 3, 2,  2, 0, 0,  100,100,100, 25, 15, 30, 10, 0,   0,  50, 0, ),(),None,), #BABBLES,
+##'r' : ('ravaged',               (4,  1,  -4,1, 0,  -8,-1,0,  100,80, 70,   0,  0, 0,  10, 0,   0,  35, 0,  ),(),None,),
+##'R' : ('orctepus',              (15, 5,  4, 2, 8, -12,0, 0,  100,80, 145,  0, 80, 0,  15, 0,   20, 100,0,  ),(),None,),
+##'s' : ('slithera',              (6,  15, 6, 3, 1,  -4,0, 0,  100,33, 150,  0, 50, 5,  5,  0,   0,  30, 0, ),(),None,),
+##'U' : ('obese scrupula',        (20, 2,  0, 6, 2, -16,3, 6,  100,50, 90,  20, 65, 60, 10, 0,   40, 140,48,  ),(),None,),
+##'V' : ('ash vampire',           (30, 80, 2, 3, 2,  8, 0, 0,  100,120,100, 10, 75, 5,  5,  200, 0,  30, 192,  ),(),None,),
+##'w' : ('dire wolf',             (12, 3,  12,5, 0,  8, 0, 1,  100,225,115, 15, 15, 15, 15, 0,   0,  50, 0,  ),(),None,),
+##'W' : ('whipmaster',            (50, 10, 6, 5, 4,  4, 2, 4,  100,80, 100, 25, 60, 10, 15, 0,   10, 75, 192, ),(),None,),
+##'z' : ('zombie',                (8,  1,  -6,4, 0, -12,-1,0,  50, 40, 100, 10, 25, 55, 5,  0,   0,  45, 0,  ),(),None,),
+##''':(), # TODO: REMOVE
 
-##BESTIARY={
-#TODO: new create_monster function
-# references BASE_ stats for relative values*
-#  *for sight and hearing, stats are considered multipliers (default value of 1)
-
+BESTIARY={
 #Type, name, KG, CM, Material, bodyplan, (FLAGS), script, {Stat Dict},
 'h':('human', 70, 175, MAT_FLESH, HUMAN, (), None,
     {}, ),
 'a':('abomination', 140, 140, MAT_FLESH, 4LEGS, (), None,
     {'str':4,'end':-8,'dex':-12,'int':-8,'con':4,'agi':-8,'msp':20,'resbio':50,'sight':0.25,'hearing':0,},),
+'d':('dog', 60, 60, MAT_FLESH, 4LEGS, (MEAN,), None, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
+    {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
 'L':('raving lunatic', 70, 165, MAT_FLESH, HUMAN, (MEAN,), None,
     {'str':6,'end':6,'int':-6,'dex':-6,'resbio':40,'reselec':60,}, ),
 'r':('ravaged', 35, 150, MAT_FLESH, HUMAN, (), None,
@@ -4451,8 +4435,6 @@ bestiary={
     {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
 'U':('obese scrupula', 190, 190, MAT_FLESH, HUMAN, (), None,
     {'str':4,'end':-10,'dex':-6,'int':-4,'con':12,'agi':-10,'sight':0.5,'hearing':0,}, ),
-'w':('wolf', 60, 60, MAT_FLESH, 4LEGS, (MEAN,), None, # to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
-    {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
 'W':('whipmaster', 85, 220, MAT_FLESH, HUMAN, (), _whipmaster,
     {'str':2,'end':-4,'dex':2,'int':-10,'con':6,'agi':4,'sight':1,'hearing':1,}, ),
 'z':('zomb', 50, 160, MAT_FLESH, HUMAN, (), None,
@@ -4731,13 +4713,13 @@ RANGEDWEAPONS={
 "wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,6,  2.5,),SKL_BOWS,_wBow),
 "laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,6,  5,),SKL_BOWS,_wBow),
 "composite bow"     :(A_ARRO,85,   1.5, 320,BONE,16,10,(1, 1,0,  2,  60, 10,8, 6, 0,  -12,6,  10,),SKL_BOWS,_compositeBow),
-"wooden longbow"    :(A_WARO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 10,8, 0,  -36,9,  20,),SKL_BOWS,_longbow),
-"wooden warbow"     :(A_WARO,55,   2.0, 300,WOOD,28,12,(1, 1,0,  3,  100,8, 16,12,0,  -51,9,  20,),SKL_BOWS,_longbow),
+"wooden longbow"    :(A_WARO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 10,8, 0,  -51,9,  20,),SKL_BOWS,_longbow),
+"wooden warbow"     :(A_WARO,55,   2.0, 300,WOOD,28,12,(1, 1,0,  3,  100,8, 16,12,0,  -66,9,  20,),SKL_BOWS,_longbow),
 # HUGE variety in weight of bows (power) -- add a lot more types of bows. Also huge variety of arrows. Just like guns or any other weapons.
 # distinction: bows vs. warbows. War bows have more damage, are slower, have higher strength requirements, more encumbering and durable, higher penetration etc.
 # crossbows         :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
 "wooden crossbow"   :(A_BOLT,40,   3.0, 180,WOOD,5, 2, (1, 1,0,  2,  10, 10,6, 4, -3, 30, 15, 3,),SKL_CROSSBOWS,_crossbow),
-"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, -30,21, 6,),SKL_CROSSBOWS,_arbalest),
+"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, 0,  21, 6,),SKL_CROSSBOWS,_arbalest),
 # chu ko nu / magazine fed crossbows!
 # screw crossbow! Loaded by turning a screw. Small, light, weak cbows. Maybe stronger than hand span but takes a lot longer to reload. Fire small bolts (smaller than usual). Takes 30 secs to reload
 # BELLY BOW! Crossbow that needs nothing but your own weight to load and can be loaded at varying strengths (draw lengths). Fires regular sized arrows but is a crossbow.
@@ -5710,12 +5692,12 @@ JOBS={
     #S  level of security clearance
     #Keys:
         #J  janitor key : janitor's closets
-        #C  computer scientist key : computer closets
         #K  politician's key : key to the city
         #P  pilot key : hangar access
         #L  lab tech key : lab access
-    #stats: stat bonuses or nerfs
-    #skills: major occupation skills that this character begins with (the exact level is determined elsewhere)
+    #stats: stat bonuses or nerfs (from BASE_ stats in const.py)
+    #skills: major occupation skills that this character begins with
+        # (the exact level is determined elsewhere)
     #items: items you start with
         #(itemName, dictionary, quantity)
             # where dictionary is the item table where the item can be found.
@@ -5737,7 +5719,7 @@ CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
     (SKL_SURVIVAL,SKL_ASSEMBLY,),
     ('wooden club', WEAPONS, 1,),
     ),
-CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'L',
+CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'',
     {'int':6,'dex':6,'end':-4,'agi':-4,'con':-4,},
     (SKL_MEDICINE,SKL_SURGERY,),
     (('scalpel', WEAPONS, 1,),),
@@ -5747,7 +5729,7 @@ CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
     (),
     (),
     ),
-CLS_SOLDIER     : ("m", "marine",    85, 1000,3,'',
+CLS_SOLDIER     : ("S", "marine",    85, 1000,3,'',
     {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
     (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
     (),
@@ -5777,7 +5759,7 @@ CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
     (SKL_PERSUASION,),
     (),
     ),
-CLS_SMUGGLER    : ("u", "smuggler",  70, 5000,0,'',
+CLS_SMUGGLER    : ("u", "smuggler",  75, 5000,0,'',
     {'con':2,'int':2,'dex':2,'agi':2,'encmax':10,},
     (SKL_PERSUASION,SKL_PISTOLS,),
     (),
@@ -5787,7 +5769,7 @@ CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
     (SKL_HARDWARE,),
     (),
     ),
-CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
+CLS_THIEF       : ("t", "thief",     70, 5000,0,'',
     {'agi':6,'dex':4,'end':2,'con':-2,'encmax':30,},
     (SKL_STEALTH,SKL_LOCKPICK,SKL_KNIVES,),
     (),
@@ -5795,6 +5777,11 @@ CLS_THIEF       : ("t", "thief",     75, 5000,0,'',
 CLS_WRESTLER    : ("w", "wrestler",  90, 300, 0,'',
     {'sight':-5,'hearing':-20,'int':-8,'end':6,'str':6,'bal':5,'gra':2,},
     (SKL_WRESTLING,SKL_BOXING,SKL_UNARMORED,),
+    (),
+    ),
+CLS_MONK        : ("m", "monk",     60, 100, 0,'',
+    {'end':8,'str':-2,'dex':-2,'int':2,'con':-2,'agi':-4,'bal':5,},
+    (SKL_STAVES,SKL_UNARMORED,),
     (),
     ),
 }

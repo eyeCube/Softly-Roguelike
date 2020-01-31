@@ -290,7 +290,6 @@ THIEF       = i; i+=1;  # Creature desires gold / treasure and will steal it
 MEAN        = i; i+=1;  # Creature is always hostile to rogues
 DEAD        = i; i+=1;  # Is dead
 FLYING      = i; i+=1;  # Is currently flying
-REACH       = i; i+=1;  # Has long reach with melee attack (2-tile range)
 NVISION     = i; i+=1;  # Has Night vision
 INVIS       = i; i+=1;  # Is invisible
 SEEINV      = i; i+=1;  # Can see invisible things
@@ -2017,7 +2016,7 @@ SKL_IEDS        = i; i+=1; #explosives skill: IEDs
 ##SKL_EMPS        = i; i+=1; #explosives skill: EMPs
 ##SKL_MINES       = i; i+=1; #explosives skill: Mines
 # Archery
-SKL_SLINGS      = i; i+=1; #archery skill: slings and slingshots
+SKL_SLINGS      = i; i+=1; #archery skill: slings and slingshots(?)
 SKL_BOWS        = i; i+=1; #archery skill: bows
 SKL_CROSSBOWS   = i; i+=1; #archery skill: crossbows
 # Guns
@@ -2643,6 +2642,7 @@ CLS_ACROBAT     = i; i+=1;
 CLS_WRESTLER    = i; i+=1;
 CLS_DOCTOR      = i; i+=1;
 CLS_PROGRAMMER  = i; i+=1;
+CLS_MONK        = i; i+=1;
 
 
 

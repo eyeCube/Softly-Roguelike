@@ -1060,6 +1060,7 @@ def curebpp(bpp): #<flags> cure BPP status clear BPP status bpp_clear_status cle
     bpp.status = 0 # revert to normal status
 def healbpp(bpp, bpptype, status): #<flags> heal BPP object
     pass #TODO
+# damage body part piece (inflict status)
 def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP status BPP set status set_bpp_status bpp_set_status bpp set status set bpp status
     '''
         * Try to inflict a status on a BPP (body part piece) object
@@ -1163,6 +1164,102 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
     return True
 # end def
 
+# damage body part (potentially call damagebpp multiple times)
+def damagebp(bptarget, dmgtype):
+    '''
+        bptarget   BP_ (Body Part) component object instance to damage
+        dmgtype    DMGTYPE_ const
+    '''
+        
+    # abrasions
+    if dmgtype==DMGTYPE_ABRASION:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[hitpp])
+            # deep skin abrasions may result in muscle abrasion
+            if ( BPP_MUSCLE in cd and
+                 bptarget.skin.status >= SKINSTATUS_MAJORABRASION ):
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[hitpp])
+    # burns
+    elif dmgtype==DMGTYPE_BURN:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[hitpp])
+            # deep skin burns may result in muscle burns
+            if ( BPP_MUSCLE in cd and
+                 bptarget.skin.status >= SKINSTATUS_DEEPBURNED ):
+                rog.damagebpp(
+                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[hitpp])
+    # lacerations
+    elif dmgtype==DMGTYPE_CUT:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[hitpp])
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[hitpp])
+    # puncture wounds
+    elif dmgtype==DMGTYPE_PIERCE:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
+        # TODO: damage organs
+        
+    # hacking / picking damage
+    elif dmgtype==DMGTYPE_HACK:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
+        if BPP_BONE in cd:
+            rog.damagebpp(
+                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
+    # blunt / crushing damage
+    elif dmgtype==DMGTYPE_BLUNT:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
+        if BPP_BONE in cd:
+            rog.damagebpp(
+                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
+    # mace-like weapons
+    elif dmgtype==DMGTYPE_SPUDS:            
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[hitpp])
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
+        if BPP_BONE in cd:
+            rog.damagebpp(
+                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
+    # morning-star like long-spiked weapons
+    elif dmgtype==DMGTYPE_SPIKES:
+        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        if BPP_SKIN in cd:
+            rog.damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[hitpp])
+        if BPP_MUSCLE in cd:
+            rog.damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
+        if BPP_BONE in cd:
+            rog.damagebpp(
+                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
+# end def
+
 def _get_eq_compo(ent, equipType): # equipType Const -> component
     compo = None
     
@@ -1228,6 +1325,7 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
     return compo
 #end def
 
+# get body parts getbodyparts getbps findbodyparts find body parts
 def findbps(ent, cls): # ent + cls -> list of BP component objects
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     # TODO: body plans other than humanoid

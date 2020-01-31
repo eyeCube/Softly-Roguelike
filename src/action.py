@@ -601,7 +601,8 @@ def sprint(ent):
 
 def _strike(attkr,dfndr,aweap,dweap,
             adv=0,power=0, counterable=False,
-            bptarget=None, targettype=None):
+            bptarget=None, targettype=None,
+            apos=None, dpos=None):
     '''
         strike the target with your primary weapon or body part
             this in itself is not an action -- requires no AP
@@ -612,17 +613,17 @@ def _strike(attkr,dfndr,aweap,dweap,
         counterable bool, can this strike be counter-striked?
         bptarget    None: aim for center mass. else a BP component object
         targettype  BP_ const indicates what type of BP is being targeted
+        apos;dpos   Attacker Position component; Defender Position component
     '''
     # init
     hit=killed=crit=ctrd=grazed=False
     pens=trueDmg=rol=0
     feelStrings=[]
-    bphit=None
     
         # get the data we need
     world = rog.world()
 
-    # bodies
+    # components
     abody=world.component_for_entity(attkr, cmp.Body)
     dbody=world.component_for_entity(dfndr, cmp.Body)
 
@@ -664,18 +665,18 @@ def _strike(attkr,dfndr,aweap,dweap,
         grazed = (hitDie==0)
 
         # counter-attack
-        if counterable:
-            # TODO: make sure defender is in range to counter-attack
-            dfndr_ready = rog.on(dfndr,CANCOUNTER)
-            if dfndr_ready:
-                if (dice.roll(100) <= ctr):
-                    dweap = rog.dominant_arm(dfndr).hand.held.item
-                    _strike(
-                        dfndr, attkr, dweap, aweap,
-                        power=0, counterable=False
-                        )
-                    rog.makenot(dfndr,CANCOUNTER)
-                    ctrd=True
+        if (counterable
+        and rog.inreach(dpos.x,dpos.y, apos.x,apos.y, rog.getms(dfndr,'reach'))
+        and rog.on(dfndr,CANCOUNTER)
+            ):
+            if (dice.roll(100) <= ctr):
+                dweap = rog.dominant_arm(dfndr).hand.held.item
+                _strike(
+                    dfndr, attkr, dweap, aweap,
+                    power=0, counterable=False
+                    )
+                rog.makenot(dfndr,CANCOUNTER)
+                ctrd=True
 
         # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
@@ -731,117 +732,29 @@ def _strike(attkr,dfndr,aweap,dweap,
             #-------------#
             # body damage #
             #-------------#
-                # TODO: move to separate function
-        
-        hitpp = hitDie // 7
-        if hitpp==0:
-            bphit=None
+            
+        hitpp = min(2, max(0,hitDie) // 7)
+        _booldamagebodypart = (hitpp!=0)
         # TODO: pick body part to hit randomly based on parameters
-        elif bptarget:
-            bphit = bptarget # TEMPORARY
-
-        if bphit:
-            bphit = min(2, bphit)
-
+        if bptarget:
+            bptarget = bptarget # TEMPORARY
+        else:
+            bptarget = rog.findbps(cmp.BP_TorsoFront)[0]  # TEMPORARY
+        
+        if _booldamagebodypart:
             # get damage type
             if world.has_component(aweap, cmp.DamageTypeMelee): # custom?
                 compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
                 dmgtype = compo.type
             else: # damage type based on skill of the weapon by default
                 dmgtype = DMGTYPES[skillCompo.skill]
-            
-            # abrasions
-            if dmgtype==DMGTYPE_ABRASION:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[bphit])
-                    # deep skin abrasions may result in muscle abrasion
-                    if ( BPP_MUSCLE in cd and
-                         bptarget.skin.status >= SKINSTATUS_MAJORABRASION ):
-                        rog.damagebpp(
-                            bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[bphit])
-            # burns
-            elif dmgtype==DMGTYPE_BURN:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[bphit])
-                    # deep skin burns may result in muscle burns
-                    if ( BPP_MUSCLE in cd and
-                         bptarget.skin.status >= SKINSTATUS_DEEPBURNED ):
-                        rog.damagebpp(
-                            bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[bphit])
-            # lacerations
-            elif dmgtype==DMGTYPE_CUT:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[bphit])
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[bphit])
-            # puncture wounds
-            elif dmgtype==DMGTYPE_PIERCE:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
-                # TODO: damage organs
-                
-            # hacking / picking damage
-            elif dmgtype==DMGTYPE_HACK:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
-                if BPP_BONE in cd:
-                    rog.damagebpp(
-                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
-            # blunt / crushing damage
-            elif dmgtype==DMGTYPE_BLUNT:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
-                if BPP_BONE in cd:
-                    rog.damagebpp(
-                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
-            # mace-like weapons
-            elif dmgtype==DMGTYPE_SPUDS:            
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[bphit])
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
-                if BPP_BONE in cd:
-                    rog.damagebpp(
-                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
-            # morning-star like long-spiked weapons
-            elif dmgtype==DMGTYPE_SPIKES:
-                cd=cmp.BP_BPPS[type(bptarget).__name__]
-                if BPP_SKIN in cd:
-                    rog.damagebpp(
-                        bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[bphit])
-                if BPP_MUSCLE in cd:
-                    rog.damagebpp(
-                        bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[bphit])
-                if BPP_BONE in cd:
-                    rog.damagebpp(
-                        bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[bphit])
+            # deal body damage
+            rog.damagebp(bptarget, dmgtype)
             
             #-------------------------------------#
             # deal damage, physical and elemental #
             #-------------------------------------#
-
+            
         rog.damage(dfndr, trueDmg//10)
         for element, elemDmg in elements.items():
             if grazed: elemDmg = elemDmg*0.5
@@ -971,7 +884,8 @@ def fight(attkr,dfndr,adv=0,power=0):
     # strike!
     hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
         attkr, dfndr, aweap1, dweap1,
-        adv=adv, power=power, counterable=counterable
+        adv=adv, power=power, counterable=counterable,
+        apos=apos,dpos=dpos
         )
     
     # AP cost
