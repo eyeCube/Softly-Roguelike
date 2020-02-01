@@ -388,15 +388,15 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
         and print ID info about the Entity ent.'''
     if not condition:
         # name
-        if world.has_component(ent, cmp.Name):
+        if Rogue.world.has_component(ent, cmp.Name):
             entname="with name '{}'".format(
-                world.component_for_entity(ent, cmp.Name).name)
+                Rogue.world.component_for_entity(ent, cmp.Name).name)
         else:
             entname="<NO NAME>"
         # position
-        if world.has_component(ent, cmp.Position):
-            entposx=world.component_for_entity(ent, cmp.Position).x
-            entposy=world.component_for_entity(ent, cmp.Position).y
+        if Rogue.world.has_component(ent, cmp.Position):
+            entposx=Rogue.world.component_for_entity(ent, cmp.Position).x
+            entposy=Rogue.world.component_for_entity(ent, cmp.Position).y
         else:
             entposx = entposy = -1
         # message
@@ -975,7 +975,7 @@ def create_entity():
 
     #  creature/monsters  #
 
-def create_monster(typ,x,y,col): #init from entities.py
+def create_monster(typ,x,y,col=None): #init from entities.py
     '''
         call this to create a monster from the bestiary
 
@@ -984,12 +984,15 @@ def create_monster(typ,x,y,col): #init from entities.py
     '''
     if monat(x,y):
         return None #tile is occupied by a creature already.
-    ent = entities.create_monster(typ,x,y,col)
+    if col:
+        ent = entities.create_monster(typ,x,y,col)
+    else:
+        ent = entities.create_monster(typ,x,y)
 ##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
-    givehp(ent)
     register_entity(ent)
     fov_init(ent)
     grid_insert(ent)
+    givehp(ent)
     return ent
 
 def create_corpse(ent):

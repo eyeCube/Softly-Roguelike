@@ -24,6 +24,7 @@ from colors import COLORS as COL
 import rogue as rog
 import components as cmp
 import action
+import ai
 import dice
 
 
@@ -220,14 +221,14 @@ def getJobSkills(jobID) -> tuple:
     return JOBS[jobID][7]
 
 # MONSTERS
-def getMonName(_char):      return bestiary[_char][0]
-def getMonKG(_char):        return bestiary[_char][1]
-def getMonCM(_char):        return bestiary[_char][2]
-def getMonMat(_char):       return bestiary[_char][3]
-def getMonBodyPlan(_char):  return bestiary[_char][4]
-def getMonFlags(_char):     return bestiary[_char][5]
-def getMonScript(_char):    return bestiary[_char][6]
-def getMonStats(_char):     return bestiary[_char][7]
+def getMonName(_char):      return BESTIARY[_char][0]
+def getMonKG(_char):        return BESTIARY[_char][1]
+def getMonCM(_char):        return BESTIARY[_char][2]
+def getMonMat(_char):       return BESTIARY[_char][3]
+def getMonBodyPlan(_char):  return BESTIARY[_char][4]
+def getMonFlags(_char):     return BESTIARY[_char][5]
+def getMonScript(_char):    return BESTIARY[_char][6]
+def getMonStats(_char):     return BESTIARY[_char][7]
 #name, KG, bodyplan, (FLAGS), script, {Stat Dict},
 
 
@@ -4122,7 +4123,7 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
     if not col:
         col = COL['red']
     
-    monData = bestiary[_type]
+    monData = BESTIARY[_type]
     name = getMonName(_type)
     kg = round(getMonKG(_type)*MULT_MASS)
     cm = getMonCM(_type)
@@ -4138,6 +4139,10 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
     female=False #temporary
     if bodyplan==BODYPLAN_HUMANOID:
         body, basekg = create_body_humanoid(kg, cm, female)
+
+    # set body sight and hearing to the correct values
+    # (TODO)
+    
     
     stats=cmp.Stats(
         mass=basekg,
@@ -4201,9 +4206,9 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
         cmp.Targetable(), # so it can be targeted by the player
         )
     if sight:
-        rog.world().add_component(ent, cmp.SenseSight(sight))
+        rog.world().add_component(ent, cmp.SenseSight())
     if hear:
-        rog.world().add_component(ent, cmp.SenseHearing(hear))
+        rog.world().add_component(ent, cmp.SenseHearing())
     for flag in flags:
         rog.make(ent, flag)
     if script: script(ent)

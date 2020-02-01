@@ -87,42 +87,39 @@ def main():
     rog.make(rog.pc(), NVISION)
     # TESTING
 ##    import action
-##    import components as cmp
+    import components as cmp
 ##    from colors import COLORS as COL
 ##    import debug
 ##    import entities
     #
-    
-##    rog.set_status(rog.pc(), cmp.StatusCold, 8)
-##    rog.set_status(rog.pc(), cmp.StatusDisoriented)
-##    rog.set_status(rog.pc(), cmp.StatusDrunk, t=1920, q=-4*MULT_STATS)
-    
-##    rog.setskill(rog.pc(), SKL_BOXING, 100)
+
+    ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
 ##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
 ##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
-##    weap=rog.create_weapon("longsword", 0,0)
-##    rog.damage(weap, 100)
-##    rog.equip(
-##        rog.pc(),weap,EQ_MAINHAND
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
-##        )
-##    rog.equip(
-##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
-##        )
+    
+    weap=rog.create_weapon("longsword", 0,0)
+    rog.damage(weap, 100)
+    rog.equip(
+        rog.pc(),weap,EQ_MAINHAND
+        )
+    rog.equip(
+        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
+        )
+    rog.equip(
+        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+        )
+    rog.equip(
+        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+        )
+    rog.equip(
+        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+        )
+    rog.equip(
+        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
+        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_armwear("metal vambrace", 0,0),EQ_MAINARM
 ##        )
@@ -135,23 +132,6 @@ def main():
 ##    rog.equip(
 ##        rog.pc(),rog.create_footwear("metal boot", 0,0),EQ_OFFFOOT
 ##        )
-    
-    # test body part statuses
-##    import components as cmp
-##    body = rog.world().component_for_entity(rog.pc(), cmp.Body)
-##    body.core.core.muscle.status = MUSCLESTATUS_CONTUSION
-##    body.parts[cmp.BPC_Arms].arms[0].hand.bone.status = BONESTATUS_BROKEN
-##    body.parts[cmp.BPC_Arms].arms[1].hand.bone.status = BONESTATUS_FRACTURED
-##    body.parts[cmp.BPC_Arms].arms[1].hand.skin.status = SKINSTATUS_BURNED
-##    body.parts[cmp.BPC_Legs].legs[0].leg.bone.status = BONESTATUS_BROKEN
-##    body.parts[cmp.BPC_Legs].legs[1].leg.bone.status = BONESTATUS_DAMAGED
-##    body.parts[cmp.BPC_Legs].legs[0].leg.muscle.status = 3
-##    body.parts[cmp.BPC_Heads].heads[0].head.bone.status = 3
-##    body.parts[cmp.BPC_Heads].heads[0].head.brain.status = 3
-##    rog.damagebpp(body.parts[cmp.BPC_Heads].heads[0].head.skin,
-##                  BPP_SKIN, SKINSTATUS_BURNED)
-##    rog.damagebpp(body.parts[cmp.BPC_Heads].heads[0].head.skin,
-##                  BPP_SKIN, SKINSTATUS_BURNED)
     #
     
     # create light so player can see
@@ -161,71 +141,14 @@ def main():
     # /TESTING /TEMPORARY
     #
 
-    # TODO: heat dispersion with walls?? How to???
-    #   no wind indoors where there are walls/roofs
-    #   the walls absorb heat??
-    #   More general: terrain affects heat dispersion, but how...? 
-
     # TODO: map_generate function!!    
 ##    rog.map_generate(rog.map(),rog.dlvl())
 
     # TODO?: observer for player
 ##    obs=observer.Observer_playerChange()
 ##    pc.observer_add(obs)
-    
-##    
-##    ##TESTING
-##    rog.gain(pc,"hpmax",100)
-##    log=rog.create_stuff(THG.LOG, 18,18)
-##    rog.burn(log,200)
-##    box=rog.create_stuff(THG.BOX,20,18)
-##    #fluids.smoke(16,16)
-##    '''pc.stats.hpmax      = 20
-##    pc.stats.mpmax      = 20
-##    pc.stats.sight      = 20
-##    pc.stats.spd        = 100
-##    pc.stats.nvision    = False'''
-##        #LIGHT
-##    pc.light=rog.create_light(pc.x,pc.y, 5, owner=pc)
-##        #HEAL
-##    rog.givehp(pc)
-##    rog.givemp(pc)
-##        #EQUIP
-##    #print(pc.stats.get('atk'))
-##    item=gear.create_weapon("sword",pc.x,pc.y)
-##    rog.equip(pc, item, EQ_MAINHAND)
-##    #print(pc.stats.get('atk'))
-##    #rog.deequip(pc,EQ_MAINHAND)
-##    #print(pc.stats.get('atk'))
-##        #BUFF
-##    #rog.effect_add(pc,{'atk':5})
-##    #rog.effect_add(pc,{'dmg':5})
-##    #rog.effect_add(pc,{'arm':0})
-##    #rog.effect_add(pc,{'msp':15})
-##    #rog.effect_add(pc,{'msp':-50})'''
-##    '''
-##    z = rog.create_monster('Z',15,16)
-##    rog.effect_add(z,{'arm':1})
-##    rog.effect_add(z,{'dfn':4})
-##    rog.effect_add(z,{'atk':3})
-##    rog.effect_add(z,{'dmg':3})
-##    rog.givehp(z)'''
-##    z=rog.create_monster('z',13,19,COL['ltblue'])
-##    a=rog.create_monster('a',12,13,COL['scarlet'])
-##    o=rog.create_monster('U',19,18,COL['red'])
-##    a=rog.create_monster('a',15,17,COL['scarlet'])
-##    W=rog.create_monster('W',20,15,COL['purple'])
-##    '''import dice
-##    for x in range(ROOMW):
-##        for y in range(ROOMH):
-##            if dice.roll(100) > 98:
-##                if not (rog.wallat(x,y)
-##                        or rog.monat(x,y) ):
-##                    r=rog.create_monster('r',x,y)
-##                    r.color=COL['ltgray']
-##    print("num monsters: ", len(rog.list_creatures()))
-##    '''
-    
+    pos=rog.get(rog.pc(),cmp.Position)
+    rog.create_monster('W',pos.x,pos.y-1)
         
 
     

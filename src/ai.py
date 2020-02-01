@@ -61,7 +61,7 @@ def stateless(bot):
     
     world=rog.world()
     desires=Desires(wander=7)
-    sight=world.component_for_entity(bot, cmp.SenseSight).sight
+    sight=rog.getms(bot, "sight")
     pos=world.component_for_entity(bot, cmp.Position)
     botCreature=world.component_for_entity(bot, cmp.Creature)
 ##    botType=world.component_for_entity(bot, cmp.Draw).char #should not depend on draw component
