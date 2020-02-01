@@ -322,7 +322,7 @@ LEN_ADVANTAGE_BP    = 12    # how much extra length you need to gain +1 Atk in c
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
-MULT_MASS           = 1000  # @1000, smallest mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
+MULT_MASS           = 100000  # @1000, smallest mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 10 (assuming the value is 10) makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
@@ -397,7 +397,7 @@ INSUFF_DEX_ASP_PENALTY  = 12
 BASE_HP         = 2
 BASE_MP         = 20
 BASE_MPREGEN    = 1
-BASE_ENCMAX     = 10
+BASE_ENCMAX     = 85
 BASE_REACH      = 2
 BASE_STR        = 12 # strength
 BASE_CON        = 12 # constitution
@@ -446,7 +446,7 @@ ATT_STR_DMG             = 0.3333334 # melee/thrown damage
 ATT_STR_ATK             = 0.15 # melee/thrown accuracy -- less than Dex bonus
 ATT_STR_PEN             = 0.2 # melee/thrown penetration -- less than Dex bonus
 ATT_STR_AV              = 0.15 # armor from strength -- less than Con bonus
-ATT_STR_ENCMAX          = 2 # strength gives some carrying capacity -- less than Con bonus
+ATT_STR_ENCMAX          = 2.5 # strength gives some carrying capacity -- less than Con bonus
 ATT_STR_FORCE           = 1 # pushing / shoving strength +
 ATT_STR_GRA             = 1 # grappling / wrestling, grip, climbing
 ATT_STR_SCARY           = 1 # intimidation +
@@ -472,8 +472,8 @@ ATT_DEX_TRNG            = 0.25 # throwing range bonus -- less than Str bonus
 ATT_END_HP              = 0.5   # life -- less than Con bonus
 ATT_END_SP              = 15    # stamina
 ATT_END_SPREGEN         = 1     # stamina regen
-ATT_END_RESHEAT         = 3     # endurance grants many resistances
-ATT_END_RESCOLD         = 3
+ATT_END_RESHEAT         = 2     # endurance grants many resistances
+ATT_END_RESCOLD         = 2
 ATT_END_RESPHYS         = 1
 ATT_END_RESPAIN         = 3     # res pain -- significantly more than Con bonus
 ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
@@ -488,7 +488,7 @@ ATT_INT_IDENTIFY        = 1 # identify ability
 ATT_CON_AUGS            = 0.3333334 # physical augmentations
 ATT_CON_AV              = 0.2   # armor value
 ATT_CON_HP              = 1.5   # life
-ATT_CON_ENCMAX          = 4     # encumberance maximum -- more than Str bonus
+ATT_CON_ENCMAX          = 5     # encumberance maximum -- more than Str bonus
 ATT_CON_RESELEC         = 2     # consitution grants some resistances
 ATT_CON_RESBIO          = 2 
 ATT_CON_RESBLEED        = 2
@@ -669,20 +669,28 @@ STAM_QUICKATTACK    = 1.5
 
 # ENCUMBERANCE
 
+ENC_BP_1    = 0.05
+ENC_BP_2    = 0.12
+ENC_BP_3    = 0.25
+ENC_BP_4    = 0.50
+ENC_BP_5    = 0.75
+ENC_BP_6    = 0.85
+ENC_BP_7    = 0.90
+ENC_BP_8    = 0.95
 ENCUMBERANCE_MODIFIERS = {
 # note: encumberance affecting attributes (like Agi) is difficult to
 #   implement and is a recipe for disaster... so it only affects
 #   derived stats here.
 #stat : Encumberance Breakpoint
-# BP:   1       2       3       4       5       6       7       8
-#Enc% ( 5%      12%     25%     50%     75%     87%     95%     100% )
-'msp' :(0.99,   0.98,   0.95,   0.9,    0.8,    0.67,   0.33,   0,),
-'asp' :(0.99,   0.98,   0.95,   0.9,    0.82,   0.75,   0.67,   0.6,),
-'atk' :(0.98,   0.96,   0.94,   0.9,    0.8,    0.75,   0.7,    0.6,),
-'dfn' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
-'pro' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
-'gra' :(0.98,   0.95,   0.92,   0.86,   0.68,   0.59,   0.5,    0.4,),
-'bal' :(0.98,   0.95,   0.9,    0.78,   0.6,    0.4,    0.25,   0.1,),
+# BP:   1     2     3     4     5     6     7     8     9
+#Enc% ( 5%    12%   25%   50%   75%   85%   90%   95%   100% )
+'msp' :(0.99, 0.98, 0.95, 0.9,  0.8,  0.67, 0.5,  0.25, 0,),
+'asp' :(0.99, 0.98, 0.96, 0.92, 0.85, 0.8,  0.72, 0.64, 0.6,),
+'atk' :(0.98, 0.96, 0.94, 0.9,  0.8,  0.75, 0.7,  0.6,  0.5,),
+'dfn' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'pro' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'gra' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'bal' :(0.98, 0.95, 0.88, 0.75, 0.67, 0.5,  0.4,  0.3,  0.2,),
     }
 
 
@@ -704,6 +712,7 @@ METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
 FAT_RESCOLD             = 2         # per kg of fat
 FAT_RESHEAT             = -1        # per kg of fat
+DEFAULT_BODYFAT_HUMAN   = 0.1       # ratio of total mass
 
 # body plans:
 #   body part coverage, for targeting specific body parts
@@ -725,7 +734,7 @@ BODY_COVERAGE={
 BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
 BODYPLAN_INSECTOID  : {"core":60, "head":15, "legs":25,},
 BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
-BODYPLAN_8LEGGED    : {"core":10, "head":25, "legs":65,},
+BODYPLAN_8ARMS      : {"core":10, "head":25, "arms":65,},
 BODYPLAN_CUSTOM     : {"core":100,},
     }
 
@@ -2106,8 +2115,9 @@ SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 # Skills data skill data
 #
 
-SKILL_POINTS = 60 # max num skill pts user can distribute during chargen
-    # 60 is evenly divisible by 2, 3, 4, 5, and 6.
+SKILLPOINTS = 24 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
+SKILL_LEVELS_PER_SELECTION = 10
+SKILL_LEVELS_JOB = 30 # starting skill level for given job
     
 SKILLS={ # ID : (SP,name,)
     # SP = skill points required to learn (in chargen)
@@ -2207,7 +2217,7 @@ SKLMOD_ARMOR_PRO        = 0.3       # adder modifier - per level
 SKLMOD_ARMOR_AV         = 0.16666667# adder modifier - per level
 SKLMOD_ARMOR_DV         = 0.16666667# adder modifier - per level
 SKLMOD_UNARMORED_PRO    = 0.33333334# adder modifier - per level
-SKLMOD_UNARMORED_AV     = 0.2       # adder modifier - per level
+SKLMOD_UNARMORED_AV     = 0.1       # adder modifier - per level
 SKLMOD_UNARMORED_DV     = 0.2       # adder modifier - per level
 
 # WEAPONS

@@ -514,7 +514,7 @@ def _get_encumberance_mods(pc):
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
-        mods += "SPR {}%, ".format(int(50 + max(0, 50*(1 - (enc/max(1,encmax)))) ))
+        mods += "SPR {}%, ".format(int(50 + max(0, 150*(1 - (enc/max(1,encmax)))) ))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))
@@ -737,7 +737,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
         spr=_gets('mpregen'),
-        reach="{__:.1f}".format(__=_gets('reach')/2),
+        reach="{__:.1f}".format(__=_get('reach')/2/MULT_STATS),
         spd=_get('spd'),msp=_get('msp'),asp=asp,
         crg=_get('cou'),idn=_get('idn'),bea=_get('bea'),
         vis=_get('sight'),aud=_get('hearing'),
@@ -748,7 +748,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
         bspr=_getbs('mpregen'),
-        breach="{__:.1f}".format(__=_getbs('reach')/2),
+        breach="{__:.1f}".format(__=_getb('reach')/2/MULT_STATS),
         bspd=_getb('spd'),bmsp=_getb('msp'),
         bcrg=_getb('cou'),bidn=_getb('idn'),bbea=_getb('bea'),
         bvis=_getb('sight'),baud=_getb('hearing'),

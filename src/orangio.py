@@ -684,6 +684,7 @@ class TextInputManager(managers.Manager):
     def set_result(self,val):
         if val == '': val=self.default
         if val == '': val='0'
+        elif val == '\x1c': val='0'
         super(TextInputManager,self).set_result(val)
     
     def run(self):

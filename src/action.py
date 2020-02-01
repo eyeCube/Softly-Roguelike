@@ -677,17 +677,20 @@ def _strike(attkr,dfndr,aweap,dweap,
                     )
                 rog.makenot(dfndr,CANCOUNTER)
                 ctrd=True
-
+        # end if
+        
         # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
             while (pen-prot-(6*pens) >= dice.roll(6)):
                 pens += 1   # number of penetrations ++
             armor = rog.around(arm * (0.5**pens))
+        # end if
         
-        # calculate physical damage #
-
-        # additional damage from strength
-        #   (TODO!!!!)
+            #------------------#
+            # calculate damage #
+            #------------------#
+        
+        # physical damage
         
         if grazed:
             dmg = dmg*0.5
@@ -695,7 +698,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         rmp = 1 #CMB_MDMGMIN + (CMB_MDMG*random.random()) # random multiplier -> variable damage
         rawDmg = dmg - armor
         
-        # bonus damage
+        # bonus damage (bonus to flesh, to armor, etc.)
 ##        dfndrArmored = False
 ##        if world.has_component(dfndr, cmp.EquipBody):
 ##            item=world.component_for_entity(dfndr, cmp.EquipBody).item
@@ -707,8 +710,14 @@ def _strike(attkr,dfndr,aweap,dweap,
 ##                compo=world.component_for_entity(aweap, cmp.BonusDamageToArmor)
 ##                bonus = compo.dmg
 ##                rawDmg += bonus
-        
+
         trueDmg = rog.around( max(0,rawDmg*resMult*rmp) ) # apply modifiers
+        
+        # elemental damage
+        if (world.has_component(aweap,cmp.ElementalDamageMelee)):
+            elements=world.component_for_entity(aweap,cmp.ElementalDamageMelee).elements
+        else:
+            elements={}
         
         # extra critical damage: % based on Attack and Penetration
         # you need more atk and more pen than usual to score a crit.
@@ -721,13 +730,29 @@ def _strike(attkr,dfndr,aweap,dweap,
             # critical hits do a percentage of target's max HP in damage
             trueDmg += rog.getms(dfndr, 'hpmax')*critMult
             crit=True
+        # end if
+
+            #-------------#
+            # gear damage #
+            #-------------#
+
+        '''
+        # TODO
+            # deal damage to the armor
+        # TODO: get damage to armor based on material of armor/weapon
+        # AND based on the TYPE of weapon. Daggers do little dmg to armor
+        # while warhammers and caplock guns do tons of damage to armor.
+            # Rather than storing armor-damage as a variable of weapons,
+            # it is related to what SKILL is needed for the weapon.
+
+        OR: simpler solution: give gear/items stats like Armor,
+        and very high protection, so when you attack them with
+        knives etc. you do little damage to the gear, while axes/
+        hammers etc. will do more damage since they have more base dmg.
+        Can just give generic armor/protection values based on material
+        and/or type of item
         
-            # calculate elemental damage
-        # TODO: implement elemental damage!!!!
-        if (world.has_component(aweap,cmp.ElementalDamageMelee)):
-            elements=world.component_for_entity(aweap,cmp.ElementalDamageMelee).elements
-        else:
-            elements={}
+        '''
 
             #-------------#
             # body damage #
@@ -750,6 +775,7 @@ def _strike(attkr,dfndr,aweap,dweap,
                 dmgtype = DMGTYPES[skillCompo.skill]
             # deal body damage
             rog.damagebp(bptarget, dmgtype)
+        # end if
             
             #-------------------------------------#
             # deal damage, physical and elemental #
@@ -800,16 +826,12 @@ def _strike(attkr,dfndr,aweap,dweap,
                 rog.rot(dfndr, elemDmg)
             elif element == ELEM_WET:
                 rog.wet(dfndr, elemDmg)
-                
-            # deal damage to the armor
-        # TODO: get damage to armor based on material of armor/weapon
-        # AND based on the TYPE of weapon. Daggers do little dmg to armor
-        # while warhammers and caplock guns do tons of damage to armor.
-            # Rather than storing armor-damage as a variable of weapons,
-            # it is related to what SKILL is needed for the weapon.
-        #
-        # return info for the message log
+        # end if
+        
         killed = rog.on(dfndr,DEAD) #...did we kill it?
+    # end if
+    #
+    # return info for the message log
     return (hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,)
 
 

@@ -104,11 +104,11 @@ def main():
 ##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
-    weap=rog.create_weapon("longsword", 0,0)
-    rog.damage(weap, 100)
-    rog.equip(
-        rog.pc(),weap,EQ_MAINHAND
-        )
+##    weap=rog.create_weapon("longsword", 0,0)
+##    rog.damage(weap, 100)
+##    rog.equip(
+##        rog.pc(),weap,EQ_MAINHAND
+##        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
 ##        )

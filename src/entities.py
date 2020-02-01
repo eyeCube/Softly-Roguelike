@@ -116,11 +116,11 @@ SKL_SPINNING    = SKL_THROWING
 SKL_TIPFIRST    = SKL_THROWING
 
 # body plans
-HUMAN = BODYPLAN_HUMANOID
-INSECT = BODYPLAN_INSECTOID
-4LEGS = BODYPLAN_4LEGGED
-8ARMS = BODYPLAN_8ARMS
-CUSTOM = BODYPLAN_CUSTOM
+HUMAN   = BODYPLAN_HUMANOID
+INSECT  = BODYPLAN_INSECTOID
+FLEGS   = BODYPLAN_4LEGGED
+EARMS   = BODYPLAN_8ARMS
+CUSTOM  = BODYPLAN_CUSTOM
 
 
 
@@ -2907,9 +2907,6 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
     # equipment
     
     # TODO: gloves / gauntlets (hand armor)
-
-    # TODO: enforce two-handed requirement for 2-h weapons,
-    # implement bonus for 1-h weapons wielded in 2 hands.
     
     # held item (weapon)
     if hand.held.item:
@@ -4265,7 +4262,7 @@ def create_steel_weapon(itemName, x, y) -> int:
 
 # bodies #
 
-def create_body_humanoid(mass=75, height=175, female=False):
+def create_body_humanoid(mass=75, height=175, female=False, bodyfat=0.1):
     '''
         create a generic humanoid body with everything a basic body needs
             *does not add any values to components -- inits default vals
@@ -4281,7 +4278,7 @@ def create_body_humanoid(mass=75, height=175, female=False):
               on the fly to calculate the total mass of the body).
     '''
     mass = int(mass * MULT_MASS)
-    fat = mass*0.05 #mass*0.1 if female else mass*0.05
+    fat = mass*bodyfat
     body = cmp.Body(
         BODYPLAN_HUMANOID,
         cmp.BPC_Torso(),
@@ -4319,9 +4316,31 @@ def _setGenericData(ent, material=0) -> int:
     # resistances,
     if material==MAT_METAL:
         stats.resrust=0
+        stats.arm=6
+        stats.pro=18
+    elif material==MAT_STONE:
+        stats.arm=4
+        stats.pro=6
+    elif material==MAT_BONE:
+        stats.arm=2
+        stats.pro=6
+    elif material==MAT_GLASS:
+        stats.arm=6
+        stats.pro=6
+    elif material==MAT_CARBON:
+        stats.arm=2
+        stats.pro=24
+    elif material==MAT_LEATHER:
+        stats.arm=1
+        stats.pro=1
+    elif material==MAT_BLEATHER:
+        stats.arm=1
+        stats.pro=3
     elif material==MAT_WOOD:
         stats.resrot=0
         stats.resfire=0
+        stats.arm=1
+        stats.pro=6
     elif material==MAT_CLOTH:
         stats.resfire=0
     elif material==MAT_PAPER:
@@ -4423,15 +4442,15 @@ BESTIARY={
 #Type, name, KG, CM, Material, bodyplan, (FLAGS), script, {Stat Dict},
 'h':('human', 70, 175, MAT_FLESH, HUMAN, (), None,
     {}, ),
-'a':('abomination', 140, 140, MAT_FLESH, 4LEGS, (), None,
+'a':('abomination', 140, 140, MAT_FLESH, FLEGS, (), None,
     {'str':4,'end':-8,'dex':-12,'int':-8,'con':4,'agi':-8,'msp':20,'resbio':50,'sight':0.25,'hearing':0,},),
-'d':('dog', 60, 60, MAT_FLESH, 4LEGS, (MEAN,), None, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
+'d':('dog', 60, 60, MAT_FLESH, FLEGS, (MEAN,), None, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
     {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
 'L':('raving lunatic', 70, 165, MAT_FLESH, HUMAN, (MEAN,), None,
     {'str':6,'end':6,'int':-6,'dex':-6,'resbio':40,'reselec':60,}, ),
 'r':('ravaged', 35, 150, MAT_FLESH, HUMAN, (), None,
     {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
-'R':('orctepus', 100, 140, MAT_FLESH, 8ARMS, (IMMUNEWATER,), None,
+'R':('orctepus', 100, 140, MAT_FLESH, EARMS, (IMMUNEWATER,), None,
     {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
 'U':('obese scrupula', 190, 190, MAT_FLESH, HUMAN, (), None,
     {'str':4,'end':-10,'dex':-6,'int':-4,'con':12,'agi':-10,'sight':0.5,'hearing':0,}, ),
@@ -5729,7 +5748,7 @@ CLS_JANITOR     : ("j", "janitor",   70, 100, 0,'J',
     (),
     (),
     ),
-CLS_SOLDIER     : ("S", "marine",    85, 1000,3,'',
+CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
     {'hearing':-40,'str':6,'con':6,'dex':2,'int':2,'end':6,'agi':2,},
     (SKL_RIFLES,SKL_MACHINEGUNS,SKL_PISTOLS,SKL_ARMOR,),
     (),

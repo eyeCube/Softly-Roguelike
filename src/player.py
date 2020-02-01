@@ -31,6 +31,7 @@ import action
 import debug
 import dice
 import entities
+import misc
 
 
 
@@ -93,14 +94,6 @@ def commands(pc, pcAct):
     for act,arg in pcAct:
         
         rog.update_base()
-
-        # actions that take multiple turns
-        busyTask=rog.occupations(pc)
-        if busyTask:
-            if not rog.occupation_elapse_turn(pc):
-                # interrupted
-##                rog.Input("")
-                pass
         
         #----------------#
         # convert action #
@@ -382,36 +375,51 @@ def commands(pc, pcAct):
 #   sx, sy: starting position x, y of player entity
 #
 def chargen(sx, sy):
-    
-    world = rog.world()
-    # init
-    x1 = 0; y1 = 0;
-    xx = 0; yy = 3;
-    iy = 0;
-    ww = rog.window_w(); hh = 5;
+
+    # TODO: better UI: show character data to the right of the menus
+    # TODO: saving/loading game
     
     # draw the string to con_game
     def _printElement(elemStr,iy):
         rog.dbox(x1,y1+iy,ww,3,text=elemStr,
-            wrap=False,border=None,con=rog.con_game(),disp='mono')
-
+            wrap=False,border=None,con=rog.con_final(),disp='mono')
         return iy+1
-    # end def
+    def _drawskills(con, skillscompo):
+        skillstr = misc._get_skills(skillscompo)
+        libtcod.console_print(con, 48,2, "-- skills --")
+        libtcod.console_print(con, 24,4, skillstr)
+##    def reroll(stats, skills):
+##        
+    #
     
-    # get char data from player
+    # init
+    world = rog.world()
+    x1 = 0; y1 = 0;
+    xx = 0; yy = 3;
+    iy = 0;
+    ww = rog.window_w(); hh = 5;
+    height = 175
+    libtcod.console_clear(0)
+    libtcod.console_clear(rog.con_game())
+    libtcod.console_clear(rog.con_final())
+    #
+    
+    # get character data from player input #
     
     # name
     _name=rog.prompt(x1,y1,ww,hh,maxw=20, q="What is your name?", mode="text")
     _title = ""
     print("name chosen: ", _name)
-##    iy+=1
+    libtcod.console_clear(rog.con_final())
+    iy=_printElement("name: {}".format(_name), iy)
 
     # load saved game
     loadedGame = False
 
         # TODO: forget this -- use Pickle or similar
     
-##    savedir=os.listdir(os.path.join(os.path.curdir,"save"))
+##    savedir=os.listdir(os.path.join(
+##        os.path.curdir,os.path.pardir,"save"))
 ##    for filedir in savedir:
 ##        if ".save" != filedir[-5:] :
 ##            continue #wrong filetype
@@ -430,8 +438,16 @@ def chargen(sx, sy):
 ##            break
     # end for
     
-    # make a new character
-    if not loadedGame:
+    if loadedGame:
+        # load old character (TODO)
+        pass
+    else:
+        # make a new character
+        
+        skillscompo = cmp.Skills()
+        flags = cmp.Flags(IMMUNERUST,)
+        pc = world.create_entity(skillscompo)
+        world.add_component(pc, flags)
         #continue chargen...
         
         # gender
@@ -456,6 +472,7 @@ def chargen(sx, sy):
             print("ALERT: file '{}' not found. Creating new file...".format(genderFileDir))
             with open(genderFileDir, "w+") as file:
                 file.write("\n")
+
         
         #gender selection
         _gender = ''
@@ -491,7 +508,41 @@ def chargen(sx, sy):
                     _genderName = "female"
                     _pronouns = ('she','her','hers',)
         print("gender chosen: ", _genderName)
-##        iy+=1
+        libtcod.console_clear(rog.con_final())
+        _printElement("name: {}".format(_name), iy-1)
+        iy=_printElement("gender: {}".format(_genderName), iy)
+
+        
+        # body type
+        _cm=rog.prompt( x1,y1+iy,ww,6,maxw=20,
+            q="How tall are you? (press a key from 1 to 9. 5 is average)",
+            mode="wait" )
+        try:
+            _cm = int(_cm)
+        except:
+            _cm = 5
+        if (_cm==0 or not _cm): _cm=5
+        _cmMult = 1 + (_cm - 5)/8
+        _printElement("name: {}".format(_name), iy-2)
+        _printElement("gender: {}".format(_genderName), iy-1)
+        iy=_printElement("height: {} / 9".format(_cm), iy)
+        print("height chosen: ", _cm)
+        
+        _kg=rog.prompt( x1,y1+iy,ww,6,maxw=20,
+            q="How heavy are you? (press a key from 1 to 9. 3 is average)",
+            mode="wait" )
+        try:
+            _kg = int(_kg)
+        except:
+            _kg = 3
+        if (_kg==0 or not _kg): _kg=3
+        _kgMult = 1 + (_kg - 3)/5
+        _printElement("name: {}".format(_name), iy-3)
+        _printElement("gender: {}".format(_genderName), iy-2)
+        _printElement("height: {} / 9".format(_cm), iy-1)
+        iy=_printElement("mass: {} / 9".format(_kg), iy)
+        print("mass chosen: ", _kg)
+
         
         # class
         rog.dbox(x1,y1+iy,ww,3,text="What is your profession?",
@@ -524,16 +575,23 @@ def chargen(sx, sy):
         _jobstats = entities.getJobStats(_classID).items()
         _jobskills = entities.getJobSkills(_classID)
         
-        #grant stats / abilities of your chosen class
+        #add specific class skills
+        for sk_id in _jobskills:
+            rog.setskill(pc, sk_id, SKILL_LEVELS_JOB)
         
         print("class chosen: ", _className)
-##        iy+=1
+        _printElement("name: {}".format(_name), iy-4)
+        _printElement("gender: {}".format(_genderName), iy-3)
+        _printElement("height: {} / 9".format(_cm), iy-2)
+        _printElement("mass: {} / 9".format(_kg), iy-1)
+        iy=_printElement("class: {}".format(_className), iy)
+
 
         # skills (TODO: test new system of skills -- only one dict of skills, and you can pick up to 6(?) of them...
         _skillNames=[]
         _skillIDs=[]
         skilldict={}
-        ptsRemaining=30#SKILL_POINTS
+        ptsRemaining=SKILLPOINTS
         cancel=False
         
         for k, sk in SKILLS.items():
@@ -541,6 +599,7 @@ def chargen(sx, sy):
             skilldict.update({string : k})
             
         while ptsRemaining:
+            _drawskills(0, skillscompo)
             rog.dbox(x1,y1+iy,ww,3,
                      text="choose a skill",
                      wrap=True,border=None, con=rog.con_final(), disp='mono'
@@ -569,46 +628,70 @@ wrap=False,con=rog.con_final(),disp='mono'
                 continue
             
             # successfully selected skill
+            rog.setskill(pc, _skillID, min(
+                100, rog.getskill(pc, _skillID) + SKILL_LEVELS_PER_SELECTION) )
+            
             ptsRemaining -= _skillPts
             print("skill chosen: {} (pts: {})".format(_skillName, ptsRemaining))
             _skillNames.append(_skillName)
             _skillIDs.append(_skillID)
         # end while
+
         
         # confirmation
+        libtcod.console_clear(rog.con_final())
+        cm = int(height*_cmMult)
+        kg = int(_mass*_kgMult)
+        iy=0
         iy=_printElement("name: {}".format(_name), iy)
         iy=_printElement("gender: {}".format(_genderName), iy)
-        iy=_printElement("class: {}".format(_className), iy)
-        for sk in _skillNames:
-            iy=_printElement("skill: {}".format(sk), iy)
-            
-        rog.blit_to_final(rog.con_game(),0,0)
+        iy=_printElement("class: {} ({})".format(_className, _type), iy)
+        iy=_printElement("height: {} cm ({} / 9)".format(cm, _cm), iy)
+        iy=_printElement("mass: {} kg ({} / 9)".format(kg, _kg), iy)
+        _drawskills(rog.con_final(), skillscompo)
         rog.refresh()
         _ans=''
         while _ans!='y':
+            # roll character
+##            reroll(statscompo, skillscompo)
             _ans=rog.prompt(x1,rog.window_h()-4,ww,4,maxw=20,
-                            q="continue with this character? y/n",
+                            q="continue with this character? y/n", #/r (reroll)
                             mode="wait"
                             )
             if _ans.lower()=='n':
                 return chargen(sx,sy)
+##            if _ans.lower()=='r':
+##                reroll(statscompo, skillscompo)
         #
+        
             
         #stats?
         _stats = {}
         #gift?
         _gift = 0
+        
 
             #----------------------------------#
-            #  Roll character / Create entity  #
+            #      Finish creating entity      #
             #----------------------------------#
         
-        # mass, height
-        height = 175 # temporary
+        # calculate some more stats
+        
+        # mass stat mods
+        bodyfat=DEFAULT_BODYFAT_HUMAN
+        if _kg >= 5:
+            bodyfat += (_kg-4)/16
+        elif _kg < 3:
+            bodyfat -= bodyfat*(3-_kg)/3
+        print("bodyfat: ", bodyfat)
+        
+        # height stat mods
+        reachMult = 1 + (_cm-5)/8
             
         # create body
         body, newmass = rog.create_body_humanoid(
-            mass=_mass, height=height, female=(_genderName=="female") )
+            mass=kg, height=cm, female=(_genderName=="female"),
+            bodyfat=bodyfat)
         body.hydration = body.hydrationMax * 0.98
         body.satiation = body.satiationMax * 0.85
         
@@ -617,61 +700,54 @@ wrap=False,con=rog.con_final(),disp='mono'
         
         #create pc object from the data given in chargen
         
-        # create entity
-        flags = cmp.Flags(IMMUNERUST,)
-        pc = world.create_entity(
-            body,meters,
-            cmp.Player(),
-            cmp.Name(_name, title=_title),
-            cmp.Draw('@', COL['white'], COL['deep']),
-            cmp.Position(sx, sy),
-            cmp.Actor(),
-            cmp.Form( mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ),
-            cmp.Creature(
-                job=_className, faction=FACT_ROGUE, species=SPECIE_HUMAN
-                ),
-            cmp.Stats(
-                hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN*MULT_STATS,
-                mass=newmass, # base mass before weight of water and blood and fat is added
-                encmax=BASE_ENCMAX,
-                resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
-                resbio=BASE_RESBIO, reselec=BASE_RESELEC,
-                resphys=BASE_RESPHYS, reswet=BASE_RESWET,
-                respain=BASE_RESPAIN, resbleed=BASE_RESBLEED,
-                resrust=BASE_RESRUST, resrot=BASE_RESROT,
-                reslight=BASE_RESLIGHT, ressound=BASE_RESSOUND,
-                _str=BASE_STR*MULT_ATT, _con=BASE_CON*MULT_ATT,
-                _int=BASE_INT*MULT_ATT, _agi=BASE_AGI*MULT_ATT,
-                _dex=BASE_DEX*MULT_ATT, _end=BASE_END*MULT_ATT,
-                atk=BASE_ATK*MULT_STATS, dmg=BASE_DMG*MULT_STATS,
-                pen=BASE_PEN*MULT_STATS, dfn=BASE_DFN*MULT_STATS,
-                arm=BASE_ARM*MULT_STATS, pro=BASE_PRO*MULT_STATS,
-                gra=BASE_GRA*MULT_STATS, bal=BASE_BAL*MULT_STATS,
-                ctr=BASE_CTR*MULT_STATS, reach=BASE_REACH*MULT_STATS,
-                spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
-                sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
-                courage=BASE_COURAGE, scary=BASE_SCARY,
-                beauty=BASE_BEAUTY
-                ),
-            cmp.Skills(), flags,
-            cmp.SenseSight(), cmp.SenseHearing(),
-            cmp.Mutable(),
-            cmp.Inventory(),
-            cmp.Gender(_genderName,_pronouns),
-        )
+        # add components to entity
+        world.add_component(pc, body)
+        world.add_component(pc, meters)
+        world.add_component(pc, cmp.Player())
+        world.add_component(pc, cmp.Name(_name, title=_title))
+        world.add_component(pc, cmp.Draw('@', COL['white'], COL['deep']))
+        world.add_component(pc, cmp.Position(sx, sy))
+        world.add_component(pc, cmp.Actor())
+        world.add_component(pc, cmp.Form(
+            mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ))
+        world.add_component(pc, cmp.Creature(
+            job=_className, faction=FACT_ROGUE, species=SPECIE_HUMAN ))
+        world.add_component(pc, cmp.SenseSight())
+        world.add_component(pc, cmp.SenseHearing())
+        world.add_component(pc, cmp.Mutable())
+        world.add_component(pc, cmp.Inventory())
+        world.add_component(pc, cmp.Gender(_genderName,_pronouns))
+        world.add_component(pc, cmp.Stats(
+            hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN*MULT_STATS,
+            mass=newmass, # base mass before weight of water and blood and fat is added
+            encmax=BASE_ENCMAX,
+            resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
+            resbio=BASE_RESBIO, reselec=BASE_RESELEC,
+            resphys=BASE_RESPHYS, reswet=BASE_RESWET,
+            respain=BASE_RESPAIN, resbleed=BASE_RESBLEED,
+            resrust=BASE_RESRUST, resrot=BASE_RESROT,
+            reslight=BASE_RESLIGHT, ressound=BASE_RESSOUND,
+            _str=BASE_STR*MULT_ATT, _con=BASE_CON*MULT_ATT,
+            _int=BASE_INT*MULT_ATT, _agi=BASE_AGI*MULT_ATT,
+            _dex=BASE_DEX*MULT_ATT, _end=BASE_END*MULT_ATT,
+            atk=BASE_ATK*MULT_STATS, dmg=BASE_DMG*MULT_STATS,
+            pen=BASE_PEN*MULT_STATS, dfn=BASE_DFN*MULT_STATS,
+            arm=BASE_ARM*MULT_STATS, pro=BASE_PRO*MULT_STATS,
+            gra=BASE_GRA*MULT_STATS, bal=BASE_BAL*MULT_STATS,
+            ctr=BASE_CTR*MULT_STATS,
+            reach=BASE_REACH*MULT_STATS*reachMult,
+            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
+            sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
+            courage=BASE_COURAGE, scary=BASE_SCARY,
+            beauty=BASE_BEAUTY
+            ))
         
-        #add specific class skills
-        for sk_id in _jobskills:
-            rog.setskill(pc, sk_id, 25)
         #add specific class stats
         for stat, val in _jobstats:
             value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
             rog.alts(pc, stat, value)
-        #add additional skill
-        for sk_id in _skillIDs: # TODO: allow player to select skills to spend skill points on, each purchase is worth 5 levels of that skill and goes into the list (_skillIDs)
-            rog.setskill(pc, sk_id, min(100, rog.getskill(pc, sk_id) + 5) )
-        print("skills = ", rog.world().component_for_entity(pc, cmp.Skills).skills)
     # end if
+
     
     # init
     rog.register_entity(pc)
@@ -721,7 +797,8 @@ Possessive pronoun: {}
     if success:
         #add the gender into the genders text file for next game
         genderFileName="genders.txt"
-        genderFileDir=os.path.join(os.path.curdir,"settings",genderFileName)
+        genderFileDir=os.path.join(
+            os.path.curdir,os.path.pardir,"settings",genderFileName)
         def writeGender(n,p1,p2,p3):
             with open(genderFileDir, "a+") as file:
                 file.write("{}:{},{},{}\n".format(n,p1,p2,p3))

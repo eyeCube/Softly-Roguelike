@@ -1568,8 +1568,13 @@ def create_earwear(name,x,y):
     _initThing(ent)
     return ent
 
-def create_body_humanoid(mass=70, height=175, female=False):
-    return entities.create_body_humanoid(mass=mass, height=height, female=female)
+def create_body_humanoid(mass=70, height=175, female=False, bodyfat=None):
+    if bodyfat:
+        return entities.create_body_humanoid(
+            mass=mass, height=height, female=female, bodyfat=bodyfat)
+    else:
+        return entities.create_body_humanoid(
+            mass=mass, height=height, female=female)
 
 def dominant_arm(ent): # get a BPM object (assumes you have the necessary components / parts)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
@@ -1602,27 +1607,29 @@ def dehydrate(ent): entities.dehydrate(ent)
     #--------------#
     #     Stats    #
     #--------------#
-    
+
 def get_encumberance_breakpoint(enc, encmax):
     erat = enc/max(1,encmax) # encumberance ratio
-    if erat < 0.05:     # 0: 0 - 5%
+    if erat < ENC_BP_1:     # 0: 0 - 5%
         encbp = 0
-    elif erat < 0.12:   # 1: 5 - 12%
+    elif erat < ENC_BP_2:   # 1: 5 - 12%
         encbp = 1
-    elif erat < 0.25:   # 2: 12 - 25%
+    elif erat < ENC_BP_3:   # 2: 12 - 25%
         encbp = 2
-    elif erat < 0.5:    # 3: 25 - 50%
+    elif erat < ENC_BP_4:    # 3: 25 - 50%
         encbp = 3
-    elif erat < 0.75:   # 4: 50 - 75%
+    elif erat < ENC_BP_5:   # 4: 50 - 75%
         encbp = 4
-    elif erat < 0.87:   # 5: 75 - 87%
+    elif erat < ENC_BP_6:   # 5: 75 - 85%
         encbp = 5
-    elif erat < 0.95:   # 6: 87 - 95%
+    elif erat < ENC_BP_7:   # 6: 84 - 90%
         encbp = 6
-    elif erat < 1:      # 7: 95 - 100%
+    elif erat < ENC_BP_8:   # 7: 91 - 95%
         encbp = 7
-    else:               # 8: 100% or greater
+    elif erat < 1:      # 8: 96 - 100%
         encbp = 8
+    else:               # 9: 100% or greater
+        encbp = 9
     return encbp
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
@@ -1680,6 +1687,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         
         # body component top level vars
         entities._update_from_body_class(body, modded)
+        # encumerance from your own body weight
+        modded.enc += modded.mass//MULT_MASS
         
         # core
         if body.plan==BODYPLAN_HUMANOID:
@@ -2063,7 +2072,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
-    modded.mpregen = modded.mpregen * (0.5 + 0.5*encpc)
+    modded.mpregen = modded.mpregen * (0.5 + 1.5*encpc)
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1

@@ -530,17 +530,22 @@ class SavedGame:
         def getGlobalSaveFile():
             fname="globalsavedata.sav"
             try:
-                self.file=os.path.join(os.path.curdir,"save",fname)
+                self.file=os.path.join(
+                    os.path.curdir,os.path.pardir,"save",fname)
             except:
-                with open(os.path.join(os.path.curdir,"save",fname), 'w+') as file:
+                with open(os.path.join(
+                    os.path.curdir,os.path.pardir,"save",fname), 'w+') as file:
                     pass
-                self.file=os.path.join(os.path.curdir,"save",fname)
+                self.file=os.path.join(
+                    os.path.curdir,os.path.pardir,"save",fname)
                 self._write_defaults()
-        if os.path.exists(os.path.join(os.path.curdir,"save")):
+        if os.path.exists(os.path.join(
+            os.path.curdir,os.path.pardir,"save")):
             getGlobalSaveFile()
         else:
             try:
-                os.mkdir(os.path.join(os.path.curdir,"save"), )
+                os.mkdir(os.path.join(
+                    os.path.curdir,os.path.pardir,"save"), )
             except OSError:
                 print("Failed to create directory './save'. Aborting...")
                 rog.end()
