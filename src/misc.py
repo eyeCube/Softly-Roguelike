@@ -514,7 +514,7 @@ def _get_encumberance_mods(pc):
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
-        mods += "SPR {}%, ".format(int(50 + max(0, 150*(1 - (enc/max(1,encmax)))) ))
+        mods += "SPR {}%, ".format(int(50 + max(0, 100*(1 - (enc/max(1,encmax)))) ))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))

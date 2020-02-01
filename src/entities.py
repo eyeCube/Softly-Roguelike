@@ -2643,14 +2643,20 @@ def paralyze(ent, dur):
     return True
 
 
-# Stats #
-
-
     #-----------------------#
-    #       Stats           #
+    #       # Stats #       #      #Stats#
     #-----------------------#
 
-
+def rollstats(stats, DEV=3, HDEV=6, MDEV=0.05):
+    stats.str+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.con+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.int+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.dex+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.agi+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.end+=int(MULT_STATS*(random.random()*DEV*2-DEV))
+    stats.mass=int(stats.mass*(1 + random.random()*MDEV*2 - MDEV))
+    stats.cm+=int(random.random()*HDEV*2-HDEV)
+    
 # local func for durability penalties (TODO: move all these nested functions and make it global private funcs)
 ##def append_mods(bps):
 ##    if dadd:
@@ -4112,7 +4118,7 @@ def create_weapon(name, x,y, quality=1) -> int:
 #
 
 # monsters
-def create_monster(_type, x, y, col=None, mutate=0, money=0) -> int:
+def create_monster(_type, x, y, col=None, money=0) -> int:    
     if not col:
         col = COL['red']
     
@@ -4133,8 +4139,53 @@ def create_monster(_type, x, y, col=None, mutate=0, money=0) -> int:
     if bodyplan==BODYPLAN_HUMANOID:
         body, basekg = create_body_humanoid(kg, cm, female)
     
+    stats=cmp.Stats(
+        mass=basekg,
+        encmax=BASE_ENCMAX+stats.get('encmax',0),
+        hp=BASE_HP+stats.get('hp',0),
+        mp=BASE_MP+stats.get('mp',0),
+        mpregen=(BASE_MPREGEN+stats.get('mpregen',0))*MULT_STATS,
+        reach=(BASE_REACH+stats.get('reach',0))*MULT_STATS,
+        resfire=BASE_RESFIRE+stats.get('resfire',0),
+        resbio=BASE_RESBIO+stats.get('resbio',0),
+        reselec=BASE_RESELEC+stats.get('reselec',0),
+        resphys=BASE_RESPHYS+stats.get('resphys',0),
+        rescold=BASE_RESCOLD+stats.get('rescold',0),
+        resbleed=BASE_RESBLEED+stats.get('resbleed',0),
+        respain=BASE_RESPAIN+stats.get('respain',0),
+        resrust=BASE_RESRUST+stats.get('resrust',0),
+        resrot=BASE_RESROT+stats.get('resrot',0),
+        reswet=BASE_RESWET+stats.get('reswet',0),
+        reslight=BASE_RESLIGHT+stats.get('reslight',0),
+        ressound=BASE_RESSOUND+stats.get('ressound',0),
+        spd=BASE_SPD+stats.get('spd',0),
+        asp=BASE_ASP+stats.get('asp',0),
+        msp=BASE_MSP+stats.get('msp',0),
+        _str=(BASE_STR+stats.get('str',0))*MULT_ATT,
+        _con=(BASE_CON+stats.get('con',0))*MULT_ATT,
+        _int=(BASE_INT+stats.get('int',0))*MULT_ATT,
+        _dex=(BASE_DEX+stats.get('dex',0))*MULT_ATT,
+        _agi=(BASE_AGI+stats.get('agi',0))*MULT_ATT,
+        _end=(BASE_END+stats.get('end',0))*MULT_ATT,
+        atk=(BASE_ATK+stats.get('atk',0))*MULT_STATS,
+        dmg=(BASE_DMG+stats.get('dmg',0))*MULT_STATS,
+        dfn=(BASE_DFN+stats.get('dv',0))*MULT_STATS,
+        arm=(BASE_ARM+stats.get('av',0))*MULT_STATS,
+        pen=(BASE_PEN+stats.get('pen',0))*MULT_STATS,
+        pro=(BASE_PRO+stats.get('pro',0))*MULT_STATS,
+        bal=(BASE_BAL+stats.get('bal',0))*MULT_STATS,
+        ctr=(BASE_CTR+stats.get('ctr',0))*MULT_STATS,
+        gra=(BASE_GRA+stats.get('gra',0))*MULT_STATS,
+        courage=BASE_COURAGE+stats.get('cou',0),
+        scary=BASE_SCARY+stats.get('idn',0),
+        beauty=BASE_BEAUTY+stats.get('bea',0)
+        )
+##    rollstats(stats, DEV=3) # TODO: test this function
+    
+    #create entity
     ent = rog.world().create_entity(
         body,
+        stats,
         cmp.AI(ai.stateless), #temporary
         cmp.Name(name),
         cmp.Draw(_type, col, COL['deep']),
@@ -4142,33 +4193,6 @@ def create_monster(_type, x, y, col=None, mutate=0, money=0) -> int:
         cmp.Actor(),
         cmp.Form(mat, 0),
         cmp.Creature(faction=FACT_MONSTERS),
-        cmp.Stats(
-            mass=basekg,
-            encmax=BASE_ENCMAX+stats.get('encmax',0),
-            hp=BASE_HP+stats.get('hp',0),
-            mp=BASE_MP+stats.get('mp',0),
-            resfire=BASE_RESFIRE+stats.get('resfire',0),
-            resbio=BASE_RESBIO+stats.get('resbio',0),
-            reselec=BASE_RESELEC+stats.get('reselec',0),
-            resphys=BASE_RESPHYS+stats.get('resphys',0),
-            rescold=BASE_RESCOLD+stats.get('rescold',0),
-            resbleed=BASE_RESBLEED+stats.get('resbleed',0),
-            respain=BASE_RESPAIN+stats.get('respain',0),
-            resrust=BASE_RESRUST+stats.get('resrust',0),
-            resrot=BASE_RESROT+stats.get('resrot',0),
-            reswet=BASE_RESWET+stats.get('reswet',0),
-            reslight=BASE_RESLIGHT+stats.get('reslight',0),
-            ressound=BASE_RESSOUND+stats.get('ressound',0),
-            atk=BASE_ATK+stats.get('atk',0),
-            dmg=BASE_DMG+stats.get('dmg',0),
-            dfn=BASE_DFN+stats.get('dv',0),
-            arm=BASE_ARM+stats.get('av',0),
-            pen=BASE_PEN+stats.get('pen',0),
-            pro=BASE_PRO+stats.get('pro',0),
-            spd=BASE_SPD+stats.get('spd',0),
-            asp=BASE_ASP+stats.get('asp',0),
-            msp=BASE_MSP+stats.get('msp',0),
-            ),
         cmp.Inventory(money=money),
         cmp.Skills(),
         cmp.Meters(),

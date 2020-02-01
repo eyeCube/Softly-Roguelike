@@ -42,9 +42,8 @@ def main():
 #------------------------------------------------#
     # INIT
 #------------------------------------------------#
-
-    # new way to init
-    rog.Rogue.create_settings() # later controllers might depend on settings
+    
+    rog.Rogue.create_settings() # later controllers may depend on settings
     rog.Rogue.create_window()
     rog.Rogue.create_consoles()
     rog.Rogue.create_world()

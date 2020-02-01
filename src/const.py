@@ -330,6 +330,7 @@ EXP_LEVEL           = 1000  # experience needed to level up skills
 EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 MIN_MSP             = 5     # minimum movement speed under normal conditions
 
+
 __MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
              'str','con','int','agi','dex','end',)
 ##__MULTATT=('str','con','int','agi','dex','end',)
@@ -587,7 +588,9 @@ CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 MISS_BAL_PENALTY    = 5     # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
 MAXREACH            = 5     # meters
-                
+BODY_DMG_PEN_BPS    = 4     # number of penetration breakpoints for body status inflicting
+GEAR_DMG_PEN_THRESHOLD = 4  # number of penetrations before attacks do not damage gear, but only damage the body wearing it
+
 #sounds
 VOLUME_DEAFEN       = 500
 
@@ -669,28 +672,26 @@ STAM_QUICKATTACK    = 1.5
 
 # ENCUMBERANCE
 
-ENC_BP_1    = 0.05
-ENC_BP_2    = 0.12
-ENC_BP_3    = 0.25
-ENC_BP_4    = 0.50
-ENC_BP_5    = 0.75
-ENC_BP_6    = 0.85
-ENC_BP_7    = 0.90
-ENC_BP_8    = 0.95
+ENC_BP_1    = 0.25
+ENC_BP_2    = 0.50
+ENC_BP_3    = 0.75
+ENC_BP_4    = 0.85
+ENC_BP_5    = 0.90
+ENC_BP_6    = 0.95
 ENCUMBERANCE_MODIFIERS = {
 # note: encumberance affecting attributes (like Agi) is difficult to
 #   implement and is a recipe for disaster... so it only affects
 #   derived stats here.
 #stat : Encumberance Breakpoint
-# BP:   1     2     3     4     5     6     7     8     9
-#Enc% ( 5%    12%   25%   50%   75%   85%   90%   95%   100% )
-'msp' :(0.99, 0.98, 0.95, 0.9,  0.8,  0.67, 0.5,  0.25, 0,),
-'asp' :(0.99, 0.98, 0.96, 0.92, 0.85, 0.8,  0.72, 0.64, 0.6,),
-'atk' :(0.98, 0.96, 0.94, 0.9,  0.8,  0.75, 0.7,  0.6,  0.5,),
-'dfn' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
-'pro' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
-'gra' :(0.98, 0.95, 0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
-'bal' :(0.98, 0.95, 0.88, 0.75, 0.67, 0.5,  0.4,  0.3,  0.2,),
+# BP:   1     2     3     4     5     6     7
+#Enc% ( >=25% >=50% >=75% >=85% >=90% >=95% >=100% )
+'msp' :(0.95, 0.9,  0.8,  0.67, 0.5,  0.25, 0,),
+'asp' :(0.96, 0.92, 0.85, 0.8,  0.72, 0.64, 0.56,),
+'atk' :(0.94, 0.9,  0.8,  0.75, 0.67, 0.6,  0.5,),
+'dfn' :(0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'pro' :(0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'gra' :(0.92, 0.86, 0.78, 0.67, 0.59, 0.5,  0.4,),
+'bal' :(0.88, 0.75, 0.67, 0.5,  0.4,  0.3,  0.2,),
     }
 
 
@@ -847,7 +848,6 @@ BPP_HAIR        = i; i+=1;
 i=0;
 BONESTATUS_NORMAL       = i; i+=1;
 BONESTATUS_DAMAGED      = i; i+=1; # bone is damaged, susceptible to fracture or breakage
-BONESTATUS_DISLOCATED   = i; i+=1; # bone is out of socket
 BONESTATUS_FRACTURED    = i; i+=1; # hairline fracture
 BONESTATUS_CRACKED      = i; i+=1; # badly cracked
 BONESTATUS_BROKEN       = i; i+=1; # fully broken in two
@@ -855,6 +855,7 @@ BONESTATUS_MULTIBREAKS  = i; i+=1; # fully broken in multiple places
 BONESTATUS_SHATTERED    = i; i+=1; # shattered; broken into several pieces
 BONESTATUS_MANGLED      = i; i+=1; # mullered; bone is in utter ruin
 NBONESTATUSES           = i - 1; # don't count the normal status
+BONEFLAG_DISLOCATED = 1 # bone is out of socket
 
 i=0;
 MUSCLESTATUS_NORMAL     = i; i+=1;
@@ -869,6 +870,8 @@ MUSCLESTATUS_DEEPBURNED = i; i+=1; # deep / widespread muscle burn
 MUSCLESTATUS_RUPTURED   = i; i+=1; # ruptured tendon or fully ripped in half muscle belly
 MUSCLESTATUS_MANGLED    = i; i+=1; # muscle is in utter ruin
 NMUSCLESTATUSES         = i - 1; # don't count the normal status
+MUSCLEFLAG_DAMAGED = 1 # muscle is damaged, prone to injury
+MUSCLEFLAG_SCARRED = 2 # scarred from damage
 
 i=0;
 ARTERYSTATUS_NORMAL     = i; i+=1;
@@ -881,18 +884,22 @@ NARTERYSTATUSES         = i - 1; # don't count the normal status
 i=0;
 SKINSTATUS_NORMAL       = i; i+=1;
 SKINSTATUS_RASH         = i; i+=1; # irritation / inflammation
-SKINSTATUS_BLISTER      = i; i+=1; # UNUSED, severe inflammation / sore or pus/fluid sac
+SKINSTATUS_BLISTER      = i; i+=1; # severe inflammation / sore or pus/fluid sac
 SKINSTATUS_SCRAPED      = i; i+=1; # very mild abrasion (a boo-boo)
 SKINSTATUS_MINORABRASION= i; i+=1; # mild abrasion
 SKINSTATUS_CUT          = i; i+=1; # cut open
 SKINSTATUS_MAJORABRASION= i; i+=1; # serious deep and/or wide-ranging scrape
 SKINSTATUS_BURNED       = i; i+=1; # skin is burned at the surface level (overwrite cuts and abrasions)
 SKINSTATUS_DEEPCUT      = i; i+=1; # deeply cut to the muscle
+SKINSTATUS_MULTIDEEPCUTS= i; i+=1; # deeply cut to the muscle in several places
 SKINSTATUS_SKINNED      = i; i+=1; # skin is partially removed
 SKINSTATUS_DEEPBURNED   = i; i+=1; # skin is burned at a deep level (overwrite all of the above)
 SKINSTATUS_FULLYSKINNED = i; i+=1; # skin is fully / almost fully removed
 SKINSTATUS_MANGLED      = i; i+=1; # skin is fully ruined
 NSKINSTATUSES           = i - 1; # don't count the normal status
+SKINFLAG_CALLOUSES = 1 # toughened up from work
+SKINFLAG_THICC_CALLOUSES = 2 # GREATLY toughened up from work (having both 1&2 indicates leather-like skin)
+SKINFLAG_SCARRED = 4 # scarred from damage
 
 i=0;
 BRAINSTATUS_NORMAL      = i; i+=1; # swelling brain is a status effect, not a brain status
@@ -949,13 +956,13 @@ NGUTSSTATUSES           = i - 1; # don't count the normal status
 
 BONESTATUSES={
 BONESTATUS_DAMAGED      : "damaged",
-BONESTATUS_DISLOCATED   : "dislocated",
 BONESTATUS_FRACTURED    : "fractured",
 BONESTATUS_CRACKED      : "cracked",
 BONESTATUS_BROKEN       : "broken",
 BONESTATUS_MULTIBREAKS  : "multiple breaks",
 BONESTATUS_SHATTERED    : "shattered",
 BONESTATUS_MANGLED      : "mutilated",
+BONEFLAG_DISLOCATED     : "dislocated",
     }
 MUSCLESTATUSES={
 MUSCLESTATUS_SORE       : "sore",
@@ -984,6 +991,7 @@ SKINSTATUS_CUT          : "cut",
 SKINSTATUS_MAJORABRASION: "severely abrased",
 SKINSTATUS_BURNED       : "burned",
 SKINSTATUS_DEEPCUT      : "deep cut",
+SKINSTATUS_MULTIDEEPCUTS: "multiple deep cuts",
 SKINSTATUS_SKINNED      : "skinned",
 SKINSTATUS_DEEPBURNED   : "severely burned",
 SKINSTATUS_FULLYSKINNED : "fully skinned",
@@ -1045,6 +1053,7 @@ SKINSTATUS_CUT          :{'resbio':-6, 'respain':-5, 'resbleed':-6, 'resfire':-2
 SKINSTATUS_MAJORABRASION:{'resbio':-6, 'respain':-10,'resbleed':-6, 'resfire':-3,},
 SKINSTATUS_BURNED       :{'resbio':-6, 'respain':-10,'resbleed':-6, 'resfire':-6,},
 SKINSTATUS_DEEPCUT      :{'resbio':-12,'respain':-10,'resbleed':-8, 'resfire':-6,},
+SKINSTATUS_MULTIDEEPCUTS:{'resbio':-15,'respain':-15,'resbleed':-10,'resfire':-8,},
 SKINSTATUS_SKINNED      :{'resbio':-15,'respain':-15,'resbleed':-10,'resfire':-10,},
 SKINSTATUS_DEEPBURNED   :{'resbio':-18,'respain':-15,'resbleed':-10,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'resbio':-20,'respain':-20,'resbleed':-15,'resfire':-20,},
@@ -1065,22 +1074,22 @@ MUSCLESTATUS_RUPTURED   :{'atk':-4,'dfn':-2.5,'msp':-12,'asp':-12,'gra':-4,'resp
 MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
 ADDMODS_BPP_TORSO_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'respain':-20,},
 BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
 BONESTATUS_MANGLED      :{'respain':-100,},
+BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_TORSO_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'agi':0.9,'asp':0.9,'msp':0.9,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
 BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
+BONEFLAG_DISLOCATED     :{'agi':0.9,'asp':0.9,'msp':0.9,},
     }
 # back
 ADDMODS_BPP_BACK_MUSCLESTATUS = { # stat : value
@@ -1096,42 +1105,42 @@ MUSCLESTATUS_RUPTURED   :{'con':-5,'str':-5,'atk':-4,'dfn':-2.5,'msp':-12,'asp':
 MUSCLESTATUS_MANGLED    :{'con':-6,'str':-6,'atk':-5,'dfn':-3,  'msp':-15,'asp':-15,'gra':-5,'respain':-25,'resbleed':-20,},
     }
 ADDMODS_BPP_BACK_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'bal':-2,'respain':-20,},
 BONESTATUS_BROKEN       :{'bal':-4,'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'bal':-6,'respain':-80,},
 BONESTATUS_SHATTERED    :{'bal':-8,'respain':-100,},
 BONESTATUS_MANGLED      :{'bal':-8,'respain':-100,},
+BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_BACK_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'agi':0.8,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.8,},
 BONESTATUS_BROKEN       :{'agi':0.6,'asp':0.8,'msp':0.6,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.4,'asp':0.7,'msp':0.4,},
 BONESTATUS_SHATTERED    :{'agi':0.2,'asp':0.6,'msp':0.2,},
 BONESTATUS_MANGLED      :{'agi':0.2,'asp':0.6,'msp':0.2,},
+BONEFLAG_DISLOCATED     :{'agi':0.8,},
     }
 
 # head
 ADDMODS_BPP_HEAD_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'respain':-10,},
 BONESTATUS_FRACTURED    :{'respain':-10,},
 BONESTATUS_CRACKED      :{'respain':-20,},
 BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-60,},
 BONESTATUS_SHATTERED    :{'respain':-80,},
 BONESTATUS_MANGLED      :{'respain':-80,},
+BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_HEAD_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
 BONESTATUS_FRACTURED    :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
 BONESTATUS_CRACKED      :{'int':0.8,'end':0.8,'bal':0.8,'sight':0.8,'mpmax':0.8,},
 BONESTATUS_BROKEN       :{'int':0.7,'end':0.7,'bal':0.7,'sight':0.7,'mpmax':0.7,},
 BONESTATUS_MULTIBREAKS  :{'int':0.6,'end':0.6,'bal':0.6,'sight':0.6,'mpmax':0.6,},
 BONESTATUS_SHATTERED    :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
 BONESTATUS_MANGLED      :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
+BONEFLAG_DISLOCATED     :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
     }
 
 # neck
@@ -1149,22 +1158,22 @@ MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'r
 MUSCLESTATUS_MANGLED    :{'atk':-10,'dfn':-5,'asp':-25,'gra':-5,'respain':-35,'resbleed':-20,},
     }
 ADDMODS_BPP_NECK_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'respain':-20,},
 BONESTATUS_FRACTURED    :{'respain':-20,},
 BONESTATUS_CRACKED      :{'respain':-40,},
 BONESTATUS_BROKEN       :{'respain':-60,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
 BONESTATUS_MANGLED      :{'respain':-100,},
+BONEFLAG_DISLOCATED     :{'respain':-20,},
     }
 MULTMODS_BPP_NECK_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'agi':0.9,},
 BONESTATUS_FRACTURED    :{'agi':0.9,},
 BONESTATUS_CRACKED      :{'agi':0.8,'asp':0.9,'msp':0.9,},
 BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
 BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
+BONEFLAG_DISLOCATED     :{'agi':0.9,},
     }
 
 # face & mouth & nose
@@ -1175,20 +1184,21 @@ SKINSTATUS_MINORABRASION:{'beauty':-3, 'intimidation':1, 'resbio':-8, 'respain':
 SKINSTATUS_CUT          :{'beauty':-3, 'intimidation':2, 'resbio':-12,'respain':-5, 'resbleed':-10,'resfire':-4,},
 SKINSTATUS_MAJORABRASION:{'beauty':-12,'intimidation':1, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-6,},
 SKINSTATUS_BURNED       :{'beauty':-12,'intimidation':8, 'resbio':-12,'respain':-10,'resbleed':-10,'resfire':-10,},
-SKINSTATUS_DEEPCUT      :{'beauty':-24,'intimidation':8, 'resbio':-25,'respain':-10,'resbleed':-20,'resfire':-6,},
-SKINSTATUS_SKINNED      :{'beauty':-32,'intimidation':16,'resbio':-25,'respain':-10,'resbleed':-20,'resfire':-10,},
-SKINSTATUS_DEEPBURNED   :{'beauty':-32,'intimidation':16,'resbio':-25,'respain':-20,'resbleed':-20,'resfire':-20,},
+SKINSTATUS_DEEPCUT      :{'beauty':-24,'intimidation':8, 'resbio':-25,'respain':-10,'resbleed':-15,'resfire':-6,},
+SKINSTATUS_MULTIDEEPCUTS:{'beauty':-32,'intimidation':12,'resbio':-36,'respain':-10,'resbleed':-20,'resfire':-8,},
+SKINSTATUS_SKINNED      :{'beauty':-32,'intimidation':16,'resbio':-36,'respain':-10,'resbleed':-20,'resfire':-10,},
+SKINSTATUS_DEEPBURNED   :{'beauty':-32,'intimidation':16,'resbio':-36,'respain':-20,'resbleed':-20,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'beauty':-64,'intimidation':32,'resbio':-50,'respain':-20,'resbleed':-25,'resfire':-20,},
 SKINSTATUS_MANGLED      :{'beauty':-96,'intimidation':48,'resbio':-50,'respain':-20,'resbleed':-25,'resfire':-20,},
     }
 ADDMODS_BPP_FACE_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'respain':-16,'intimidation':-4,'beauty':-8,},
 BONESTATUS_FRACTURED    :{'respain':-16,},
 BONESTATUS_CRACKED      :{'respain':-32,'intimidation':-4,'beauty':-8},
 BONESTATUS_BROKEN       :{'respain':-48,'intimidation':-8,'beauty':-16,},
 BONESTATUS_MULTIBREAKS  :{'respain':-64,'intimidation':-8,'beauty':-24,},
 BONESTATUS_SHATTERED    :{'respain':-96,'intimidation':-8,'beauty':-32,},
 BONESTATUS_MANGLED      :{'respain':-96,'intimidation':-8,'beauty':-32,},
+BONEFLAG_DISLOCATED     :{'respain':-16,'intimidation':-4,'beauty':-8,},
     }
 ADDMODS_BPP_FACE_MUSCLESTATUS = { # muscles around the face
 MUSCLESTATUS_SORE       :{'respain':-5,},
@@ -1235,19 +1245,20 @@ SKINSTATUS_CUT          :{'resbio':-12, 'respain':-10, 'resbleed':-3, 'resfire':
 SKINSTATUS_MAJORABRASION:{'dex':-1,'resbio':-12, 'respain':-20,'resbleed':-3, 'resfire':-3,},
 SKINSTATUS_BURNED       :{'dex':-1,'resbio':-12, 'respain':-20,'resbleed':-3, 'resfire':-6,},
 SKINSTATUS_DEEPCUT      :{'dex':-2,'resbio':-24,'respain':-20,'resbleed':-4, 'resfire':-6,},
+SKINSTATUS_MULTIDEEPCUTS:{'dex':-2,'resbio':-30,'respain':-25,'resbleed':-5, 'resfire':-8,},
 SKINSTATUS_SKINNED      :{'dex':-2,'resbio':-30,'respain':-30,'resbleed':-5,'resfire':-10,},
 SKINSTATUS_DEEPBURNED   :{'dex':-3,'resbio':-36,'respain':-30,'resbleed':-5,'resfire':-20,},
 SKINSTATUS_FULLYSKINNED :{'dex':-3,'resbio':-40,'respain':-40,'resbleed':-7,'resfire':-20,},
 SKINSTATUS_MANGLED      :{'dex':-3,'resbio':-40,'respain':-40,'resbleed':-9,'resfire':-20,},
     }
 ADDMODS_BPP_HAND_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_FRACTURED    :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'dex':-2,'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'dex':-3,'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
 BONESTATUS_MULTIBREAKS  :{'dex':-4,'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
 BONESTATUS_SHATTERED    :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-40,},
 BONESTATUS_MANGLED      :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-50,},
+BONEFLAG_DISLOCATED     :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
     }
 ADDMODS_BPP_HAND_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1262,13 +1273,13 @@ MUSCLESTATUS_MANGLED    :{'dex':-5,'atk':-5,'dfn':-5,'asp':-25,'gra':-5,'respain
 
 # arm
 ADDMODS_BPP_ARM_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
 BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-10,},
 BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
 BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
 BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
+BONEFLAG_DISLOCATED     :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
     }
 ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1283,22 +1294,22 @@ MUSCLESTATUS_MANGLED    :{'atk':-4,'dfn':-4,'asp':-20,'gra':-4,'respain':-25,'re
 
 # leg
 ADDMODS_BPP_LEG_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'atk':-1,'dfn':-3,'gra':-3,'respain':-10,},
 BONESTATUS_FRACTURED    :{'atk':-1,'dfn':-1,'gra':-2,'respain':-10,},
 BONESTATUS_CRACKED      :{'atk':-2,'dfn':-2,'gra':-4,'respain':-15,},
 BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
 BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
 BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-35,},
+BONEFLAG_DISLOCATED     :{'atk':-1,'dfn':-3,'gra':-3,'respain':-10,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
-BONESTATUS_DISLOCATED   :{'bal':0.8,'msp':0.9,},
 BONESTATUS_FRACTURED    :{'bal':0.9,'msp':0.96,},
 BONESTATUS_CRACKED      :{'bal':0.8,'msp':0.8333334,},
 BONESTATUS_BROKEN       :{'bal':0.6,'msp':0.6666667,},
 BONESTATUS_MULTIBREAKS  :{'bal':0.4,'msp':0.5,},
 BONESTATUS_SHATTERED    :{'bal':0.3333334,'msp':0.4,},
 BONESTATUS_MANGLED      :{'bal':0.3333334,'msp':0.4,},
+BONEFLAG_DISLOCATED     :{'bal':0.8,'msp':0.9,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
 MUSCLESTATUS_SORE       :{'respain':-1,},
@@ -1310,7 +1321,7 @@ MUSCLESTATUS_BURNED     :{'bal':-2,'atk':-2,'dfn':-2,'msp':-16,'gra':-2,'respain
 MUSCLESTATUS_RIPPED     :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-15,'resbleed':-6},
 MUSCLESTATUS_DEEPBURNED :{'bal':-3,'atk':-3,'dfn':-3,'msp':-24,'gra':-3,'respain':-20,'resbleed':-8},
 MUSCLESTATUS_RUPTURED   :{'bal':-4,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-20,'resbleed':-8},
-MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-4,'msp':-32,'gra':-4,'respain':-25,'resbleed':-16},
+MUSCLESTATUS_MANGLED    :{'bal':-5,'atk':-4,'dfn':-5,'msp':-40,'gra':-5,'respain':-25,'resbleed':-16},
     }
 
     # BPP statuses alt effects #
@@ -1325,36 +1336,55 @@ LUNGSTATUS_MAJORDAMAGE  : 0.33,
 LUNGSTATUS_MANGLED      : 0,
     }
 
-# damage types -> bpp classes constants
+# damage types -> bpp classes constants | dmgtypes -> bppstatus
+# progressive level of damage as index increases
 SKINSTATUSES_SPIKES=(
-    SKINSTATUS_MAJORABRASION, SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
+    SKINSTATUS_MAJORABRASION, SKINSTATUS_CUT,
+    SKINSTATUS_DEEPCUT, SKINSTATUS_MULTIDEEPCUTS,
     )
 SKINSTATUSES_SPUDS=(
-    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION, SKINSTATUS_MAJORABRASION,
+    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION,
+    SKINSTATUS_MAJORABRASION, SKINSTATUS_SKINNED,
     )
 SKINSTATUSES_CUT=(
-    SKINSTATUS_MINORABRASION, SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
+    SKINSTATUS_MINORABRASION, SKINSTATUS_CUT,
+    SKINSTATUS_DEEPCUT, SKINSTATUS_SKINNED,
     )
 MUSCLESTATUSES_CUT=(
-    MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
+    MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN,
+    MUSCLESTATUS_RIPPED, MUSCLESTATUS_RUPTURED,
+    )
+SKINSTATUSES_PUNCTURE=(
+    SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
+    SKINSTATUS_DEEPCUT, SKINSTATUS_DEEPCUT,
+    )
+MUSCLESTATUSES_PUNCTURE=(
+    MUSCLESTATUS_KNOTTED, MUSCLESTATUS_STRAINED,
+    MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
     )
 MUSCLESTATUSES_BLUNT=(
-    MUSCLESTATUS_SORE, MUSCLESTATUS_KNOTTED, MUSCLESTATUS_CONTUSION,
+    MUSCLESTATUS_SORE, MUSCLESTATUS_KNOTTED,
+    MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED,
     )
 BONESTATUSES_BLUNT=(
-    BONESTATUS_FRACTURED, BONESTATUS_CRACKED, BONESTATUS_BROKEN,
+    BONESTATUS_FRACTURED, BONESTATUS_CRACKED,
+    BONESTATUS_BROKEN, BONESTATUS_MULTIBREAKS,
     )
 SKINSTATUSES_BURN=(
-    SKINSTATUS_BLISTER, SKINSTATUS_BURNED, SKINSTATUS_DEEPBURNED,
+    SKINSTATUS_BLISTER, SKINSTATUS_BURNED,
+    SKINSTATUS_DEEPBURNED, SKINSTATUS_MANGLED,
     )
 MUSCLESTATUSES_BURN=(
-    MUSCLESTATUS_SORE, MUSCLESTATUS_BURNED, MUSCLESTATUS_DEEPBURNED, 
+    MUSCLESTATUS_SORE, MUSCLESTATUS_BURNED,
+    MUSCLESTATUS_DEEPBURNED, MUSCLESTATUS_MANGLED,
     )
 SKINSTATUSES_ABRASION=(
-    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION, SKINSTATUS_MAJORABRASION,
+    SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION,
+    SKINSTATUS_MAJORABRASION, SKINSTATUS_SKINNED,
     )
 MUSCLESTATUSES_ABRASION=(
-    MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN, 
+    MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED,
+    MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
     )
 
 

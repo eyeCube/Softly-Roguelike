@@ -45,8 +45,7 @@ def init(pc):
     # register for sense events for the message log
 ##    rog.add_listener_sights(pc) # TODO: implement this... There is a distinction btn. Events object for regular listening events of sights/sounds, and also two more classes for sights seen and sounds heard by the player. These should probably work differently...
 ##    rog.add_listener_sounds(pc)
-    compo=rog.world().component_for_entity(pc, cmp.SenseSight)
-    compo.fov_map=rog.fov_init()
+    rog.fov_init(pc)
     rog.view_center(pc)
     rog.givehp(pc)
     rog.givemp(pc)
@@ -689,7 +688,7 @@ wrap=False,con=rog.con_final(),disp='mono'
         reachMult = 1 + (_cm-5)/8
             
         # create body
-        body, newmass = rog.create_body_humanoid(
+        body, basekg = rog.create_body_humanoid(
             mass=kg, height=cm, female=(_genderName=="female"),
             bodyfat=bodyfat)
         body.hydration = body.hydrationMax * 0.98
@@ -719,7 +718,7 @@ wrap=False,con=rog.con_final(),disp='mono'
         world.add_component(pc, cmp.Gender(_genderName,_pronouns))
         world.add_component(pc, cmp.Stats(
             hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN*MULT_STATS,
-            mass=newmass, # base mass before weight of water and blood and fat is added
+            mass=basekg, # base mass before weight of water and blood and fat is added
             encmax=BASE_ENCMAX,
             resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
             resbio=BASE_RESBIO, reselec=BASE_RESELEC,

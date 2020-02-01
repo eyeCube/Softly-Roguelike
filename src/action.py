@@ -719,54 +719,34 @@ def _strike(attkr,dfndr,aweap,dweap,
         else:
             elements={}
         
-        # extra critical damage: % based on Attack and Penetration
-        # you need more atk and more pen than usual to score a crit.
-        if (hitDie >= dice.roll(20) and pen-prot >= 12 + dice.roll(12) ):
-            # critical hit!
-            if skillCompo:
-                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
-            else:
-                critMult = 0.2
-            # critical hits do a percentage of target's max HP in damage
-            trueDmg += rog.getms(dfndr, 'hpmax')*critMult
-            crit=True
-        # end if
+##        # extra critical damage: % based on Attack and Penetration
+##        # you need more atk and more pen than usual to score a crit.
+##        if (hitDie >= dice.roll(20) and pen-prot >= 12 + dice.roll(12) ):
+##            # critical hit!
+##            if skillCompo:
+##                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
+##            else:
+##                critMult = 0.2
+##            # critical hits do a percentage of target's max HP in damage
+##            trueDmg += rog.getms(dfndr, 'hpmax')*critMult
+##            crit=True
+##        # end if
 
-            #-------------#
-            # gear damage #
-            #-------------#
-
-        '''
-        # TODO
-            # deal damage to the armor
-        # TODO: get damage to armor based on material of armor/weapon
-        # AND based on the TYPE of weapon. Daggers do little dmg to armor
-        # while warhammers and caplock guns do tons of damage to armor.
-            # Rather than storing armor-damage as a variable of weapons,
-            # it is related to what SKILL is needed for the weapon.
-
-        OR: simpler solution: give gear/items stats like Armor,
-        and very high protection, so when you attack them with
-        knives etc. you do little damage to the gear, while axes/
-        hammers etc. will do more damage since they have more base dmg.
-        Can just give generic armor/protection values based on material
-        and/or type of item
-        
-        '''
-
-            #-------------#
-            # body damage #
-            #-------------#
+            #--------------------#
+            # body / gear damage #
+            #--------------------#
             
-        hitpp = min(2, max(0,hitDie) // 7)
-        _booldamagebodypart = (hitpp!=0)
+        hitpp = min(BODY_DMG_PEN_BPS-1, pens)
+        _boolDamageBodyPart = (hitpp!=0)
         # TODO: pick body part to hit randomly based on parameters
         if bptarget:
             bptarget = bptarget # TEMPORARY
         else:
             bptarget = rog.findbps(cmp.BP_TorsoFront)[0]  # TEMPORARY
-        
-        if _booldamagebodypart:
+        # end if
+        #
+        # damage body part (inflict status)
+        if _boolDamageBodyPart:
             # get damage type
             if world.has_component(aweap, cmp.DamageTypeMelee): # custom?
                 compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
@@ -775,13 +755,29 @@ def _strike(attkr,dfndr,aweap,dweap,
                 dmgtype = DMGTYPES[skillCompo.skill]
             # deal body damage
             rog.damagebp(bptarget, dmgtype)
-        # end if
             
+            # organ damage (TODO) # how should this be done..?
+            # criticals only? (criticals (temporarily?) disabled as of 2020-02-01)
+            
+        # end if
+        #
+        # damage gear
+        gearitem = bptarget.slot.item
+        if (gearitem and pens < GEAR_DMG_PEN_THRESHOLD):
+            # the damage dealt to the gear is based on attacker's damage,
+            # and the armor's AV; it has nothing to do with the stats of
+            # the character who's wearing the gear.
+            geardmg = dmg - rog.getms(gearitem, 'arm')
+            rog.damage(gearitem, geardmg)
+        # end if
+        
             #-------------------------------------#
             # deal damage, physical and elemental #
             #-------------------------------------#
             
-        rog.damage(dfndr, trueDmg//10)
+        rog.damage(dfndr, trueDmg)
+##        # sap some SP from defender;
+##        rog.sap(dfndr, force*...)
         for element, elemDmg in elements.items():
             if grazed: elemDmg = elemDmg*0.5
             if element == ELEM_FIRE:

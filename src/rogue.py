@@ -843,12 +843,18 @@ def update_pcfov():
 def run_pcfov_manager():
     Rogue.c_managers['fov'].run(Rogue.pc)
     
-def fov_init():  # normal type FOV map init
+def _fov_init():  # normal type FOV map init -- just create the FOV map
     #TODO: THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
     # Is it really worth it to change this?
     fovMap=libtcod.map_new(ROOMW,ROOMH)
     libtcod.map_copy(Rogue.map.fov_map,fovMap)  # get properties from Map
     return fovMap
+def fov_init(ent):  # init fov for an entity
+    if not Rogue.world.has_component(ent, cmp.SenseSight):
+        return False
+    compo=Rogue.world.component_for_entity(ent, cmp.SenseSight)
+    compo.fov_map=_fov_init()
+    return True
 #@debug.printr
 def fov_compute(ent):
 ##    print("computing fov for ent {}".format(ent))
@@ -966,10 +972,10 @@ def create_entity():
 ##    Rogue.world.add_component(ent, cmp.Flags) #flagset
 ##    return ent
 
-#  creature/monsters  #
 
+    #  creature/monsters  #
 
-def create_monster(typ,x,y,col,mutate=3): #init from entities.py
+def create_monster(typ,x,y,col): #init from entities.py
     '''
         call this to create a monster from the bestiary
 
@@ -978,7 +984,7 @@ def create_monster(typ,x,y,col,mutate=3): #init from entities.py
     '''
     if monat(x,y):
         return None #tile is occupied by a creature already.
-    ent = entities.create_monster(typ,x,y,col,mutate)
+    ent = entities.create_monster(typ,x,y,col)
 ##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
     givehp(ent)
     register_entity(ent)
@@ -1153,7 +1159,10 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
             bpp.status = SKINSTATUS_DEEPCUT
             return True
         if (status == SKINSTATUS_DEEPCUT and bpp.status == status ):
-            bpp.status = SKINSTATUS_SKINNED
+            bpp.status = SKINSTATUS_MULTIDEEPCUTS
+            return True
+        if (status == SKINSTATUS_MULTIDEEPCUTS and bpp.status == status ):
+            bpp.status = SKINSTATUS_MANGLED
             return True
     
     # default
@@ -1175,88 +1184,88 @@ def damagebp(bptarget, dmgtype):
     if dmgtype==DMGTYPE_ABRASION:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[hitpp])
             # deep skin abrasions may result in muscle abrasion
             if ( BPP_MUSCLE in cd and
                  bptarget.skin.status >= SKINSTATUS_MAJORABRASION ):
-                rog.damagebpp(
+                damagebpp(
                     bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[hitpp])
     # burns
     elif dmgtype==DMGTYPE_BURN:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[hitpp])
             # deep skin burns may result in muscle burns
             if ( BPP_MUSCLE in cd and
                  bptarget.skin.status >= SKINSTATUS_DEEPBURNED ):
-                rog.damagebpp(
+                damagebpp(
                     bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[hitpp])
     # lacerations
     elif dmgtype==DMGTYPE_CUT:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[hitpp])
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[hitpp])
     # puncture wounds
     elif dmgtype==DMGTYPE_PIERCE:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
+            damagebpp(
+                bptarget.skin, BPP_SKIN, SKINSTATUSES_PUNCTURE[hitpp])
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
-        # TODO: damage organs
-        
+
+            damagebpp(
+                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_PUNCTURE[hitpp])
+        # organ damage is handled separately.
     # hacking / picking damage
     elif dmgtype==DMGTYPE_HACK:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
         if BPP_BONE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # blunt / crushing damage
     elif dmgtype==DMGTYPE_BLUNT:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
         if BPP_BONE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # mace-like weapons
     elif dmgtype==DMGTYPE_SPUDS:            
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[hitpp])
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
         if BPP_BONE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # morning-star like long-spiked weapons
     elif dmgtype==DMGTYPE_SPIKES:
         cd=cmp.BP_BPPS[type(bptarget).__name__]
         if BPP_SKIN in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[hitpp])
         if BPP_MUSCLE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
         if BPP_BONE in cd:
-            rog.damagebpp(
+            damagebpp(
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
 # end def
 
@@ -1610,26 +1619,22 @@ def dehydrate(ent): entities.dehydrate(ent)
 
 def get_encumberance_breakpoint(enc, encmax):
     erat = enc/max(1,encmax) # encumberance ratio
-    if erat < ENC_BP_1:     # 0: 0 - 5%
+    if erat < ENC_BP_1:   # 0: < 25%
         encbp = 0
-    elif erat < ENC_BP_2:   # 1: 5 - 12%
+    elif erat < ENC_BP_2:    # 1: 25 <= x < 50%
         encbp = 1
-    elif erat < ENC_BP_3:   # 2: 12 - 25%
+    elif erat < ENC_BP_3:   # 2: 50 <= x < 75%
         encbp = 2
-    elif erat < ENC_BP_4:    # 3: 25 - 50%
+    elif erat < ENC_BP_4:   # 3: 75 <= x < 85%
         encbp = 3
-    elif erat < ENC_BP_5:   # 4: 50 - 75%
+    elif erat < ENC_BP_5:   # 4: 85 <= x < 90%
         encbp = 4
-    elif erat < ENC_BP_6:   # 5: 75 - 85%
+    elif erat < ENC_BP_6:   # 5: 90 <= x < 95%
         encbp = 5
-    elif erat < ENC_BP_7:   # 6: 84 - 90%
+    elif erat < 1:      # 6: 95 <= x < 100%
         encbp = 6
-    elif erat < ENC_BP_8:   # 7: 91 - 95%
+    else:               # 7: 100% or greater
         encbp = 7
-    elif erat < 1:      # 8: 96 - 100%
-        encbp = 8
-    else:               # 9: 100% or greater
-        encbp = 9
     return encbp
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
@@ -2072,7 +2077,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
-    modded.mpregen = modded.mpregen * (0.5 + 1.5*encpc)
+    modded.mpregen = modded.mpregen * (0.5 + 1*encpc)
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1
@@ -2183,7 +2188,7 @@ def create_moddedStats(ent):
 def list_lights(): return list(Rogue.c_managers["lights"].lights.values())
 def create_light(x,y, value, owner=None):
     light=lights.Light(x,y, value, owner)
-    light.fov_map=fov_init()
+    light.fov_map=_fov_init()
     light.shine()
     lightID = Rogue.c_managers['lights'].add(light)
     if owner:
