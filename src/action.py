@@ -681,7 +681,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
-            while (pen-prot-(6*pens) >= dice.roll(6)):
+            while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
                 pens += 1   # number of penetrations ++
             armor = rog.around(arm * (0.5**pens))
         # end if
@@ -767,6 +767,7 @@ def _strike(attkr,dfndr,aweap,dweap,
             # the damage dealt to the gear is based on attacker's damage,
             # and the armor's AV; it has nothing to do with the stats of
             # the character who's wearing the gear.
+            # Idea: could depend on armor-wearing skill of the wearer...
             geardmg = dmg - rog.getms(gearitem, 'arm')
             rog.damage(gearitem, geardmg)
         # end if

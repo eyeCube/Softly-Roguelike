@@ -108,7 +108,7 @@ A_GREN = AMMO_GRENADES
 A_FLAM = AMMO_FLAMMABLE
 A_DART = AMMO_DARTS
 A_ANY  = AMMO_ANYTHING
-A_SLING= AMMO_SLING
+A_SLNG = AMMO_SLING
 
 # skill data - simplifications
 SKL_ENDOVEREND  = SKL_THROWING
@@ -171,7 +171,6 @@ def get_headwear_ears(gData):       return gData[9] # covers ears?
 def get_headwear_neck(gData):       return gData[10] # covers neck?
 def get_headwear_script(gData):     return gData[11]
     #weapons
-#    $$$$, Kg,  Dur, Mat, (Acc,Dam,Pen,DV, AV, Pro,Asp,Enc),script
 def get_weapon_value(gData):        return gData[0]
 def get_weapon_mass(gData):         return gData[1]
 def get_weapon_hpmax(gData):        return gData[2]
@@ -195,6 +194,28 @@ def get_weapon_bal(gData):          return gData[6][13] # how much balance the w
 def get_weapon_grip(gData):         return gData[6][14]
 def get_weapon_skill(gData):        return gData[7]
 def get_weapon_script(gData):       return gData[8]
+    # ranged weapons
+def get_ranged_ammotype(name):  return RANGEDWEAPONS[name][0]
+def get_ranged_value(name):     return RANGEDWEAPONS[name][1]
+def get_ranged_kg(name):        return RANGEDWEAPONS[name][2]
+def get_ranged_hp(name):        return RANGEDWEAPONS[name][3]
+def get_ranged_mat(name):       return RANGEDWEAPONS[name][4]
+def get_ranged_strReq(name):    return RANGEDWEAPONS[name][5]
+def get_ranged_dexReq(name):    return RANGEDWEAPONS[name][6]
+def get_ranged_capacity(name):  return RANGEDWEAPONS[name][7][0]
+def get_ranged_nShots(name):    return RANGEDWEAPONS[name][7][1]
+def get_ranged_jamChance(name): return RANGEDWEAPONS[name][7][2]
+def get_ranged_minRng(name):    return RANGEDWEAPONS[name][7][3]
+def get_ranged_maxRng(name):    return RANGEDWEAPONS[name][7][4]
+def get_ranged_ratk(name):      return RANGEDWEAPONS[name][7][5]
+def get_ranged_rdmg(name):      return RANGEDWEAPONS[name][7][6]
+def get_ranged_rpen(name):      return RANGEDWEAPONS[name][7][7]
+def get_ranged_dfn(name):       return RANGEDWEAPONS[name][7][8]
+def get_ranged_rasp(name):      return RANGEDWEAPONS[name][7][9]
+def get_ranged_enc(name):       return RANGEDWEAPONS[name][7][10]
+def get_ranged_force(name):     return RANGEDWEAPONS[name][7][11]
+def get_ranged_skill(name):     return RANGEDWEAPONS[name][8]
+def get_ranged_script(name):    return RANGEDWEAPONS[name][9]
 
 # JOBS #
 def getJobs():
@@ -249,30 +270,52 @@ def getMonStats(_char):     return BESTIARY[_char][7]
 def _clothes(item):
     rog.world().add_component(item, cmp.Clothes)
 
-def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=0,twoh=False,skill=None):
+def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=1,
+            reach=0,spcost=None,twoh=False,skill=None):
     world=rog.world()
     dmod={}
-    if acc !=0: dmod['acc'] = acc
-    if dmg !=0: dmod['dmg'] = dmg
-    if pen !=0: dmod['pen'] = pen
-    if dv !=0: dmod['dv'] = dv
-    if av !=0: dmod['av'] = av
-    if pro !=0: dmod['pro'] = pro
-    if asp !=0: dmod['asp'] = asp
-    if enc !=0: dmod['enc'] = enc
-    world.add_component(item, cmp.EquipableInHoldSlot(NRG_WIELD,mods))
+    if acc !=0: dmod['acc'] = int(acc*MULT_STATS)
+    if dmg !=0: dmod['dmg'] = int(dmg*MULT_STATS)
+    if pen !=0: dmod['pen'] = int(pen*MULT_STATS)
+    if dv !=0: dmod['dv'] = int(dv*MULT_STATS)
+    if av !=0: dmod['av'] = int(av*MULT_STATS)
+    if pro !=0: dmod['pro'] = int(pro*MULT_STATS)
+    if asp !=0: dmod['asp'] = int(asp)
+    if reach !=0: dmod['reach'] = int(reach*MULT_STATS)
+    dmod['enc'] = enc
+    
+    # get extra values from existing parameters
+    wieldAP=NRG_WIELD # temporary (get from weapon mass?)
+    if not spcost:
+        spcost = int(8 * rog.getms(item, 'mass')//MULT_MASS) # TEST THIS
+    
+    # equipable in hold slot -- update component or add new component
+    if world.has_component(item, cmp.EquipableInHoldSlot):
+        # update existing component
+        existing=world.component_for_entity(item, cmp.EquipableInHoldSlot)
+        for k, v in existing.mods.items():
+            dmod = dmod.get(k, 0) + v
+        existing.mods = dmod
+    else:
+        # create new component
+        world.add_component(item, cmp.EquipableInHoldSlot(
+            wieldAP, spcost, dmod))
+    #
     if twoh: rog.make(item, TWOHANDS)
     if skill: world.add_component(item, cmp.WeaponSkill(skill))
 
-def _canThrow(item, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None,elem=None,elemDmg=None):
-    world=rog.world()
+def _canThrow(item, func=None, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None):
     if rng <= 0: return
-    if skill is None: skill=SKL_THROWING
-    world.add_component(item, cmp.Throwable(
-        rng=rng,atk=acc,dmg=dmg,pen=pen,asp=asp #,skill=skill
-        ))
-    if elem:
-        _elementalMelee(item, elem, elemDmg)
+    world=rog.world()
+    world.add_component(item, cmp.Throwable(func))
+    equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
+    if rng!=0: equipable.mods['trng']=rng
+    if acc!=0: equipable.mods['tatk']=acc
+    if dmg!=0: equipable.mods['tdmg']=dmg
+    if pen!=0: equipable.mods['tpen']=pen
+    if asp!=0: equipable.mods['tasp']=asp
+##    if skill:
+##        
 
 def _addRes(item, resfire=0,resbio=0,reselec=0,resphys=0,resrust=0,resrot=0,reswet=0,resdirt=0):
     stats=rog.world().component_for_entity(item, cmp.Stats)
@@ -798,46 +841,46 @@ def _rPiece(item):
     _canThrow(item, acc=0, rng=6)
 def _qPiece(item): # quartz
     _piece(item)
-    _weapon(item, acc=0,dmg=2,pen=3,asp=-24)
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-24,enc=3)
     _canThrow(item, acc=0, rng=14, dmg=3, skill=SKL_PITCHING)
 def _pPiece(item):
     _piece(item)
-    _weapon(item, acc=-2,dmg=1,pen=0,asp=-30)
+    _weapon(item, acc=-2,dmg=1,pen=0,asp=-30,enc=3)
     _canThrow(item, acc=0, rng=6)
 def _wPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=1,pen=1,asp=-21)
+    _weapon(item, acc=0,dmg=1,pen=1,asp=-21,enc=3)
     _canThrow(item, acc=0, rng=8)
 def _sPiece(item):
     _piece(item)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=0,dmg=2,pen=3,asp=-27)
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-27,enc=3)
     _canThrow(item, acc=0, rng=14, dmg=3, skill=SKL_PITCHING)
 def _bPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=1,pen=2,asp=-21)
+    _weapon(item, acc=0,dmg=1,pen=2,asp=-21,enc=3)
     _canThrow(item, acc=0, rng=10, skill=SKL_PITCHING)
 def _gPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=1,pen=2,asp=-21)
+    _weapon(item, acc=0,dmg=1,pen=2,asp=-21,enc=3)
     _canThrow(item, acc=0, rng=8)
 def _mPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=2,pen=3,asp=-21)
+    _weapon(item, acc=0,dmg=2,pen=3,asp=-21,enc=3)
     _canThrow(item, acc=0, rng=12, dmg=1, skill=SKL_PITCHING)
 def _tPiece(item): # tarp
     _piece(item)
 def _fPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=1,pen=0,asp=-39)
+    _weapon(item, acc=0,dmg=1,pen=0,asp=-39,enc=3)
     _canThrow(item, acc=0, rng=6)
 def _lPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=1,pen=1,asp=-33)
+    _weapon(item, acc=0,dmg=1,pen=1,asp=-33,enc=3)
     _canThrow(item, acc=0, rng=5)
 def _blPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=2,pen=1,asp=-27)
+    _weapon(item, acc=0,dmg=2,pen=1,asp=-27,enc=3)
     _canThrow(item, acc=0, rng=12, skill=SKL_PITCHING)
 def _clothPiece(item):
     _piece(item)
@@ -847,76 +890,76 @@ def _clayPiece(item):
     _canThrow(item, acc=0, rng=6)
 def _ceramicPiece(item):
     _piece(item)
-    _weapon(item, acc=0,dmg=3,pen=2,asp=-21)
+    _weapon(item, acc=0,dmg=3,pen=2,asp=-21,enc=3)
     _canThrow(item, acc=0, rng=10, dmg=2, skill=SKL_PITCHING)
 
     # chunks
 def _rChunk(item): #rubber
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-6,dmg=1,pen=0,asp=-42)
+    _weapon(item, acc=-6,dmg=1,pen=0,asp=-42,enc=9)
     _canThrow(item, acc=-6, rng=8)
 def _lChunk(item): #leather
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=2,pen=1,asp=-33)
+    _weapon(item, acc=-5,dmg=2,pen=1,asp=-33,enc=9)
     _canThrow(item, acc=-5, rng=8)
 def _blChunk(item): #boiled leather
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30)
+    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=10)
 def _qChunk(item): #quartz
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36,enc=9)
     _canThrow(item, acc=-5, rng=12)
 def _pChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=1,pen=0,asp=-36)
+    _weapon(item, acc=-5,dmg=1,pen=0,asp=-36,enc=9)
     _canThrow(item, acc=-5, rng=6)
 def _wChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=1,pen=1,asp=-30)
+    _weapon(item, acc=-5,dmg=1,pen=1,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=8)
 def _sChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-36,enc=9)
     _canThrow(item, acc=-5, rng=12)
 def _bChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=2,pen=2,asp=-30)
+    _weapon(item, acc=-5,dmg=2,pen=2,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=10)
 def _gChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30)
+    _weapon(item, acc=-5,dmg=3,pen=2,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=8)
 def _mChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=14)
 def _tarp(item):
     _chunk(item)
 def _fChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=1,pen=0,asp=-48)
+    _weapon(item, acc=-5,dmg=1,pen=0,asp=-48,enc=9)
     _canThrow(item, acc=-5, rng=6)
 def _lChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=1,pen=1,asp=-39)
+    _weapon(item, acc=-5,dmg=1,pen=1,asp=-39,enc=9)
     _canThrow(item, acc=-5, rng=5)
 def _blChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=2,pen=1,asp=-36)
+    _weapon(item, acc=-5,dmg=2,pen=1,asp=-36,enc=9)
     _canThrow(item, acc=-5, rng=8)
 def _clothChunk(item):
     _chunk(item)
@@ -927,7 +970,7 @@ def _clayChunk(item):
 def _ceramicChunk(item):
     _chunk(item)
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30)
+    _weapon(item, acc=-5,dmg=4,pen=3,asp=-30,enc=9)
     _canThrow(item, acc=-5, rng=6)
     
     # slabs
@@ -957,35 +1000,35 @@ def _tarpLarge(item):
     # sticks, poles
 def _pStick(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
-    _weapon(item, acc=2,dmg=2,pen=1,dv=1,asp=-15)
+    _weapon(item, acc=2,dmg=2,pen=1,dv=1,asp=-15,enc=4)
     _canThrow(item, acc=0, rng=10, skill=SKL_ENDOVEREND)
     _length(item, 100)
 def _wStick(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
-    _weapon(item, acc=2,dmg=2,pen=2,dv=1,asp=-21)
+    _weapon(item, acc=2,dmg=2,pen=2,dv=1,asp=-21,enc=4)
     _canThrow(item, acc=0, rng=12, skill=SKL_ENDOVEREND)
     _length(item, 100)
 def _mStick(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_MELEEWEAPON
-    _weapon(item, acc=2,dmg=4,pen=4,dv=1,asp=-12)
+    _weapon(item, acc=2,dmg=4,pen=4,dv=1,asp=-12,enc=4)
     _canThrow(item, acc=0, rng=14, skill=SKL_ENDOVEREND)
     _length(item, 100)
 def _pPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=5,dmg=4,pen=3,dv=1,av=1,pro=1,asp=6)
+    _weapon(item, acc=5,dmg=4,pen=3,dv=1,av=1,pro=1,asp=6,enc=4)
     _canThrow(item, acc=0, rng=10, skill=SKL_TIPFIRST)
     _length(item, 200)
 def _wPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=5,dmg=5,pen=4,dv=1,av=1,pro=1,asp=12)
+    _weapon(item, acc=5,dmg=5,pen=4,dv=1,av=1,pro=1,asp=12,enc=4)
     _canThrow(item, acc=0, rng=11, skill=SKL_TIPFIRST)
     _length(item, 200)
 def _mPole(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_TWOHANDWEAP
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=5,dmg=6,pen=6,dv=1,av=1,pro=1,asp=18)
+    _weapon(item, acc=5,dmg=6,pen=6,dv=1,av=1,pro=1,asp=18,enc=4)
     _canThrow(item, acc=0, rng=12, skill=SKL_TIPFIRST)
     _length(item, 200)
 
@@ -1003,7 +1046,7 @@ def _gBottle(item):
     _length(item, 10)
 def _pPipe(item):
     _canThrow(item, acc=0, rng=8)
-    _weapon(item, acc=0,asp=-15)
+    _weapon(item, acc=0,asp=-15,enc=5)
     _length(item, 35)
 def _dust(item):
     rog.world().component_for_entity(item, cmp.Draw).char = T_DUST
@@ -1015,27 +1058,27 @@ def _log(item):
         4800, {'slab of wood':3}, {cmp.Tool_Saw:4}) )
 def _plank(item):
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=3,dmg=3,pen=1,av=1,pro=1,asp=-51)
+    _weapon(item, acc=3,dmg=3,pen=1,av=1,pro=1,asp=-51,enc=26)
     _canThrow(item, acc=-5, rng=3, skill=SKL_TIPFIRST)
     _length(item, 200)
 def _skull(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=-2,dmg=2,pen=1,asp=-15)
+    _weapon(item, acc=-2,dmg=2,pen=1,asp=-15,enc=15)
     _canThrow(item, acc=0, dmg=0, rng=8, skill=SKL_PITCHING)
 def _bone(item):
     rog.world().add_component(item, cmp.Tool_Hammer(2))
-    _weapon(item, acc=1,dmg=3,pen=3,asp=6)
+    _weapon(item, acc=1,dmg=3,pen=3,asp=6,enc=2)
     _canThrow(item, acc=2, dmg=1, rng=12, skill=SKL_ENDOVEREND)
     _length(item, 50)
 def _bBone(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=1,dmg=3,pen=4,asp=12)
+    _weapon(item, acc=1,dmg=3,pen=4,asp=12,enc=2)
     _canThrow(item, acc=-3, rng=8, skill=SKL_ENDOVEREND)
     _length(item, 25)
 def _boneLarge(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=-4,dmg=6,pen=6,asp=-12)
+    _weapon(item, acc=-4,dmg=6,pen=6,asp=-12,enc=10)
     _canThrow(item, acc=-5, rng=8)
     _length(item, 90)
 def _boneSmall(item):
@@ -1044,23 +1087,23 @@ def _boneSmall(item):
     _length(item, 25)
 def _mPipe(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=1,dmg=6,pen=5,asp=-45,enc=-6)
+    _weapon(item, acc=1,dmg=6,pen=5,asp=-45,enc=6,enc=5)
     _canThrow(item, acc=-2, rng=6, dmg=-1, skill=SKL_ENDOVEREND)
     _length(item, 50)
 def _mPipeBroken(item):
-    _weapon(item, acc=1,dmg=4,pen=6,asp=-33,enc=-3)
+    _weapon(item, acc=1,dmg=4,pen=6,asp=-33,enc=3,enc=5)
     _canThrow(item, acc=-5, rng=5, dmg=-1, skill=SKL_ENDOVEREND)
     _length(item, 30)
 def _mBar(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=-2,dmg=2,pen=2,asp=-60,enc=-6)
+    _weapon(item, acc=-2,dmg=2,pen=2,asp=-60,enc=6)
     _canThrow(item, acc=0, dmg=1, rng=6)
     _length(item, 50)
 def _razorBlade(item):
     _melee_bleed(item, 25)
     rog.world().add_component(item, cmp.Tool_Cut(7))
-    _weapon(item, acc=0,dmg=3,pen=6,asp=-24)
+    _weapon(item, acc=0,dmg=3,pen=6,asp=-24,enc=2)
     _length(item, 5)
 def _nail(item):
     _canThrow(item, acc=-10, dmg=-1, rng=3)
@@ -1083,7 +1126,7 @@ def _mNeedle(item):
     _length(item, 5)
 def _mTube(item):
     _canThrow(item, acc=0, rng=4, skill=SKL_ENDOVEREND)
-    _weapon(item, acc=0,dmg=1,pen=0,asp=-51)
+    _weapon(item, acc=0,dmg=1,pen=0,asp=-51,enc=2)
     _length(item, 50)
 def _bobbyPin(item):
     _canThrow(item, acc=-5, rng=2, dmg=-2)
@@ -1105,22 +1148,22 @@ def _magnetStrong(item):
 def _cordage(item):
     rog.make(item, TWOHANDS)
     _weapon(item, acc=-5,dmg=2,pen=3,asp=-42)
-    _canThrow(item, acc=0, rng=3)
+    _canThrow(item, acc=0, rng=3, pen=-6, dmg=-2)
     _length(item, 100)
 def _rope(item):
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-5,dmg=3,pen=3,asp=-48,enc=-6)
-    _canThrow(item, acc=0, rng=2)
+    _weapon(item, acc=-5,dmg=3,pen=3,asp=-48,enc=6)
+    _canThrow(item, acc=0, rng=2, pen=-3, dmg=-1)
     _length(item, 100)
 def _cable(item):
     _length(item, 100)
 def _chainLight(item):
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-6,dmg=4,pen=4,asp=-48,enc=-33)
+    _weapon(item, acc=-6,dmg=4,pen=4,asp=-48,enc=33)
     _length(item, 100)
 def _chain(item):
     rog.make(item, TWOHANDS)
-    _weapon(item, acc=-11,dmg=5,pen=3,asp=-60,enc=-51)
+    _weapon(item, acc=-11,dmg=5,pen=3,asp=-60,enc=51)
     _length(item, 100)
 def _chainHeavy(item):
     _length(item, 100)
@@ -2191,7 +2234,7 @@ def _wireCutter(item):
 
     # ranged weapons #
 
-# set the msp for weapon equipping as the same as the msp penalty on RANGEDWEAPONS table
+    # cannons / caplock guns etc.
 def _handCannon(item):
     rog.make(item, TWOHANDS)
     _canThrow(item, acc=-15, rng=3, dmg=-8, pen=-4)
@@ -2224,6 +2267,8 @@ def _musket(item): # modable w/ bayonet: dmg +6, pen +6 (reach???)
     _weapon(item, acc=1, dmg=12, pen=9, asp=-51)
     _addRes(item, resrust=0)
     _length(item, 90)
+
+    # shotguns
 def _12GAshotgun(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2265,19 +2310,18 @@ def _combatShotgun(item):
     _canThrow(item, acc=-10, rng=6, dmg=-2, pen=-4)
     _weapon(item, acc=1, dmg=12, pen=9, asp=-30)
     _length(item, 40)
-def _smgSmall(item):
-    rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _canThrow(item, acc=0, rng=6)
-    _weapon(item, acc=1, dmg=5, pen=6, asp=-24)
-    _length(item, 20)
-##    def func(item):
-##        pass # switch to semi auto, n=1, asp=90
-##    rog.world().add_component(item, cmp.Usable(func))
+
+    # SMGs
 def _smg(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=6)
     _weapon(item, acc=1, dmg=6, pen=6, asp=-45)
     _length(item, 30)
+def _smgSmall(item):
+    rog.world().add_component(item, cmp.Tool_Hammer(1))
+    _canThrow(item, acc=0, rng=6)
+    _weapon(item, acc=1, dmg=5, pen=6, asp=-24)
+    _length(item, 20)
 def _smgLarge(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2302,6 +2346,8 @@ def _pistolLarge(item):
 ##def _revolver(item):
 ##    _canThrow(item, acc=0, rng=10)
 ##    _weapon(item, acc=1, dmg=5, pen=3, asp=-18)
+
+    # Rifles
 def _rifleSmall(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2328,6 +2374,12 @@ def _rifle3006(item):
     _rifle(item)
     compo=rog.world().component_for_entity(item, cmp.Shootable)
     compo.ammoTypes.add(AMMO_308)
+    
+    # slings
+def _sling(item):
+    _length(item, 110)
+    _canThrow(item, acc=2, rng=3, dmg=-2, pen=-6)
+    
     # archery bows crossbows etc.
 def _pBow(item):
     rog.make(item, TWOHANDS)
@@ -2359,6 +2411,7 @@ def _arbalest(item):
     rog.make(item, TWOHANDS)
     _weapon(item, acc=-4,dmg=3,pen=0,asp=-75)
     _length(item, 50)
+
     # energy weapons
 def _laserGun(item):
     _canThrow(item, acc=-2, rng=6, dmg=0)
@@ -2380,6 +2433,7 @@ def _cryoGun(item): # cold ray
     _weapon(item, acc=0, dmg=4, pen=6, asp=-45)
     _elementalRanged(item, ELEM_COLD, 50)
     _length(item, 20)
+
     # misc ranged
 def _atlatl(item):
     rog.world().add_component(item, cmp.Tool_Hammer(2))
@@ -2700,9 +2754,10 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
 # end def
 def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
     if skillLv <=0: return
+    skillLv = min(skillLv, 100)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
-    dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, skillLv*DEFAULT_SKLMOD_ENC)) )
+    dadd['enc']=dadd['enc'] * ( 100 / (100 + skillLv*DEFAULT_SKLMOD_ENC) )
     # custom or default stat modifiers for specific skills
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_ARMOR_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_ARMOR_AV*sm
@@ -2710,6 +2765,7 @@ def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
 # end def
 def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
     if skillLv <=0: return
+    skillLv = min(skillLv, 100)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_UNARMORED_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_UNARMORED_AV*sm
@@ -2717,10 +2773,11 @@ def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
 # end def
 def _apply_skill_bonus_weapon(dadd, skillLv, skill, enc=True):
     if skillLv <=0: return
+    skillLv = min(skillLv, 100)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
     if enc: # only for weapons with encumberance values (not for unarmed combat)
-        dadd['enc']=dadd['enc'] * ( 100 / (100 + min(100, skillLv*DEFAULT_SKLMOD_ENC)) )
+        dadd['enc']=dadd['enc'] * ( 100 / (100 + skillLv*DEFAULT_SKLMOD_ENC) )
     # custom or default stat modifiers for specific skills
     dadd['atk']=dadd.get('atk',0) + MULT_STATS * sm * SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
     dadd['pen']=dadd.get('pen',0) + MULT_STATS * sm * SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
@@ -3648,7 +3705,7 @@ def create_stuff(name, x, y) -> int:
         cmp.Name(name),
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
-        cmp.Form(mat=mat, val=val*MULT_VALUE),
+        cmp.Form(mat=mat, val=round(val*MULT_VALUE)),
         cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
         cmp.Flags(),
@@ -3668,7 +3725,7 @@ def create_rawmat(name, x, y) -> int:
         cmp.Name(name),
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
-        cmp.Form(mat=mat, val=val*MULT_VALUE),
+        cmp.Form(mat=mat, val=round(val*MULT_VALUE)),
         cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
         cmp.Flags(),
@@ -3708,7 +3765,7 @@ def _getGearStatsDict( mass,resbio,resfire,rescold,reselec,
     return statsDict
 
 #create_armor - create armor item on ARMOR table 
-def create_armor(name,x,y,quality=1) -> int:
+def create_armor(name,x,y,condition=1) -> int:
     '''
         # Parameters:
         #   name : string = name of item to create from the data table
@@ -3756,7 +3813,7 @@ def create_armor(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -3772,7 +3829,7 @@ def create_armor(name,x,y,quality=1) -> int:
 #
 
 #create head armor - create armor item on HEADWEAR table 
-def create_headwear(name,x,y,quality=1) -> int:
+def create_headwear(name,x,y,condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3815,7 +3872,7 @@ def create_headwear(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -3832,7 +3889,7 @@ def create_headwear(name,x,y,quality=1) -> int:
 #
 
 #create facewear - create armor item on FACEWEAR table 
-def create_facewear(name,x,y,quality=1) -> int:
+def create_facewear(name,x,y,condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3872,7 +3929,7 @@ def create_facewear(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -3887,7 +3944,7 @@ def create_facewear(name,x,y,quality=1) -> int:
 #
 
 #create armwear - create armor item on ARMARMOR table | arm armor
-def create_armwear(name,x,y,quality=1) -> int:
+def create_armwear(name,x,y,condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3925,7 +3982,7 @@ def create_armwear(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -3940,7 +3997,7 @@ def create_armwear(name,x,y,quality=1) -> int:
 #
 
 #create legging - create armor item on LEGARMOR table | leg armor
-def create_legwear(name,x,y,quality=1) -> int:
+def create_legwear(name,x,y,condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -3978,7 +4035,7 @@ def create_legwear(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -3993,7 +4050,7 @@ def create_legwear(name,x,y,quality=1) -> int:
 #
 
 #create foot armor - create armor item on FOOTARMOR table 
-def create_footwear(name,x,y,quality=1) -> int:
+def create_footwear(name,x,y,condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4031,7 +4088,7 @@ def create_footwear(name,x,y,quality=1) -> int:
     stats=cmp.Stats(
         hp=hpmax,mp=hpmax,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4046,7 +4103,7 @@ def create_footwear(name,x,y,quality=1) -> int:
 #
 
 # weapons
-def create_weapon(name, x,y, quality=1) -> int:
+def create_weapon(name, x,y, condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     # get weapon data from table
@@ -4086,9 +4143,9 @@ def create_weapon(name, x,y, quality=1) -> int:
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+        hp=hpmax,mp=0,mass=mass
         )
-    stats.hp = rog.around(stats.hpmax * quality)
+    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4112,7 +4169,7 @@ def create_weapon(name, x,y, quality=1) -> int:
     # quality
     minGrind=-2
     maxGrind=MAXGRIND_FROM_MATERIAL[material]
-    world.add_component(ent,cmp.Quality(quality, minGrind, maxGrind))
+    world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     # script
     if script: script(ent)
     return ent
@@ -4696,6 +4753,88 @@ AMMUNITION={
 ##"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 8,  16, -33,), _incendiary),
     }
 
+def create_ranged_weapon(name, x, y, condition=1) -> int:
+    world = rog.world()
+    ent = world.create_entity()
+    
+    # get data
+    ammotype    = get_ranged_ammotype(name)
+    value       = round(get_ranged_value(name)*MULT_VALUE)
+    kg          = round(get_ranged_kg(name)*MULT_MASS)
+    hpmax       = get_ranged_hp(name)
+    material    = get_ranged_mat(name)
+    strReq      = get_ranged_strReq(name)
+    dexReq      = get_ranged_dexReq(name)
+    capacity    = get_ranged_capacity(name)
+    nShots      = get_ranged_nShots(name)
+    jam         = get_ranged_jamChance(name)
+    minRng      = get_ranged_minRng(name)
+    maxRng      = get_ranged_maxRng(name)
+    rasp        = get_ranged_rasp(name)
+    ratk        = int(get_ranged_ratk(name)*MULT_STATS)
+    rdmg        = int(get_ranged_rdmg(name)*MULT_STATS)
+    rpen        = int(get_ranged_rpen(name)*MULT_STATS)
+    dfn         = int(get_ranged_dfn(name)*MULT_STATS)
+    enc         = get_ranged_enc(name)
+    force       = get_ranged_force(name)
+    skill       = get_ranged_skill(name)
+    script      = get_ranged_script(name)
+    
+    # AP cost to equip (TODO: get based on mass of weapon / weapon type?)
+    wieldAP     = NRG_WIELD
+    
+    # AP cost to reload (TODO: get default based on weapon type)
+    reloadAP    = NRG_RELOAD
+    
+    # function that runs when you shoot (TODO: get default based on weapon type)
+    func        = None
+    
+    # color
+    fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
+    bgcol = COL['deep']
+    # build entity
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
+    world.add_component(ent, cmp.Form(mat=material,val=value))    
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=0,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * condition)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    # equipable
+    modDict={'mass':mass} # equipable components need to have mass as a mod
+    if not dfn==0: modDict.update({'dfn':dfn})
+    if not enc==0: modDict.update({'enc':enc})
+    if not reach==0: modDict.update({'reach':reach})
+    if not ratk==0: modDict.update({'ratk':ratk})
+    if not rdmg==0: modDict.update({'rdmg':rdmg})
+    if not rpen==0: modDict.update({'rpen':rpen})
+    if not rasp==0: modDict.update({'rasp':rasp})
+    if not minRng==0: modDict.update({'minRng':minRng})
+    if not maxRng==0: modDict.update({'maxRng':maxRng})
+    world.add_component(ent, cmp.Shootable(
+        set((ammotype,)), aMax=capacity,
+        rTime=reloadAP, jam=jam, func=None) ) # TODO: func
+    world.add_component(ent, cmp.EquipableInHoldSlot(
+        wieldAP, stamina_cost, modDict, strReq=strReq, dexReq=dexReq) )
+    if skill:
+        world.add_component(ent,cmp.WeaponSkill(skill))
+    # quality
+    minGrind=-2
+    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
+    # script
+    if script: script(ent)
+    return ent
+#
+
 RANGEDWEAPONS={
     # NOTE: Reload Time is based on the ammo type; reloading the magazine is handled differently (must eject the magazine and reload it, then put the magazine in the gun)
     # ARGUMENTS:
@@ -4755,9 +4894,11 @@ RANGEDWEAPONS={
 "big game rifle"    :(A_308, 4600, 3.3, 550,WOOD,14,3, (9, 1,10, 5,  160,18,15,22,-2, -30,12, 500,),SKL_RIFLES,_rifle308),#TODO: add Rusts component to these scripts and ALL items that can rust...
 "field rifle"       :(A_3006,6800, 4.2, 610,WOOD,18,4, (6, 1,10, 6,  250,22,18,26,-3, -36,12, 600,),SKL_RIFLES,_rifle3006),
 "sniper rifle"      :(A_50, 165500,12.2,990,METL,30,6, (5, 1,1,  12, 500,30,36,32,-9, -51,12, 2400,),SKL_RIFLES,_rifleXLarge),
+# slings            :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"sling"             :(A_SLNG,0.2,  0.8, 10, ROPE,8, 6, (1, 1,0,  3,  30, -2,4, 1, 0,  -30,1,  2,),SKL_BOWS,_sling),
 # bows              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,6,  0.3,),SKL_BOWS,_pBow),
-"hunting bow"       :(A_ARRO,8,    0.8, 75, WOOD,12,8, (1, 1,0,  2,  30, 4, 2, 2, 0,  0,  6,  1.0,),SKL_BOWS,_wBow),
+"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,6,  1.5,),SKL_BOWS,_pBow),
+"hunting bow"       :(A_ARRO,8,    0.8, 75, WOOD,12,8, (1, 1,0,  2,  30, 4, 2, 2, 0,  0,  6,  2.0,),SKL_BOWS,_wBow),
 "wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,6,  2.5,),SKL_BOWS,_wBow),
 "laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,6,  5,),SKL_BOWS,_wBow),
 "composite bow"     :(A_ARRO,85,   1.5, 320,BONE,16,10,(1, 1,0,  2,  60, 10,8, 6, 0,  -12,6,  10,),SKL_BOWS,_compositeBow),
@@ -5724,7 +5865,7 @@ RAWMATERIALS={
 "metal bar"             :(RAWM,50,   1.0, 1500,METL,C_METL,_mBar,),# flat inch-thick brick of metal
 "metal sheet"           :(RAWM,136,  2.5, 50,  METL,C_METL,_mChunk,),
         # ropes
-"cordage"               :(RAWM,0,    0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
+"cordage"               :(RAWM,0.1,  0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
 "rope"                  :(RAWM,1,    0.05,30,  ROPE,C_ROPE,_rope,),#2H only; length of rope is simply how many items of rope you possess -- this is the simplest way to do this.
 "cable"                 :(RAWM,3,    0.15,100, ROPE,C_ROPE,_cable,),#2H only
 

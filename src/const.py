@@ -389,6 +389,7 @@ INSUFF_DEX_ATK_PENALTY  = 4
 INSUFF_DEX_DFN_PENALTY  = 1.25
 INSUFF_DEX_GRA_PENALTY  = 1.5
 INSUFF_DEX_ASP_PENALTY  = 12
+#TODO: insufficient penalties for ranged stats!!!
 
 
 
@@ -664,6 +665,7 @@ NRG_WIELD           = 75    # default AP it takes to brandish a weapon (medium s
 NRG_WIELDLARGE      = 150   # default AP it takes to brandish a weapon (large / 2-h)
 NRG_WIELDXLARGE     = 300   # default AP it takes to brandish a weapon (largest 2-h weapons)
 NRG_WIELDCUMBERSOME = 600   # default AP it takes to brandish a cumbersome item as a weapon
+NRG_RELOAD          = 200
 # multipliers
 NRGM_QUICKATTACK    = 0.6
 STAM_QUICKATTACK    = 1.5
@@ -962,11 +964,13 @@ BONESTATUS_BROKEN       : "broken",
 BONESTATUS_MULTIBREAKS  : "multiple breaks",
 BONESTATUS_SHATTERED    : "shattered",
 BONESTATUS_MANGLED      : "mutilated",
+    }
+BONEFLAGS={
 BONEFLAG_DISLOCATED     : "dislocated",
     }
 MUSCLESTATUSES={
 MUSCLESTATUS_SORE       : "sore",
-MUSCLESTATUS_KNOTTED    : "very sore",
+MUSCLESTATUS_KNOTTED    : "knotted",
 MUSCLESTATUS_CONTUSION  : "bruised",
 MUSCLESTATUS_STRAINED   : "strained",
 MUSCLESTATUS_TORN       : "torn",
@@ -975,7 +979,11 @@ MUSCLESTATUS_RUPTURED   : "ruptured",
 MUSCLESTATUS_BURNED     : "burned",
 MUSCLESTATUS_DEEPBURNED : "severely burned",
 MUSCLESTATUS_MANGLED    : "mutilated",
-}
+    }
+MUSCLEFLAGS={
+MUSCLESTATUS_DAMAGED    : "damaged",
+MUSCLESTATUS_SCARRED    : "scarred",
+    }
 ARTERYSTATUSES={
 ARTERYSTATUS_CLOGGED    : "clogged",
 ARTERYSTATUS_OPEN       : "cut open",
@@ -996,6 +1004,11 @@ SKINSTATUS_SKINNED      : "skinned",
 SKINSTATUS_DEEPBURNED   : "severely burned",
 SKINSTATUS_FULLYSKINNED : "fully skinned",
 SKINSTATUS_MANGLED      : "mutilated",
+    }
+SKINFLAGS={
+SKINFLAG_CALLOUSES      : "calloused",
+SKINFLAG_THICC_CALLOUSES: "calloused",
+SKINFLAG_SCARRED        : "scarred",
     }
 BRAINSTATUSES={
 BRAINSTATUS_CONTUSION   : "bruised",
@@ -1080,6 +1093,8 @@ BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
 BONESTATUS_MANGLED      :{'respain':-100,},
+    }
+ADDMODS_BPP_TORSO_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_TORSO_BONESTATUS = { # stat : value
@@ -1089,6 +1104,8 @@ BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
 BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
+    }
+MULTMODS_BPP_TORSO_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'agi':0.9,'asp':0.9,'msp':0.9,},
     }
 # back
@@ -1111,6 +1128,8 @@ BONESTATUS_BROKEN       :{'bal':-4,'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'bal':-6,'respain':-80,},
 BONESTATUS_SHATTERED    :{'bal':-8,'respain':-100,},
 BONESTATUS_MANGLED      :{'bal':-8,'respain':-100,},
+    }
+ADDMODS_BPP_BACK_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_BACK_BONESTATUS = { # stat : value
@@ -1120,6 +1139,8 @@ BONESTATUS_BROKEN       :{'agi':0.6,'asp':0.8,'msp':0.6,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.4,'asp':0.7,'msp':0.4,},
 BONESTATUS_SHATTERED    :{'agi':0.2,'asp':0.6,'msp':0.2,},
 BONESTATUS_MANGLED      :{'agi':0.2,'asp':0.6,'msp':0.2,},
+    }
+MULTMODS_BPP_BACK_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'agi':0.8,},
     }
 
@@ -1131,6 +1152,8 @@ BONESTATUS_BROKEN       :{'respain':-40,},
 BONESTATUS_MULTIBREAKS  :{'respain':-60,},
 BONESTATUS_SHATTERED    :{'respain':-80,},
 BONESTATUS_MANGLED      :{'respain':-80,},
+    }
+ADDMODS_BPP_HEAD_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'respain':-10,},
     }
 MULTMODS_BPP_HEAD_BONESTATUS = { # stat : value
@@ -1140,6 +1163,8 @@ BONESTATUS_BROKEN       :{'int':0.7,'end':0.7,'bal':0.7,'sight':0.7,'mpmax':0.7,
 BONESTATUS_MULTIBREAKS  :{'int':0.6,'end':0.6,'bal':0.6,'sight':0.6,'mpmax':0.6,},
 BONESTATUS_SHATTERED    :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
 BONESTATUS_MANGLED      :{'int':0.5,'end':0.5,'bal':0.5,'sight':0.5,'mpmax':0.5,},
+    }
+MULTMODS_BPP_HEAD_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'int':0.9,'end':0.9,'bal':0.9,'sight':0.9,'mpmax':0.9,},
     }
 
@@ -1164,6 +1189,8 @@ BONESTATUS_BROKEN       :{'respain':-60,},
 BONESTATUS_MULTIBREAKS  :{'respain':-80,},
 BONESTATUS_SHATTERED    :{'respain':-100,},
 BONESTATUS_MANGLED      :{'respain':-100,},
+    }
+ADDMODS_BPP_NECK_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'respain':-20,},
     }
 MULTMODS_BPP_NECK_BONESTATUS = { # stat : value
@@ -1173,6 +1200,8 @@ BONESTATUS_BROKEN       :{'agi':0.7,'asp':0.8,'msp':0.8,},
 BONESTATUS_MULTIBREAKS  :{'agi':0.6,'asp':0.7,'msp':0.7,},
 BONESTATUS_SHATTERED    :{'agi':0.5,'asp':0.6,'msp':0.6,},
 BONESTATUS_MANGLED      :{'agi':0.5,'asp':0.6,'msp':0.6,},
+    }
+MULTMODS_BPP_NECK_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'agi':0.9,},
     }
 
@@ -1198,6 +1227,8 @@ BONESTATUS_BROKEN       :{'respain':-48,'intimidation':-8,'beauty':-16,},
 BONESTATUS_MULTIBREAKS  :{'respain':-64,'intimidation':-8,'beauty':-24,},
 BONESTATUS_SHATTERED    :{'respain':-96,'intimidation':-8,'beauty':-32,},
 BONESTATUS_MANGLED      :{'respain':-96,'intimidation':-8,'beauty':-32,},
+    }
+ADDMODS_BPP_FACE_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'respain':-16,'intimidation':-4,'beauty':-8,},
     }
 ADDMODS_BPP_FACE_MUSCLESTATUS = { # muscles around the face
@@ -1258,6 +1289,8 @@ BONESTATUS_BROKEN       :{'dex':-3,'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
 BONESTATUS_MULTIBREAKS  :{'dex':-4,'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
 BONESTATUS_SHATTERED    :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-40,},
 BONESTATUS_MANGLED      :{'dex':-5,'atk':-5,'dfn':-5,'gra':-10,'respain':-50,},
+    }
+ADDMODS_BPP_HAND_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'dex':-1,'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
     }
 ADDMODS_BPP_HAND_MUSCLESTATUS = { # stat : value
@@ -1279,6 +1312,8 @@ BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-15,},
 BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-20,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
 BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
+    }
+ADDMODS_BPP_ARM_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'atk':-1,'dfn':-1,'gra':-2,'respain':-5,},
     }
 ADDMODS_BPP_ARM_MUSCLESTATUS = { # stat : value
@@ -1300,6 +1335,8 @@ BONESTATUS_BROKEN       :{'atk':-3,'dfn':-3,'gra':-6,'respain':-20,},
 BONESTATUS_MULTIBREAKS  :{'atk':-4,'dfn':-4,'gra':-8,'respain':-25,},
 BONESTATUS_SHATTERED    :{'atk':-4,'dfn':-4,'gra':-8,'respain':-30,},
 BONESTATUS_MANGLED      :{'atk':-4,'dfn':-4,'gra':-8,'respain':-35,},
+    }
+ADDMODS_BPP_LEG_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'atk':-1,'dfn':-3,'gra':-3,'respain':-10,},
     }
 MULTMODS_BPP_LEG_BONESTATUS = { # stat : value
@@ -1309,6 +1346,8 @@ BONESTATUS_BROKEN       :{'bal':0.6,'msp':0.6666667,},
 BONESTATUS_MULTIBREAKS  :{'bal':0.4,'msp':0.5,},
 BONESTATUS_SHATTERED    :{'bal':0.3333334,'msp':0.4,},
 BONESTATUS_MANGLED      :{'bal':0.3333334,'msp':0.4,},
+    }
+MULTMODS_BPP_LEG_BONEFLAGS = { # stat : value
 BONEFLAG_DISLOCATED     :{'bal':0.8,'msp':0.9,},
     }
 ADDMODS_BPP_LEG_MUSCLESTATUS = { # stat : value
@@ -2172,7 +2211,7 @@ SKL_STAVES      :(1,'staves',),
 SKL_BULLWHIPS   :(1,'bullwhips',),
 SKL_THROWING    :(2,'throwing',),
 SKL_IEDS        :(3,'explosives',),
-SKL_SLINGS      :(2,'slings',),
+SKL_SLINGS      :(1,'slings',),
 SKL_BOWS        :(3,'bows',),
 SKL_CROSSBOWS   :(1,'crossbows',),
 SKL_CANNONS     :(2,'cannons',),

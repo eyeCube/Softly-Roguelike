@@ -140,15 +140,12 @@ def main():
     #
     # /TESTING /TEMPORARY
     #
-
-    # TODO: map_generate function!!    
-##    rog.map_generate(rog.map(),rog.dlvl())
-
+    
     # TODO?: observer for player
 ##    obs=observer.Observer_playerChange()
 ##    pc.observer_add(obs)
     pos=rog.get(rog.pc(),cmp.Position)
-    rog.create_monster('W',pos.x,pos.y-1)
+    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
         
 
     

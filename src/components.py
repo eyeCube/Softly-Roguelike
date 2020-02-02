@@ -933,24 +933,32 @@ class EquipableInLegSlot:
 
 ###
 
-        
 
 class Ammo: # can be used as ammo
-    __slots__=['quantity','ammoType']
-    def __init__(self, ammoType,quantity=1):
-        self.ammoType=ammoType
-        self.quantity=quantity
+    __slots__=['type','force','strReq','mods','func']
+    def __init__(self, typ, force=0, strReq=0, func=None, mods=None):
+        self.type=typ   # ammunition type (AMMO_ const)
+        self.strReq=strReq # strength required to shoot the ammo
+        self.force=force # added force the ammo provides (kick and knockback/stagger)
+        self.func=func   # function that runs when you shoot the ammo (makes noise, light, smoke, knocks you back, etc.)
+        if not mods:
+            self.mods={}
+        else:
+            self.mods=mods
+            
 class Usable:
     __slots__=['funcPC','funcNPC','usableFromWorld']
     def __init__(self, funcPC=None, funcNPC=None, usableFromWorld=False):
         self.funcPC=funcPC
         self.funcNPC=funcNPC
         self.usableFromWorld=usableFromWorld    #usable from world or only within actor's inventory?
+
 class Pushable:
     __slots__=['slides','rolls']
     def __init__(self, slides=0, rolls=0):
         self.slides=slides  # how well it slides
         self.rolls=rolls    # how well it rolls
+
 class Edible:
     __slots__=['func','satiation','hydration','taste','apCost']
     def __init__(self, func=None, sat=0, hyd=0, taste=0, ap=100):
@@ -959,6 +967,7 @@ class Edible:
         self.hydration=hyd
         self.taste=taste
         self.extraAP=ap # extra AP cost to consume it
+
 class Quaffable:
     __slots__=['func','hydration','taste','apCost']
     def __init__(self, func=None, hyd=0, taste=0, ap=1):
@@ -966,11 +975,13 @@ class Quaffable:
         self.hydration=hyd
         self.taste=taste
         self.apCost=ap
+
 class Openable:
     __slots__=['isOpen','isLocked']
     def __init__(self, isOpen=False, isLocked=False):
         self.isOpen=isOpen
         self.isLocked=isLocked
+
 ##class Ingredient: #can be used in crafting, cooking, etc. IS THIS NECESSARY?
 ##    __slots__=['data']
 ##    def __init__(self, data):
@@ -981,48 +992,38 @@ class Moddable: # for weapons, etc. that can be temporarily upgraded using parts
     def __init__(self, possible): # {MOD_BAYONET : {cmp.CombatStats : {'atk':2,'dmg':6,'pen':6,'asp':30,},},}
         self.possible=possible # dict of MODTYPE constants and the respective stat changes
         self.mods=[] # current modifications (list of entities that are modded on)
+
 class Quality:
     __slots__=['quality','minimum','maximum']
     def __init__(self, quality=0, minimum=-2, maximum=2):
         self.quality=quality
         self.minimum=minimum
         self.maximum=maximum
+
 class WeaponSkill: #equipping as weapon benefits from having skill in this weapon school
-    __slots__=['skill']
-    def __init__(self, skill):
+    __slots__=['skill','bonus']
+    def __init__(self, skill, bonus=0):
         self.skill=skill    # skill ID constant
+        self.bonus=bonus    # skill Level modifier while it's equipped
+
 class DamageTypeMelee:
     __slots__=['type']
     def __init__(self, t):
         self.type=t         # DMGTYPE_ contant
 
-class Shootable:
-    __slots__=['ammoTypes','atk','dmg','pen','asp','rng','minrng','ammo','capacity','reloadTime','failChance','skill','func']
-    def __init__(self, aTypes,atk=0,dmg=0,pen=0,asp=0,rng=0,minrng=0,aMax=0,rTime=0,jam=0,skill=None,func=None):
+class Shootable: # stats for ranged attack go in EquipableInHoldSlot mods
+    __slots__=['ammoTypes','ammo','capacity','reloadTime','failChance']
+    def __init__(self, aTypes,aMax=0,rTime=0,jam=0,func=None):
         self.ammoTypes=aTypes # *set* of ammo types that can be used
-        self.atk=atk        #Attack -- accuracy added on to Atk stat
-        self.dmg=dmg        #damage (ranged) - physical by default (ElementalDamage component affects elemental damage...)
-        self.pen=pen        #Penetration
-        self.asp=asp        #Attack speed for shooting: different from melee
-        self.rng=rng        #range (maximum)
-        self.minrng=minrng  #range (minimum)
         self.ammo=aMax      #current ammo quantity
         self.capacity=aMax  # maximum ammo capacity
         self.reloadTime=rTime # time to reload one shot or put/take mag
         self.failChance=jam # int in 1/100ths of a percent (10000==100%)
-        self.skill=skill    # skill type constant for shooting this thing
-        self.func=func      # function that runs when you shoot (makes noise, light, smoke, knocks you back, etc.)
 
-class Throwable:
-    __slots__=['atk','rng','dmg','pen','asp','func','skill']
-    def __init__(self, rng=0,atk=0,dmg=0,pen=0,asp=0,func=None): #,skill=None
-        self.rng=rng    # range when thrown
-        self.atk=atk    # change in accuracy when thrown
-        self.dmg=dmg    # change in damage when thrown
-        self.pen=pen    # change in penetration when thrown
-        self.asp=asp    # change in attack speed when thrown
+class Throwable: # stats for thrown attack go in EquipableInHoldSlot mods
+    __slots__=['func']
+    def __init__(self, func=None):
         self.func=func  # script that runs when the item is thrown
-##        self.skill=skill # skill type constant for throwing this thing
 
 class ElementalDamageMelee: # and Thrown
     __slots__=['elements']
