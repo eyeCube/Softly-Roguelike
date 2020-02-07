@@ -231,7 +231,13 @@ def sprint_pc(pc):
         rog.alert("You're too tired to sprint.")
 
 def target_pc(pc):
-    target = None
+    pos = world.component_for_entity(pc, cmp.Position)
+    def targetfunc(target):
+        # Temporary
+        tname=world().component_for_entity(target, cmp.Name)
+        tpos=world().component_for_entity(target, cmp.Position)
+        print("Targeted entity named {} at {},{}".format(tname, tpos.x,tpos.y))
+    rog.aim_find_target(targetfunc)
     
     
 ##def process_target(targeted):
@@ -363,7 +369,7 @@ def wear_ears(ent, item):       return _equip(ent, item, EQ_MAINEARS)
 #recover your Action Points to their maximum
 def wait(ent):
     rog.setAP(ent, 0)
-    rog.metabolize(ent, CALCOST_REST)
+    rog.metabolism(ent, CALCOST_REST)
 # end def
 
 def cough(ent):
@@ -742,7 +748,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         if bptarget:
             bptarget = bptarget # TEMPORARY
         else:
-            bptarget = rog.findbps(cmp.BP_TorsoFront)[0]  # TEMPORARY
+            bptarget = rog.findbps(dfndr, cmp.BP_TorsoFront)[0]  # TEMPORARY
         # end if
         #
         # damage body part (inflict status)
@@ -863,8 +869,8 @@ def fight(attkr,dfndr,adv=0,power=0):
     aname=world.component_for_entity(attkr, cmp.Name)
     dname=world.component_for_entity(dfndr, cmp.Name)
         # weapons of the combatants (temporary ?)
-    abody = Rogue.world.component_for_entity(grplr, cmp.Body)
-    dbody = Rogue.world.component_for_entity(target, cmp.Body)
+    abody = world.component_for_entity(attkr, cmp.Body)
+    dbody = world.component_for_entity(dfndr, cmp.Body)
     aarms = abody.parts.get(cmp.BPC_Arms, None)
     darms = dbody.parts.get(cmp.BPC_Arms, None)
     if aarms:

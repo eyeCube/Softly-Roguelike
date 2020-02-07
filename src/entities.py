@@ -67,6 +67,19 @@ ARMR = T_ARMOR
 HELM = T_HEADWEAR
 BACK = T_CLOAK
 
+M_MAG = IMOD_MAGAZINE
+M_PSC = IMOD_PISTOLSCOPE
+M_RSC = IMOD_RIFLESCOPE
+M_SSC = IMOD_SHOTGUNSCOPE
+M_STR = IMOD_STRAP
+M_STO = IMOD_STOCK
+M_LAS = IMOD_LASER
+M_BAY = IMOD_BAYONET
+M_BIP = IMOD_BIPOD
+M_FLA = IMOD_FLASHLIGHT
+M_SUP = IMOD_SUPPRESSOR
+M_GRE = IMOD_GRENADELAUNCHER
+
 A_BULL = AMMO_BULLETS
 A_BALL = AMMO_CANNONBALLS
 A_PCAP = AMMO_PERCUSSIONCAPS
@@ -267,6 +280,29 @@ def getMonStats(_char):     return BESTIARY[_char][7]
 
     # GENERIC SCRIPTS
 
+def _mod(item, _typ, mods):
+    for k,v in mods.items():
+        if k in __MULTSTATS.keys():
+            mods[k] = mods[k] * MULT_STATS
+    rog.world().add_component(item, cmp.Mod(_typ, mods))
+    
+def _getDefaultAP(mass): # weapon AP cost to wield
+    mass=mass//MULT_MASS
+    if mass <= 0.5:
+        ap = NRG_WIELDSMALL
+    elif mass <= 1:
+        ap = NRG_WIELD
+    elif mass <= 2:
+        ap = NRG_WIELDLARGE
+    elif mass <= 3:
+        ap = NRG_WIELDXLARGE
+    else:
+        ap = NRG_WIELDCUMBERSOME
+    return ap
+def _getDefaultSP(mass): # weapon SP cost to strike
+    mass=mass//MULT_MASS
+    return rog.ceil(mass*12)
+
 def _clothes(item):
     rog.world().add_component(item, cmp.Clothes)
 
@@ -304,18 +340,30 @@ def _weapon(item, acc=0,dmg=0,pen=0,dv=0,av=0,pro=0,asp=0,enc=1,
     if twoh: rog.make(item, TWOHANDS)
     if skill: world.add_component(item, cmp.WeaponSkill(skill))
 
-def _canThrow(item, func=None, rng=0,acc=0,dmg=0,pen=0,asp=0, skill=None):
+def _canThrow(item, func=None, rng=0,acc=0,dmg=0,pen=0,asp=0,
+              skill=None, ap=None, sp=None, strReq=0, dexReq=0):
     if rng <= 0: return
     world=rog.world()
     world.add_component(item, cmp.Throwable(func))
-    equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
+    # holdable component - get or create if none already exists
+    if world.has_component(item, cmp.EquipableInHoldSlot):
+        equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
+    else:
+        stats=world.component_for_entity(item, cmp.Stats) # this shouldn't be a problem, right..??
+        if ap is None:
+            ap = _getDefaultAP(stats.mass)
+        if sp is None:
+            sp = _getDefaultSP(stats.mass)
+        equipable=cmp.EquipableInHoldSlot(ap, sp, {}, strReq=strReq, dexReq=dexReq)
+        world.add_component(item, equipable)
+    # throwing stats mods
     if rng!=0: equipable.mods['trng']=rng
-    if acc!=0: equipable.mods['tatk']=acc
-    if dmg!=0: equipable.mods['tdmg']=dmg
-    if pen!=0: equipable.mods['tpen']=pen
+    if acc!=0: equipable.mods['tatk']=acc*MULT_STATS
+    if dmg!=0: equipable.mods['tdmg']=dmg*MULT_STATS
+    if pen!=0: equipable.mods['tpen']=pen*MULT_STATS
     if asp!=0: equipable.mods['tasp']=asp
 ##    if skill:
-##        
+##
 
 def _addRes(item, resfire=0,resbio=0,reselec=0,resphys=0,resrust=0,resrot=0,reswet=0,resdirt=0):
     stats=rog.world().component_for_entity(item, cmp.Stats)
@@ -1087,11 +1135,11 @@ def _boneSmall(item):
     _length(item, 25)
 def _mPipe(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
-    _weapon(item, acc=1,dmg=6,pen=5,asp=-45,enc=6,enc=5)
+    _weapon(item, acc=1,dmg=6,pen=5,asp=-45,enc=6)
     _canThrow(item, acc=-2, rng=6, dmg=-1, skill=SKL_ENDOVEREND)
     _length(item, 50)
 def _mPipeBroken(item):
-    _weapon(item, acc=1,dmg=4,pen=6,asp=-33,enc=3,enc=5)
+    _weapon(item, acc=1,dmg=4,pen=6,asp=-33,enc=6)
     _canThrow(item, acc=-5, rng=5, dmg=-1, skill=SKL_ENDOVEREND)
     _length(item, 30)
 def _mBar(item):
@@ -1743,24 +1791,28 @@ def _cBoomerang(item):
     _length(item, 20)
     # bayonets
 def _pBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':1,'dmg':2,'pen':2,})
     _melee_bleed(item, BLEED_PLASTIC)
     rog.world().add_component(item, cmp.Tool_Cut(2))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
     _canThrow(item, acc=-9, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _wBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':1,'dmg':3,'pen':3,})
     _melee_bleed(item, BLEED_WOOD)
     rog.world().add_component(item, cmp.Tool_Cut(3))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
     _canThrow(item, acc=-8, rng=8, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _bBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':1,'dmg':5,'pen':6,})
     _melee_bleed(item, BLEED_BONE)
     rog.world().add_component(item, cmp.Tool_Cut(4))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
     _canThrow(item, acc=-8, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _sBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':1,'dmg':3,'pen':4,})
     _melee_bleed(item, BLEED_STONE)
     rog.world().add_component(item, cmp.Tool_Cut(5))
     rog.world().add_component(item, cmp.Tool_Chisel(1))
@@ -1768,6 +1820,7 @@ def _sBayonet(item):
     _canThrow(item, acc=-8, rng=6, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _mBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':2,'dmg':6,'pen':8,'reach':1,})
     _melee_bleed(item, BLEED_METAL)
     rog.world().add_component(item, cmp.Tool_Cut(6))
     rog.world().add_component(item, cmp.Tool_Chisel(2))
@@ -1775,11 +1828,13 @@ def _mBayonet(item):
     _canThrow(item, acc=-6, rng=8, dmg=-3, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _gBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':1,'dmg':12,'pen':2,})
     _melee_bleed(item, BLEED_GLASS)
     rog.world().add_component(item, cmp.Tool_Cut(7))
     _canThrow(item, acc=-6, rng=6, dmg=-5, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _cBayonet(item):
+    _mod(item, MOD_BAYONET, {'atk':2,'dmg':14,'pen':3,})
     _melee_bleed(item, BLEED_CERAMIC)
     rog.world().add_component(item, cmp.Tool_Cut(8))
     _canThrow(item, acc=-6, rng=6, dmg=-5, pen=-4, skill=SKL_ENDOVEREND)
@@ -2021,8 +2076,9 @@ def _flamberge(item):
     _canThrow(item, acc=-5, rng=6, skill=SKL_TIPFIRST)
     _length(item, 180)
 def _executionerSword(item):
-    _melee_bleed(item, 3*BLEED_STEEL)
+    _melee_bleed(item, 3*BLEED_METAL)
     _amputate(item, 100)
+    _bonusToFlesh(item, 16)
     _addRes(item, resrust=33)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Striker(1))
@@ -2434,6 +2490,12 @@ def _cryoGun(item): # cold ray
     _elementalRanged(item, ELEM_COLD, 50)
     _length(item, 20)
 
+    # LMGs
+def _lmg(item):
+    rog.make(item, TWOHANDS)
+    _weapon(item, acc=-6, dmg=16, pen=9, asp=-75)
+    _length(item, 100)
+
     # misc ranged
 def _atlatl(item):
     rog.world().add_component(item, cmp.Tool_Hammer(2))
@@ -2754,10 +2816,11 @@ def _apply_durabilityPenalty_armor(dadd, hp, hpMax):
 # end def
 def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
     if skillLv <=0: return
-    skillLv = min(skillLv, 100)
+    skillLv = min(skillLv, SKILL_MAXIMUM)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
-    dadd['enc']=dadd['enc'] * ( 100 / (100 + skillLv*DEFAULT_SKLMOD_ENC) )
+    dadd['enc']=dadd['enc'] * (
+        SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC) )
     # custom or default stat modifiers for specific skills
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_ARMOR_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_ARMOR_AV*sm
@@ -2765,7 +2828,7 @@ def _apply_skill_bonus_armor(dadd, skillLv, coverage_modf):
 # end def
 def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
     if skillLv <=0: return
-    skillLv = min(skillLv, 100)
+    skillLv = min(skillLv, SKILL_MAXIMUM)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER * coverage_modf
     dadd['pro']=dadd.get('pro',0) + MULT_STATS*SKLMOD_UNARMORED_PRO*sm
     dadd['arm']=dadd.get('arm',0) + MULT_STATS*SKLMOD_UNARMORED_AV*sm
@@ -2773,11 +2836,12 @@ def _apply_skill_bonus_unarmored(dadd, skillLv, coverage_modf):
 # end def
 def _apply_skill_bonus_weapon(dadd, skillLv, skill, enc=True):
     if skillLv <=0: return
-    skillLv = min(skillLv, 100)
+    skillLv = min(skillLv, SKILL_MAXIMUM)
     sm = skillLv * SKILL_EFFECTIVENESS_MULTIPLIER
-    # skill bonus can cut encumberance of gear item up to half. Only works up to level 100 skill.
+    # skill bonus can cut encumberance of gear item up to half. Only works up to max skill level.
     if enc: # only for weapons with encumberance values (not for unarmed combat)
-        dadd['enc']=dadd['enc'] * ( 100 / (100 + skillLv*DEFAULT_SKLMOD_ENC) )
+        dadd['enc']=dadd['enc'] * (
+            SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC) )
     # custom or default stat modifiers for specific skills
     dadd['atk']=dadd.get('atk',0) + MULT_STATS * sm * SKLMOD_ATK.get(skill,DEFAULT_SKLMOD_ATK)
     dadd['pen']=dadd.get('pen',0) + MULT_STATS * sm * SKLMOD_PEN.get(skill,DEFAULT_SKLMOD_PEN)
@@ -2819,6 +2883,7 @@ def _update_from_body_class(body, modded):
     modded.mass += body.blood
     modded.mass += body.hydration//MULT_HYD
     modded.mass += body.bodyfat
+    modded.height += body.height
     modded.rescold += body.bodyfat / MULT_MASS * FAT_RESCOLD
     modded.resfire += body.bodyfat / MULT_MASS * FAT_RESHEAT
 
@@ -2994,23 +3059,7 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         
         # mainhand / offhand - specific stats
         if ismainhand:
-            # throwing stats
-            if world.has_component(item, cmp.Throwable):
-                compo=world.component_for_entity(item, cmp.Throwable)
-                dadd['trng'] = compo.rng
-                dadd['tatk'] = compo.atk
-                dadd['tdmg'] = compo.dmg
-                dadd['tpen'] = compo.pen
-                dadd['tasp'] = compo.asp
-            # ranged stats
-            if world.has_component(item, cmp.Shootable):
-                compo=world.component_for_entity(item, cmp.Shootable)
-                dadd['maxrng'] = compo.rng
-                dadd['minrng'] = compo.minrng
-                dadd['ratk'] = compo.atk
-                dadd['rdmg'] = compo.dmg
-                dadd['rpen'] = compo.pen
-                dadd['rasp'] = compo.asp
+            pass
         else: # offhand
             # offhand offensive penalty for offhand weapons
             dadd['reach'] = 0
@@ -4175,6 +4224,88 @@ def create_weapon(name, x,y, condition=1) -> int:
     return ent
 #
 
+def create_ranged_weapon(name, x, y, condition=1) -> int:
+    world = rog.world()
+    ent = world.create_entity()
+    
+    # get data
+    ammotype    = get_ranged_ammotype(name)
+    value       = round(get_ranged_value(name)*MULT_VALUE)
+    kg          = round(get_ranged_kg(name)*MULT_MASS)
+    hpmax       = get_ranged_hp(name)
+    material    = get_ranged_mat(name)
+    strReq      = get_ranged_strReq(name)
+    dexReq      = get_ranged_dexReq(name)
+    capacity    = get_ranged_capacity(name)
+    nShots      = get_ranged_nShots(name)
+    jam         = get_ranged_jamChance(name)
+    minRng      = get_ranged_minRng(name)
+    maxRng      = get_ranged_maxRng(name)
+    rasp        = get_ranged_rasp(name)
+    ratk        = int(get_ranged_ratk(name)*MULT_STATS)
+    rdmg        = int(get_ranged_rdmg(name)*MULT_STATS)
+    rpen        = int(get_ranged_rpen(name)*MULT_STATS)
+    dfn         = int(get_ranged_dfn(name)*MULT_STATS)
+    enc         = get_ranged_enc(name)
+    force       = get_ranged_force(name)
+    skill       = get_ranged_skill(name)
+    script      = get_ranged_script(name)
+    
+    # AP cost to equip (TODO: get based on mass of weapon / weapon type?)
+    wieldAP     = NRG_WIELD
+    
+    # AP cost to reload (TODO: get default based on weapon type)
+    reloadAP    = NRG_RELOAD
+    
+    # function that runs when you shoot (TODO: get default based on weapon type)
+    func        = None
+    
+    # color
+    fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
+    bgcol = COL['deep']
+    # build entity
+    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Position(x, y))
+    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
+    world.add_component(ent, cmp.Form(mat=material,val=value))    
+    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=0,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * condition)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    
+    # equipable
+    modDict={'mass':mass} # equipable components need to have mass as a mod
+    if not dfn==0: modDict.update({'dfn':dfn})
+    if not enc==0: modDict.update({'enc':enc})
+    if not reach==0: modDict.update({'reach':reach})
+    if not ratk==0: modDict.update({'ratk':ratk})
+    if not rdmg==0: modDict.update({'rdmg':rdmg})
+    if not rpen==0: modDict.update({'rpen':rpen})
+    if not rasp==0: modDict.update({'rasp':rasp})
+    if not minRng==0: modDict.update({'minRng':minRng})
+    if not maxRng==0: modDict.update({'maxRng':maxRng})
+    world.add_component(ent, cmp.Shootable(
+        set((ammotype,)), cap=capacity, nshots=nShots,
+        rtime=reloadAP, jam=jam, func=None) ) # TODO: func
+    world.add_component(ent, cmp.EquipableInHoldSlot(
+        wieldAP, stamina_cost, modDict, strReq=strReq, dexReq=dexReq) )
+    if skill:
+        world.add_component(ent,cmp.WeaponSkill(skill))
+    # quality
+    minGrind=-2
+    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
+    # script
+    if script: script(ent)
+    return ent
+#
+
 # monsters
 def create_monster(_type, x, y, col=None, money=0) -> int:    
     if not col:
@@ -4533,7 +4664,7 @@ BESTIARY={
 'd':('dog', 60, 60, MAT_FLESH, FLEGS, (MEAN,), None, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
     {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
 'L':('raving lunatic', 70, 165, MAT_FLESH, HUMAN, (MEAN,), None,
-    {'str':6,'end':6,'int':-6,'dex':-6,'resbio':40,'reselec':60,}, ),
+    {'str':6,'end':6,'int':-6,'dex':-6,'sight':-60,'resbio':40,'reselec':60,}, ),
 'r':('ravaged', 35, 150, MAT_FLESH, HUMAN, (), None,
     {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
 'R':('orctepus', 100, 140, MAT_FLESH, EARMS, (IMMUNEWATER,), None,
@@ -4723,7 +4854,7 @@ AMMUNITION={
 "metal bullet"          :(A_BULL,6,  0.05, 1,(0.9, 0,  0,  0,  0,),_mBullet,),
 "Minni ball"            :(A_BULL,7,  0.05, 1,(1.2, 5,  2,  2,  0,),_minnieBall,),
 "cartridge, metal bullet":(A_PC, 4,  0.11, 1,(1.0, 0,  0,  0,  0,),_paperCartridge,),
-".22LR cartridge"       :(A_22LR,1,  0.003,1,(1.0, 0,  0,  0,  0,),_mCartridge,),# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.
+".22 LR cartridge"      :(A_22LR,1,  0.003,1,(1.0, 0,  0,  0,  0,),_mCartridge,),# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.
 "9mm cartridge"         :(A_9MM, 1,  0.008,1,(1.0, 0,  0,  0,  0,),_mCartridge,),#.38 Spl 
 ".357 magnum cartridge" :(A_357, 3,  0.01, 1,(1.33,4,  5,  5,  -15,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
 "10mm cartridge"        :(A_10MM,2,  0.017,1,(1.0, 0,  0,  0,  0,),_mCartridge,),
@@ -4753,87 +4884,81 @@ AMMUNITION={
 ##"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 8,  16, -33,), _incendiary),
     }
 
-def create_ranged_weapon(name, x, y, condition=1) -> int:
-    world = rog.world()
-    ent = world.create_entity()
-    
-    # get data
-    ammotype    = get_ranged_ammotype(name)
-    value       = round(get_ranged_value(name)*MULT_VALUE)
-    kg          = round(get_ranged_kg(name)*MULT_MASS)
-    hpmax       = get_ranged_hp(name)
-    material    = get_ranged_mat(name)
-    strReq      = get_ranged_strReq(name)
-    dexReq      = get_ranged_dexReq(name)
-    capacity    = get_ranged_capacity(name)
-    nShots      = get_ranged_nShots(name)
-    jam         = get_ranged_jamChance(name)
-    minRng      = get_ranged_minRng(name)
-    maxRng      = get_ranged_maxRng(name)
-    rasp        = get_ranged_rasp(name)
-    ratk        = int(get_ranged_ratk(name)*MULT_STATS)
-    rdmg        = int(get_ranged_rdmg(name)*MULT_STATS)
-    rpen        = int(get_ranged_rpen(name)*MULT_STATS)
-    dfn         = int(get_ranged_dfn(name)*MULT_STATS)
-    enc         = get_ranged_enc(name)
-    force       = get_ranged_force(name)
-    skill       = get_ranged_skill(name)
-    script      = get_ranged_script(name)
-    
-    # AP cost to equip (TODO: get based on mass of weapon / weapon type?)
-    wieldAP     = NRG_WIELD
-    
-    # AP cost to reload (TODO: get default based on weapon type)
-    reloadAP    = NRG_RELOAD
-    
-    # function that runs when you shoot (TODO: get default based on weapon type)
-    func        = None
-    
-    # color
-    fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
-    bgcol = COL['deep']
-    # build entity
-    world.add_component(ent, cmp.Name(name))
-    world.add_component(ent, cmp.Position(x, y))
-    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
-    world.add_component(ent, cmp.Form(mat=material,val=value))    
-    world.add_component(ent, cmp.Flags())
-    world.add_component(ent, cmp.Meters())
-    # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=0,mass=mass
-        )
-    stats.hp = rog.around(stats.hpmax * condition)
-    world.add_component(ent, stats)
-    
-    _setGenericData(ent, material=material)
-    
-    # equipable
-    modDict={'mass':mass} # equipable components need to have mass as a mod
-    if not dfn==0: modDict.update({'dfn':dfn})
-    if not enc==0: modDict.update({'enc':enc})
-    if not reach==0: modDict.update({'reach':reach})
-    if not ratk==0: modDict.update({'ratk':ratk})
-    if not rdmg==0: modDict.update({'rdmg':rdmg})
-    if not rpen==0: modDict.update({'rpen':rpen})
-    if not rasp==0: modDict.update({'rasp':rasp})
-    if not minRng==0: modDict.update({'minRng':minRng})
-    if not maxRng==0: modDict.update({'maxRng':maxRng})
-    world.add_component(ent, cmp.Shootable(
-        set((ammotype,)), aMax=capacity,
-        rTime=reloadAP, jam=jam, func=None) ) # TODO: func
-    world.add_component(ent, cmp.EquipableInHoldSlot(
-        wieldAP, stamina_cost, modDict, strReq=strReq, dexReq=dexReq) )
-    if skill:
-        world.add_component(ent,cmp.WeaponSkill(skill))
-    # quality
-    minGrind=-2
-    maxGrind=MAXGRIND_FROM_MATERIAL[material]
-    world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
-    # script
-    if script: script(ent)
-    return ent
-#
+GUNMODS={ # TODO: make all gun stats represent fully unmodded version -- 1 mag capacity unless has a built-in mag or revolver chamber.
+##        Parameters:
+##AMMO    ammo type (AMMO_ const)
+##$$$$    cost
+##KG      mass
+##Enc     added encumberance when modded on. Multiplied by mass of the whole unit.
+##Dur     max HP
+##MAT     material
+##type    mod type (IMOD_ const)
+##mods    stat mods (and other modifiers?)
+
+# TODO: when you modify a gun w/ a mod, convert special stats
+    # (e.g. 'nshots') into modifications of the Shootable component
+    # (how should we handle this???)
+    # In other words, not all modifications are mods of the Stats compo.
+    # IDEA: use base_ stats in Shootable component that represent unmodded
+    # stats.
+# magazines                     :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"magazine, .22 LR, tiny"        :(M_MAG,A_22LR,4,   0.05, 0.2,80, METL,{'nshots':10}),
+"magazine, .22 LR, small"       :(M_MAG,A_22LR,6,   0.05, 0.3,80, METL,{'nshots':15}),
+"magazine, .22 LR"              :(M_MAG,A_22LR,10,  0.08, 0.5,60, METL,{'nshots':25}),
+"magazine, .22 LR, large"       :(M_MAG,A_22LR,15,  0.1,  0.6,50, METL,{'nshots':30}),
+"magazine, .22 LR, drum"        :(M_MAG,A_22LR,50,  0.3,  2,  20, METL,{'nshots':75}),
+"magazine, 9mm, small"          :(M_MAG,A_9MM, 25,  0.07, 0.2,100,METL,{'nshots':12}),
+"magazine, 9mm"                 :(M_MAG,A_9MM, 30,  0.1,  0.4,75, METL,{'nshots':15}),
+"magazine, 9mm, large"          :(M_MAG,A_9MM, 50,  0.2,  0.6,50, METL,{'nshots':30}),
+"magazine, 9mm, drum"           :(M_MAG,A_9MM, 150, 0.5,  2,  20, METL,{'nshots':100}),
+"magazine, 10mm, small"         :(M_MAG,A_10MM,35,  0.14, 0.2,120,METL,{'nshots':9}),
+"magazine, 10mm"                :(M_MAG,A_10MM,40,  0.18, 0.3,80, METL,{'nshots':15}),
+"magazine, 10mm, large"         :(M_MAG,A_10MM,60,  0.26, 0.6,60, METL,{'nshots':30}),
+"magazine, 10mm, drum"          :(M_MAG,A_10MM,180, 0.6,  2,  20, METL,{'nshots':100}),
+"magazine, .45 ACP, tiny"       :(M_MAG,A_45,  45,  0.1,  0.2,150,METL,{'nshots':7}),
+"magazine, .45 ACP, small"      :(M_MAG,A_45,  40,  0.15, 0.3,120,METL,{'nshots':12}),
+"magazine, .45 ACP"             :(M_MAG,A_45,  60,  0.2,  0.6,90, METL,{'nshots':30}),
+"magazine, .45 ACP, large"      :(M_MAG,A_45,  80,  0.3,  1.0,45, METL,{'nshots':50}),
+"magazine, .45 ACP, drum"       :(M_MAG,A_45,  220, 0.66, 2.5,25, METL,{'nshots':100}),
+"magazine, .30 carbine, small"  :(M_MAG,A_30,  45,  0.15, 0.3,150,METL,{'nshots':10}),
+"magazine, .30 carbine"         :(M_MAG,A_30,  65,  0.2,  0.5,100,METL,{'nshots':15}),
+"magazine, .30 carbine, large"  :(M_MAG,A_30,  110, 0.3,  0.7,50, METL,{'nshots':30}),
+"magazine, 5.56x45mm, small"    :(M_MAG,A_556, 40,  0.08, 0.1,150,METL,{'nshots':5}),
+"magazine, 5.56x45mm"           :(M_MAG,A_556, 60,  0.17, 0.4,100,METL,{'nshots':20}),
+"magazine, 5.56x45mm, large"    :(M_MAG,A_556, 95,  0.3,  0.7,50, METL,{'nshots':35}),
+"magazine, 5.56x45mm, drum"     :(M_MAG,A_556, 245, 0.8,  2,  30, METL,{'nshots':100}),
+"magazine, 7.62x39mm, small"    :(M_MAG,A_762, 35,  0.1,  0.3,180,METL,{'nshots':15}),
+"magazine, 7.62x39mm"           :(M_MAG,A_762, 70,  0.2,  0.5,120,METL,{'nshots':25}),
+"magazine, 7.62x39mm, large"    :(M_MAG,A_762, 85,  0.25, 0.6,60, METL,{'nshots':30}),
+"magazine, 7.62x39mm, drum"     :(M_MAG,A_762, 260, 0.9,  2,  35, METL,{'nshots':100}),
+"magazine, .308, small"         :(M_MAG,A_308, 45,  0.06, 0.3,200,METL,{'nshots':4}),
+"magazine, .308"                :(M_MAG,A_308, 80,  0.1,  0.5,130,METL,{'nshots':8}),
+"magazine, .308, large"         :(M_MAG,A_308, 140, 0.16, 0.7,80, METL,{'nshots':16}),
+"magazine, .30-06, small"       :(M_MAG,A_3006,50,  0.09, 0.3,220,METL,{'nshots':4}),
+"magazine, .30-06"              :(M_MAG,A_3006,75,  0.12, 0.5,150,METL,{'nshots':6}),
+"magazine, .30-06, large"       :(M_MAG,A_3006,150, 0.15, 0.7,100,METL,{'nshots':12}),
+##"magazine, .300 magnum, small"  :
+##"magazine, .300 magnum"         :
+##"magazine, .300 magnum, large"  :
+"magazine, .50 BMG, small"      :(M_MAG,A_50,  260, 0.25, 0.3,300,METL,{'nshots':4}),
+"magazine, .50 BMG"             :(M_MAG,A_50,  320, 0.35, 0.6,200,METL,{'nshots':6}),
+"magazine, .50 BMG, large"      :(M_MAG,A_50,  395, 0.5,  1,  100,METL,{'nshots':9}),
+# scopes                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"handgun scope, small"          :(M_PSC,None,  395, 0.3,  0.2,20, METL,{'sights':4,}),#scopes only apply their Atk bonus when you aim at an enemy that is sufficiently far away depending on the weapon type. So at melee range, scopes don't help at all.
+"handgun scope"                 :(M_PSC,None,  525, 0.6,  0.4,15, METL,{'sights':8,}),
+"rifle scope, small"            :(M_RSC,None,  510, 0.7,  0.6,15, METL,{'sights':4,}),
+"rifle scope"                   :(M_RSC,None,  665, 1.1,  0.8,10, METL,{'sights':8,}),
+"rifle scope, large"            :(M_RSC,None,  880, 1.5,  1,  5,  METL,{'sights':12,}),
+# straps                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"leather gun strap"             :(M_STR,None,  8,   0.2, -0.5,20, LETH,{}),
+# stocks                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"metal folding stock"           :(M_STO,None,  60,  0.6,  0.5,120,METL,{'atk':2,}),
+"wooden stock"                  :(M_STO,None,  8,   0.8,  1,  80, WOOD,{'atk':3,}),
+# bipods                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"metal folding bipod"           :(M_BIP,None,  90,  0.55, 0.4,160,METL,{'prone':4,}),
+# lights                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
+"metal gun flashlight"          :(M_FLA,None,  22,  0.07, 0.1,30, METL,{}),#light is applied differently: adds a DirectedLight component; it automatically updates to face the direction of the wielder b/c of being a Child of the wielder.
+    }
 
 RANGEDWEAPONS={
     # NOTE: Reload Time is based on the ammo type; reloading the magazine is handled differently (must eject the magazine and reload it, then put the magazine in the gun)
@@ -4847,68 +4972,72 @@ RANGEDWEAPONS={
     #   Enc: encumberance multiplier (* mass of the item)
     #   For: force multiplier when shooting (* mass of the projectile)
 
-# caplock guns      :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"caplock pistol"    :(A_BULL,90,   1.4, 60, METL,8, 4, (1, 1,900,1,  6,  1, 6, 3, 0,  -18,2,  100,),SKL_CANNONS,_caplockPistol),
-"caplock musketoon" :(A_BULL,235,  3.8, 120,WOOD,12,3, (1, 1,750,2,  14, 2, 11,4, -2, -39,6,  200,),SKL_CANNONS,_musketoon),
-"caplock musket"    :(A_BULL,325,  5.15,180,WOOD,16,3, (1, 1,600,3,  25, 4, 16,5, -4, -60,9,  400,),SKL_CANNONS,_musket),
-"caplock arquebus"  :(A_BULL,450,  6.5, 240,WOOD,20,3, (1, 1,500,4,  36, 5, 22,6, -6, -75,10, 800,),SKL_CANNONS,_musket),
-# shotguns          :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"12ga shotgun"      :(A_12GA,450,  3.25,275,WOOD,12,1, (1, 1,50, 1,  16, 8, 18,6, -2, -24,6,  200,),SKL_SHOTGUNS,_12GAshotgun),# double-barrel is a mod (for all single-capcity shotguns), adds +12% mass and +1 Capacity
-"10ga shotgun"      :(A_10GA,520,  4.2, 350,WOOD,14,1, (1, 1,25, 1,  14, 7, 22,5, -3, -36,8,  350,),SKL_SHOTGUNS,_10GAshotgun),
-"8ga shotgun"       :(A_8GA, 640,  5.5, 420,WOOD,16,1, (1, 1,12, 2,  12, 6, 26,4, -4, -48,9,  600,),SKL_SHOTGUNS,_8GAshotgun),
-"6ga shotgun"       :(A_6GA, 745,  7.1, 500,WOOD,19,1, (1, 1,6,  2,  10, 5, 30,3, -6, -60,10, 1000,),SKL_SHOTGUNS,_6GAshotgun),
-"4ga shotgun"       :(A_4GA, 850,  8.6, 420,WOOD,22,1, (1, 1,3,  3,  8,  4, 35,2, -8, -72,11, 1600,),SKL_SHOTGUNS,_4GAshotgun),
-"3ga shotgun"       :(A_3GA, 980,  10.1,420,WOOD,25,1, (1, 1,2,  4,  7,  3, 40,1, -10,-84,12, 2400,),SKL_SHOTGUNS,_3GAshotgun),
-"2ga shotgun"       :(A_2GA, 1100, 12.0,420,WOOD,28,1, (1, 1,1,  5,  16, 2, 50,0, -12,-96,13, 4000,),SKL_SHOTGUNS,_2GAshotgun),
-"12ga combat shotgun":(A_12GA,6500,3.45,750,METL,10,1, (7, 1,1,  2,  30, 10,24,9, -2, -15,4,  500,),SKL_SHOTGUNS,_combatShotgun),
+# caplock guns          :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"caplock pistol"        :(A_BULL,90,   1.4, 60, METL,8, 4, (1, 1,900,1,  6,  1, 6, 3, 0,  -18,2,  100,),SKL_CANNONS,_caplockPistol),
+"caplock musketoon"     :(A_BULL,235,  3.8, 120,WOOD,12,3, (1, 1,750,2,  14, 2, 11,4, -2, -39,6,  200,),SKL_CANNONS,_musketoon),
+"caplock musket"        :(A_BULL,325,  5.15,180,WOOD,16,3, (1, 1,600,3,  25, 4, 16,5, -4, -60,9,  400,),SKL_CANNONS,_musket),
+"caplock arquebus"      :(A_BULL,450,  6.5, 240,WOOD,20,3, (1, 1,500,4,  36, 5, 22,6, -6, -75,10, 800,),SKL_CANNONS,_musket),
+# shotguns              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"12ga shotgun"          :(A_12GA,450,  3.25,275,WOOD,12,1, (1, 1,50, 1,  16, 8, 18,6, -2, -24,6,  200,),SKL_SHOTGUNS,_12GAshotgun),# double-barrel is a mod (for all single-capcity shotguns), adds +12% mass and +1 Capacity
+"10ga shotgun"          :(A_10GA,520,  4.2, 350,WOOD,14,1, (1, 1,25, 1,  14, 7, 22,5, -3, -36,8,  350,),SKL_SHOTGUNS,_10GAshotgun),
+"8ga shotgun"           :(A_8GA, 640,  5.5, 375,WOOD,16,1, (1, 1,12, 2,  12, 6, 26,4, -4, -48,9,  600,),SKL_SHOTGUNS,_8GAshotgun),
+"6ga shotgun"           :(A_6GA, 745,  7.1, 400,WOOD,19,1, (1, 1,6,  2,  10, 5, 30,3, -6, -60,10, 1000,),SKL_SHOTGUNS,_6GAshotgun),
+"4ga shotgun"           :(A_4GA, 850,  8.6, 425,WOOD,22,1, (1, 1,3,  3,  8,  4, 35,2, -8, -72,11, 1600,),SKL_SHOTGUNS,_4GAshotgun),
+"3ga shotgun"           :(A_3GA, 980,  10.1,450,WOOD,25,1, (1, 1,2,  4,  7,  3, 40,1, -10,-84,12, 2400,),SKL_SHOTGUNS,_3GAshotgun),
+"2ga shotgun"           :(A_2GA, 1100, 12.0,475,WOOD,28,1, (1, 1,1,  5,  16, 2, 50,0, -12,-96,13, 4000,),SKL_SHOTGUNS,_2GAshotgun),
+"12ga combat shotgun"   :(A_12GA,6500, 3.45,750,METL,10,1, (7, 1,1,  2,  30, 10,24,9, -2, -15,4,  500,),SKL_SHOTGUNS,_combatShotgun),
     # pistols, SMGs (9mm, 45ACP, 10mm, .357 magnum, 22LR)
-# name              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"pea shooter"       :(A_22LR,90,   0.9, 40, METL,1, 5, (7, 1,950,1,  8,  4, 1, 3, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
-"derringer"         :(A_22LR,65,   0.8, 90, METL,2, 7, (1, 1,300,1,  12, 6, 2, 6, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
-"9mm revolver"      :(A_9MM, 740,  1.15,630,METL,10,8, (6, 1,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
-"9mm handgun"       :(A_9MM, 3750, 0.9, 520,METL,4, 5, (13,1,50, 1,  46, 10,4, 14,0,  90, 2,  100,),SKL_PISTOLS,_pistolSmall),
-"machine pistol"    :(A_9MM, 11200,0.95,360,METL,8, 12,(16,3,50, 1,  16, 8, 3, 10,0,  24, 2,  50,),SKL_PISTOLS,_pistolSmall),#beretta
-"UMP"               :(A_9MM, 12960,2.3, 450,METL,5, 8, (31,3,10, 1,  36, 12,4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall),
-".357 magnum revolver":(A_357,2075,1.25,700,METL,13,7, (6, 1,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_pistol),
-"10mm handgun"      :(A_10MM,4475, 1.2, 560,METL,6, 5, (10,1,20, 1,  42, 12,5, 13,0,  75, 2,  100,),SKL_PISTOLS,_pistol),
-"10mm SMG"          :(A_10MM,18850,2.5, 420,METL,6, 5, (31,3,20, 1,  30, 7, 5, 12,-1, 0,  5,  100,),SKL_SMGS,_smgSmall),
-"autogun"           :(A_45,  3100, 1.1, 300,METL,4, 6, (13,1,150,1,  24, 4, 5, 10,0,  15, 2,  200,),SKL_PISTOLS,_pistol),
-"grease gun"        :(A_45,  890,  3.7, 180,METL,8, 5, (31,3,300,1,  16, 4, 3, 5, -2, -3, 6,  200,),SKL_SMGS,_smg),#MODABLE TO SHOOT 9MM
-"tommy gun"         :(A_45,  1150, 4.5, 240,METL,10,5, (51,5,150,1,  20, 6, 4, 7, -3, -9, 6,  250,),SKL_SMGS,_smgLarge),
-"cig sawyer"        :(A_45,  8750, 1.0, 420,METL,3, 6, (8, 1,10, 1,  35, 8, 6, 12,0,  66, 2,  150,),SKL_PISTOLS,_pistolSmall),
-"uzi"               :(A_45,  13650,2.2, 340,METL,7, 10,(33,3,20, 1,  26, 8, 6, 9, -1, 0,  2,  150,),SKL_PISTOLS,_smgSmall),
-    # rifles, carbines, and muskets (22LR, 5.56x39mm, .30 carbine, .308, .30-06)
-# name              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"pidgeon plinker"   :(A_22LR,240,  2.5, 110,WOOD,4, 2, (17,1,50, 3,  50, 10,3, 8, -1, -15,6,  5,),SKL_RIFLES,_rifleSmall),
-"assault rifle"     :(A_556, 1480, 3.0, 325,METL,14,4, (21,3,100,3,  40, 12,7, 16,-2, -12,9,  30,),SKL_MACHINEGUNS,_rifle),
-"flemington rifle"  :(A_556, 1320, 3.9, 500,WOOD,16,2, (5, 1,10, 4,  140,14,10,22,-3, -18,12, 300,),SKL_RIFLES,_rifleLarge),
-"bullpup rifle"     :(A_556, 3650, 3.6, 260,METL,7, 5, (36,3,10, 2,  60, 16,9, 20,-2, 6,  6,  30,),SKL_MACHINEGUNS,_rifleSmall),#modable with a stock, scope, 
-"service rifle"     :(A_556, 4300, 3.2, 660,METL,10,5, (21,1,1,  3,  120,14,12,24,-2, -6, 9,  30,),SKL_RIFLES,_rifle),
-"battle rifle"      :(A_556, 7450, 3.4, 450,METL,12,4, (36,4,10, 3,  75, 12,12,23,-2, 0,  11, 30,),SKL_MACHINEGUNS,_rifle),#m16
-"paratrooper carbine":(A_30, 850,  2.1, 220,WOOD,5, 2, (11,1,75, 1,  30, 12,10,16,-2, 15, 6,  100,),SKL_MACHINEGUNS,_rifleSmall),
-"garand"            :(A_30,  880,  2.8, 730,WOOD,7, 3, (16,1,10, 2,  66, 10,8, 16,-2, -21,7,  100,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
-"tactical carbine"  :(A_30,  6620, 2.9, 900,METL,6, 5, (31,1,2,  2,  90, 12,10,24,-2, 24, 7,  100,),SKL_RIFLES,_rifleSmall),
-"skirmisher rifle"  :(A_762, 920,  2.4, 300,METL,5, 4, (25,1,50, 2,  50, 15,12,18,-2, 15, 8,  100,),SKL_RIFLES,_rifleSmall),#ak47 (semi, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
-"avtomat"           :(A_762, 1580, 2.7, 860,METL,8, 2, (31,2,30, 2,  30, 12,10,16,-2, 15, 8,  100,),SKL_MACHINEGUNS,_rifleSmall),#ak47 (auto, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
-"modular rifle system":(A_762,27500,3.0,990,METL,7, 6, (31,3,2,  2,  200,18,14,20,-2, 0,  8,  50,),SKL_MACHINEGUNS,_rifleSmall),#modable with anything you can think of, including grenade launcher, laser sight, scope, longer barrel, silencer, bipod, larger magazine (box of 100), flashlight, bayonet, etc. 
-"big game rifle"    :(A_308, 4600, 3.3, 550,WOOD,14,3, (9, 1,10, 5,  160,18,15,22,-2, -30,12, 500,),SKL_RIFLES,_rifle308),#TODO: add Rusts component to these scripts and ALL items that can rust...
-"field rifle"       :(A_3006,6800, 4.2, 610,WOOD,18,4, (6, 1,10, 6,  250,22,18,26,-3, -36,12, 600,),SKL_RIFLES,_rifle3006),
-"sniper rifle"      :(A_50, 165500,12.2,990,METL,30,6, (5, 1,1,  12, 500,30,36,32,-9, -51,12, 2400,),SKL_RIFLES,_rifleXLarge),
-# slings            :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"sling"             :(A_SLNG,0.2,  0.8, 10, ROPE,8, 6, (1, 1,0,  3,  30, -2,4, 1, 0,  -30,1,  2,),SKL_BOWS,_sling),
-# bows              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"plastic bow"       :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,6,  1.5,),SKL_BOWS,_pBow),
-"hunting bow"       :(A_ARRO,8,    0.8, 75, WOOD,12,8, (1, 1,0,  2,  30, 4, 2, 2, 0,  0,  6,  2.0,),SKL_BOWS,_wBow),
-"wooden bow"        :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,6,  2.5,),SKL_BOWS,_wBow),
-"laminate bow"      :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,6,  5,),SKL_BOWS,_wBow),
-"composite bow"     :(A_ARRO,85,   1.5, 320,BONE,16,10,(1, 1,0,  2,  60, 10,8, 6, 0,  -12,6,  10,),SKL_BOWS,_compositeBow),
-"wooden longbow"    :(A_WARO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 10,8, 0,  -51,9,  20,),SKL_BOWS,_longbow),
-"wooden warbow"     :(A_WARO,55,   2.0, 300,WOOD,28,12,(1, 1,0,  3,  100,8, 16,12,0,  -66,9,  20,),SKL_BOWS,_longbow),
+# name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"pea shooter"           :(A_22LR,90,   0.9, 40, METL,1, 5, (7, 1,950,1,  8,  6, 1, 6, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"derringer"             :(A_22LR,135,  0.8, 90, METL,2, 7, (1, 1,300,1,  12, 4, 2, 4, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall),# double-barrel is a mod, adds .1KG and +1 Capacity
+"9mm revolver"          :(A_9MM, 740,  1.15,630,METL,10,8, (6, 1,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
+"9mm handgun"           :(A_9MM, 3750, 0.9, 520,METL,4, 5, (13,1,50, 1,  46, 10,4, 14,0,  90, 2,  100,),SKL_PISTOLS,_pistolSmall),
+"machine pistol"        :(A_9MM, 11200,0.95,360,METL,8, 12,(16,4,50, 1,  16, 4, 3, 10,0,  24, 2,  50,),SKL_PISTOLS,_pistolSmall),#beretta
+"UMP"                   :(A_9MM, 12960,1.7, 450,METL,5, 8, (31,3,10, 1,  36, 8, 4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall),
+".357 magnum revolver"  :(A_357, 2075, 1.25,700,METL,13,7, (6, 1,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_pistol),
+"10mm handgun"          :(A_10MM,4475, 1.2, 560,METL,6, 5, (10,1,20, 1,  42, 12,5, 13,0,  75, 2,  100,),SKL_PISTOLS,_pistol),
+"10mm SMG"              :(A_10MM,18850,2.5, 420,METL,6, 5, (31,3,20, 1,  30, 7, 5, 12,-1, 0,  5,  100,),SKL_SMGS,_smgSmall),
+"autogun"               :(A_45,  3100, 1.1, 300,METL,4, 6, (13,1,150,1,  24, 4, 5, 10,0,  15, 2,  200,),SKL_PISTOLS,_pistol),
+"grease gun"            :(A_45,  890,  3.7, 180,METL,8, 5, (31,3,300,1,  16, 2, 3, 5, -2, -3, 6,  200,),SKL_SMGS,_smg),#MODABLE TO SHOOT 9MM
+"tommy gun"             :(A_45,  1150, 4.5, 240,METL,10,5, (51,5,150,1,  20, 4, 4, 7, -3, -9, 6,  250,),SKL_SMGS,_smgLarge),
+"cig sawyer"            :(A_45,  8750, 1.0, 420,METL,3, 6, (8, 1,10, 1,  35, 8, 6, 12,0,  66, 2,  150,),SKL_PISTOLS,_pistolSmall),
+"uzi"                   :(A_45,  13650,1.6, 340,METL,7, 10,(33,3,20, 1,  26, 6, 6, 9, -1, 0,  2,  150,),SKL_PISTOLS,_smgSmall),
+    # rifles, carbines, semi-auto and burst / full auto (22LR, 5.56x39mm, .30 carbine, .308, .30-06)
+# name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"pidgeon plinker"       :(A_22LR,240,  2.5, 110,WOOD,3, 2, (17,1,50, 3,  50, 10,3, 9, -1, -15,6,  5,),SKL_RIFLES,_rifleSmall),
+"flemington rifle"      :(A_556, 1320, 3.9, 500,WOOD,16,3, (5, 1,10, 4,  140,14,10,22,-3, -18,12, 200,),SKL_RIFLES,_rifleLarge),
+"service rifle"         :(A_556, 4300, 3.2, 660,METL,10,5, (21,1,1,  3,  120,14,12,24,-2, -6, 9,  30,),SKL_RIFLES,_rifle),
+"assault rifle"         :(A_556, 1480, 3.0, 325,METL,14,4, (21,3,100,3,  40, 12,7, 16,-2, -12,9,  30,),SKL_RIFLES,_rifle),
+"bullpup rifle"         :(A_556, 3650, 3.6, 260,METL,7, 5, (36,3,10, 2,  60, 16,9, 20,-2, 6,  6,  30,),SKL_RIFLES,_rifleSmall),#modable with a stock, scope, 
+"battle rifle"          :(A_556, 7450, 3.4, 450,METL,12,4, (36,4,10, 3,  75, 12,12,23,-2, 0,  11, 30,),SKL_RIFLES,_rifle),#m16
+"paratrooper carbine"   :(A_30,  850,  2.1, 220,WOOD,5, 3, (11,1,75, 1,  30, 12,10,16,-2, 15, 6,  100,),SKL_RIFLES,_rifleSmall),
+"garand"                :(A_30,  880,  2.8, 730,WOOD,7, 3, (16,1,10, 2,  66, 10,8, 16,-2, -21,7,  100,),SKL_RIFLES,_rifleSmall),#M1 garand carbine (scope mod: Rng +40)
+"tactical carbine"      :(A_30,  6620, 2.9, 900,METL,6, 5, (31,1,2,  2,  90, 12,10,24,-2, 24, 7,  100,),SKL_RIFLES,_rifleSmall),
+"skirmisher rifle"      :(A_762, 920,  2.4, 300,METL,5, 4, (26,1,50, 2,  50, 15,12,18,-2, 15, 8,  100,),SKL_RIFLES,_rifleSmall),#ak47 (semi, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"avtomat"               :(A_762, 1580, 2.7, 860,METL,8, 3, (31,2,30, 2,  30, 12,10,16,-2, 15, 8,  100,),SKL_RIFLES,_rifleSmall),#ak47 (auto, no stock. Short barrel. Stock adds +40 Max Range, min range + 1)
+"modular weapon system" :(A_762,27500, 3.0, 990,METL,7, 6, (31,3,2,  2,  200,18,14,20,-2, 0,  8,  50,),SKL_RIFLES,_rifleSmall),#modable with anything you can think of, including grenade launcher, laser sight, scope, longer barrel, silencer, bipod, larger magazine (box of 100), flashlight, bayonet, etc. 
+"big game rifle"        :(A_308, 4600, 3.3, 550,WOOD,14,3, (9, 1,10, 5,  160,18,15,22,-2, -30,12, 500,),SKL_RIFLES,_rifle308),
+"field rifle"           :(A_3006,6800, 4.2, 610,WOOD,18,4, (6, 1,10, 6,  250,22,18,26,-3, -36,12, 600,),SKL_RIFLES,_rifle3006),
+"sniper rifle"          :(A_50, 165500,12.2,990,METL,30,6, (5, 1,1,  12, 500,30,36,32,-9, -51,12, 2400,),SKL_RIFLES,_rifleXLarge),
+    # machine guns (large automatic weapons)
+"SAW"                   :(A_556, 6200, 5.4, 700,METL,24,3, (31,5,25, 2,  100,6, 10,20,-4, 0,  8,  100,),SKL_MACHINEGUNS,_lmg),
+"LMG"                   :(A_762, 8750, 7.3, 950,METL,32,3, (31,5,10, 2,  120,2, 14,18,-6, 0,  8,  100,),SKL_MACHINEGUNS,_lmg),
+    # slings            :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"sling"                 :(A_SLNG,0.2,  0.02,10, ROPE,8, 6, (1, 1,0,  3,  30, -2,4, 1, 0,  -30,1,  2,),SKL_SLINGS,_sling),
+"slingshot"             :(A_SLNG,1.0,  0.4, 10, ROPE,8, 6, (1, 1,0,  3,  30, -2,4, 1, 0,  -30,1,  2,),SKL_SLINGS,_sling),
+    # bows              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"plastic bow"           :(A_ARRO,1,    1.0, 15, PLAS,6, 5, (1, 1,0,  2,  20, 2, 0, 0, 0,  -18,6,  1.5,),SKL_BOWS,_pBow),
+"hunting bow"           :(A_ARRO,8,    0.8, 75, WOOD,12,8, (1, 1,0,  2,  30, 4, 2, 2, 0,  0,  6,  2.0,),SKL_BOWS,_wBow),
+"wooden bow"            :(A_ARRO,12,   0.9, 80, WOOD,16,12,(1, 1,0,  2,  40, 6, 4, 3, 0,  -12,6,  2.5,),SKL_BOWS,_wBow),
+"laminate bow"          :(A_ARRO,32,   1.0, 160,WOOD,16,12,(1, 1,0,  2,  50, 8, 6, 4, 0,  -12,6,  5,),SKL_BOWS,_wBow),
+"composite bow"         :(A_ARRO,85,   1.5, 320,BONE,16,10,(1, 1,0,  2,  60, 10,8, 6, 0,  -12,6,  10,),SKL_BOWS,_compositeBow),
+"wooden longbow"        :(A_WARO,34,   1.8, 150,WOOD,20,8, (1, 1,0,  3,  80, 6, 10,8, 0,  -51,9,  20,),SKL_BOWS,_longbow),
+"wooden warbow"         :(A_WARO,55,   2.0, 300,WOOD,28,12,(1, 1,0,  3,  100,8, 16,12,0,  -66,9,  20,),SKL_BOWS,_longbow),
 # HUGE variety in weight of bows (power) -- add a lot more types of bows. Also huge variety of arrows. Just like guns or any other weapons.
 # distinction: bows vs. warbows. War bows have more damage, are slower, have higher strength requirements, more encumbering and durable, higher penetration etc.
-# crossbows         :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"wooden crossbow"   :(A_BOLT,40,   3.0, 180,WOOD,5, 2, (1, 1,0,  2,  10, 10,6, 4, -3, 30, 15, 3,),SKL_CROSSBOWS,_crossbow),
-"wooden arbalest"   :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, 0,  21, 6,),SKL_CROSSBOWS,_arbalest),
+# crossbows             :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"wooden crossbow"       :(A_BOLT,40,   3.0, 180,WOOD,5, 2, (1, 1,0,  2,  10, 10,6, 4, -3, 30, 15, 3,),SKL_CROSSBOWS,_crossbow),
+"wooden arbalest"       :(A_ARRO,195,  9.5, 460,WOOD,10,2, (1, 1,0,  3,  20, 12,24,16,-8, 0,  21, 6,),SKL_CROSSBOWS,_arbalest),
 # chu ko nu / magazine fed crossbows!
 # screw crossbow! Loaded by turning a screw. Small, light, weak cbows. Maybe stronger than hand span but takes a lot longer to reload. Fire small bolts (smaller than usual). Takes 30 secs to reload
 # BELLY BOW! Crossbow that needs nothing but your own weight to load and can be loaded at varying strengths (draw lengths). Fires regular sized arrows but is a crossbow.
@@ -4926,15 +5055,15 @@ RANGEDWEAPONS={
 #   linen string (basically a rope, just use rope. Yes linen is better than cotton but let's imagine in this world all cloth is made of linen or some similar strong fiber.)
 #       covered in wax to protect from water.
 
-# misc              :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"hand cannon"       :(A_BALL,480,  8.75,900,METL,20,2, (1, 1,100,3,  8,  2, 24,2, -6, -60,24, 1600,),SKL_CANNONS,_handCannon),#grants +AV, Protection.
-"war arquebus"      :(A_BALL,1060,12.25,800,METL,24,2, (1, 1,20, 5,  32, 2, 30,9, -12,-96,18, 800,),SKL_HEAVY,_arquebus),
-"blowgun"           :(A_DART,2,    0.15,20, WOOD,1, 1, (1, 1,0,  2,  16, 2, 2, 2, 0,  -30,1.5,0,),None,_blowGun),
-"atlatl"            :(A_SPEAR,6,   0.5, 60, WOOD,3, 3, (1, 1,0,  4,  20, 4, 4, 4, 0,  -30,5,  1.5,),SKL_TIPFIRST,_atlatl),
+# misc                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"hand cannon"           :(A_BALL,480,  8.75,900,METL,20,2, (1, 1,100,3,  8,  2, 24,2, -6, -60,24, 1600,),SKL_CANNONS,_handCannon),#grants +AV, Protection.
+"war arquebus"          :(A_BALL,1060,12.25,800,METL,24,2, (1, 1,20, 5,  32, 2, 30,9, -12,-96,18, 800,),SKL_HEAVY,_arquebus),
+"blowgun"               :(A_DART,2,    0.15,20, WOOD,1, 1, (1, 1,0,  2,  16, 2, 2, 2, 0,  -30,1.5,0,),None,_blowGun),
+"atlatl"                :(A_SPEAR,6,   0.5, 60, WOOD,3, 3, (1, 1,0,  4,  20, 4, 4, 4, 0,  -30,5,  1.5,),SKL_TIPFIRST,_atlatl),
 
-# energy weapons    :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
-"laser gun"         :(A_ELEC,7550, 1.7, 20, METL,5, 10,(1, 1,0,  1,  400,20,0, 0, 0,  0,  3,  0,),SKL_ENERGY,_laserGun),
-"laser rifle"       :(A_ELEC,15400,2.7, 40, METL,9, 10,(1, 1,0,  1,  800,40,0, 0, 0,  0,  5,  0,),SKL_ENERGY,_laserRifle),
+# energy weapons        :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script
+"laser gun"             :(A_ELEC,7550, 1.7, 20, METL,5, 10,(1, 1,0,  1,  400,20,0, 0, 0,  0,  3,  0,),SKL_ENERGY,_laserGun),
+"laser rifle"           :(A_ELEC,15400,2.7, 40, METL,9, 10,(1, 1,0,  1,  800,40,0, 0, 0,  0,  5,  0,),SKL_ENERGY,_laserRifle),
 ##"particle gun"      :(A_ELEC,785000,6.5,990,METL,8, 6, (1, 1,0,  1,  999,20,32,32,-6, 0,  40, 10,),SKL_ENERGY,_particleGun),#grants +AV, Protection.
 
 # TODO: make weapons moddable with magazine upgrade, then set their
@@ -5102,7 +5231,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "bone knife"            :(5,    0.12,90,  BONE,1, 3, (4,  5,  18, 0,  0,  0,  57, 2,  -3, 2,  5,  0,),SKL_KNIVES,_bKnife,),
 "glass knife"           :(12,   0.08,3,   GLAS,1, 5, (6,  8,  12, 0,  0,  0,  66, 2,  -3, 3,  3,  0,),SKL_KNIVES,_gKnife,),
 "metal knife"           :(14,   0.15,200, METL,1, 4, (5,  5,  20, 0,  0,  0,  60, 2,  -3, 3,  4,  0,),SKL_KNIVES,_mKnife,),
-"ceramic knife"         :(20,   0.12,15,  CERA,1, 5, (6,  10, 14, 0,  0,  0,  66, 2,  -3, 3,  3,  0,),SKL_KNIVES,_cKnife,),#"a ceramic knife will shatter if dropped on the ground."
+"ceramic knife"         :(20,   0.12,15,  CERA,1, 5, (6,  10, 14, 0,  0,  0,  63, 2,  -3, 3,  3,  0,),SKL_KNIVES,_cKnife,),#"a ceramic knife will shatter if dropped on the ground."
     # serrated knives     $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "plastic serrated knife":(0,    0.18,15,  PLAS,2, 4, (2,  3,  8,  0,  0,  0,  24, 2,  -4, 1,  8,  0,),SKL_KNIVES,_pSerrated,),
 "wooden serrated knife" :(4,    0.13,35,  WOOD,2, 4, (2,  4,  11, 0,  0,  0,  30, 2,  -4, 1,  6,  0,),SKL_KNIVES,_wSerrated,),
@@ -5113,9 +5242,9 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "plastic war knife"     :(1,    0.55,50,  PLAS,5, 6, (3,  3,  12, 1,  0,  0,  51, 2.5,-2, 5,  6,  0,),SKL_KNIVES,_pWarKnife,),
 "wooden war knife"      :(5,    0.45,80,  WOOD,4, 7, (4,  4,  16, 1,  0,  0,  57, 2.5,-2, 6,  5,  0,),SKL_KNIVES,_wWarKnife,),
 "bone war knife"        :(10,   0.5, 125, BONE,4, 8, (5,  6,  18, 1,  0,  0,  54, 2.5,-2, 7,  5,  0,),SKL_KNIVES,_bWarKnife,),
-"glass war knife"       :(28,   0.32,10,  GLAS,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,  0,),SKL_KNIVES,_gWarKnife,),
+"glass war knife"       :(28,   0.32,10,  GLAS,3, 9, (7,  10, 15, 0,  0,  0,  78, 2.5,-2, 6,  4,  0,),SKL_KNIVES,_gWarKnife,),
 "metal war knife"       :(26,   0.42,250, METL,4, 8, (6,  7,  20, 2,  0,  0,  69, 2.5,-2, 9,  4,  0,),SKL_KNIVES,_mWarKnife,),
-"ceramic war knife"     :(35,   0.35,20,  CERA,3, 9, (7,  10, 16, 1,  0,  0,  78, 2.5,-2, 10, 4,  0,),SKL_KNIVES,_cWarKnife,),
+"ceramic war knife"     :(35,   0.35,20,  CERA,3, 9, (7,  11, 16, 0,  0,  0,  75, 2.5,-2, 7,  4,  0,),SKL_KNIVES,_cWarKnife,),
     # daggers             $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "bone dagger"           :(10,   0.35,115, BONE,3, 4, (4,  6,  21, 1,  0,  0,  69, 3,  -2, 5,  5,  0,),SKL_KNIVES,_bDagger,),
 "glass dagger"          :(28,   0.22,5,   GLAS,2, 7, (6,  12, 18, 1,  0,  0,  90, 3,  -2, 7,  4,  0,),SKL_KNIVES,_gDagger,),
@@ -5232,7 +5361,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
 "estoc"                 :(305,  1.65,100, METL,10,16,(12, 10, 20, 6,  1,  2,  60, 11, -12,16, 16, 2,),SKL_LONGSWORDS,_estoc,),#STEEL
     # greatswords         $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "greatsword"            :(540,  3.5, 450, METL,26,12,(9,  18, 15, 3,  3,  3,  -15,28, -6, 10, 32, 3,),SKL_GREATSWORDS,_greatSword,),
-"flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -14,10, 26, 3,),SKL_GREATSWORDS,_flamberge,),
+"flamberge"             :(595,  3.3, 225, METL,24,14,(10, 16, 12, 2,  3,  3,  -12,28, -10,10, 26, 3,),SKL_GREATSWORDS,_flamberge,),
     # short staves        $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "plastic staff"         :(1.5,  1.5, 100, PLAS,11,10,(6,  5,  4,  2,  2,  2.5,66, 12, -7, 13, 13, 3,),SKL_STAVES,_staff,),
 "wooden staff"          :(11,   1.3, 300, WOOD,9, 10,(7,  7,  6,  4,  4,  3,  75, 12, -5, 15, 12, 3,),SKL_STAVES,_staff,),
@@ -5288,7 +5417,7 @@ WEAPONS={ #melee weapons, 1H, 2H and 1/2H
     # battleaxes          $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
     # misc 2-h weapons    $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,),TYPE,script
 "dane axe"              :(275,  1.6, 300, WOOD,10,12,(6,  22, 12, 3,  3,  3,  6,  12, -2, 12, 16, 2,),SKL_GREATAXES,_daneAxe,),#STEEL and IRON
-"executioner sword"     :(1180, 4.7, 665, METL,36,4, (2,  32, 8,  -4, 4,  1,  -75,38, -40,1,  144,2,),SKL_GREATSWORDS,_executionerSword,),#POOR STEEL
+"executioner sword"     :(380,  3.1, 665, METL,28,4, (2,  20, 8,  0,  4,  1,  -45,22, -12,1,  32, 2,),SKL_LONGSWORDS,_executionerSword,),#POOR STEEL
 
 # TOOLS #
 
@@ -5598,7 +5727,6 @@ Raw Mats are very common in crafting
         Flesh is cheaper to buy in bulk.
             Cutting flesh to pieces is a job that is rewarded.
 
-Idea: make the minimum price of items $1 regardless of if its value is 0
 '''
 RAWMATERIALS={
 
@@ -5610,7 +5738,7 @@ RAWMATERIALS={
 
     # individual strands of material (tinyest pieces of material)
 # name                    type,$$$$,KG,  Dur, Mat, Color,  script
-"string"                :(RAWM,0,   0.001,1,  CLTH,C_CLTH,None,),# string distinct from scrap cloth, it's a long 1m string whereas scrap cloth is a little patch of cloth.
+"string"                :(RAWM,0,   0.0007,1, CLTH,C_CLTH,None,),# string distinct from scrap cloth, it's a long 1m string whereas scrap cloth is a little patch of cloth.
 
     # Scrap, particles (tiny pieces of material)
 # name                    type,$$$$,KG,  Dur, Mat, Color,  script
@@ -5865,7 +5993,7 @@ RAWMATERIALS={
 "metal bar"             :(RAWM,50,   1.0, 1500,METL,C_METL,_mBar,),# flat inch-thick brick of metal
 "metal sheet"           :(RAWM,136,  2.5, 50,  METL,C_METL,_mChunk,),
         # ropes
-"cordage"               :(RAWM,0.1,  0.005,5,  ROPE,C_ROPE,_cordage,),#2H only
+"cordage"               :(RAWM,0.1,  0.006,5,  ROPE,C_ROPE,_cordage,),#2H only
 "rope"                  :(RAWM,1,    0.05,30,  ROPE,C_ROPE,_rope,),#2H only; length of rope is simply how many items of rope you possess -- this is the simplest way to do this.
 "cable"                 :(RAWM,3,    0.15,100, ROPE,C_ROPE,_cable,),#2H only
 

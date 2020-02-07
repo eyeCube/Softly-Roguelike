@@ -221,6 +221,8 @@ TITLE_MRS           = i;i+=1;
 TITLE_MS            = i;i+=1;
 TITLE_SIR           = i;i+=1;
 TITLE_THEHONORABLE  = i;i+=1;
+TITLE_LORD          = i;i+=1;
+TITLE_LADY          = i;i+=1;
 
 
 # death types (sent to DeathFunction component to tell it how the thing died)
@@ -229,7 +231,7 @@ DEATH_SHATTERED     = i;i+=1;
 DEATH_STABBED       = i;i+=1;
 DEATH_CUT           = i;i+=1;
 DEATH_CRUSHED       = i;i+=1;
-DEATH_MELTED        = i;i+=1; # SHOULD THESE BE HANDLED DIFFERENTLY?
+DEATH_MELTED        = i;i+=1;
 DEATH_BURNED        = i;i+=1;
 DEATH_RUSTED        = i;i+=1;
 DEATH_ELECTROCUTED  = i;i+=1;
@@ -326,10 +328,7 @@ MULT_MASS           = 100000  # @1000, smallest mass unit == 1 gram. multiplier 
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 10 (assuming the value is 10) makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
-EXP_LEVEL           = 1000  # experience needed to level up skills
-EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 MIN_MSP             = 5     # minimum movement speed under normal conditions
-
 
 __MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
              'str','con','int','agi','dex','end',)
@@ -789,29 +788,41 @@ BODYPOS_PRONE       : "prone",
     }
 
 # position stat modifiers
-CROUCHED_MSPMOD         = 0.5
+CROUCHED_MSPMOD         = 0.6666667
 CROUCHED_HEIGHTMOD      = 0.75
 CROUCHED_AGIMOD         = 0.9
 CROUCHED_ATK            = -5
 CROUCHED_DFN            = -10
+CROUCHED_PEN            = -3
+CROUCHED_PRO            = -3
+CROUCHED_GRA            = 3
 
-SEATED_MSPMOD           = 0.1
+SEATED_MSPMOD           = 0.15
 SEATED_HEIGHTMOD        = 0.5
 SEATED_AGIMOD           = 0.666667
 SEATED_ATK              = -20
 SEATED_DFN              = -20
+SEATED_PEN              = -6
+SEATED_PRO              = -6
+SEATED_GRA              = -3
 
-PRONE_MSPMOD            = 0.1
-PRONE_HEIGHTMOD         = 0.2
-PRONE_AGIMOD            = 0.5
-PRONE_ATK               = -30
-PRONE_DFN               = -25
-
-SUPINE_MSPMOD           = 0.05
+SUPINE_MSPMOD           = 0.1
 SUPINE_HEIGHTMOD        = 0.2
 SUPINE_AGIMOD           = 0.25
 SUPINE_ATK              = -25
-SUPINE_DFN              = -30
+SUPINE_DFN              = -25
+SUPINE_PEN              = -9
+SUPINE_PRO              = -9
+SUPINE_GRA              = -6
+
+PRONE_MSPMOD            = 0.075
+PRONE_HEIGHTMOD         = 0.2
+PRONE_AGIMOD            = 0.5
+PRONE_ATK               = -30
+PRONE_DFN               = -30
+PRONE_PEN               = -12
+PRONE_PRO               = -12
+PRONE_GRA               = -12
 
 # body parts
 
@@ -981,8 +992,8 @@ MUSCLESTATUS_DEEPBURNED : "severely burned",
 MUSCLESTATUS_MANGLED    : "mutilated",
     }
 MUSCLEFLAGS={
-MUSCLESTATUS_DAMAGED    : "damaged",
-MUSCLESTATUS_SCARRED    : "scarred",
+MUSCLEFLAG_DAMAGED      : "damaged",
+MUSCLEFLAG_SCARRED      : "scarred",
     }
 ARTERYSTATUSES={
 ARTERYSTATUS_CLOGGED    : "clogged",
@@ -1717,7 +1728,7 @@ CH_TRC      = [191, 184, 187] # top-right corner
 
 
 #
-# equip types
+# equip types / slots
 #
 i=1;
 EQ_MAINHAND =i; i+=1;
@@ -1990,13 +2001,31 @@ MAT_RUBBER      : (70,  9999,300,),
 
 
 
-
 #
 # phases of matter
 #
 i=1;
 PHASE_SOLID     =i; i+=1;
 PHASE_FLUID     =i; i+=1;   # liquid and gas
+
+
+
+#
+# Modular parts / item mods / weapon mods / gun mods / gunmods
+#
+i=1;
+IMOD_PISTOLSCOPE    = i; i+=1;
+IMOD_RIFLESCOPE     = i; i+=1;
+IMOD_SHOTGUNSCOPE   = i; i+=1;
+IMOD_STRAP          = i; i+=1;
+IMOD_STOCK          = i; i+=1;
+IMOD_LASER          = i; i+=1;
+IMOD_BAYONET        = i; i+=1;
+IMOD_BIPOD          = i; i+=1;
+IMOD_MAGAZINE       = i; i+=1;
+IMOD_FLASHLIGHT     = i; i+=1;
+IMOD_SUPPRESSOR     = i; i+=1;
+IMOD_GRENADELAUNCHER= i; i+=1;
 
 
 
@@ -2054,8 +2083,10 @@ AMMO_ANYTHING       = i; i+=1;  # literally anything
 #
 
 # constants
-SKILL_EFFECTIVENESS_MULTIPLIER = 0.66667 # higher -> skills have more effect
-SKILL_MAXIMUM = 100
+SKILL_EFFECTIVENESS_MULTIPLIER = 0.6666667 # higher -> skills have more effect
+SKILL_MAXIMUM       = 100   # max level of skills
+EXP_LEVEL           = 1000  # experience needed to level up skills
+EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 
 #
 # Skills IDs skills unique IDs skill unique IDs
@@ -2214,7 +2245,7 @@ SKL_IEDS        :(3,'explosives',),
 SKL_SLINGS      :(1,'slings',),
 SKL_BOWS        :(3,'bows',),
 SKL_CROSSBOWS   :(1,'crossbows',),
-SKL_CANNONS     :(2,'cannons',),
+SKL_CANNONS     :(2,'lockguns',),
 SKL_PISTOLS     :(2,'pistols',),
 SKL_RIFLES      :(2,'rifles',),
 SKL_SHOTGUNS    :(2,'shotguns',),

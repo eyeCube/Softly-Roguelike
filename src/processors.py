@@ -481,65 +481,66 @@ class FireProcessor(esper.Processor):
         self.lights={} # dict of lights created by fires
     
     def process(self):
-        world = self.world
-        
-        # get fuel amount
-            # for now this should be fine; only update this if
-            # performance from this particular 3 lines of code
-            # is seriously something to be concerned about.
-        Fires.init_fuel()
-        for ent, compos in world.get_components(cmp.Fuel, cmp.Position):
-            fuel, pos = compos
-            # apply fuel multipliers
-            # mass affects fuel value
-            mass = rog.getms(ent,"mass") / MULT_MASS
-            # add fuel to the grid
-            Fires.add_fuel(pos.x, pos.y, round(fuel.fuel * mass))
-            
-        # disperse heat, handle fires
-        dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())
-        Fires.heat += Fires.heat_sources # heat sources radiating heat
-        Fires.heat += Fires.fires * Fires.fuel # fires creating heat
-        Fires.heat += ENV_DELTA_HEAT # passive heat loss (or gain)
-        Fires.heat = scipy.signal.convolve2d( # Spread heat to adjacent cells.
-            Fires.heat, dispersion, mode='same', boundary='fill', fillvalue=0
-        )
-        
-        # get the fires grid
-        Fires.fires = (Fires.heat >= FIRE_THRESHOLD) * (Fires.fuel > 0) # get grid of fires (true/false)
-        
-        # limits
-        np.clip(Fires.heat, HEATMIN, HEATMAX, out=Fires.heat) # min/max the heat grid
-        
-        # get list of x,y coordinate pairs of cells that are on fire
-        oldlist=self.clist.copy() # old list = the list before we update it.
-        self.clist=np.stack(Fires.fires.nonzero(), axis = 1) # coord. list
-        oldset=set() # old coordinate index set from last iteration
-        for item in oldlist:
-            y, x = item
-            oldset.add(Fires.Index(x,y))
-        cset=set() # current coordinate index set
-        for item in self.clist:
-            y, x = item
-            cset.add(Fires.Index(x,y))
-        
-        # get the fires which are new since last iteration
-        newfires = [i for i in cset if i not in oldset]
-        # get the fires which have gone out since last iteration
-        outfires = [i for i in oldset if i not in cset]
-        
-        # add new lights where there are new fires
-        for fireID in newfires:
-            x, y = Fires.Coords(fireID)
-##            print("new fire at pos. x={} y={}".format(x,y))
-            light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
-            self.lights.update({fireID : light})
-        # release lights from fires that have gone out
-        for fireID in outfires:
-            x, y = Fires.Coords(fireID)
-##            print("fire put out at pos. x={} y={}".format(x,y))
-            rog.release_light(self.lights[fireID])
-            del self.lights[fireID]
+        pass
+##        world = self.world
+##        
+##        # get fuel amount
+##            # for now this should be fine; only update this if
+##            # performance from this particular 3 lines of code
+##            # is seriously something to be concerned about.
+##        Fires.init_fuel()
+##        for ent, compos in world.get_components(cmp.Fuel, cmp.Position):
+##            fuel, pos = compos
+##            # apply fuel multipliers
+##            # mass affects fuel value
+##            mass = rog.getms(ent,"mass") / MULT_MASS
+##            # add fuel to the grid
+##            Fires.add_fuel(pos.x, pos.y, round(fuel.fuel * mass))
+##            
+##        # disperse heat, handle fires
+##        dispersion=Fires.get_disperse(rog.wind_force(),rog.wind_direction())
+##        Fires.heat += Fires.heat_sources # heat sources radiating heat
+##        Fires.heat += Fires.fires * Fires.fuel # fires creating heat
+##        Fires.heat += ENV_DELTA_HEAT # passive heat loss (or gain)
+##        Fires.heat = scipy.signal.convolve2d( # Spread heat to adjacent cells.
+##            Fires.heat, dispersion, mode='same', boundary='fill', fillvalue=0
+##        )
+##        
+##        # get the fires grid
+##        Fires.fires = (Fires.heat >= FIRE_THRESHOLD) * (Fires.fuel > 0) # get grid of fires (true/false)
+##        
+##        # limits
+##        np.clip(Fires.heat, HEATMIN, HEATMAX, out=Fires.heat) # min/max the heat grid
+##        
+##        # get list of x,y coordinate pairs of cells that are on fire
+##        oldlist=self.clist.copy() # old list = the list before we update it.
+##        self.clist=np.stack(Fires.fires.nonzero(), axis = 1) # coord. list
+##        oldset=set() # old coordinate index set from last iteration
+##        for item in oldlist:
+##            y, x = item
+##            oldset.add(Fires.Index(x,y))
+##        cset=set() # current coordinate index set
+##        for item in self.clist:
+##            y, x = item
+##            cset.add(Fires.Index(x,y))
+##        
+##        # get the fires which are new since last iteration
+##        newfires = [i for i in cset if i not in oldset]
+##        # get the fires which have gone out since last iteration
+##        outfires = [i for i in oldset if i not in cset]
+##        
+##        # add new lights where there are new fires
+##        for fireID in newfires:
+##            x, y = Fires.Coords(fireID)
+####            print("new fire at pos. x={} y={}".format(x,y))
+##            light=rog.create_light(x,y, FIRE_LIGHT, owner=None)
+##            self.lights.update({fireID : light})
+##        # release lights from fires that have gone out
+##        for fireID in outfires:
+##            x, y = Fires.Coords(fireID)
+####            print("fire put out at pos. x={} y={}".format(x,y))
+##            rog.release_light(self.lights[fireID])
+##            del self.lights[fireID]
 # end class
 
 

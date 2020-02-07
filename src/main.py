@@ -50,6 +50,7 @@ def main():
     rog.Rogue.create_controller()
     rog.Rogue.create_data()
     rog.Rogue.create_map(ROOMW,ROOMH)
+##    rog.Rogue.create_fov_maps()
     rog.Rogue.create_clock()
     rog.Rogue.create_updater()
     rog.Rogue.create_view()
@@ -82,6 +83,10 @@ def main():
             print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
         
+    rog.create_monster("L", 5,1)
+    rog.create_monster("L", 9,1)
+    rog.create_monster("L", 15,1)
+        
     rog.Rogue.create_player(xpos, ypos) # create player
     
     rog.make(rog.pc(), NVISION)
@@ -99,6 +104,18 @@ def main():
 ##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
+
+    rog.create_monster("L", 1,1)
+    rog.create_monster("L", 25,1)
+    rog.create_monster("L", 30,1)
+    rog.create_monster("L", 35,1)
+    rog.create_monster("L", 40,1)
+    rog.create_monster("L", 45,1)
+    rog.create_monster("L", 50,1)
+    rog.create_monster("L", 55,1)
+    rog.create_monster("L", 60,1)
+    rog.create_monster("L", 65,1)
+    rog.create_monster("L", 70,1)
     
     weap=rog.create_weapon("longsword", 0,0)
     rog.damage(weap, 100)
@@ -135,8 +152,8 @@ def main():
     #
     
     # create light so player can see
-    log=rog.create_rawmat("log", 18,18)
-    rog.burn(log,500)
+##    log=rog.create_rawmat("log", 18,18)
+##    rog.burn(log,500)
     #
     # /TESTING /TEMPORARY
     #
@@ -145,7 +162,7 @@ def main():
 ##    obs=observer.Observer_playerChange()
 ##    pc.observer_add(obs)
     pos=rog.get(rog.pc(),cmp.Position)
-    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
+##    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
         
 
     

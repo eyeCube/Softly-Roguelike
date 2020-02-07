@@ -67,13 +67,15 @@ EQ_AMMO     : cmp.EquipableInAmmoSlot,
     #----------------#
     # global objects #
     #----------------#
-
+            
 class Rogue:
     occupations={}
     et_managers={} #end of turn managers
     bt_managers={} #beginning of turn managers
     c_managers={} #const managers
     manager = None # current active game state manager
+    manager_listeners = [] #
+    fov_maps = []
     
     @classmethod
     def run_endTurn_managers(cls, pc):
@@ -83,7 +85,11 @@ class Rogue:
     def run_beginTurn_managers(cls, pc):
         for v in cls.bt_managers.values():
             v.run(pc)
+
     
+##    @classmethod
+##    def create_fov_maps(cls):
+##        cls.fov_maps.append(cls.map.fov_map)
     @classmethod
     def create_settings(cls): # later controllers might depend on settings
         cls.settings = game.GlobalSettings()
@@ -142,19 +148,20 @@ class Rogue:
             # (No managers run at beginning of turn currently.)
             
         #ran at end of turn (before player turn -- player turn is the very final thing to occur on any given turn)
-        cls.et_managers.update({'sounds' : managers.Manager_SoundsHeard()})
-        cls.et_managers.update({'sights' : managers.Manager_SightsSeen()})
+            # None
+            # Why were sights and sounds here? Bad idea.
     
     @classmethod
     def create_const_managers(cls):
         '''
             constant managers, manually ran
         '''
-##        cls.c_managers.update({'sights' : managers.Manager_SightsSeen()})
-##        cls.c_managers.update({'sounds' : managers.Manager_SoundsHeard()})
+        cls.c_managers.update({'sights' : managers.Manager_SightsSeen()})
+        cls.c_managers.update({'sounds' : managers.Manager_SoundsHeard()})
         cls.c_managers.update({'events' : managers.Manager_Events()})
         cls.c_managers.update({'lights' : managers.Manager_Lights()})
         cls.c_managers.update({'fov' : managers.Manager_FOV()})
+        
         
         
 '''
@@ -408,6 +415,7 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 
     # "Fun"ctions #
 
+def ceil(i): return math.ceil(i)
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
     return round(i + 0.00001)
 def sign(n):
@@ -415,12 +423,24 @@ def sign(n):
     if n<0: return -1
     return 0
 
+# parent / child functions
+def getpos(ent): # get parent position if applicable else self position
+    if Rogue.world.has_component(ent, cmp.Child):
+        parent=Rogue.world.component_for_entity(ent, cmp.Child).parent
+        return Rogue.world.component_for_entity(parent, cmp.Position)
+    return Rogue.world.component_for_entity(ent, cmp.Position)
+def getdir(ent): # get parent direction if applicable else self direction
+    if Rogue.world.has_component(ent, cmp.Child):
+        parent=Rogue.world.component_for_entity(ent, cmp.Child).parent
+        return Rogue.world.component_for_entity(parent, cmp.Direction)
+    return Rogue.world.component_for_entity(ent, cmp.Direction)
+
 # tilemap
-def thingat(x,y):       return Rogue.map.thingat(x,y) #Thing object
+def thingat(x,y):       return Rogue.map.thingat(x,y) #entity at
 def thingsat(x,y):      return Rogue.map.thingsat(x,y) #list
-def inanat(x,y):        return Rogue.map.inanat(x,y) #inanimate Thing at
+def inanat(x,y):        return Rogue.map.inanat(x,y) #inanimate entity at
 def monat (x,y):        return Rogue.map.monat(x,y) #monster at
-def solidat(x,y):       return Rogue.map.solidat(x,y) #solid Thing at
+def solidat(x,y):       return Rogue.map.solidat(x,y) #solid entity at
 def wallat(x,y):        return (not Rogue.map.get_nrg_cost_enter(x,y) ) #tile wall
 def fluidsat(x,y):      return Rogue.et_managers['fluids'].fluidsat(x,y) #list
 def lightsat(x,y):      return Rogue.map.lightsat(x,y) #list
@@ -853,7 +873,7 @@ def fov_init(ent):  # init fov for an entity
     if not Rogue.world.has_component(ent, cmp.SenseSight):
         return False
     compo=Rogue.world.component_for_entity(ent, cmp.SenseSight)
-    compo.fov_map=_fov_init()
+    compo.fovID=0 #_fov_init()
     return True
 #@debug.printr
 def fov_compute(ent):
@@ -861,7 +881,7 @@ def fov_compute(ent):
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     senseSight = Rogue.world.component_for_entity(ent, cmp.SenseSight)
     libtcod.map_compute_fov(
-        senseSight.fov_map, pos.x, pos.y, getms(ent, 'sight'),
+        getfovmap(senseSight.fovID), pos.x, pos.y, getms(ent, 'sight'), #senseSight.fov_map
         light_walls = True, algo=libtcod.FOV_RESTRICTIVE
         )
 def update_fovmap_property(fovmap, x,y, value):
@@ -874,15 +894,21 @@ def can_see(ent,x,y):
         return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
-    return ( in_range(pos.x,pos.y, x,y, getms(ent, "sight")) #<- circle-ize
-             and libtcod.map_is_in_fov(senseSight.fov_map,x,y) )
+    sight=getms(ent, "sight")
+    return ( in_range(pos.x,pos.y, x,y, sight) #<- circle-ize
+             and getfovmap(senseSight.fovID).compute_fov(
+                 pos.x,pos.y, radius=sight, light_walls=True,
+                 algorithm=libtcod.FOV_RESTRICTIVE) ) #senseSight.fov_map
+def getfovmap(mapID):
+    return Rogue.map.fov_map# Rogue.fov_maps[mapID] #
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps
 def update_all_fovmaps():
-    for ent, compo in Rogue.world.get_component(cmp.SenseSight):
-        fovMap=compo.fov_map
-        libtcod.map_copy(Rogue.map.fov_map, fovMap)
-        update_fov(ent)
+    pass
+##    for ent, compo in Rogue.world.get_component(cmp.SenseSight):
+##        fovMap=compo.fov_map
+##        libtcod.map_copy(Rogue.map.fov_map, fovMap)
+##        update_fov(ent)
 #******we should overhaul this FOV system!~*************
         #creatures share fov_maps. There are a few fov_maps
         #which have different properties like x-ray vision, etc.
@@ -1460,7 +1486,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     grid_remove(item)
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
-    # make item a child of its equipper so it has equipper's position
+    # make item a child of its equipper so it has equipper's position / direction
     world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
 
         # BUGGY CODE: FIXME! TODO: distinguish between covered and holding, for held items vs armor that covers the slot....
@@ -1503,6 +1529,7 @@ def deequip(ent,equipType):
         # remove the item #
         #-----------------#
         
+    world.remove_component(item, cmp.Child)
     compo.slot.item = None
     compo.covered = False
     
@@ -1610,7 +1637,7 @@ def off_leg(ent): # get a BPM object
     return bpc.legs[1] # temporary
 
 def homeostasis(ent): entities.homeostasis(ent)
-def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst)
+def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst) # metabolize
 def stomach(ent): entities.stomach(ent)
 def starve(ent): entities.starve(ent)
 def dehydrate(ent): entities.dehydrate(ent)
@@ -2051,24 +2078,36 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.msp = modded.msp * CROUCHED_MSPMOD
         modded.atk = modded.atk + CROUCHED_ATK*MULT_STATS
         modded.dfn = modded.dfn + CROUCHED_DFN*MULT_STATS
+        modded.pen = modded.pen + CROUCHED_PEN*MULT_STATS
+        modded.pro = modded.pro + CROUCHED_PRO*MULT_STATS
+        modded.gra = modded.gra + CROUCHED_GRA*MULT_STATS
     # seated
     if world.has_component(ent, cmp.StatusBPos_Seated):
 ##        modded.height = modded.height * SEATED_HEIGHTMOD
         modded.msp = modded.msp * SEATED_MSPMOD
         modded.atk = modded.atk + SEATED_ATK*MULT_STATS
         modded.dfn = modded.dfn + SEATED_DFN*MULT_STATS
+        modded.pen = modded.pen + SEATED_PEN*MULT_STATS
+        modded.pro = modded.pro + SEATED_PRO*MULT_STATS
+        modded.gra = modded.gra + SEATED_GRA*MULT_STATS
     # supine
     if world.has_component(ent, cmp.StatusBPos_Supine):
 ##        modded.height = modded.height * SUPINE_HEIGHTMOD
         modded.msp = modded.msp * SUPINE_MSPMOD
         modded.atk = modded.atk + SUPINE_ATK*MULT_STATS
         modded.dfn = modded.dfn + SUPINE_DFN*MULT_STATS
+        modded.pen = modded.pen + SUPINE_PEN*MULT_STATS
+        modded.pro = modded.pro + SUPINE_PRO*MULT_STATS
+        modded.gra = modded.gra + SUPINE_GRA*MULT_STATS
     # prone
     if world.has_component(ent, cmp.StatusBPos_Prone):
 ##        modded.height = modded.height * PRONE_HEIGHTMOD
         modded.msp = modded.msp * PRONE_MSPMOD
         modded.atk = modded.atk + PRONE_ATK*MULT_STATS
         modded.dfn = modded.dfn + PRONE_DFN*MULT_STATS
+        modded.pen = modded.pen + PRONE_PEN*MULT_STATS
+        modded.pro = modded.pro + PRONE_PRO*MULT_STATS
+        modded.gra = modded.gra + PRONE_GRA*MULT_STATS
     
     
     
@@ -2079,8 +2118,11 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # Things should avoid affecting attributes as much as possible.
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
+    # Ratio of encumberance
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
+    # SP Regen acts differently -- no breakpoints.
     modded.mpregen = modded.mpregen * (0.5 + 1*encpc)
+    # Breakpoint stats -- gotten from ENCUMBERANCE_MODIFIERS dict
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
         index = encbp - 1
@@ -2189,12 +2231,15 @@ def create_moddedStats(ent):
     #----------------#
 
 def list_lights(): return list(Rogue.c_managers["lights"].lights.values())
-def create_light(x,y, value, owner=None):
-    light=lights.Light(x,y, value, owner)
-    light.fov_map=_fov_init()
+def create_light(x,y, value, owner=None): # value is range of the light.
+    actual_lumosity = value**lights.Light.LOGBASE
+    light=lights.Light(x,y, actual_lumosity, owner)
+    light.fovID=0
     light.shine()
     lightID = Rogue.c_managers['lights'].add(light)
-    if owner:
+    if owner: # entity that has this Light object as a component
+        # TODO: convert Light object / merge w/ LightSource compo,
+        #  make functions global instead of member funcs
         if Rogue.world.has_component(owner, cmp.LightSource):
             compo = Rogue.world.component_for_entity(owner, cmp.LightSource)
             release_light(compo.lightID)
@@ -2276,13 +2321,37 @@ def queue_action(ent, act):
     # managers #
     #----------#
 
-def manager_sights_run():   Rogue.c_managers['sights'].run()
-def manager_sounds_run():   Rogue.c_managers['sounds'].run()
+# manager listeners
+class Manager_Listener: # listens for a result from a game state Manager.
+    def alert(self, result): # after we get a result, purpose is finished.
+        manager_listeners_remove(self) # delete the reference to self.
+class Aim_Manager_Listener(Manager_Listener): # TODO: create instance of this class and add it using manager_listeners_add() when you press the Aim command.
+    def __init__(self, shootfunc):
+        self.shootfunc=shootfunc # function that runs when you select ...
+                                 # ... to fire at a viable target.
+    def alert(self, result):
+        if type(result) is int:
+            self.shootfunc(result)
+        super(Aim_Manager_Listener, self).alert(result)
+
+def manager_listeners_alert(result):
+    for listener in manager_listeners():
+        listener.alert(result)
+def manager_listeners(): return Rogue.manager_listeners
+def manager_listeners_add(obj): Rogue.manager_listeners.append(obj)
+def manager_listeners_remove(obj): Rogue.manager_listeners.remove(obj)
+
+# 
 
 def Input(x,y, w=1,h=1, default='',mode='text',insert=False):
     return IO.Input(x,y,w=w,h=h,default=default,mode=mode,insert=insert)
 
 # constant managers #
+
+def manager_sights_run():   Rogue.c_managers['sights'].run()
+def manager_sounds_run():   Rogue.c_managers['sounds'].run()
+
+# per-turn managers #
 
 def register_timer(obj):    Rogue.bt_managers['timers'].add(obj)
 def release_timer(obj):     Rogue.bt_managers['timers'].remove(obj)
@@ -2292,6 +2361,7 @@ def release_timer(obj):     Rogue.bt_managers['timers'].remove(obj)
 def get_active_manager():       return Rogue.manager
 def close_active_manager():
     if Rogue.manager:
+        manager_listeners_alert(Rogue.manager.result)
         Rogue.manager.close()
         Rogue.manager=None
 def clear_active_manager():
@@ -2431,58 +2501,20 @@ def menu(name, x,y, keysItems, autoItemize=True):
     if result == ' ': return None
     return manager.result
     
-#
-# aim find target entity
-# target entity using a dumb line traversing algorithm
-# returns an entity or None
-#
-# TODO: convert this to a manager
-#
-def aim_find_target():
-    world=Rogue.world
-    targeted = None
-    pos = world.component_for_entity(Rogue.pc, cmp.Position)
-    sight = getms(Rogue.pc, 'sight')
-    radius = sight
-    interesting=[]
-    for mon,(tgt,monpos,) in world.get_components(
-        cmp.Targetable, cmp.Position ):
-        dist=((pos.x-monpos.x)**2 + (pos.y-monpos.y)**2)**0.5
-        if dist < radius:
-            interesting.append((mon, dist,))
-    if not interesting:
-        return None
-    
-    mostinteresting = sorted(interesting, key=lambda x: x[1])
-    
-    while True:
-        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
-        for act,arg in pcAct:
-            
-            if (act=="context-dir" or act=="move" or act=="menu-nav"):
-                pass
-            elif act=="exit":
-                alert("")
-                return None
-            elif act=="select":
-                return targeted
-            elif act=="lclick":
-                mousex,mousey,z=arg
-                pc=Rogue.pc
-                dx=mousex - getx(pc.x)
-                dy=mousey - gety(pc.y)
-                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
-                    return (dx,dy,0,)
-            #
-            
-        # end for
-    # end while
-# end def
-
-
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
 
+def aim_find_target(selectfunc):
+    # selectfunc: the function that is ran when you select a valid target
+    clear_active_manager()
+    game_set_state("manager") #move view
+    Rogue.manager=managers.Manager_AimFindTarget(
+        xs, ys, Rogue.view, Rogue.map.get_map_state())
+    Rogue.view.fixed_mode_disable()
+    # listener -- handles the shooting
+    listener = Aim_Manager_Listener(selectfunc)
+    manager_listeners_add(listener)
+    
 
 
 

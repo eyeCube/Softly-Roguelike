@@ -424,7 +424,7 @@ Reason: entity has no position component.'''.format(ent))
         pos=world.component_for_entity(pc, cmp.Position)
         rend=world.component_for_entity(pc, cmp.Draw)
 
-        sight = 100#TEMPORARY!!!!!
+##        sight = 100#TEMPORARY!!!!!
 
         for     x in range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
@@ -432,7 +432,8 @@ Reason: entity has no position component.'''.format(ent))
                 
                 if not rog.in_range(pos.x,pos.y, x,y, sight):
                     continue
-                if not libtcod.map_is_in_fov(seer.fov_map, x,y):
+                if not libtcod.map_is_in_fov(
+                    rog.getfovmap(seer.fovID), x,y):
                     continue
 
                 ent=self.thingat(x, y)

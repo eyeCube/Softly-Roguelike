@@ -686,6 +686,8 @@ wrap=False,con=rog.con_final(),disp='mono'
         
         # height stat mods
         reachMult = 1 + (_cm-5)/8
+        if _cm < 5:
+            mspMult = 1 + (_cm-5)/8
             
         # create body
         body, basekg = rog.create_body_humanoid(

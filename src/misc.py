@@ -718,7 +718,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         normalbodytemp=37, #TEMPORARY
         kg="{__:.3f}".format(__=_get('mass')/MULT_MASS),
         bkg=basemass,
-        cm=int(_getheight()),bcm=int(_getheight()),
+        cm=int(_get('height')),bcm=int(_getheight()),
         hp=_getb('hp'),hpmax=_get('hpmax'),
         sp=_getb('mp'),spmax=_get('mpmax'),
         hppc=(_getb('hp')/_get('hpmax')*100),

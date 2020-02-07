@@ -71,7 +71,7 @@ class GameStateManager(Manager):
 
 
 
-# FOV Manager
+# FOV Manager / PCFOV
 class Manager_FOV(Manager):
     def __init__(self):
         super(Manager_FOV, self).__init__()
@@ -802,6 +802,179 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
                 self.x+2, self.y + min(self.h, self.drawh) - 1,
                 add )
         libtcod.console_flush()
+
+
+
+
+
+class Manager_AimFindTarget(Manager):
+    def __init__(self, xs,ys, view, con):
+        super(Manager_Aim_Target, self).__init__()
+
+        self.cursor     = IO.Cursor(0,0,rate=0.3)
+        self.set_pos(rog.getx(xs), rog.gety(ys))
+        self.view       = view
+        self.con        = con
+
+        self.select_hiscore(rog.pc())
+    
+    def run(self, pcAct):
+        super(Manager_Aim_Target, self).run(pcAct)
+        
+        self.cursor_blink()
+        for act,arg in pcAct:
+            if (act=='context-dir' or act=='move' or act=='menu-nav'):
+                self.nudge(arg)
+            elif act=='rclick': self.rclick(arg)
+            elif act=='lclick': self.lclick(arg)
+            elif act=='select': self.select()
+            elif act=="exit":   self.set_result('exit')
+    
+    def close(self):
+        super(Manager_Aim_Target, self).close()
+
+        pass
+    
+    def cursor_blink(self):
+        if self.cursor.blink():
+            self.cursor.draw()
+            libtcod.console_flush()
+    
+    def lclick(self,arg):
+        xto,yto,zto = arg
+        if (self.x==xto and self.y==yto):
+            self.select(); return
+        self.port(arg)
+    
+    def rclick(self,arg):
+        self.port(arg)
+        self.select()
+        
+    def port(self,tupl):
+        xto,yto,zto = tupl
+        self.set_pos(xto,yto)
+        
+    def nudge(self,tupl):
+        dx,dy,dz = tupl
+        if (self.is_shift_in_view_bounds(dx,dy)
+                or self.is_cursor_by_edge_of_room(dx,dy) ):
+            self.set_pos(self.x + dx, self.y + dy)
+        else:
+            self.view.nudge(dx,dy)
+            self.refresh()
+    
+    def is_shift_in_view_bounds(self, dx,dy):
+        if ( (dx == -1 and self.view.x == 0)
+                or (dx == 1 and self.view.x == rog.view_max_x())
+                or (dy == -1 and self.view.y == 0)
+                or (dy == 1 and self.view.y == rog.view_max_y()) ):
+             return True
+        return False
+    
+    def is_cursor_by_edge_of_room(self, dx,dy):
+        if ( (dx == 1 and self.x < self.view.w/2)
+                or (dy == 1 and self.y < self.view.h/2)
+                or (dx == -1 and self.x > self.view.w/2)
+                or (dy == -1 and self.y > self.view.h/2) ):
+             return True
+        return False
+            
+    def set_pos(self,xto,yto):
+        self.x=xto; self.y=yto
+        self.restrict_pos()
+        self.cursor.set_pos(self.x,self.y)
+        self.cursor.blink_reset_timer_on()
+        rog.refresh()
+        
+    def restrict_pos(self):
+        x1 = rog.view_port_x()
+        x2 = x1 + rog.view_w() - 1
+        y1 = rog.view_port_y()
+        y2 = y1 + rog.view_h() - 1
+        self.x = maths.restrict(self.x, x1,x2)
+        self.y = maths.restrict(self.y, y1,y2)
+        
+    def select(self):
+        self.set_result( rog.monat(rog.mapx(self.x), rog.mapy(self.y)) )
+        
+    def refresh(self):
+        libtcod.console_blit(self.con,
+                             self.view.x, self.view.y, self.view.w, self.view.h,
+                             rog.con_final(),
+                             rog.view_port_x(), rog.view_port_y())
+        rog.refresh()
+
+    def select_hiscore(self, ent, *args):
+        world=rog.world()
+        pos = world.component_for_entity(ent, cmp.Position)
+        sight = rog.getms(ent, 'sight')
+        radius = sight
+        interesting=[]
+        for mon,(tgt,monpos,) in world.get_components(
+            cmp.Targetable, cmp.Position ):
+            dist=((pos.x-monpos.x)**2 + (pos.y-monpos.y)**2)**0.5
+            if dist < radius:
+                interesting.append((mon, dist,))
+        if not interesting:
+            return None
+        mostinteresting = sorted(interesting, key=lambda x: x[1])
+        targeted = mostinteresting[0]
+        tpos = world.component_for_entity(targeted, cmp.Position)
+        self.port((tpos.x, tpos.y, 0,))
+        return targeted
+#
+    
+#
+# aim find target entity
+# target entity using a dumb line traversing algorithm
+# returns an entity or None
+#
+# TODO: convert this to a manager
+#
+##def aim_find_target():
+##    world=Rogue.world
+##    targeted = None
+##    pos = world.component_for_entity(Rogue.pc, cmp.Position)
+##    sight = getms(Rogue.pc, 'sight')
+##    radius = sight
+##    interesting=[]
+##    for mon,(tgt,monpos,) in world.get_components(
+##        cmp.Targetable, cmp.Position ):
+##        dist=((pos.x-monpos.x)**2 + (pos.y-monpos.y)**2)**0.5
+##        if dist < radius:
+##            interesting.append((mon, dist,))
+##    if not interesting:
+##        return None
+##    
+##    mostinteresting = sorted(interesting, key=lambda x: x[1])
+##    
+##    while True:
+##        pcAct=IO.handle_mousekeys(IO.get_raw_input()).items()
+##        for act,arg in pcAct:
+##            
+##            if (act=="context-dir" or act=="move" or act=="menu-nav"):
+##                pass
+##            elif act=="exit":
+##                alert("")
+##                return None
+##            elif act=="select":
+##                return targeted
+##            elif act=="lclick":
+##                mousex,mousey,z=arg
+##                pc=Rogue.pc
+##                dx=mousex - getx(pc.x)
+##                dy=mousey - gety(pc.y)
+##                if (dx >= -1 and dx <= 1 and dy >= -1 and dy <= 1):
+##                    return (dx,dy,0,)
+##            #
+##            
+##        # end for
+##    # end while
+### end def
+
+
+
+
 
 
 

@@ -17,6 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
+import math
 import libtcodpy as libtcod
 
 from const import *
@@ -25,19 +26,21 @@ import maths
 import observer
 
 
+'''
+    Light
+    casts and uncasts light
+        by adding or subtracting values from a lightmap
+'''
 class Light(observer.Observer):
-    '''
-        casts and uncasts light
-            by adding or subtracting values from a lightmap
-    '''
-
+    LOGBASE=2
+    
     def __init__(self, x,y, lum, owner=None):
         super(Light, self).__init__()
 
         self.x=x
         self.y=y
         self.lum=lum
-        self.fov_map=None
+        self.fovID=None
         self.lit_tiles=[]
         self.owner=owner
         self.shone=False
@@ -51,25 +54,27 @@ class Light(observer.Observer):
     #shine
     # increases the lightmap values.
     def shine(self):        # add light to the lightmap
-        if (self.shone):    # must unshine before shining again.
-            print("ERROR: shine failed: shone==True")
-            return False
+        assert(self.shone==False)   # must unshine before shining again
         self.shone=True
-        #get the tiles we can see and lighten them up
+        # get the tiles we can see and lighten them up
+        rang = math.log2(self.lum) # LOGBASE==2 so we use log2
         libtcod.map_compute_fov(
-            self.fov_map, self.x,self.y, self.lum,
-            light_walls = True, algo=libtcod.FOV_RESTRICTIVE)
-        rang = self.lum
+            rog.getfovmap(self.fovID), self.x,self.y, rang,
+            light_walls = True, algo=libtcod.FOV_RESTRICTIVE
+            )
         for x in     range( max(0, self.x-rang), min(ROOMW, self.x+rang+1) ):
             for y in range( max(0, self.y-rang), min(ROOMH, self.y+rang+1) ):
                 
                 if ( rog.in_range(self.x,self.y, x,y, rang)
-                        and libtcod.map_is_in_fov(self.fov_map, x,y) ):
+                        and libtcod.map_is_in_fov(
+                            rog.getfovmap(self.fovID), x,y)
+                    ):
                     dist=maths.dist(self.x,self.y, x,y)
-                    value=round(self.lum - dist)
+                    value=round(rang - dist)
                     if value > 0:
                         self.add_tile(x,y, value )
                         rog.tile_lighten(x,y,value)
+        # end for
         return True     #success
     #
 

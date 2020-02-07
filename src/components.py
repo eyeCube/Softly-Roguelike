@@ -24,13 +24,18 @@ class Child:
     def __init__(self, parent):
         self.parent=parent
 
+class Suspended: # entity is suspended from interacting with systems.
+    __slots__=[]
+    def __init__(self):
+        pass
+
 class Observable:
     __slots__=['observers']
     def __init__(self):
         self.observers=[]
 
 class DeathFunction:
-    __slots__=['func'] # idea: add "circumstances of death" variable which is passed into func, so the function knows under what circumstances the thing was killed (crushed, cut, stabbed, etc.)
+    __slots__=['func'] # idea: pass DEATH_ const "circumstances of death" param into func
     def __init__(self, func):
         self.func=func
 
@@ -67,6 +72,10 @@ class Position:
     def __init__(self, x, y):
         self.x = int(x)
         self.y = int(y)
+class Direction:
+    __slots__=['dir']
+    def __init__(self, _dir):
+        self.dir = int(_dir) # 0-7
 
 class AI:
     __slots__=['func']
@@ -116,7 +125,7 @@ class Meters:
         self.wet=0 # amount of water it's taken on
 ##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity. Dirtiness can be a component or something...
 class Stats: #base stats
-    def __init__(self, hp=1,mp=1, mpregen=1, mass=1,
+    def __init__(self, hp=1,mp=1, mpregen=1, mass=1,height=0,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
@@ -124,7 +133,8 @@ class Stats: #base stats
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,reach=0,
                  gra=0,ctr=0,bal=0,spd=0,asp=0,msp=0,
                  encmax=0,sight=0,hearing=0,
-                 courage=0,scary=0,beauty=0
+                 courage=0,scary=0,beauty=0,
+                 camo=0,stealth=0
                  ):
         # attributes
         self.str=int(_str)           
@@ -147,7 +157,8 @@ class Stats: #base stats
         self.reslight=int(reslight) # LGT
         self.ressound=int(ressound) # SND
         # stats
-        self.mass=int(mass)
+        self.mass=int(mass)         # 1 == smallest mass unit
+        self.height=int(height)     # cm
         self.hpmax=int(hp)          # life
         self.hp=self.hpmax
         self.mpmax=int(mp)          # stamina
@@ -173,6 +184,8 @@ class Stats: #base stats
         self.cou=int(courage)   # courage -- resistance to fear
         self.idn=int(scary) # intimidation / scariness
         self.bea=int(beauty) # factors into persuasion / love
+        self.camo=camo      # affects visibility
+        self.stealth=stealth # affects audibility
 
 class ModdedStats: # stores the modified stat values for an entity
     def __init__(self):
@@ -191,9 +204,9 @@ class Fuel: # fuel for fires
 ##        self.ignition_temp = int(ignition_temp) if ignition_temp is not None else FIRE_THRESHOLD
 
 class SenseSight:
-    __slots__=['fov_map','events']
+    __slots__=['fovID','events']
     def __init__(self):
-        self.fov_map = -1
+        self.fovID = -1
         self.events = []
 class SenseHearing:
     __slots__=['events']
@@ -761,11 +774,11 @@ class BPP_Nucleus:
 ##        self.mass=mass
 ##        self.status=0
        
-##class Equipped: # entity has been equipped by someone # NOT NEEDED ANYMORE RIGHT?
+##class Equipped: # entity has been equipped by someone
 ##    __slots__=['owner','slot']
 ##    def __init__(self, owner, slot):
 ##        self.owner=owner # entity that has equipped this item
-##        self.slot=slot   # slot the item is equipped in
+##        self.slot=slot   # EQ_ const: slot the item is equipped in
 
 '''
     Equippable components
@@ -881,12 +894,13 @@ class EquipableInHandSlot: #gloves/gaunlets
         self.fit=fit
         self.strReq=strReq
 class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
-    __slots__=['ap','mods','stamina','fit','strReq','dexReq',]
-    def __init__(self, ap, sta, mods, fit=0, strReq=0, dexReq=0): #{var : modf,}
+    __slots__=['ap','mods','stamina','fit','grip','strReq','dexReq',]
+    def __init__(self, ap, sta, mods, fit=0, grip=1, strReq=0, dexReq=0): #{var : modf,}
         self.ap=ap
         self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
-        self.fit=fit
+        self.fit=fit # how well you are currently gripping the thing.
+        self.grip=grip # how easily you can get a grip on it.
         self.strReq=strReq
         self.dexReq=dexReq
 class EquipableInFootSlot: #shoe / boot
@@ -987,11 +1001,16 @@ class Openable:
 ##    def __init__(self, data):
 ##        self.data=data
 
-class Moddable: # for weapons, etc. that can be temporarily upgraded using parts like silencers, bayonets, flashlights, magazines, scopes, straps, etc.
-    __slots__=['allowed','mods']
-    def __init__(self, possible): # {MOD_BAYONET : {cmp.CombatStats : {'atk':2,'dmg':6,'pen':6,'asp':30,},},}
-        self.possible=possible # dict of MODTYPE constants and the respective stat changes
-        self.mods=[] # current modifications (list of entities that are modded on)
+class Moddable: # for weapons, etc. that can be upgraded using parts like silencers, bayonets, flashlights, magazines, scopes, straps, etc.
+    __slots__=['mods']
+    def __init__(self, mods): # {MOD_BAYONET : {'atk':2,'dmg':6,'pen':12,'asp':30,'reach':1,},},
+        self.mods={} # current modifications -- value of None: no item in the slot.
+
+class Mod: # used to upgrade a Moddable entity
+    __slots__=['type','mods']
+    def __init__(self, _typ, mods):
+        self.type=_typ # MOD_ const
+        self.mods=mods # {stat : modf}
 
 class Quality:
     __slots__=['quality','minimum','maximum']
@@ -1012,20 +1031,34 @@ class DamageTypeMelee:
         self.type=t         # DMGTYPE_ contant
 
 class Shootable: # stats for ranged attack go in EquipableInHoldSlot mods
-    __slots__=['ammoTypes','ammo','capacity','reloadTime','failChance']
-    def __init__(self, aTypes,aMax=0,rTime=0,jam=0,func=None):
-        self.ammoTypes=aTypes # *set* of ammo types that can be used
-        self.ammo=aMax      #current ammo quantity
-        self.capacity=aMax  # maximum ammo capacity
-        self.reloadTime=rTime # time to reload one shot or put/take mag
+    __slots__=['ammoTypes','ammo','reloadTime','failChance','nShots',
+               'base_capacity','capacity',
+               'base_sights','sights',
+               'base_prone','prone',]
+    def __init__(self, ammotypes,
+                 rtime=0,jam=0,nshots=1,
+                 cap=0,sights=0,prone=0,
+                 func=None):
+        self.ammoTypes=ammotypes # *set* of ammo types that can be used
+        self.ammo=[] # ammo currently loaded in the weapon
+        self.reloadTime=rtime # time to reload one shot or put/take mag
         self.failChance=jam # int in 1/100ths of a percent (10000==100%)
-
+        self.nShots=nshots # 1==semi. >1 enables burst/auto fire.
+        # stats (modified)
+        self.capacity=cap  # maximum ammo capacity
+        self.sights=sights  # max. Acc bonus you can gain from aiming
+        self.prone=prone  # max. Acc bonus you can gain from lying prone
+        # base stats: w/o modular attachments
+        self.base_capacity=cap
+        self.base_sights=sights
+        self.base_prone=prone
+        
 class Throwable: # stats for thrown attack go in EquipableInHoldSlot mods
     __slots__=['func']
     def __init__(self, func=None):
         self.func=func  # script that runs when the item is thrown
 
-class ElementalDamageMelee: # and Thrown
+class ElementalDamageMelee: # Melee and Thrown
     __slots__=['elements']
     def __init__(self, elements):
         self.elements=elements  # {ELEM_CONST : damage}
@@ -1742,17 +1775,25 @@ STATUS_MODS={
     StatusDrunk     : ({'bal':QUALITYMODF,},{},),
     StatusOffBalance: ({'bal':QUALITYMODF,},{},),
     StatusBPos_Crouched : (
-        {'atk':CROUCHED_ATK*MULT_STATS,'dfn':CROUCHED_DFN*MULT_STATS},
-        {'msp':CROUCHED_MSPMOD,'agi':CROUCHED_AGIMOD},),
+        {'atk':CROUCHED_ATK*MULT_STATS,'dfn':CROUCHED_DFN*MULT_STATS,
+         'pen':CROUCHED_PEN*MULT_STATS,'pro':CROUCHED_PRO*MULT_STATS,
+         'gra':CROUCHED_GRA*MULT_STATS,},
+        {'msp':CROUCHED_MSPMOD,},),
     StatusBPos_Seated : (
-        {'atk':SEATED_ATK*MULT_STATS,'dfn':SEATED_DFN*MULT_STATS},
-        {'msp':SEATED_MSPMOD,'agi':SEATED_AGIMOD},),
+        {'atk':SEATED_ATK*MULT_STATS,'dfn':SEATED_DFN*MULT_STATS,
+         'pen':SEATED_PEN*MULT_STATS,'pro':SEATED_PRO*MULT_STATS,
+         'gra':SEATED_GRA*MULT_STATS,},
+        {'msp':SEATED_MSPMOD,},),
     StatusBPos_Prone : (
-        {'atk':PRONE_ATK*MULT_STATS,'dfn':PRONE_DFN*MULT_STATS},
-        {'msp':PRONE_MSPMOD,'agi':PRONE_AGIMOD},),
+        {'atk':PRONE_ATK*MULT_STATS,'dfn':PRONE_DFN*MULT_STATS,
+         'pen':PRONE_PEN*MULT_STATS,'pro':PRONE_PRO*MULT_STATS,
+         'gra':PRONE_GRA*MULT_STATS,},
+        {'msp':PRONE_MSPMOD,},),
     StatusBPos_Supine : (
-        {'atk':SUPINE_ATK*MULT_STATS,'dfn':SUPINE_DFN*MULT_STATS},
-        {'msp':SUPINE_MSPMOD,'agi':SUPINE_AGIMOD},),
+        {'atk':SUPINE_ATK*MULT_STATS,'dfn':SUPINE_DFN*MULT_STATS,
+         'pen':SUPINE_PEN*MULT_STATS,'pro':SUPINE_PRO*MULT_STATS,
+         'gra':SUPINE_GRA*MULT_STATS,},
+        {'msp':SUPINE_MSPMOD,},),
     }
 
 TOOLS={
