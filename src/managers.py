@@ -76,11 +76,11 @@ class Manager_FOV(Manager):
     def __init__(self):
         super(Manager_FOV, self).__init__()
         self._updates=set()
-    def run(self, ent):
+    def run(self, ent): # update FOV if applicable, remove entity from set
         if ent in self._updates:
             self._updates.remove(ent)
             rog.fov_compute(ent)
-    def update(self, ent):
+    def update(self, ent): # add entity to the set
         self._updates.add(ent)
 
 

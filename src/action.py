@@ -221,7 +221,7 @@ def open_pc(pc): # open or close
         return
     rog.update_game()
     rog.update_hud()
-    rog.update_pcfov()
+    rog.update_fov(pc)
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed

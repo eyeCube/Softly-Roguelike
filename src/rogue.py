@@ -612,7 +612,7 @@ def port(ent,x,y): # move thing to absolute location, update grid and FOV
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
     grid_insert(ent)
-    update_fov(ent)
+##    update_fov(ent)
     if Rogue.world.has_component(ent, cmp.LightSource):
         compo = Rogue.world.component_for_entity(ent, cmp.LightSource)
         compo.light.reposition(x, y)
@@ -854,14 +854,14 @@ def pc_listen_sounds():
     #----------------#
 
 # TODO: test FOV for NPCs to make sure it works properly!!!
+##def update_fov(ent):
+##    Rogue.c_managers['fov'].update(ent)
+##def run_fov_manager(ent):
+##    Rogue.c_managers['fov'].run(ent)
 def update_fov(ent):
     Rogue.c_managers['fov'].update(ent)
 def run_fov_manager(ent):
     Rogue.c_managers['fov'].run(ent)
-def update_pcfov():
-    Rogue.c_managers['fov'].update(Rogue.pc)
-def run_pcfov_manager():
-    Rogue.c_managers['fov'].run(Rogue.pc)
     
 def _fov_init():  # normal type FOV map init -- just create the FOV map
     #TODO: THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
@@ -875,46 +875,39 @@ def fov_init(ent):  # init fov for an entity
     compo=Rogue.world.component_for_entity(ent, cmp.SenseSight)
     compo.fovID=0 #_fov_init()
     return True
-#@debug.printr
+###@debug.printr
 def fov_compute(ent):
-##    print("computing fov for ent {}".format(ent))
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     senseSight = Rogue.world.component_for_entity(ent, cmp.SenseSight)
-    libtcod.map_compute_fov(
-        getfovmap(senseSight.fovID), pos.x, pos.y, getms(ent, 'sight'), #senseSight.fov_map
-        light_walls = True, algo=libtcod.FOV_RESTRICTIVE
-        )
+    sight = getms(ent, 'sight')
+    getfovmap(senseSight.fovID).compute_fov(
+        pos.x,pos.y, radius=sight, light_walls=True,
+        algorithm=libtcod.FOV_RESTRICTIVE)
 def update_fovmap_property(fovmap, x,y, value):
     libtcod.map_set_properties( fovmap, x,y,value,True)
 ##def compute_fovs():     Rogue.c_managers['fov'].run()
 # circular FOV function
 def can_see(ent,x,y):
     world = Rogue.world
-    if (get_light_value(x,y) == 0 and not on(ent,NVISION)):
-        return False
+##    light=get_light_value(x,y)
+##    if (light < 1 or (light <= 20 and not on(ent,NVISION))):
+##        return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
     sight=getms(ent, "sight")
-    return ( in_range(pos.x,pos.y, x,y, sight) #<- circle-ize
-             and getfovmap(senseSight.fovID).compute_fov(
-                 pos.x,pos.y, radius=sight, light_walls=True,
-                 algorithm=libtcod.FOV_RESTRICTIVE) ) #senseSight.fov_map
+    if ( in_range(pos.x,pos.y, x,y, sight) #<- circle-ize
+        and getfovmap(senseSight.fovID).fov[y][x] ):
+        return 1
+    return 0
 def getfovmap(mapID):
     return Rogue.map.fov_map# Rogue.fov_maps[mapID] #
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps
 def update_all_fovmaps():
-    pass
-##    for ent, compo in Rogue.world.get_component(cmp.SenseSight):
+    for ent, compo in Rogue.world.get_component(cmp.SenseSight):
+        update_fov(ent)
 ##        fovMap=compo.fov_map
 ##        libtcod.map_copy(Rogue.map.fov_map, fovMap)
-##        update_fov(ent)
-#******we should overhaul this FOV system!~*************
-        #creatures share fov_maps. There are a few fov_maps
-        #which have different properties like x-ray vision, etc.
-        #the only fov_maps we have should all be unique. Would save time.
-        #update_all_fovmaps only updates these unique maps.
-        #this would probably be much better, I should do this for sure.
 
 
 

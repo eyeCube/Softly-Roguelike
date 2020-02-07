@@ -82,7 +82,7 @@ def commands_pages(pc, pcAct):
 
 def _Update():
     rog.update_game()
-    rog.update_pcfov() # should this be in here?
+    rog.update_fov(rog.pc()) # should this be in here?
 ##    rog.update_final()
     rog.update_hud()
 def commands(pc, pcAct):

@@ -353,7 +353,7 @@ Reason: entity has no position component.'''.format(ent))
     
     def render_gameArea(self, pc, view_x,view_y,view_w,view_h):
         sight=rog.getms(pc, 'sight')
-        self._create_memories(pc, sight)
+##        self._create_memories(pc, sight)
         self._recall_memories( view_x,view_y,view_w,view_h)
         
         self._draw_distant_lights(pc, view_x,view_y,view_w,view_h)
@@ -420,7 +420,6 @@ Reason: entity has no position component.'''.format(ent))
             
     def _draw_what_player_sees(self, pc, sight):
         world=rog.world()
-        seer=world.component_for_entity(pc, cmp.SenseSight)
         pos=world.component_for_entity(pc, cmp.Position)
         rend=world.component_for_entity(pc, cmp.Draw)
 
@@ -430,19 +429,13 @@ Reason: entity has no position component.'''.format(ent))
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-                if not rog.in_range(pos.x,pos.y, x,y, sight):
+                visibility = rog.can_see(pc, x, y)
+                if visibility <= 0:
                     continue
-                if not libtcod.map_is_in_fov(
-                    rog.getfovmap(seer.fovID), x,y):
-                    continue
-
+                
+                self._discover_place(x,y, self.inanat(x,y))
+                
                 ent=self.thingat(x, y)
-
-                if (not (x==pos.x and y==pos.y)
-                        and self.get_light_value(x,y) == 0
-                        and not rog.on(pc,NVISION) ):
-                    self._draw_silhouettes(pc, x,y, ent, sight)
-                    continue
                 
                 if ent:
                     libtcod.console_put_char(
@@ -487,15 +480,15 @@ Reason: entity has no position component.'''.format(ent))
                                         self.get_char(x,y),
                                         COL['dkgray'], COL['black'])
     
-    def _create_memories(self, pc, sight):
-        world=rog.world()
-        pos=world.component_for_entity(pc, cmp.Position)
-        if not sight: # and you feel around (?)
-            self._discover_place(pos.x,pos.y,self.inanat(x,y))
-        for x in     range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
-            for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
-                if rog.can_see(pc, x,y):
-                    self._discover_place(x,y, self.inanat(x,y))
+##    def _create_memories(self, pc, sight):
+##        world=rog.world()
+##        pos=world.component_for_entity(pc, cmp.Position)
+##        if not sight: # and you feel around (?)
+##            self._discover_place(pos.x,pos.y,self.inanat(x,y))
+##        for x in     range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
+##            for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
+##                if rog.can_see(pc, x,y):
+##                    self._discover_place(x,y, self.inanat(x,y))
                     
     def _draw_distant_lights(self, pc, view_x,view_y,view_w,view_h):
         pcPos=rog.world().component_for_entity(pc, cmp.Position)

@@ -83,9 +83,9 @@ def main():
             print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
         
-    rog.create_monster("L", 5,1)
-    rog.create_monster("L", 9,1)
-    rog.create_monster("L", 15,1)
+##    rog.create_monster("L", 5,1)
+##    rog.create_monster("L", 9,1)
+##    rog.create_monster("L", 15,1)
         
     rog.Rogue.create_player(xpos, ypos) # create player
     
@@ -106,16 +106,16 @@ def main():
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
 
     rog.create_monster("L", 1,1)
-    rog.create_monster("L", 25,1)
-    rog.create_monster("L", 30,1)
-    rog.create_monster("L", 35,1)
-    rog.create_monster("L", 40,1)
-    rog.create_monster("L", 45,1)
-    rog.create_monster("L", 50,1)
-    rog.create_monster("L", 55,1)
-    rog.create_monster("L", 60,1)
-    rog.create_monster("L", 65,1)
-    rog.create_monster("L", 70,1)
+##    rog.create_monster("L", 25,1)
+##    rog.create_monster("L", 30,1)
+##    rog.create_monster("L", 35,1)
+##    rog.create_monster("L", 40,1)
+##    rog.create_monster("L", 45,1)
+##    rog.create_monster("L", 50,1)
+##    rog.create_monster("L", 55,1)
+##    rog.create_monster("L", 60,1)
+##    rog.create_monster("L", 65,1)
+##    rog.create_monster("L", 70,1)
     
     weap=rog.create_weapon("longsword", 0,0)
     rog.damage(weap, 100)
