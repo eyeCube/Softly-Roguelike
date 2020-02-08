@@ -192,7 +192,7 @@ class GlobalSettings:
         # colors #
         for k,v in self.colors.items():
             colors.COLORS.update({k:v})
-            print("updating color {} with {}".format(k,v))
+##            print("updating color {} with {}".format(k,v))
         # colored strings
         colors.colored_strings=[]
         for item in self._colored_strings:

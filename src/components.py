@@ -785,8 +785,13 @@ class BPP_Nucleus:
 
     ap:     Action Points cost to equip / remove
     mods:   stat mod dict {var : modf,}
-    fit:    the entity it's fitted to. 0==None. 
+    fit:    how well it fits currently. 0 to 100 
 '''
+class Fitted: # fitted to an entity. Without this component it's not fitted to anyone.
+    __slots__=['entity'] # fitting gear to your character improves encumberance
+    def __init__(self, entity):
+        self.entity=entity # the entity it's fitted to.
+
 class Clothes: # equipable armor-like component is clothing, not armor
     # hence it works with unarmored skill, not armored skill
     __slots__=['quality']

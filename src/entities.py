@@ -2790,7 +2790,11 @@ def _add(dadd, modDict):
 def _mult(dmul, modDict):
     for stat,val in modDict.items():
         dmul[stat] = dmul.get(stat, 1) * val
-        
+
+def _apply_fittedBonus(dadd):
+    dadd['enc'] = max( min(dadd['enc'], dadd['mass']//MULT_MASS),
+                       dadd['enc'] * 0.75 )
+    
 # ADD DICT MULTIPLIER FUNCTIONS (dadd)
 def _apply_durabilityPenalty_weapon(dadd, hp, hpMax):
     modi = ( 1 - (hp / max(1,hpMax)) )**2
@@ -2999,6 +3003,11 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
             _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
             _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
@@ -3044,30 +3053,35 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
         
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         
         # weapon skill bonus for item-weapons (armed combat)
         if world.has_component(item, cmp.WeaponSkill):
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
             if ismainhand:
                 if skillLv:
-                    _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
+                    _apply_skill_bonus_weapon(eqdadd, skillLv, weapClass)
             else:
                 if weapClass==SKL_SHIELDS:
-                    _apply_skill_bonus_weapon(dadd, skillLv, weapClass)
-        #
+                    _apply_skill_bonus_weapon(eqdadd, skillLv, weapClass)
+        # end if
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # mainhand / offhand - specific stats
         if ismainhand:
             pass
         else: # offhand
             # offhand offensive penalty for offhand weapons
-            dadd['reach'] = 0
-            dadd['atk'] = 0
-            dadd['dmg'] = 0
-            dadd['pen'] = 0
-            dadd['asp'] = 0
-            dadd['gra'] = dadd.get('gra', 0) + OFFHAND_PENALTY_GRA
+            eqdadd['reach'] = 0
+            eqdadd['atk'] = 0
+            eqdadd['dmg'] = 0
+            eqdadd['pen'] = 0
+            eqdadd['asp'] = 0
+            eqdadd['gra'] = eqdadd.get('gra', 0) + OFFHAND_PENALTY_GRA
         # end if
         # offhand defensive penalty for offhand (non-shield) weapons
         #   AND for shields held in mainhand.
@@ -3076,15 +3090,15 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
              (ismainhand and weapClass == SKL_SHIELDS) ):
             offpenalty=True
         if offpenalty:
-            dadd['dfn'] = dadd.get('dfn', 0) * OFFHAND_PENALTY_DFNMOD
-            dadd['arm'] = dadd.get('arm', 0) * OFFHAND_PENALTY_ARMMOD
-            dadd['pro'] = dadd.get('pro', 0) * OFFHAND_PENALTY_PROMOD
+            eqdadd['dfn'] = eqdadd.get('dfn', 0) * OFFHAND_PENALTY_DFNMOD
+            eqdadd['arm'] = eqdadd.get('arm', 0) * OFFHAND_PENALTY_ARMMOD
+            eqdadd['pro'] = eqdadd.get('pro', 0) * OFFHAND_PENALTY_PROMOD
         #
         
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_weapon(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         # armed wrestling still grants you some Gra, but significantly
         #   less than if you were unarmed.
@@ -3092,7 +3106,7 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         wreLv = wreLv // 3 # penalty to effective skill Lv
         if not ismainhand:
             wreLv = wreLv * 0.5 # penalty for offhand
-        _apply_skill_bonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+        _apply_skill_bonus_weapon(eqdadd, wreLv, SKL_WRESTLING, enc=False)
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, equipable.dexReq,
@@ -3143,17 +3157,22 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
         item=leg.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInLegSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3189,11 +3208,16 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
         item=foot.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFootSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3229,25 +3253,30 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
         item=head.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         # automatically convert the sight and hearing modifiers
         #  into multipliers for headwear, facewear, eye/earwear, etc.
-        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
-            dmul['sight'] = dadd['sight']
-            del dadd['sight']
-        if 'hearing' in dadd.keys(): # sense mod acts as multiplier not adder
-            dmul['hearing'] = dadd['hearing']
-            del dadd['hearing']
+        if 'sight' in eqdadd.keys(): # sense mod acts as multiplier not adder
+            dmul['sight'] = eqdadd['sight']
+            del eqdadd['sight']
+        if 'hearing' in eqdadd.keys(): # sense mod acts as multiplier not adder
+            dmul['hearing'] = eqdadd['hearing']
+            del eqdadd['hearing']
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3284,14 +3313,19 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
         item=face.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFaceSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
-        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
-            dmul['sight'] = dadd['sight']
-            del dadd['sight']
+            eqdadd.update({k:v})
+        if 'sight' in eqdadd.keys(): # sense mod acts as multiplier not adder
+            dmul['sight'] = eqdadd['sight']
+            del eqdadd['sight']
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3322,11 +3356,16 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
         item=neck.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3360,14 +3399,19 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         item=eyes.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInEyesSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
-        if 'sight' in dadd.keys(): # sense mod acts as multiplier not adder
-            dmul['sight'] = dadd['sight']
-            del dadd['sight']
+            eqdadd.update({k:v})
+        if 'sight' in eqdadd.keys(): # sense mod acts as multiplier not adder
+            dmul['sight'] = eqdadd['sight']
+            del eqdadd['sight']
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3394,14 +3438,19 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
         item=ears.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
-        if 'hearing' in dadd.keys(): # sense mod acts as multiplier not adder
-            dmul['hearing'] = dadd['hearing']
-            del dadd['hearing']
+            eqdadd.update({k:v})
+        if 'hearing' in eqdadd.keys(): # sense mod acts as multiplier not adder
+            dmul['hearing'] = eqdadd['hearing']
+            del eqdadd['hearing']
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3457,17 +3506,22 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
         item=core.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInCoreSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3505,17 +3559,22 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
         item=front.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFrontSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3553,17 +3612,22 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
         item=back.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInBackSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,
@@ -3601,17 +3665,22 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
         item=hips.slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHipsSlot)
         for k,v in equipable.mods.items(): # collect add modifiers
-            dadd.update({k:v})
+            eqdadd.update({k:v})
         
         # armor skill bonus
         if not world.has_component(item, cmp.Clothes):
-            _apply_skill_bonus_armor(dadd, armorSkill, cov)
+            _apply_skill_bonus_armor(eqdadd, armorSkill, cov)
         else: # unarmored combat skill used for "clothing" armor
-            _apply_skill_bonus_unarmored(dadd, unarmored, cov)
+            _apply_skill_bonus_unarmored(eqdadd, unarmored, cov)
+
+        # fitted bonus
+        if ( world.has_component(item, cmp.Fitted)
+             and ent==world.component_for_entity(item, cmp.Fitted).entity ):
+            _apply_fittedBonus(eqdadd)
         
         # durability penalty multiplier for the stats
         _apply_durabilityPenalty_armor(
-            dadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
+            eqdadd, rog.getms(item, "hp"), rog.getms(item, "hpmax") )
         
         equip=__EQ(
             equipable.mods['enc'], equipable.strReq, 0,

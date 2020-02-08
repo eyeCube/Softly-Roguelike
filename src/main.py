@@ -19,6 +19,8 @@
 
 
 import tcod as libtcod
+##import cProfile
+##import sys
 
 from const import *
 
@@ -29,8 +31,13 @@ import player
 ##import observer    # TODO: implement observer as a processor
 
 
-#
+# program arguments #
 
+##__PROFILE__     = 0
+##if len(sys.argv) > 1:
+##    __PROFILE__ = sys.argv[1]
+    
+#
 
 
 #------------------------------------------------#
@@ -109,40 +116,59 @@ def main():
 ##        rog.create_monster("L", 1+x*5,1)
 
     
-    weap=rog.create_weapon("longsword", 0,0)
-    rog.damage(weap, 100)
-    rog.equip(
-        rog.pc(),weap,EQ_MAINHAND
-        )
-    rog.create_weapon("wooden club", pos.x,pos.y)
-    rog.create_weapon("estoc", pos.x-1,pos.y)
+##    weap=rog.create_weapon("longsword", 0,0)
+##    rog.damage(weap, 100)
+##    rog.fitgear(weap, rog.pc())
 ##    rog.equip(
-##        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
+##        rog.pc(),weap,EQ_MAINHAND
 ##        )
+##    rog.create_weapon("wooden club", pos.x,pos.y)
+##    rog.create_weapon("estoc", pos.x-1,pos.y)
+##    shield=rog.create_weapon("metal shield", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+##        rog.pc(),shield,EQ_OFFHAND
 ##        )
+##    rog.fitgear(shield, rog.pc())
+##    armor=rog.create_armor("metal gear", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+##        rog.pc(),armor,EQ_FRONT
 ##        )
+##    rog.fitgear(armor, rog.pc())
+##    helm=rog.create_headwear("metal helm", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+##        rog.pc(),helm,EQ_MAINHEAD
 ##        )
+##    rog.fitgear(helm, rog.pc())
+##    leg1=rog.create_legwear("metal mail legging", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
+##        rog.pc(),leg1,EQ_MAINLEG
 ##        )
+##    rog.fitgear(leg1, rog.pc())
+##    leg2=rog.create_legwear("metal mail legging", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_armwear("metal vambrace", 0,0),EQ_MAINARM
+##        rog.pc(),leg2,EQ_OFFLEG
 ##        )
+##    rog.fitgear(leg2, rog.pc())
+##    arm1=rog.create_armwear("metal vambrace", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_armwear("metal vambrace", 0,0),EQ_OFFARM
+##        rog.pc(),arm1,EQ_MAINARM
 ##        )
+##    rog.fitgear(arm1, rog.pc())
+##    arm2=rog.create_armwear("metal vambrace", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_footwear("metal boot", 0,0),EQ_MAINFOOT
+##        rog.pc(),arm2,EQ_OFFARM
 ##        )
+##    rog.fitgear(arm2, rog.pc())
+##    foot1=rog.create_footwear("metal boot", 0,0)
 ##    rog.equip(
-##        rog.pc(),rog.create_footwear("metal boot", 0,0),EQ_OFFFOOT
+##        rog.pc(),foot1,EQ_MAINFOOT
 ##        )
+##    rog.fitgear(foot1, rog.pc())
+##    foot2=rog.create_footwear("metal boot", 0,0)
+##    rog.equip(
+##        rog.pc(),foot2,EQ_OFFFOOT
+##        )
+##    rog.fitgear(foot2, rog.pc())
     #
     
     # create light so player can see

@@ -687,6 +687,10 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
     def run(self):
         super(Manager_Menu, self).run()
         
+##        # manually close game #
+##        if libtcod.console_is_window_closed():
+##            #sys.exit() # no, there should be a custom exit func
+        
         libtcod.sys_sleep_milli(5)
         key,mouse=IO.get_raw_input()
         

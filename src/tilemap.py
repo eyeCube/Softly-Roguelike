@@ -168,7 +168,6 @@ RENDERER:
     def thingat(self,x,y): #return the thing at the top of the pile at tile
         listHere = self.grid_things[x][y]
         return listHere[-1] if listHere else None
-    
     def inanat(self,x,y): #return inanimate thing at top of the pile at tile
         listHere=self.grid_things[x][y]
         if not listHere: return None
@@ -180,7 +179,6 @@ RENDERER:
                 return None
         else:
             return ent
-    
     def monat (self,x,y):
         '''
             get monster in tile
@@ -191,18 +189,25 @@ RENDERER:
         if not ent: return None
         isCreature = rog.world().has_component(ent, cmp.Creature)
         return ent if isCreature else None
-    
     def solidat(self,x,y):    # get solid thing in tile i.e. things that cannot be moved through... only 1 allowed per tile
         ent = self.thingat(x,y)
         if not ent: return None
         return ent if rog.on(ent, ISSOLID) else None
-    
     def lightsat(self,x,y):
         return self.grid_lights[x][y]
-    
     def fluidsat(self,x,y):
         return self.grid_fluids[x][y]
-    
+
+    def visibility(self, sight, llum, camo, dist) -> int: # calculate visibility level
+        '''
+            output:
+                0: cannot see
+                1: see '?'
+                2: generic identification
+                3: (potentially) specific type/species identification
+                4: (potentially) unique instance stats identification
+        '''
+        return int(( 40+sight+math.log2(llum) - (dice.roll(20)+camo+dist) )//20)
     
     def COPY(self, tilemap):
         ''' copy another TileMap object into this object '''
@@ -439,15 +444,18 @@ Reason: entity has no position component.'''.format(ent))
                     charDiscover = None
                     entDrawn = False
                     
-                    for ent in ents:
+                    for ent in reversed(ents):
                         # calculate visibility
                         if ent==pc:
-                            visibility=10
+                            visibility=10 #VISIBILITY_MAX
                         else:
                             camo = rog.getms(ent, 'camo')
-                            visibility=(40 + sight + math.log2(llum) - ( dice.roll(20) + camo + dist ))//20
-                            print('visibility: ',visibility)
-                            print('stats: s{}, l{}, c{}, d{}'.format(sight, llum, camo, dist))
+                            visibility=self.visibility(sight,llum,camo,dist)
+##                            print('visibility: ',visibility)
+##                            print('stats: s{}, l{}, c{}, d{}'.format(sight, llum, camo, dist))
+                        
+                        if visibility<=0: continue
+                        # render data based on visibility
                         rend=world.component_for_entity(ent, cmp.Draw)
                         char = rend.char if visibility > 1 else '?'
                         
@@ -462,8 +470,8 @@ Reason: entity has no position component.'''.format(ent))
                                 self.con_map_state, x,y, fgcol)
                             self._apply_rendered_bgcol(x,y, ent)
                             if world.has_component(ent, cmp.Creature):
-                                continue # don't discover this entity
-
+                                continue # don't discover creatures
+                        
                         if charDiscover is None:
                             charDiscover = char # we'll discover this entity
                             break # only discover one entity

@@ -648,7 +648,7 @@ class Cursor:
 # bool insert       begin in "insert" mode?
 #
 
-class TextInputManager(managers.Manager):
+class TextInputManager(managers.Manager): #Manager_Input | ManagerInput
     
     def __init__(self, x,y, w,h, default,mode,insert):
         
@@ -689,6 +689,10 @@ class TextInputManager(managers.Manager):
     
     def run(self):
         super(TextInputManager, self).run()
+        
+##        # manually close game #
+##        if libtcod.console_is_window_closed():
+##            #sys.exit() # no, there should be a custom exit func
         
         tcod.sys_sleep_milli(5)  #reduce CPU usage
         

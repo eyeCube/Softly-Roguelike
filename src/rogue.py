@@ -422,6 +422,14 @@ def sign(n):
     if n<0: return -1
     return 0
 
+# stat getters
+def _getkg(value):      return value//MULT_MASS
+def _getstat(value):    return value//MULT_STATS
+def _getatt(value):     return value//MULT_ATT
+def getkg(ent):         return _getmass(getms(ent, 'mass'))
+def getstat(ent, stat): return _getstat(getms(ent, stat))
+def getatt(ent, att):   return _getatt(getms(ent, att))
+
 # parent / child functions
 def getpos(ent): # get parent position if applicable else self position
     if Rogue.world.has_component(ent, cmp.Child):
@@ -793,7 +801,8 @@ def inreach(x1,y1, x2,y2, reach):
         return True
     return False
 # end def
-
+def fitgear(gear, ent):
+    Rogue.world.add_component(gear, cmp.Fitted(ent))
 
 
 
