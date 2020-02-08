@@ -189,7 +189,8 @@ class Manager_Lights(Manager):
     def __init__(self):
         super(Manager_Lights,self).__init__()
 
-        self.lights={}
+        self.lights={} # point lights
+        self.lights_env={} # environment lights / ambient lights
 
     def add(self, light): # light is a Light object
         Manager_Lights.newID += 1
@@ -199,6 +200,14 @@ class Manager_Lights(Manager):
         del self.lights[_id]
     def get(self, _id):
         return self.lights[_id]
+    def add_env(self, light): # light is a Light object
+        Manager_Lights.newID += 1
+        self.lights_env.update({ Manager_Lights.newID : light })
+        return Manager_Lights.newID
+    def remove_env(self, _id):
+        del self.lights_env[_id]
+    def get_env(self, _id):
+        return self.lights_env[_id]
 
 
 
@@ -784,7 +793,9 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         self.refresh()
 
     def get_name(self,item):
-        return item.name if hasattr(item,'name') else item
+        if type(item) is int:
+            return rog.world().component_for_entity(item, cmp.Name).name
+        return item
     def refresh(self):
         # blit whole thing onto screen
         libtcod.console_blit(

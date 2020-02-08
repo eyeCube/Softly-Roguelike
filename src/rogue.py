@@ -161,19 +161,20 @@ class Rogue:
         cls.c_managers.update({'events' : managers.Manager_Events()})
         cls.c_managers.update({'lights' : managers.Manager_Lights()})
         cls.c_managers.update({'fov' : managers.Manager_FOV()})
-        
-        
-        
-'''
-WHAT DO WE DO WITH THESE MANAGERS????
-    FOV and ActionQueue is now a processor.... Events?????
-    Rogue.c_managers.update({'events'     : managers.Manager_Events()})
 
-'''
 
     # EXPIRED: Environment class
 #/Rogue
 
+# global return values. Functions can modify this as an additional
+#  "return" value list.
+class Return:
+    values=None
+def globalreturn(*args): Return.values = args
+def fetchglobalreturn():
+    ret=Return.values
+    Return.values=None
+    return ret
 
     #----------------#
     #   Functions    #
@@ -321,8 +322,6 @@ def msgs_w():           return Rogue.window.msgs.w
 def msgs_h():           return Rogue.window.msgs.h
 def set_hud_left():     Rogue.window.set_hud_left()
 def set_hud_right():    Rogue.window.set_hud_right()
-
-
 
     # functions from modules #
 
@@ -589,7 +588,7 @@ def makenot(ent, flag):
 ##def has_equip(obj,item):
 ##    return item in Rogue.world.component_for_entity(obj, )
 def give(ent,item):
-    if on(item,FIRE):
+    if get_status(item, cmp.StatusBurn):
         burn(ent, FIRE_BURN)
         cooldown(item)
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
@@ -753,7 +752,7 @@ def kill(ent): #remove a thing from the world
     #inanimate things
     else:
         #burn to ashes
-        if on(ent, FIRE):
+        if get_status(ent, cmp.StatusBurn):
             mat = world.component_for_entity(ent, cmp.Material).flag
             if (mat==MAT_FLESH
                 or mat==MAT_WOOD
@@ -763,8 +762,7 @@ def kill(ent): #remove a thing from the world
                 ):
                 create_ashes(ent)
     #remove dead thing
-    if Rogue.world.has_component(ent, cmp.Position):
-        release_entity(ent)
+    release_entity(ent)
 # end def
 
 def zombify(ent):
@@ -854,18 +852,12 @@ def pc_listen_sounds():
     #----------------#
 
 # TODO: test FOV for NPCs to make sure it works properly!!!
-##def update_fov(ent):
-##    Rogue.c_managers['fov'].update(ent)
-##def run_fov_manager(ent):
-##    Rogue.c_managers['fov'].run(ent)
 def update_fov(ent):
     Rogue.c_managers['fov'].update(ent)
 def run_fov_manager(ent):
     Rogue.c_managers['fov'].run(ent)
     
 def _fov_init():  # normal type FOV map init -- just create the FOV map
-    #TODO: THIS CODE NEEDS TO BE UPDATED. ONLY MAKE AS MANY FOVMAPS AS NEEDED.
-    # Is it really worth it to change this?
     fovMap=libtcod.map_new(ROOMW,ROOMH)
     libtcod.map_copy(Rogue.map.fov_map,fovMap)  # get properties from Map
     return fovMap
@@ -877,6 +869,7 @@ def fov_init(ent):  # init fov for an entity
     return True
 ###@debug.printr
 def fov_compute(ent):
+##    print("computing fov for ent {}".format(ent))
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     senseSight = Rogue.world.component_for_entity(ent, cmp.SenseSight)
     sight = getms(ent, 'sight')
@@ -885,20 +878,24 @@ def fov_compute(ent):
         algorithm=libtcod.FOV_RESTRICTIVE)
 def update_fovmap_property(fovmap, x,y, value):
     libtcod.map_set_properties( fovmap, x,y,value,True)
-##def compute_fovs():     Rogue.c_managers['fov'].run()
 # circular FOV function
-def can_see(ent,x,y):
+def can_see(ent,x,y,sight=None):
+    run_fov_manager(ent) # compute entity's FOV if necessary
     world = Rogue.world
-##    light=get_light_value(x,y)
-##    if (light < 1 or (light <= 20 and not on(ent,NVISION))):
-##        return False
+    light=get_light_value(x,y)
+    if (light < 1
+        or (light <= 4**lights.Light.LOGBASE
+            and not on(ent,NVISION))
+        ):
+        return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
-    sight=getms(ent, "sight")
-    if ( in_range(pos.x,pos.y, x,y, sight) #<- circle-ize
-        and getfovmap(senseSight.fovID).fov[y][x] ):
-        return 1
-    return 0
+    if sight is None: sight=getms(ent, "sight")
+    dist = int(maths.dist(pos.x,pos.y, x,y))
+    if ( getfovmap(senseSight.fovID).fov[y][x] and dist <= sight ): # <- circle-ize
+        globalreturn(dist,light)
+        return True
+    return False
 def getfovmap(mapID):
     return Rogue.map.fov_map# Rogue.fov_maps[mapID] #
 #copies Map 's fov data to all creatures - only do this when needed
@@ -995,12 +992,7 @@ def create_entity():
     #  creature/monsters  #
 
 def create_monster(typ,x,y,col=None): #init from entities.py
-    '''
-        call this to create a monster from the bestiary
-
-        TODO: figure out what to do to create monsters/creatures in general
-            code for that is not complete...
-    '''
+    ''' create a monster from the bestiary and initialize it '''
     if monat(x,y):
         return None #tile is occupied by a creature already.
     if col:
@@ -1009,9 +1001,10 @@ def create_monster(typ,x,y,col=None): #init from entities.py
         ent = entities.create_monster(typ,x,y)
 ##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
     register_entity(ent)
-    fov_init(ent)
     grid_insert(ent)
     givehp(ent)
+    fov_init(ent)
+    update_fov(ent)
     return ent
 
 def create_corpse(ent):
@@ -1558,6 +1551,7 @@ def deequip(ent,equipType):
 # build equipment and place in the world
 def _initThing(ent):
     register_entity(ent)
+    grid_insert(ent)
     givehp(ent) #give random quality based on dlvl?
 def create_weapon(name,x,y): #,quality=1
     ent=entities.create_weapon(name,x,y)
@@ -2231,11 +2225,21 @@ def create_light(x,y, value, owner=None): # value is range of the light.
     light.shine()
     lightID = Rogue.c_managers['lights'].add(light)
     if owner: # entity that has this Light object as a component
-        # TODO: convert Light object / merge w/ LightSource compo,
-        #  make functions global instead of member funcs
+        # TODO: convert Light object / merge w/ LightSource compo, make functions global instead of member funcs (same for EnvLights) (low priority)
         if Rogue.world.has_component(owner, cmp.LightSource):
             compo = Rogue.world.component_for_entity(owner, cmp.LightSource)
             release_light(compo.lightID)
+        Rogue.world.add_component(owner, cmp.LightSource(lightID, light))
+    return lightID
+def create_envlight(value, owner=None): # environment light
+    actual_lumosity = value**lights.Light.LOGBASE
+    light=lights.EnvLight(actual_lumosity, owner)
+    light.shine()
+    lightID = Rogue.c_managers['lights'].add_env(light)
+    if owner:
+        if Rogue.world.has_component(owner, cmp.LightSource):
+            compo = Rogue.world.component_for_entity(owner, cmp.LightSource)
+            release_envlight(compo.lightID)
         Rogue.world.add_component(owner, cmp.LightSource(lightID, light))
     return lightID
 
@@ -2245,6 +2249,12 @@ def release_light(lightID):
     if light.owner:
         Rogue.world.remove_component(light.owner, cmp.LightSource)
     Rogue.c_managers['lights'].remove(lightID)
+def release_envlight(lightID):
+    light = Rogue.c_managers['lights'].get_env(lightID)
+    light.unshine()
+    if light.owner:
+        Rogue.world.remove_component(light.owner, cmp.LightSource)
+    Rogue.c_managers['lights'].remove_env(lightID)
 
 
 
@@ -2258,9 +2268,9 @@ def set_fire(x,y):
 def douse(x,y): #put out a fire at a tile and cool down all things there
     if not Rogue.et_managers['fire'].fireat(x,y): return
     Rogue.et_managers['fire'].remove(x,y)
-    for tt in thingsat(x,y):
-        Rogue.bt_managers['status'].remove(tt, FIRE)
-        cooldown(tt)
+    for ent in thingsat(x,y):
+        clear_status(ent, cmp.StatusBurn)
+        cooldown(ent)
 
 
 
@@ -2270,7 +2280,7 @@ def douse(x,y): #put out a fire at a tile and cool down all things there
 
 #Status for being on fire separate from the fire entity and light entity.
 
-def get_status(ent, statusCompo):
+def get_status(ent, statusCompo): #getstatus #status_get
     if Rogue.world.has_component(ent, statusCompo):
         return Rogue.world.component_for_entity(ent, statusCompo)
     else:

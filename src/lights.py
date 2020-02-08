@@ -79,9 +79,7 @@ class Light(observer.Observer):
     #
 
     def unshine(self):      # revert tiles to previous light values
-        if (self.shone==False): #cannot undo what has not been done
-            print("ERROR: unshine failed: shone==False")
-            return False #failed
+        assert(self.shone)
         self.shone=False
         #darken all tiles that we lightened
         for tile in self.lit_tiles:
@@ -100,6 +98,27 @@ class Light(observer.Observer):
 
     def add_tile(self,x,y,value):
         self.lit_tiles.append( (x,y,value,) )
+
+class EnvLight: # Environment Light | Ambient Light | EnvironmentLight | AmbientLight
+    def __init__(self, lum, owner=None):
+        self.lum=lum
+        self.owner=owner
+
+    def shine(self):
+        for x in range(ROOMW):
+            for y in range(ROOMH):
+                rog.tile_lighten(x, y, self.lum)
+    def unshine(self):
+        for x in range(ROOMW):
+            for y in range(ROOMH):
+                rog.tile_darken(x, y, self.lum)
+    #move the light to a new position, changing the lightmap
+    def reposition(self, x,y):
+        self.unshine()
+        rog.grid_lights_remove(self)
+        self.x=x; self.y=y;
+        rog.grid_lights_insert(self)
+        self.shine()
 
 
 '''

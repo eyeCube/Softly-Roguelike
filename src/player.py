@@ -72,8 +72,7 @@ def commands_pages(pc, pcAct):
             rog.routine_print_charPage()
             return
         if act == "inventory" :
-            print("INVENTORY ACCESS (TODO: FIX)")
-##            action.inventory_pc(pc)
+            action.inventory_pc(pc)
             return
 
 #
@@ -82,7 +81,7 @@ def commands_pages(pc, pcAct):
 
 def _Update():
     rog.update_game()
-    rog.update_fov(rog.pc()) # should this be in here?
+    rog.update_fov(rog.pc())
 ##    rog.update_final()
     rog.update_hud()
 def commands(pc, pcAct):
@@ -117,8 +116,8 @@ def commands(pc, pcAct):
             if rog.wallat(mousex,mousey):
                 return
             pos = world.component_for_entity(pc, cmp.Position)
-            
-            rog.path_compute(pc.path, pos.x,pos.y, rog.mapx(mousex), rog.mapy(mousey))
+            print("Left click unimplemented")
+##            rog.path_compute(pc.path, pos.x,pos.y, rog.mapx(mousex), rog.mapy(mousey))
             #rog.occupation_set(pc,'path')
 
         if act == 'rclick':
@@ -143,6 +142,7 @@ def commands(pc, pcAct):
         
         # "move" : (x_change, y_change, z_change,)
         if act == 'move':
+            _Update()
             dx,dy,dz=arg
             pos = world.component_for_entity(pc, cmp.Position)
             actor = world.component_for_entity(pc, cmp.Actor)
@@ -152,7 +152,6 @@ def commands(pc, pcAct):
             # wait
             if (xto==pos.x and yto==pos.y):
                 actor.ap = 0
-                _Update()
                 return
 
             # out of bounds
@@ -162,13 +161,11 @@ def commands(pc, pcAct):
             # fight if there is a monster present
             mon = rog.monat(xto,yto)
             if mon: # and mon != pc):
-                _Update()
                 action.fight(pc,mon)
             # or move
             elif not rog.solidat(xto,yto):
                 # space is free, so we can move
                 if action.move(pc, dx,dy):
-                    _Update()
                     rog.view_center_player()
             else:
                 rog.alert("That tile is occupied.")
@@ -176,6 +173,7 @@ def commands(pc, pcAct):
         
         # "attack" : (x, y, z,)
         if act == 'attack':
+            _Update()
             xto,yto,zto=arg
             pos = world.component_for_entity(pc, cmp.Position)
             actor = world.component_for_entity(pc, cmp.Actor)
@@ -186,47 +184,57 @@ def commands(pc, pcAct):
             
             # fight if there is a monster present
             mon = rog.monat(xto,yto)
+            # ... but don't attack yourself!
             if mon == pc:
                 rog.alert("You can't fight yourself!")
+                return
+            
             if mon:
-                _Update()
                 action.fight(pc,mon)
             else:
-                _Update()
                 ent = rog.thingat(xto,yto)
                 if ent:
                     action.fight(pc,ent)
                 else:
                     rog.msg("You strike out at thin air, losing your balance.")
                     actor.ap = 0
-                    rog.set_status( pc, cmp.StatusOffBalance,
-                                    t=2,
-                                    q=-MISS_BAL_PENALTY )
+                    rog.set_status(
+                        pc, cmp.StatusOffBalance,
+                        t=2, q=-MISS_BAL_PENALTY
+                        )
         # end conditional
 
         if act == "target-prompt": #target entity + fire / throw / attack
             action.target_pc(pc)
+            _Update()
             return
         if act == "get-prompt":
             action.pickup_pc(pc)
+            _Update()
             return
         if act == "openclose-prompt": #open or close
             action.open_pc(pc)
+            _Update()
             return
         if act == "open-prompt": #open or close
             action.open_pc(pc)
+            _Update()
             return
         if act == "close-prompt": #open or close
             action.open_pc(pc)
+            _Update()
             return
         if act == "jog": #begin jogging
             action.jog_pc(pc)
+            _Update()
             return
         if act == "run": #begin running
             action.run_pc(pc)
+            _Update()
             return
         if act == "sprint": #begin sprinting
             action.sprint_pc(pc)
+            _Update()
             return
 
         #unused actions
@@ -589,15 +597,16 @@ def chargen(sx, sy):
         # skills (TODO: test new system of skills -- only one dict of skills, and you can pick up to 6(?) of them...
         _skillNames=[]
         _skillIDs=[]
-        skilldict={}
         ptsRemaining=SKILLPOINTS
         cancel=False
-        
-        for k, sk in SKILLS.items():
-            string = "{}: {}".format(sk[0], sk[1])
-            skilldict.update({string : k})
             
         while ptsRemaining:
+            skilldict={}
+            for k, sk in SKILLS.items():
+                x = rog.getskill(pc, k)//SKILL_INCREQ
+                string = "{}: {}".format(sk[0] + x, sk[1])
+                skilldict.update({string : k})
+                
             _drawskills(0, skillscompo)
             rog.dbox(x1,y1+iy,ww,3,
                      text="choose a skill",
@@ -611,7 +620,7 @@ def chargen(sx, sy):
             #get the skill ID
             _skillID = skilldict[_skill]
             _skillName = SKILLS[_skillID][1]
-            _skillPts = SKILLS[_skillID][0]
+            _skillPts = SKILLS[_skillID][0] + rog.getskill(pc, _skillID)//SKILL_INCREQ
             if _skillPts==0: # "cancel"
                 break
             if ptsRemaining < _skillPts:
@@ -755,6 +764,7 @@ wrap=False,con=rog.con_final(),disp='mono'
     rog.add_listener_sights(pc)
     rog.add_listener_sounds(pc)
     rog.grid_insert(pc)
+    rog.update_fov(pc)
     init(pc)
     return pc
 #

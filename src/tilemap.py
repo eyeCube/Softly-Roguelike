@@ -421,33 +421,60 @@ Reason: entity has no position component.'''.format(ent))
     def _draw_what_player_sees(self, pc, sight):
         world=rog.world()
         pos=world.component_for_entity(pc, cmp.Position)
-        rend=world.component_for_entity(pc, cmp.Draw)
-
-##        sight = 100#TEMPORARY!!!!!
 
         for     x in range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
                 
-                visibility = rog.can_see(pc, x, y)
-                if visibility <= 0:
+                if not rog.can_see(pc, x, y, sight):
                     continue
                 
-                self._discover_place(x,y, self.inanat(x,y))
+                ret=rog.fetchglobalreturn()
+                if ret: # unpack
+                    dist, llum = ret
                 
-                ent=self.thingat(x, y)
+                ents=self.thingsat(x, y)
                 
-                if ent:
-                    libtcod.console_put_char(
-                        self.con_map_state, x,y,
-                        rend.char)
-                    libtcod.console_set_char_foreground(
-                        self.con_map_state, x,y, rend.fgcol)
-                    self._apply_rendered_bgcol(x,y, ent)
+                if ents:
+                    charDiscover = None
+                    entDrawn = False
+                    
+                    for ent in ents:
+                        # calculate visibility
+                        if ent==pc:
+                            visibility=10
+                        else:
+                            camo = rog.getms(ent, 'camo')
+                            visibility=(40 + sight + math.log2(llum) - ( dice.roll(20) + camo + dist ))//20
+                            print('visibility: ',visibility)
+                            print('stats: s{}, l{}, c{}, d{}'.format(sight, llum, camo, dist))
+                        rend=world.component_for_entity(ent, cmp.Draw)
+                        char = rend.char if visibility > 1 else '?'
+                        
+                        if not entDrawn: # draw top entity
+                            entDrawn = True
+                            # get render data
+                            fgcol=rend.fgcol
+                            # render
+                            libtcod.console_put_char(
+                                self.con_map_state, x,y, char )
+                            libtcod.console_set_char_foreground(
+                                self.con_map_state, x,y, fgcol)
+                            self._apply_rendered_bgcol(x,y, ent)
+                            if world.has_component(ent, cmp.Creature):
+                                continue # don't discover this entity
+
+                        if charDiscover is None:
+                            charDiscover = char # we'll discover this entity
+                            break # only discover one entity
+                    # end for
+
+                    self._discover_place(x,y, charDiscover)
                 else:
                     libtcod.console_put_char_ex(self.con_map_state, x,y,
                         self.get_char(x, y),
                         self.get_color(x, y), self.get_bgcolor(x, y))
+                    self._discover_place(x,y, None)
     
     def _apply_rendered_bgcol(self, x, y, ent):
         '''
@@ -467,13 +494,12 @@ Reason: entity has no position component.'''.format(ent))
                 bgCol=rog.world().component_for_entity(ent, cmp.Draw).bgcol
         libtcod.console_set_char_background(self.con_map_state, x,y, bgCol)
         
-    def _discover_place(self, x,y,ent=None):
+    def _discover_place(self, x,y,char=None):
         world=rog.world()
 ##        ent = self.thingat(x,y)
-        if ent and not world.has_component(ent, cmp.Creature):
-            draw=world.component_for_entity(ent, cmp.Draw)
-            libtcod.console_put_char_ex( # memorize items, not creatures
-                self.con_memories, x,y, draw.char, COL['dkgray'],COL['black']
+        if char:
+            libtcod.console_put_char_ex(
+                self.con_memories, x,y, char, COL['dkgray'],COL['black']
                 )
         else:
             libtcod.console_put_char_ex(self.con_memories, x,y,

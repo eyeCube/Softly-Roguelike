@@ -67,7 +67,7 @@ def stateless(bot):
 ##    botType=world.component_for_entity(bot, cmp.Draw).char #should not depend on draw component
     
     # Where should this go????
-    rog.run_fov_manager(bot)
+##    rog.run_fov_manager(bot) # moved to can_see
     
     
     # TODO: write this function
@@ -97,7 +97,7 @@ def stateless(bot):
             if (not rog.is_in_grid(x,y) # out of bounds
                     or (x == pos.x and y == pos.y) ): # ignore self
                 continue
-            if not rog.can_see(bot,x,y): continue # can't see it
+            if not rog.can_see(bot,x,y,sight): continue # can't see it
             
             here = rog.thingat(x,y)
             

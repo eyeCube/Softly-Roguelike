@@ -83,21 +83,21 @@ def main():
             print("~~ ! FATAL ERROR ! Failed to place player in the map!")
             break
         
-##    rog.create_monster("L", 5,1)
-##    rog.create_monster("L", 9,1)
-##    rog.create_monster("L", 15,1)
-        
     rog.Rogue.create_player(xpos, ypos) # create player
     
-    rog.make(rog.pc(), NVISION)
     # TESTING
+    # HELP THE PLAYER TO SEE
+    rog.create_envlight(1)
+    rog.make(rog.pc(), NVISION)
 ##    import action
     import components as cmp
 ##    from colors import COLORS as COL
 ##    import debug
 ##    import entities
     #
-
+    pos=rog.get(rog.pc(),cmp.Position)
+##    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
+        
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
 ##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
@@ -105,38 +105,32 @@ def main():
 ##    rog.sets(rog.pc(), 'int', 40)
 ##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
 
-    rog.create_monster("L", 1,1)
-##    rog.create_monster("L", 25,1)
-##    rog.create_monster("L", 30,1)
-##    rog.create_monster("L", 35,1)
-##    rog.create_monster("L", 40,1)
-##    rog.create_monster("L", 45,1)
-##    rog.create_monster("L", 50,1)
-##    rog.create_monster("L", 55,1)
-##    rog.create_monster("L", 60,1)
-##    rog.create_monster("L", 65,1)
-##    rog.create_monster("L", 70,1)
+##    for x in range(20):
+##        rog.create_monster("L", 1+x*5,1)
+
     
     weap=rog.create_weapon("longsword", 0,0)
     rog.damage(weap, 100)
     rog.equip(
         rog.pc(),weap,EQ_MAINHAND
         )
-    rog.equip(
-        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
-        )
-    rog.equip(
-        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
-        )
-    rog.equip(
-        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
-        )
-    rog.equip(
-        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
-        )
-    rog.equip(
-        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
-        )
+    rog.create_weapon("wooden club", pos.x,pos.y)
+    rog.create_weapon("estoc", pos.x-1,pos.y)
+##    rog.equip(
+##        rog.pc(),rog.create_weapon("metal shield", 0,0),EQ_OFFHAND
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_armor("metal gear", 0,0),EQ_FRONT
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_headwear("metal helm", 0,0),EQ_MAINHEAD
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_MAINLEG
+##        )
+##    rog.equip(
+##        rog.pc(),rog.create_legwear("metal mail legging", 0,0),EQ_OFFLEG
+##        )
 ##    rog.equip(
 ##        rog.pc(),rog.create_armwear("metal vambrace", 0,0),EQ_MAINARM
 ##        )
@@ -161,9 +155,7 @@ def main():
     # TODO?: observer for player
 ##    obs=observer.Observer_playerChange()
 ##    pc.observer_add(obs)
-    pos=rog.get(rog.pc(),cmp.Position)
-##    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
-        
+
 
     
 #-----------------------------------------------#

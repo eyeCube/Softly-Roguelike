@@ -117,40 +117,42 @@ def pickup_pc(pc):
             rog.alert("You can't pick that up!")
             return
         #thing is on fire, prompt user & burn persistent rogues
-        if rog.on(choice,FIRE):
-            answer=""
-            while True:
-                answer=rog.prompt(0,0,rog.window_w(),1,maxw=1,
-                    q="That thing is on fire! Are you sure? y/n",
-                    mode='wait',border=None)
-                answer=answer.lower()
-                if answer == "y" or answer == " " or answer == K_ENTER:
-                    rog.alert("You burn your hands!")
-                    rog.burn(pc, FIRE_BURN)
-                    rog.hurt(pc, FIRE_PAIN)
-                    rog.damage(pc, FIRE_DAMAGE)
-                    break
-                elif answer == "n" or answer == K_ESCAPE:
-                    return
+##        if rog.on(choice,FIRE):
+##            answer=""
+##            while True:
+##                answer=rog.prompt(0,0,rog.window_w(),1,maxw=1,
+##                    q="That thing is on fire! Are you sure? y/n",
+##                    mode='wait',border=None)
+##                answer=answer.lower()
+##                if answer == "y" or answer == " " or answer == K_ENTER:
+##                    rog.alert("You burn your hands!")
+##                    rog.burn(pc, FIRE_BURN)
+##                    rog.hurt(pc, FIRE_PAIN)
+##                    rog.damage(pc, FIRE_DAMAGE)
+##                    break
+##                elif answer == "n" or answer == K_ESCAPE:
+##                    return
         # put in inventory
         pocketThing(pc, choice)
-##    elif choice == "all":
+        
+##    elif choice == "all": # TODO
 ##        for tt in things:
 ##            pocketThing(pc, tt)
+        
     else:
         rog.alert("There is nothing there to pick up.")
 
 
 def inventory_pc(pc):
     world=rog.world()
-##    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
+    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
     pcInv = world.component_for_entity(pc, cmp.Inventory)
     pcn = world.component_for_entity(pc, cmp.Name)
     x=0
     y=rog.view_port_y()
 #   items menu
     item=rog.menu("{}{}'s Inventory".format(
-        pcn.title,pcn.name), x,y, pcInv.items)
+        pcn.title,pcn.name), x,y, pcInv.data)
     
 #   viewing an item
     if not item == -1:
@@ -160,14 +162,30 @@ def inventory_pc(pc):
         
     #   get available actions for this item...
         if world.has_component(item, cmp.Edible):
-            keysItems.update({"E":"Eat"})
+            keysItems.update({"e":"eat"})
         if world.has_component(item, cmp.Quaffable):
             keysItems.update({"q":"quaff"})
-        if world.has_component(item, cmp.Equipable):
-            keysItems.update({"e":"equip"})
+        if world.has_component(item, cmp.EquipableInHoldSlot):
+            keysItems.update({"w":"wield"})
             # throwables - subset of equipables
-            if world.component_for_entity(item, cmp.Equipable).equipType == EQ_MAINHAND:
+            if world.has_component(item, cmp.Throwable):
                 keysItems.update({"t":"throw"})
+        if (world.has_component(item, cmp.EquipableInHandSlot)
+            or world.has_component(item, cmp.EquipableInArmSlot)
+            or world.has_component(item, cmp.EquipableInFootSlot)
+            or world.has_component(item, cmp.EquipableInLegSlot)
+            or world.has_component(item, cmp.EquipableInFrontSlot)
+            or world.has_component(item, cmp.EquipableInCoreSlot)
+            or world.has_component(item, cmp.EquipableInBackSlot)
+            or world.has_component(item, cmp.EquipableInHipsSlot)
+            or world.has_component(item, cmp.EquipableInAboutSlot)
+            or world.has_component(item, cmp.EquipableInHeadSlot)
+            or world.has_component(item, cmp.EquipableInFaceSlot)
+            or world.has_component(item, cmp.EquipableInEyesSlot)
+            or world.has_component(item, cmp.EquipableInEarsSlot)
+            or world.has_component(item, cmp.EquipableInNeckSlot)
+            ):
+            keysItems.update({"W":"Wear"})
         if world.has_component(item, cmp.Usable):
             keysItems.update({"u":"use"})
         if world.has_component(item, cmp.Openable):
@@ -193,7 +211,7 @@ def inventory_pc(pc):
         elif opt == "use":      rmg=True; use_pc(pc, item)
         elif opt == "examine":  rmg=True; examine_pc(pc, item)
         
-        if rmg: rog.drain(pc, 'nrg', NRG_RUMMAGE)
+        if rmg: rog.spendAP(pc, NRG_RUMMAGE)
 #
 
 def drop_pc(pc,item):
@@ -217,11 +235,10 @@ def open_pc(pc): # open or close
     # do the open/close action
     success = openClose(pc, xto, yto)
     if not success:
-        rog.alert("It won't open.")
         return
     rog.update_game()
     rog.update_hud()
-    rog.update_fov(pc)
+##    rog.update_fov(pc) # updated by tile change func
 
 def sprint_pc(pc):
     #if sprint cooldown elapsed
@@ -274,7 +291,7 @@ def equip_pc(pc, item, equipType):
 # end def
 
 def examine_pc(pc, item):
-    rog.drain(pc, 'nrg', NRG_EXAMINE)
+    rog.spendAP(pc, NRG_EXAMINE)
     rog.dbox(0,0,40,30, thing.DESCRIPTIONS[item.name])
 
 def eat_pc(pc, item):
@@ -406,13 +423,14 @@ def use(obj, item):
 def pocketThing(ent, item):
 ##    if not item: return False
     world = rog.world()
-    rog.drain(ent, 'nrg', NRG_POCKET)
+    rog.grid_remove(item)
     rog.give(ent, item)
-    rog.release_entity(item)
+    rog.spendAP(ent, NRG_POCKET)
+    world.add_component(item, cmp.Child(ent)) # item is Child of Entity carrying the item
     entn = world.component_for_entity(ent, cmp.Name)
     itemn = world.component_for_entity(item, cmp.Name)
     rog.msg("{t}{n} packs {ti}{ni}.".format(
-        t=entn.title,n=entn.name,ti=itemn.title,ni=itemn.name))
+        t=entn.title,n=entn.name,ti=TITLES[itemn.title],ni=itemn.name))
 ##    return True
 
 def drop(ent, item):
@@ -420,7 +438,7 @@ def drop(ent, item):
     pos = world.component_for_entity(ent, cmp.Position)
     dx=0; dy=0; # TODO: code AI to find a place to drop item
     if not rog.wallat(pos.x+dx,pos.y+dy):
-        rog.drain(ent, 'nrg', NRG_RUMMAGE)
+        rog.spendAP(ent, NRG_RUMMAGE)
         rog.drop(ent,item, dx,dy)
         entn = world.component_for_entity(ent, cmp.Name)
         itemn = world.component_for_entity(item, cmp.Name)
@@ -596,6 +614,7 @@ def openClose(ent, xto, yto):
         ss = "closed a door"
         rog.msg("{t}{n} {ss}.".format(t=entn.title,n=entn.name,ss=ss))
         return True
+    if ent==rog.pc(): rog.alert("It won't open.") # TODO: message about why you failed
     return False
 
 def sprint(ent):

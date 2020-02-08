@@ -60,8 +60,8 @@ HISTORY_ROADNAMES=(
 
 GAME_TITLE = "Softly Into the Night"
 
-ROOMW       = 80            #max level size, width and height
-ROOMH       = 50
+ROOMW       = 400            #max level size, width and height
+ROOMH       = 200
 MAXLEVEL    = 20            #deepest dungeon level
 TILES_PER_ROW = 16          # Num tiles per row (size of the char sheet 
 TILES_PER_COL = 16          # " per column         used for ASCII display)
@@ -213,7 +213,7 @@ STATS_TO_MULT={
 
 
 # titles
-i=1;
+i=0;
 TITLE_NONE          = i;i+=1;
 TITLE_THE           = i;i+=1;
 TITLE_MR            = i;i+=1;
@@ -223,6 +223,17 @@ TITLE_SIR           = i;i+=1;
 TITLE_THEHONORABLE  = i;i+=1;
 TITLE_LORD          = i;i+=1;
 TITLE_LADY          = i;i+=1;
+TITLES={
+TITLE_NONE          : "",
+TITLE_THE           : "the ",
+TITLE_MR            : "Mr. ",
+TITLE_MRS           : "Mrs. ",
+TITLE_MS            : "Ms. ",
+TITLE_SIR           : "Sir ",
+TITLE_THEHONORABLE  : "the Honorable ",
+TITLE_LORD          : "Lord ",
+TITLE_LADY          : "Lady ",
+    }
 
 
 # death types (sent to DeathFunction component to tell it how the thing died)
@@ -2215,9 +2226,10 @@ SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 # Skills data skill data
 #
 
-SKILLPOINTS = 24 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
+SKILLPOINTS = 32 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
 SKILL_LEVELS_PER_SELECTION = 10
 SKILL_LEVELS_JOB = 30 # starting skill level for given job
+SKILL_INCREQ = 25   # how many skill levels before the skill costs 1 more skill point.
     
 SKILLS={ # ID : (SP,name,)
     # SP = skill points required to learn (in chargen)

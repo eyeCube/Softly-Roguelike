@@ -73,7 +73,6 @@ def play(pc, pcAct):
     rog.pc_listen_sounds()
     rog.clear_listeners()
     
-    rog.run_fov_manager(pc) # update PC FOV if necessary
     rog.game_update()
     #timer.print() #DEBUG TESTING. SHOWS TIME ELAPSED SINCE RESET.
     
