@@ -1,0 +1,24 @@
+which stats are multiplied:
+
+MULT_MASS - mass
+MULT_VALUE - value
+MULT_ATT - all attributes
+MULT_STATS
+ATK
+DMG
+PEN
+DFN
+ARM
+PRO
+GRA
+CTR
+BAL
+RATK
+RDMG
+RPEN
+RASP
+TATK
+TDMG
+TPEN
+TASP
+REACH

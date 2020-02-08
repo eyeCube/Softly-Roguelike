@@ -350,7 +350,7 @@ Stats:
 		increases chance to hit foes
 		There is no limit to how much Attack you can have, and your chance to hit continues increasing with each additional point in Attack (with diminishing returns).
 		It is very important to have a decent Attack value in order to ensure you can successfully hit foes, as it is possible to have only a 5% chance to hit if your foe has 19 more DV than you have Attack.
-		It is impossible to have lower than a 5% chance to hit.
+		(It is impossible to have lower than a 5% chance to hit. FOR THE PLAYER CHARACTER ONLY!)
 	power
 		increases damage
 	DV

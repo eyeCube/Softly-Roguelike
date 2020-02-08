@@ -2,6 +2,29 @@ combat
 
 
 
+conditional stat modifiers
+	applied under specific conditions relative between the combatants, during combat
+	For instance: If you are significantly taller or more massive than the one you're fighting or vice versa, then these modifiers apply. The degree to which they apply depends on how different the stats are (logarithmic (base 2?) function -- diff of 1x -> 1 stat point; diff of 2x -> 2 stat points; diff of 4x -> 3 stat points, etc. Where x == some value like 6cm for height and 2kg for mass)
+	Taller:
+		Atk +
+		Dfn -
+		Pen +
+		Pro -
+		Gra -
+	Shorter:
+		Atk -
+		Dfn +
+		Pen -
+		Pro +
+		Gra +
+	More massive:
+		Gra +
+	Less massive:
+		Gra -
+	
+
+
+
 combat skills
 
 How Stats are affected by skill in a weapon:

@@ -1,0 +1,32 @@
+
+Lights in general have higher light levels
+Environment light (light that is present on every tile, such as sunlight / moonlight)
+
+
+provided you have a sight sense component and aren't BLIND, you roll to see things:
+	if (light_level >= C) and (vision + log2(light_level) >= d20 + camo + dist))
+	where C == 1 if night_vision else 400
+	
+	20 + 20 >= d20 + 0 + 20m
+	
+	resulting value denotes how well you see the thing.
+	x <= 0 			cannot see at all.
+	0 < x <= 20		can see '?' and can see general type/shape/size of the thing (large creature, small shiny thing, etc.)
+	20 < x <= 40	can identify the type of thing (sword, club, watch, bowl, humanoid, insectoid, etc.) (skill for gear, species for creatures)
+	40 < x <= 60	can identify the specific class of thing and general stats (wooden sword, metal club, gold watch, clay bowl, whipmaster, scarab, etc.) (requires enough int to identify)
+	60 < x			can accurately identify the exact stats of the thing (requires enough int to identify)
+	
+	
+	note even at 0 vision you could still see something if the inequality holds true
+	even negative vision values are (potentially) valid using this formula -- you would just only be able to really see in bright light like sunlight.
+	
+	note you can also identify things in other ways, like by touch alone.
+	
+	
+Lowest light level you can see (w/o nvision): 	400 	(20^2)
+Typical level of brightness of indoor area: 	1600 	(40^2)
+Typical sunlight level of brightness: 			10000	(100^2)
+	(this is the level of the environment brightness on each tile, and has nothing to do with 
+	
+
+	

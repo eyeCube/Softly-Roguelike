@@ -1,3 +1,6 @@
+OLD SHIT:
+
+
  If you attack with not enough dex, you get -50% Atk.
  - If you do not meet the strength requirement for a weapon, its maximum damage is 1.
  - Wielding a melee weapon with two hands: -2 Str Req, +25% Atk, +3 Hit Spd.
