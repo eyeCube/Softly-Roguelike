@@ -97,43 +97,66 @@ def _getbs(stat): # get base stat
 
 # _get_equipment
 def __add_eq(equipment, bpname, slot, equipableCompo):
-    if slot.item:
+    pc=rog.pc()
+    item=slot.item
+    if item:
         world = rog.world()
-        equipable = world.component_for_entity(slot.item, equipableCompo)
-        itemname = world.component_for_entity(slot.item, cmp.Name)
+        equipable = world.component_for_entity(item, equipableCompo)
+        life=int(100*rog.getms(item, "hp")/rog.getms(item, "hpmax"))
+        
 ##        mods=__eqdadd(equipable.mods)
         # covers
         covers = ""
         for cover in slot.covers:
             covers += "| {} ".format(cmp.BPNAMES[cover])
-        if ( 'hand' in bpname and rog.on(slot.item, TWOHANDS) ):
-            covers += "| offhand wielding "
+        if ( 'hand' in bpname and rog.on(item, TWOHANDS) ):
+            covers += "| off hand wielding "
         #
         # requirements
         req=""
         # str requirement
-        if rog.getms(rog.pc(),'str')//MULT_STATS < equipable.strReq:
-            req+=" STRENGTH"
+        if rog.getms(pc,'str')//MULT_STATS < equipable.strReq:
+            req+=" STR"
         # dex requirement
         if ( equipableCompo is cmp.EquipableInHoldSlot and
-             rog.getms(rog.pc(),'dex')//MULT_STATS < equipable.dexReq ):
-            req+=" DEXTERITY"
+             rog.getms(pc,'dex')//MULT_STATS < equipable.dexReq ):
+            if req: req="{} &".format(req)
+            req+=" DEX"
         if req: req = " INSUFFICIENT{}".format(req)
         #
         
-        # TODO: modify enc values to reflect true values
-            # skill modifiers
+        # modify enc values to reflect true values
+        modf=1
+            # skill modifiers (TODO)
+        
+        # weapon skill bonus for item-weapons (armed combat)
+        if ( (bpname==EQ_MAINHAND or bpname==EQ_OFFHAND)
+             and world.has_component(item, cmp.WeaponSkill) ):
+            weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
+            skillsCompo=world.component_for_entity(pc, cmp.Skills)
+            skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
+            modf *= SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC)
+        elif not world.has_component(item, cmp.Clothes):
+            skillsCompo=world.component_for_entity(pc, cmp.Skills)
+            skillLv = rog._getskill(skillsCompo.skills.get(SKL_ARMOR, 0))
+            modf *= SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC)
+            
             # insufficient str/dex modifiers
+        if ( world.has_component(item, cmp.Fitted)
+             and pc==world.component_for_entity(item, cmp.Fitted).entity
+             ):
+            modf *= FITTED_ENCMOD
+        encvalue=world.component_for_entity(item, cmp.Encumberance).value
+        encumberance=rog.around(modf*encvalue*rog.getms(item, 'mass')/MULT_MASS)
         
         equipment += '''    < {bp} {cov}>{req}
-        {n}  ({hp} / {hpmax})  (ENC: +{enc})
+        {n}  ({hppc}%) (ENC: +{enc})
 '''.format(
             bp=bpname,
-            n=itemname.name,
-            hp=rog.getms(slot.item, "hp"),
-            hpmax=rog.getms(slot.item, "hpmax"),
+            n=rog.fullname_gear(item),
+            hppc=life,
             cov=covers,
-            enc=int(equipable.mods['enc']),
+            enc=encumberance,
             req=req
 ##            mods=mods,
             )
@@ -159,7 +182,7 @@ def _get_equipment(body):
         for arm in body.parts[cmp.BPC_Arms].arms:
             i+=1
             if arm is None: continue
-            a="main" if i==0 else "off" # first item in list is dominant
+            a="main " if i==0 else "off " # first item in list is dominant
             equipment=__add_eq(equipment,"{}hand wielding".format(a),arm.hand.held,
                            cmp.EquipableInHoldSlot)
             equipment=__add_eq(equipment,"{}hand".format(a),arm.hand.slot,
@@ -170,7 +193,7 @@ def _get_equipment(body):
         for leg in body.parts[cmp.BPC_Legs].legs:
             i+=1
             if leg is None: continue
-            a="dominant " if i==0 else "" # first item in list is dominant
+            a="main " if i==0 else "off " # first item in list is dominant
             equipment=__add_eq(equipment,"{}foot".format(a),leg.foot.slot,
                            cmp.EquipableInFootSlot)
             equipment=__add_eq(equipment,"{}leg".format(a),leg.leg.slot,
@@ -556,7 +579,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     #
     # weapon information
     mainweap=rog.dominant_arm(pc).hand.held.item # temporary
-    _asp_from="melee"
+    _type="melee"
     if mainweap:
         if world.has_component(mainweap, cmp.Shootable):
             shootable=world.component_for_entity(mainweap, cmp.Shootable)
@@ -565,22 +588,40 @@ def render_charpage_string(w, h, pc, turn, dlvl):
             throwable=world.component_for_entity(mainweap, cmp.Throwable)
         else: throwable=None
         minrng = shootable.minrng if shootable else 0
+        # TODO: get type from last attack type you performed
         if shootable: # ranged
             maxrng=_get('maxrng')
-            _asp_from="ranged"
+            _type="ranged"
         else: # melee
             if throwable: # show throwing range if throwing weapon is equipped
                 maxrng=_get('trng')
-            _asp_from="melee"
+            _type="melee"
     else:
         minrng=maxrng=0
     #
-    # asp
-    if _asp_from=="melee":
+    # type of stats to show
+    if _type=="melee":
         asp = "{asp:<4}{statdelim}({basp})".format(
-                asp=_get('asp'),basp=_getb('asp'),statdelim=statdelim)
-    elif _asp_from=="ranged":
-        asp = "{rasp}".format(rasp=_get('rasp'))
+                asp=max(MIN_ASP,_get('asp')),
+                basp=_getb('asp'), statdelim=statdelim)
+        pen="{pen:<4}{statdelim}({bpen})".format(
+            pen=_gets('pen'),bpen=_getbs('pen'),statdelim=statdelim)
+        atk="{atk:<4}{statdelim}({batk})".format(
+            atk=_gets('atk'),batk=_getbs('atk'),statdelim=statdelim)
+        dmg="{dmg:<4}{statdelim}({bdmg})".format(
+            dmg=_gets('dmg'),bdmg=_getbs('dmg'),statdelim=statdelim)
+        
+    elif _type=="ranged":
+        asp = "{asp}".format( asp=max(MIN_ASP,_get('rasp')) )
+        pen="{pen:<4}".format( pen=_gets('rpen') )
+        atk="{atk:<4}".format( atk=_gets('ratk') )
+        dmg="{dmg:<4}".format( dmg=_gets('rdmg') )
+        
+    elif _type=="thrown":
+        asp = "{asp}".format( asp=max(MIN_ASP,_get('tasp')) )
+        pen="{pen:<4}".format( pen=_gets('tpen') )
+        atk="{atk:<4}".format( atk=_gets('tatk') )
+        dmg="{dmg:<4}".format( dmg=_gets('tdmg') )
 # /setup #
     
     # TODO: minimum display values, but ONLY way later, like before release, as this is a helpful debug measure.
@@ -602,7 +643,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}                   hydration:{tab}{hydstr}
 {p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}
 {p1}      (stamina / max.)----SP{predelim}{sp:>5} / {spmax:<5}
-{p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc:.2f}%{encmods}
+{p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc}%{encmods}
 {p1}        
 {p1}                        {subdelim} attribute {subdelim}
 {p1}
@@ -614,16 +655,17 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}          (endurance)----END{predelim}{_end:<2}{attdelim}({bend})
 {p1}       
 {p1}                        {subdelim} statistic {subdelim}
+{p1}                  (stats for: {_type})
 {p1}
 {p1}              (speed)----SPD{predelim}{spd:<4}{statdelim}({bspd})
 {p1}     (movement speed)----MSP{predelim}{msp:<4}{statdelim}({bmsp})
 {p1}       (attack speed)----ASP{predelim}{asp}
 {p1}
-{p1}        (penetration)----PEN{predelim}{pen:<4}{statdelim}({bpen})
+{p1}        (penetration)----PEN{predelim}{pen}
 {p1}         (protection)----PRO{predelim}{pro:<4}{statdelim}({bpro})
-{p1}    (attack accuracy)----ATK{predelim}{atk:<4}{statdelim}({batk})
+{p1}    (attack accuracy)----ATK{predelim}{atk}
 {p1}        (dodge value)-----DV{predelim}{dv:<4}{statdelim}({bdv})
-{p1}             (damage)----DMG{predelim}{dmg:<4}{statdelim}({bdmg})
+{p1}             (damage)----DMG{predelim}{dmg}
 {p1}        (armor value)-----AV{predelim}{av:<4}{statdelim}({bav})
 {p1}
 {p1}              (reach)----REA{predelim}{reach:<4}{statdelim}({breach})
@@ -699,6 +741,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         resdelim ="......",
         shortdelim ="...",
         dlv=dlvl,t=turn,
+        _type=_type,
         # flags
         immbio  =">>IMMUNE TO BIO" if rog.on(pc, IMMUNEBIO) else "",
         immrust =">>CANNOT RUST" if rog.on(pc, IMMUNERUST) else "",
@@ -733,18 +776,19 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         paugs=npaugs, paugsmax=int(_geta('con') * ATT_CON_AUGS),
         maugs=nmaugs, maugsmax=int(_geta('int') * ATT_INT_AUGS),
         # stats
-        atk=_gets('atk'),dmg=_gets('dmg'),pen=_gets('pen'),
+        atk=atk,dmg=dmg,pen=pen,
         dv=_gets('dfn'),av=_gets('arm'),pro=_gets('pro'),
         ctr=_gets('ctr'),gra=_gets('gra'),bal=_gets('bal'),
         spr=_gets('mpregen'),
         reach="{__:.1f}".format(__=_get('reach')/2/MULT_STATS),
-        spd=_get('spd'),msp=_get('msp'),asp=asp,
+        spd=max(MIN_SPD,_get('spd')),
+        msp=max(MIN_MSP,_get('msp')),
+        asp=asp,
         crg=_get('cou'),idn=_get('idn'),bea=_get('bea'),
         vis=_get('sight'),aud=_get('hearing'),
         enc=_get('enc'),encmax=_get('encmax'),
-        encpc=(_get('enc') / _get('encmax') * 100),
+        encpc=int(_get('enc') / _get('encmax') * 100),
         # base stats
-        batk=_getbs('atk'),bdmg=_getbs('dmg'),bpen=_getbs('pen'),
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),
         bspr=_getbs('mpregen'),

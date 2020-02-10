@@ -1,3 +1,2 @@
 
 pick up item on same tile as you -> you disappear
-everything appearing as @

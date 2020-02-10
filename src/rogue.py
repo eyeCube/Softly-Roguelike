@@ -414,6 +414,14 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 
     # "Fun"ctions #
 
+def fullname_gear(ent):
+    world=Rogue.world
+    fullname = world.component_for_entity(ent, cmp.Name).name
+    if ( world.has_component(ent, cmp.Fitted)
+         and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
+        fullname = "fitted {}".format(fullname)
+    return fullname
+    
 def ceil(i): return math.ceil(i)
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
     return round(i + 0.00001)
@@ -1483,17 +1491,26 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         world.remove_component(item, cmp.Position)
     # make item a child of its equipper so it has equipper's position / direction
     world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
-
-        # BUGGY CODE: FIXME! TODO: distinguish between covered and holding, for held items vs armor that covers the slot....
-    # put it in the right slot -- is it a held item or a worn item?
+    
+    # put it in the right slot (held or worn?)
     if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
-        eqcompo.held.item = item # wielded / held
+        # wielded / held
+        eqcompo.held.item = item
         eqcompo.holding = True # cover this BP
     else:
-        eqcompo.slot.item = item # worn
+        # worn
+        eqcompo.slot.item = item 
         eqcompo.covered = True # cover this BP
-        eqcompo.slot.covers = tuple(clslis)
+
+    if ( (equipType==EQ_MAINLEG or equipType==EQ_OFFLEG)
+         and equipable.coversBoth
+        ):
+        # for now just cover all legs (TEMPORARY OBV.)
+        for leg in findbps(ent, cmp.BP_Leg):
+            clis.append(leg)
     
+    # cover
+    eqcompo.slot.covers = tuple(clslis)
     # cover the BPs
     for _com in clis:
         _com.covered=True

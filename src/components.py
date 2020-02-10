@@ -1035,6 +1035,13 @@ class DamageTypeMelee:
     def __init__(self, t):
         self.type=t         # DMGTYPE_ contant
 
+class Encumberance: # how encumbering it is. Multiplied by kg.
+    # TODO: use this for inventory carrying.
+    #  Inventory can only carry things under a certain encumberance value.
+    __slots__=['value']
+    def __init__(self, value):
+        self.value=value
+
 class Shootable: # stats for ranged attack go in EquipableInHoldSlot mods
     __slots__=['ammoTypes','ammo','reloadTime','failChance','nShots',
                'base_capacity','capacity',
@@ -1057,6 +1064,10 @@ class Shootable: # stats for ranged attack go in EquipableInHoldSlot mods
         self.base_capacity=cap
         self.base_sights=sights
         self.base_prone=prone
+class Safety: # gun trigger safety mechanism
+    __slots__=['status']
+    def __init__(self, on=False):
+        self.on=on      # safety on or off?
         
 class Throwable: # stats for thrown attack go in EquipableInHoldSlot mods
     __slots__=['func']
@@ -1072,22 +1083,32 @@ class ElementalDamageRanged: # for ranged attacks using the Shootable component
     def __init__(self, elements):
         self.elements=elements  # {ELEM_CONST : damage}
 
-class BonusToArmor: # bonus damage (and Atk?) vs. heavy-armor / hard targets
+class BonusToArmor: # bonus offensive power vs. heavy-armor / hard targets (melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class BonusToFlesh: # bonus damage vs. flesh and other soft targets
+class BonusToFlesh: # bonus offensive power vs. flesh / light-armor / soft targets (melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class HacksOffLimbs: # can amputate opponent's limbs in combat
+class BonusToArmorRanged: # for ranged attacks using the Shootable component
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class Bludgeon: # can be used as a bludgeon to smash bone, stone, glass, etc.
+class BonusToFleshRanged: # for ranged attacks using the Shootable component
     __slots__=['value']
     def __init__(self, val):
         self.value=val
+class HacksOffLimbs: # can amputate opponent's limbs in combat (melee attacks)
+    __slots__=['value']
+    def __init__(self, val):
+        self.value=val
+class Bludgeon: # can be used as a bludgeon to smash bone, stone, glass, etc. (melee attacks)
+    __slots__=['pen','atk','dmg']
+    def __init__(self, pen=0, atk=0, dmg=1):
+        self.atk=atk # attack accuracy when used as a bludgeon
+        self.dmg=dmg # damage when used as a bludgeon
+        self.pen=pen # penetration when used as a bludgeon
        
 class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, or some other method to handle objects turning into raw mats based on their material or some shit??
     __slots__=['energy','mats','tools']

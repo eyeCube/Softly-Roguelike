@@ -387,6 +387,8 @@ ROTTEDNESS={
 
     # equipment #
 
+FITTED_ENCMOD = 0.75
+
 # insufficient strength penalties
 INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
 INSUFF_STR_ATK_PENALTY  = 3
@@ -492,12 +494,12 @@ ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
 ATT_END_RESBLEED        = 1
 
 # Intelligence
-ATT_INT_AUGS            = 0.3333334 # mental augmentations
+ATT_INT_AUGS            = 0.25 # mental augmentations
 ATT_INT_PERSUASION      = 0.5 # charisma is not an attribute so it's shared w/ int
 ATT_INT_IDENTIFY        = 1 # identify ability
 
 # Constitution
-ATT_CON_AUGS            = 0.3333334 # physical augmentations
+ATT_CON_AUGS            = 0.25 # physical augmentations
 ATT_CON_AV              = 0.2   # armor value
 ATT_CON_HP              = 1.5   # life
 ATT_CON_ENCMAX          = 5     # encumberance maximum -- more than Str bonus
@@ -625,8 +627,8 @@ CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
 
 #stats
 
-MIN_SPD     = 1
-MIN_ASP     = 1
+MIN_SPD     = 10
+MIN_ASP     = 5
 MIN_MSP     = 1
 
 ##SUPER_HEARING       = 500
@@ -2346,7 +2348,7 @@ DEFAULT_SKLMOD_ARM   = 0.1
 DEFAULT_SKLMOD_ASP   = 2
 DEFAULT_SKLMOD_GRA   = 0.25
 DEFAULT_SKLMOD_CTR   = 0.1
-DEFAULT_SKLMOD_ENC   = 1
+DEFAULT_SKLMOD_ENC   = 0.5 # greater -> skill affects Enc more. 
 DEFAULT_SKLMOD_RASP  = 2
 DEFAULT_SKLMOD_RNG   = 0.25
 DEFAULT_SKLMOD_TRNG  = 0.5 # throwing range -- throwing skill works differently. All weapons that can be thrown act the same for throwing skill.
@@ -2765,6 +2767,7 @@ CLS_WRESTLER    = i; i+=1;
 CLS_DOCTOR      = i; i+=1;
 CLS_PROGRAMMER  = i; i+=1;
 CLS_MONK        = i; i+=1;
+CLS_BOUNTYHUNTER= i; i+=1;
 
 
 

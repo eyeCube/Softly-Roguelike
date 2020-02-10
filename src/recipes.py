@@ -2078,6 +2078,7 @@ RECIPES={
     'components': (
         [ ('pop tab mail ring', 768,), ],
         [ ('padded jack', 1,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2090,6 +2091,7 @@ RECIPES={
     'components': (
         [ ('pop tab mail vest', 1,), ],
         [ ('pop tab mail ring', 512,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2102,6 +2104,7 @@ RECIPES={
     'components': (
         [ ('mail ring, riveted', 320,), ('mail ring, welded', 320,), ],
         [ ('padded jack', 1,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2114,6 +2117,7 @@ RECIPES={
     'components': (
         [ ('metal mail vest', 1,), ],
         [ ('mail ring, riveted', 196,), ('mail ring, welded', 196,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
