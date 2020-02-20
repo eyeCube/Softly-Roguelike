@@ -329,7 +329,9 @@ FOVMAP_NORMAL       = i; i+=1;
 #
 
 MAX_LEVEL           = 100   # skill level
-LEN_ADVANTAGE_BP    = 12    # how much extra length you need to gain +1 Atk in combat (+1 is guaranteed)
+CM_ADVANTAGE_BP     = 8     # how much extra height you need to gain +1 advantage in combat
+HEIGHTMAP_GRADIENT  = 0.1   # ratio of height value on heightmap to the width/height of a tile
+CM_PER_TILE         = 100   # tiles are exactly 1x1m
 
 # global multipliers
 # the displayed integer value in-game and in the code is the same
@@ -359,33 +361,11 @@ MAX_FLUID_IN_TILE   = 1000 * MULT_MASS
 
 #misc
 DURMOD_ASP = -50
-RUSTEDNESS={
-# amt   - rustedness amount
-# sm    - stat modifier
-# vm    - value modifier (value cannot go below the cost of the raw mats)
-#amt : (sm,  vm,  name mod)
-42   : (0.99,0.95,"rusting ",),
-167  : (0.97,0.83,"rusty ",),
-333  : (0.91,0.6, "rusted ",),
-667  : (0.8, 0.33,"deeply rusted ",),
-900  : (0.6, 0.2, "thoroughly rusted ",),
-950  : (0.3, 0.1, "thoroughly rusted ",),
-1000 : (0.1, 0.04,"thoroughly rusted ",),
-    }
-ROTTEDNESS={
-# amt   - rot amount
-# sm    - stat modifier
-# vm    - value modifier
-#amt : (sm,  vm,  name mod)
-25   : (0.98,0.8, "moldy ",),
-100  : (0.9, 0.5, "rotting ",),
-333  : (0.7, 0.1, "rotted ",),
-667  : (0.3, 0.01,"deeply rotted ",),
-1000 : (0,   0.001,"thoroughly rotted ",),
-    }
 
 
     # equipment #
+
+FITTED_ENCMOD = 0.75
 
 # insufficient strength penalties
 INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
@@ -433,7 +413,7 @@ BASE_GRA        = 0
 BASE_CTR        = 0
 BASE_SIGHT      = 20
 BASE_HEARING    = 80
-BASE_COURAGE    = 96
+BASE_COURAGE    = 64
 BASE_SCARY      = 32
 BASE_BEAUTY     = 16
 BASE_RESFIRE    = 20
@@ -448,6 +428,23 @@ BASE_RESROT     = 0
 BASE_RESWET     = 20
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
+# player bonuses
+PLAYER_COURAGE  = 32    # a hero must be courageous
+
+# Female / male gender stat differences
+# IDEA: instead of this, allow stat buffs during chargen
+FEM_BEA = 16
+MAS_IDN = 8
+MAS_COU = 8
+
+#TODO: attribute selection in chargen
+##STATS_CHARGEN={ # select 1 stat to buff by x points
+###stat   : x,
+##'hpmax' : 6,
+##'cou'   : 16,
+##'idn'   : 16,
+##'bea'   : 16,
+##    }
 
 
 # attributes
@@ -492,12 +489,12 @@ ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
 ATT_END_RESBLEED        = 1
 
 # Intelligence
-ATT_INT_AUGS            = 0.3333334 # mental augmentations
+ATT_INT_AUGS            = 0.25 # mental augmentations
 ATT_INT_PERSUASION      = 0.5 # charisma is not an attribute so it's shared w/ int
 ATT_INT_IDENTIFY        = 1 # identify ability
 
 # Constitution
-ATT_CON_AUGS            = 0.3333334 # physical augmentations
+ATT_CON_AUGS            = 0.25 # physical augmentations
 ATT_CON_AV              = 0.2   # armor value
 ATT_CON_HP              = 1.5   # life
 ATT_CON_ENCMAX          = 5     # encumberance maximum -- more than Str bonus
@@ -601,6 +598,9 @@ BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes
 MAXREACH            = 5     # meters
 BODY_DMG_PEN_BPS    = 4     # number of penetration breakpoints for body status inflicting
 GEAR_DMG_PEN_THRESHOLD = 4  # number of penetrations before attacks do not damage gear, but only damage the body wearing it
+CHANCE_HURT_SELF    = 0.01  # decimal chance to hurt self with weapon when unskilled
+SKILL_HURT_SELF     = 0.02  # decrease chance to hurt self when skilled (each skill level decreases chance by this ratio)
+SKILL_JAM_FIX_AP    = -1    # weapon jams can be more rapidly fixed when skilled in the weapon
 
 #sounds
 VOLUME_DEAFEN       = 500
@@ -625,8 +625,8 @@ CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
 
 #stats
 
-MIN_SPD     = 1
-MIN_ASP     = 1
+MIN_SPD     = 10
+MIN_ASP     = 5
 MIN_MSP     = 1
 
 ##SUPER_HEARING       = 500
@@ -706,6 +706,50 @@ ENCUMBERANCE_MODIFIERS = {
 'bal' :(0.88, 0.75, 0.67, 0.5,  0.4,  0.3,  0.2,),
     }
 
+
+
+    #-------------------#
+    #  shape and form   #
+    #-------------------#
+
+# shapes, the lowest level of identification on an entity you can achieve
+i=0;
+SHAPE_INDISTINCT    = i; i+=1;
+SHAPE_AMORPHOUS     = i; i+=1;
+SHAPE_SPHERE        = i; i+=1;
+SHAPE_ROCK          = i; i+=1;
+SHAPE_BLOCK         = i; i+=1;
+SHAPE_CYLINDER      = i; i+=1;
+SHAPE_PYRAMID       = i; i+=1;
+SHAPE_CONE          = i; i+=1;
+SHAPE_CROSS         = i; i+=1;
+SHAPE_CLUB          = i; i+=1;
+SHAPE_DISC          = i; i+=1;
+SHAPE_SLAB          = i; i+=1;
+SHAPE_DEVICE        = i; i+=1;
+SHAPE_TOOL          = i; i+=1;
+SHAPE_TUBE          = i; i+=1;
+SHAPE_STICK         = i; i+=1;
+# names of shapes, for identification purposes
+SHAPES={
+SHAPE_INDISTINCT    : "indistinct",
+SHAPE_AMORPHOUS     : "amorphous",
+SHAPE_SPHERE        : "spheroid",
+SHAPE_ROCK          : "irregular",
+SHAPE_BLOCK         : "cuboid",
+SHAPE_CYLINDER      : "cylindrical",
+SHAPE_PYRAMID       : "pyramidal",
+SHAPE_CONE          : "conical",
+SHAPE_CROSS         : "cross-shaped",
+SHAPE_CLUB          : "club-shaped",
+SHAPE_DISC          : "disc-shaped",
+SHAPE_SLAB          : "slab-shaped",
+SHAPE_DEVICE        : "device",
+SHAPE_TOOL          : "tool",
+SHAPE_TUBE          : "tube-shaped",
+SHAPE_STICK         : "stick",
+    }
+    
 
 
 
@@ -1549,15 +1593,23 @@ VOMIT_CHANCE    = 10
 # blind
 BLIND_SIGHTMOD = 0.2 # multiplier
 DEAF_HEARINGMOD = 0.1 # multiplier
-DISOR_SIGHTMOD = 0.666666667
-DISOR_HEARINGMOD = 0.666666667
+DISOR_SIGHTMOD = 0.6666667
+DISOR_HEARINGMOD = 0.6666667
 DISOR_BAL       = -5
 
 # pain
 PAIN_METERLOSS = 1
-PAIN_STRMOD = 0.5
-PAIN_ENDMOD = 0.5
-PAIN_CONMOD = 0.75
+PAIN_STRMOD  = 0.8333334    # pain level: 1
+PAIN_ENDMOD  = 0.8333334
+PAIN_CONMOD  = 0.9
+AGONY_STRMOD = 0.6666667    # pain level: 2
+AGONY_ENDMOD = 0.6666667
+AGONY_CONMOD = 0.75
+EXCRU_STRMOD = 0.3333334    # pain level: 3
+EXCRU_ENDMOD = 0.3333334
+EXCRU_CONMOD = 0.5
+# Pain can also K.O. you if your pain reaches MAX_PAIN, and that is
+#   effectively pain level 4 -- but that doesn't directly affect stats.
 
 # fear
 FEAR_METERLOSS = 1
@@ -1776,46 +1828,6 @@ GENDER_OTHER    = 255
 
 
 #
-# Elements (types of damage)
-#
-i=1;
-ELEM_PHYS   = i; i+=1;
-ELEM_BIO    = i; i+=1;
-ELEM_RADS   = i; i+=1;
-ELEM_CHEM   = i; i+=1;
-ELEM_IRIT   = i; i+=1;  # irritation
-ELEM_FIRE   = i; i+=1;
-ELEM_COLD   = i; i+=1;
-ELEM_ELEC   = i; i+=1;
-ELEM_PAIN   = i; i+=1;
-ELEM_BLEED  = i; i+=1;
-ELEM_RUST   = i; i+=1;
-ELEM_ROT    = i; i+=1;
-ELEM_WET    = i; i+=1;  # water damage
-ELEM_LIGHT  = i; i+=1;
-ELEM_SOUND  = i; i+=1;
-
-ELEMENTS={
-ELEM_PHYS   : ('PHS','physical',),
-ELEM_BIO    : ('BIO','bio-hazard',),
-ELEM_RADS   : ('RAD','radiation',),
-ELEM_CHEM   : ('CHM','chemical',),
-ELEM_IRIT   : ('IRR','irritation',),
-ELEM_FIRE   : ('FIR','heat',),
-ELEM_COLD   : ('ICE','cold',),
-ELEM_ELEC   : ('ELC','electricity',),
-ELEM_PAIN   : ('PAI','pain',),
-ELEM_BLEED  : ('BLD','bleed',),
-ELEM_RUST   : ('RUS','rust',),
-ELEM_ROT    : ('ROT','rot',),
-ELEM_WET    : ('WET','water',),
-ELEM_LIGHT  : ('LGT','light',),
-ELEM_SOUND  : ('SND','sound',),
-    }
-
-
-
-#
 # Alerts
 #
 
@@ -1841,6 +1853,22 @@ TASTES = {
     TASTE_SALTY : "ack, salty.",
     TASTE_SAVORY : "mmm... delicious!",
 }
+
+
+
+
+
+#
+# Breathing statuses # Breathe statuses # Breath statuses
+#
+
+i=0;
+BREATHE_NORMAL      = i; i+=1;
+BREATHE_INHALING    = i; i+=1;
+BREATHE_EXHALING    = i; i+=1;
+BREATHE_HOLDING     = i; i+=1; # holding breath
+BREATHE_HYPER       = i; i+=1; # hyperventilating
+
 
 
 
@@ -1910,9 +1938,6 @@ MAT_GLASS       = i; i+=1;
 MAT_RUST        = i; i+=1;
 MAT_CLAY        = i; i+=1; 
 MAT_CERAMIC     = i; i+=1;
-MAT_GAS         = i; i+=1;
-MAT_WATER       = i; i+=1;
-MAT_OIL         = i; i+=1;
 MAT_QUARTZ      = i; i+=1;#silica, sand
 MAT_RUBBER      = i; i+=1;
 MAT_CHITIN      = i; i+=1; # fungi, arthropods, crustaceans, insects, molluscs, cephalopod beaks, fish/amphibian scales
@@ -1936,6 +1961,42 @@ FL_NAPALM       =i; i+=1;
 FL_GASOLINE     =i; i+=1;
 FL_HAZMATS      =i; i+=1;
 
+# material names
+MATERIALS={
+MAT_FLESH       : "flesh",
+MAT_BONE        : "bone",
+MAT_METAL       : "metal",
+MAT_CARBON      : "carbon",
+MAT_PLASTIC     : "plastic",
+MAT_TARP        : "tarp",
+MAT_STONE       : "stone",
+MAT_DUST        : "dust",
+MAT_WOOD        : "wood",
+MAT_PAPER       : "paper",
+MAT_LEATHER     : "leather",
+MAT_BLEATHER    : "boiled leather",
+MAT_CLOTH       : "cloth",
+MAT_ROPE        : "rope",
+MAT_GLASS       : "glass",
+MAT_RUST        : "rust",
+MAT_CLAY        : "clay", 
+MAT_CERAMIC     : "ceramic",
+MAT_QUARTZ      : "quartz",
+MAT_RUBBER      : "rubber",
+MAT_CHITIN      : "chitin",
+MAT_KERATIN     : "keratin",
+FL_WATER        : "water",
+FL_OIL          : "oil",
+FL_BLOOD        : "blood",
+FL_ACID         : "acid",
+FL_STRONGACID   : "acid",
+FL_SMOKE        : "smoke",
+FL_ALCOHOL      : "alcohol",
+FL_NAPALM       : "napalm",
+FL_GASOLINE     : "petrol",
+FL_HAZMATS      : "bio-hazard",
+    }
+
 # material fuel values
 FUEL_MULT       = 1.00 # global multiplier for all materials
 MAT_FUEL={
@@ -1957,9 +2018,9 @@ MAT_GLASS       : 0,
 MAT_RUST        : 0,
 MAT_CLAY        : 0, 
 MAT_CERAMIC     : 0,
-MAT_GAS         : 0,
-MAT_WATER       : 0,
-MAT_OIL         : 10,
+##MAT_GAS         : 0,
+##MAT_WATER       : 0,
+##MAT_OIL         : 10,
 MAT_QUARTZ      : 0,
 MAT_RUBBER      : 0.5,
     }
@@ -2001,9 +2062,9 @@ MAT_GLASS       : (2200,9999,9999,),
 MAT_RUST        : (1500,9999,9999,),
 MAT_CLAY        : (9999,9999,9999,),
 MAT_CERAMIC     : (9999,9999,9999,),
-MAT_GAS         : (9999,9999,9999,),
-MAT_WATER       : (0,   100, 9999,),
-MAT_OIL         : (20,  500, 400,),
+##MAT_GAS         : (9999,9999,9999,),
+##MAT_WATER       : (0,   100, 9999,),
+##MAT_OIL         : (20,  500, 400,),
 MAT_QUARTZ      : (9999,9999,9999,),
 MAT_RUBBER      : (70,  9999,300,),
     }
@@ -2018,6 +2079,141 @@ MAT_RUBBER      : (70,  9999,300,),
 i=1;
 PHASE_SOLID     =i; i+=1;
 PHASE_FLUID     =i; i+=1;   # liquid and gas
+
+
+
+
+
+
+#
+# Elements (types of damage)
+#
+i=1;
+ELEM_PHYS   = i; i+=1;
+ELEM_BIO    = i; i+=1;
+ELEM_RADS   = i; i+=1;
+ELEM_CHEM   = i; i+=1;
+ELEM_IRIT   = i; i+=1;  # irritation
+ELEM_FIRE   = i; i+=1;
+ELEM_COLD   = i; i+=1;
+ELEM_ELEC   = i; i+=1;
+ELEM_PAIN   = i; i+=1;
+ELEM_BLEED  = i; i+=1;
+ELEM_RUST   = i; i+=1;
+ELEM_ROT    = i; i+=1;
+ELEM_WET    = i; i+=1;  # water damage
+ELEM_LIGHT  = i; i+=1;
+ELEM_SOUND  = i; i+=1;
+
+ELEMENTS={
+ELEM_PHYS   : ('PHS','physical',),
+ELEM_BIO    : ('BIO','bio-hazard',),
+ELEM_RADS   : ('RAD','radiation',),
+ELEM_CHEM   : ('CHM','chemical',),
+ELEM_IRIT   : ('IRR','irritation',),
+ELEM_FIRE   : ('FIR','heat',),
+ELEM_COLD   : ('ICE','cold',),
+ELEM_ELEC   : ('ELC','electricity',),
+ELEM_PAIN   : ('PAI','pain',),
+ELEM_BLEED  : ('BLD','bleed',),
+ELEM_RUST   : ('RUS','rust',),
+ELEM_ROT    : ('ROT','rot',),
+ELEM_WET    : ('WET','water',),
+ELEM_LIGHT  : ('LGT','light',),
+ELEM_SOUND  : ('SND','sound',),
+    }
+
+# Elemental Meters
+
+MAX_PAIN    = 1000
+MAX_BLEED   = 200
+MAX_TEMP    = 999999
+MIN_TEMP    = -200
+MAX_SICK    = 100
+MAX_EXPO    = 100
+MAX_RUST    = 1000
+MAX_ROT     = 1000
+MAX_RADS    = 1000
+MAX_FEAR    = 100
+MAX_DIRT    = 100
+# (max wetness depends on the item.)
+
+
+RUSTEDNESS={
+# amt   - rustedness amount
+# sm    - stat modifier
+# vm    - value modifier (value cannot go below the cost of the raw mats)
+#amt : (sm,  vm,  name mod)
+0.042: (0.99,0.95,"rusting",),
+0.167: (0.97,0.83,"rusty",),
+0.333: (0.91,0.6, "rusted",),
+0.667: (0.8, 0.33,"deeply rusted",),
+0.900: (0.6, 0.2, "thoroughly rusted",),
+0.950: (0.3, 0.1, "fully rusted",),
+1.000: (0.1, 0.04,"fully rusted",),
+    }
+ROTTEDNESS={
+# amt   - rot amount
+# sm    - stat modifier
+# vm    - value modifier
+#amt : (sm,  vm,  name mod)
+0.025: (0.98,0.8, "moldy",),
+0.100: (0.9, 0.5, "rotting",),
+0.333: (0.7, 0.1, "rotted",),
+0.667: (0.3, 0.01,"deeply rotted",),
+0.950: (0,   0.001,"thoroughly rotted",),
+    }
+WETNESS_MAX_MATERIAL={
+MAT_FLESH       : 0.01,
+MAT_BONE        : 0.1,
+MAT_METAL       : 0.01,
+MAT_CARBON      : 0.01,
+MAT_PLASTIC     : 0.01,
+MAT_TARP        : 0,
+MAT_STONE       : 0.1,
+MAT_DUST        : 0.25,
+MAT_WOOD        : 1.2,
+MAT_PAPER       : 8,
+MAT_LEATHER     : 0.1,
+MAT_BLEATHER    : 0,
+MAT_CLOTH       : 1.5,
+MAT_ROPE        : 0.1,
+MAT_GLASS       : 0,
+MAT_RUST        : 0.1,
+MAT_CLAY        : 1,
+MAT_CERAMIC     : 0,
+##MAT_GAS         : 1,
+##MAT_WATER       : 0,
+##MAT_OIL         : 0,
+MAT_QUARTZ      : 0.01,
+MAT_RUBBER      : 0.01,
+MAT_CHITIN      : 0.01,
+MAT_KERATIN     : 0.01,
+    }
+
+PAIN_QUALITIES={
+1 : 0.1,
+2 : 0.333,
+3 : 0.75,
+    }
+DIRT_QUALITIES={
+1 : 0.1,
+2 : 0.333,
+3 : 0.75,
+    }
+RUST_QUALITIES={}
+i=0
+for k,v in RUSTEDNESS.items():
+    i+=1
+    RUST_QUALITIES[i] = k
+ROT_QUALITIES={}
+i=0
+for k,v in ROTTEDNESS.items():
+    i+=1
+    ROT_QUALITIES[i] = k
+
+
+
 
 
 
@@ -2178,6 +2374,7 @@ SKL_GUNSMITH    = i; i+=1; #making and repairing guns (child of: metal, wood)
 SKL_HARDWARE    = i; i+=1; #computer building and repair
 SKL_MECHANIC    = i; i+=1; #machine building and repair
 SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
+SKL_WELDING     = i; i+=1; #
 ##SKL_SWORDSMITH  = i; i+=1; #making and repairing swords (bladesmithing skill -- incorporated)
 # Languages
 ##SKL_CHINESE     = i; i+=1; #related to: cantonese, tibetan, burmese
@@ -2293,6 +2490,7 @@ SKL_GUNSMITH    :(3,'gunsmith',),
 SKL_HARDWARE    :(2,'technosmith',),
 SKL_MECHANIC    :(2,'autosmith',),
 SKL_ARMORSMITH  :(3,'armorsmith',),
+SKL_WELDING     :(2,'welding',),
 0               :(0,'no skill',),
     }
     
@@ -2315,6 +2513,7 @@ SKL_BLUDGEONS       : 0.25,
 SKL_SHIELDS         : 0.2,
 SKL_BULLWHIPS       : 0.1,
 SKL_BOXING          : 0.2,
+0                   : 0.1, # default
     }
 
 
@@ -2346,7 +2545,7 @@ DEFAULT_SKLMOD_ARM   = 0.1
 DEFAULT_SKLMOD_ASP   = 2
 DEFAULT_SKLMOD_GRA   = 0.25
 DEFAULT_SKLMOD_CTR   = 0.1
-DEFAULT_SKLMOD_ENC   = 1
+DEFAULT_SKLMOD_ENC   = 0.5 # greater -> skill affects Enc more. 
 DEFAULT_SKLMOD_RASP  = 2
 DEFAULT_SKLMOD_RNG   = 0.25
 DEFAULT_SKLMOD_TRNG  = 0.5 # throwing range -- throwing skill works differently. All weapons that can be thrown act the same for throwing skill.
@@ -2370,6 +2569,7 @@ SKLMOD_ATK   = { # melee attack accuracy
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
+    SKL_MEDICINE    : DEFAULT_SKLMOD_ATK*0.1,
     }
 
 SKLMOD_DFN   = { # Dodge Value
@@ -2390,6 +2590,7 @@ SKLMOD_DFN   = { # Dodge Value
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_DFN*0.1,
     SKL_HEAVY       : DEFAULT_SKLMOD_DFN*0.1,
     SKL_ENERGY      : DEFAULT_SKLMOD_DFN*0.1,
+    SKL_MEDICINE    : 0,
     }
 
 SKLMOD_PEN   = { # melee penetration
@@ -2417,6 +2618,7 @@ SKLMOD_PEN   = { # melee penetration
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
+    SKL_MEDICINE    : DEFAULT_SKLMOD_PEN*0.25,
     }
 
 SKLMOD_PRO   = { # protection
@@ -2434,6 +2636,7 @@ SKLMOD_PRO   = { # protection
     SKL_HEAVY       : DEFAULT_SKLMOD_PRO*0.25,
     SKL_ENERGY      : DEFAULT_SKLMOD_PRO*0.05,
     SKL_SLINGS      : DEFAULT_SKLMOD_PRO*0.05,
+    SKL_MEDICINE    : 0,
     }
 
 SKLMOD_DMG   = { # melee damage
@@ -2452,6 +2655,7 @@ SKLMOD_DMG   = { # melee damage
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : DEFAULT_SKLMOD_DMG*0.25,
     SKL_ENERGY      : 0,
+    SKL_MEDICINE    : DEFAULT_SKLMOD_DMG*0.25,
     }
 
 SKLMOD_ARM   = { # Armor Value
@@ -2470,13 +2674,14 @@ SKLMOD_ARM   = { # Armor Value
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_ARM*0.25,
     SKL_HEAVY       : DEFAULT_SKLMOD_ARM*0.25,
     SKL_ENERGY      : 0,
+    SKL_MEDICINE    : 0,
     }
 
 SKLMOD_ASP   = { # melee attack speed
     SKL_WRESTLING   : DEFAULT_SKLMOD_ASP*0.3333334,
     SKL_BOXING      : DEFAULT_SKLMOD_ASP*0.6666667,
     SKL_SHIELDS     : DEFAULT_SKLMOD_ASP*0.5,
-    SKL_SLINGS      : DEFAULT_SKLMOD_ASP*1.2, # slings have very low base Asp
+    SKL_SLINGS      : DEFAULT_SKLMOD_ASP*0.5,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_ASP*0.5,
     SKL_CANNONS     : DEFAULT_SKLMOD_ASP*0.5,
     SKL_PISTOLS     : DEFAULT_SKLMOD_ASP*0.5,
@@ -2486,6 +2691,7 @@ SKLMOD_ASP   = { # melee attack speed
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_ASP*0.5,
     SKL_HEAVY       : DEFAULT_SKLMOD_ASP*0.5,
     SKL_ENERGY      : DEFAULT_SKLMOD_ASP*0.5,
+    SKL_MEDICINE    : DEFAULT_SKLMOD_ASP*0.25,
     }
 
 SKLMOD_GRA   = { # grappling
@@ -2510,6 +2716,7 @@ SKLMOD_GRA   = { # grappling
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
     SKL_SLINGS      : 0,
+    SKL_MEDICINE    : 0,
     }
 
 SKLMOD_CTR   = { # counter-attack
@@ -2529,6 +2736,7 @@ SKLMOD_CTR   = { # counter-attack
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
     SKL_SLINGS      : 0,
+    SKL_MEDICINE    : DEFAULT_SKLMOD_CTR*0.1,
     }
 
 SKLMOD_RASP={ # ranged attack speed
@@ -2550,14 +2758,15 @@ SKLMOD_RASP={ # ranged attack speed
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_SLINGS      : DEFAULT_SKLMOD_RASP*1,
+    SKL_MEDICINE    : 0,
+    SKL_SLINGS      : DEFAULT_SKLMOD_RASP*1.2, # slings have very low base Asp
     SKL_BOWS        : DEFAULT_SKLMOD_RASP*1,
-    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RASP*1,
-    SKL_CANNONS     : DEFAULT_SKLMOD_RASP*1,
-    SKL_PISTOLS     : DEFAULT_SKLMOD_RASP*1.2,
+    SKL_CROSSBOWS   : DEFAULT_SKLMOD_RASP*0.75,
+    SKL_CANNONS     : DEFAULT_SKLMOD_RASP*0.5,
+    SKL_PISTOLS     : DEFAULT_SKLMOD_RASP*1.1,
     SKL_RIFLES      : DEFAULT_SKLMOD_RASP*0.75,
     SKL_SHOTGUNS    : DEFAULT_SKLMOD_RASP*0.75,
-    SKL_SMGS        : DEFAULT_SKLMOD_RASP*1.333334,
+    SKL_SMGS        : DEFAULT_SKLMOD_RASP*1.1,
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_RASP*0.5,
     SKL_HEAVY       : DEFAULT_SKLMOD_RASP*0.5,
     SKL_ENERGY      : DEFAULT_SKLMOD_RASP*1,
@@ -2582,6 +2791,7 @@ DEFAULT_SKLMOD_RNG={ # max range
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
+    SKL_MEDICINE    : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RNG*1.3333334,
     SKL_BOWS        : DEFAULT_SKLMOD_RNG*1.3333334,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RNG*0.9,
@@ -2614,6 +2824,7 @@ SKLMOD_RATK={ # ranged accuracy
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
+    SKL_MEDICINE    : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RATK*1.3333334,
     SKL_BOWS        : DEFAULT_SKLMOD_RATK*1.25,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RATK*0.9,
@@ -2646,6 +2857,7 @@ DEFAULT_SKLMOD_RDMG={ # ranged damage
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
+    SKL_MEDICINE    : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RDMG*1.1,
     SKL_BOWS        : DEFAULT_SKLMOD_RDMG*1.1,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RDMG*0.9,
@@ -2678,6 +2890,7 @@ DEFAULT_SKLMOD_RPEN={ # ranged penetration
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
+    SKL_MEDICINE    : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RPEN*0.75,
     SKL_BOWS        : DEFAULT_SKLMOD_RPEN*1.05,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RPEN*0.9,
@@ -2765,6 +2978,7 @@ CLS_WRESTLER    = i; i+=1;
 CLS_DOCTOR      = i; i+=1;
 CLS_PROGRAMMER  = i; i+=1;
 CLS_MONK        = i; i+=1;
+CLS_BOUNTYHUNTER= i; i+=1;
 
 
 
@@ -2840,6 +3054,159 @@ SND_QUAFF       = (20, "gulping noises",NOISE_SOME,)
 SND_COUGH       = (80, "someone coughing",NOISE_SCREECH,)
 SND_VOMIT       = (80, "someone vomiting",NOISE_WATERFALL,)
 SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
+
+
+
+
+    #----------------#
+    # IDENTIFICATION #
+    #----------------#
+
+i=1;
+
+# weapon-type items
+ID_CLUB             = i; i+=1;
+ID_MACE             = i; i+=1;
+ID_HAMMER           = i; i+=1;
+ID_AXE              = i; i+=1;
+ID_KNIFE            = i; i+=1;
+ID_SWORD            = i; i+=1;
+ID_LONGSWORD        = i; i+=1;
+ID_STAFF            = i; i+=1;
+ID_JAVELIN          = i; i+=1;
+ID_SHIELD           = i; i+=1;
+ID_LONGSTAFF        = i; i+=1;
+ID_SPEAR            = i; i+=1;
+ID_POLEARM          = i; i+=1;
+ID_GREATSWORD       = i; i+=1;
+ID_GREATAXE         = i; i+=1;
+ID_GREATHAMMER      = i; i+=1;
+ID_GREATCLUB        = i; i+=1;
+ID_PUSHDAGGER       = i; i+=1;
+ID_BATON            = i; i+=1;
+ID_WHIP             = i; i+=1;
+ID_KNUCKLES         = i; i+=1;
+ID_BOOMERANG        = i; i+=1;
+ID_MACHETE          = i; i+=1;
+
+# clothing / armor
+ID_VEST             = i; i+=1; # torso clothes
+ID_SHIRT            = i; i+=1;
+ID_LONGSHIRT        = i; i+=1; # long == long-sleeved
+ID_HOODY            = i; i+=1;
+ID_JACKET           = i; i+=1;
+ID_ARMOR            = i; i+=1; # armor
+ID_GEAR             = i; i+=1;
+ID_CUIRASS          = i; i+=1;
+ID_SUIT             = i; i+=1;
+ID_FURSUIT          = i; i+=1;
+ID_MAILSHIRT        = i; i+=1;
+ID_MAILLONGSHIRT    = i; i+=1;
+ID_PADDEDSHIRT      = i; i+=1;
+ID_PADDEDLONGSHIRT  = i; i+=1;
+ID_HAZARDSUIT       = i; i+=1;
+ID_PPE              = i; i+=1;
+ID_BULLETPROOFVEST  = i; i+=1;
+ID_VAMBRACE         = i; i+=1; # arm
+ID_PADDEDLEGGING    = i; i+=1; # leg
+ID_MAILLEGGING      = i; i+=1;
+ID_GREAVE           = i; i+=1;
+ID_PJS              = i; i+=1;
+ID_BOOT             = i; i+=1; # feet
+ID_SHOE             = i; i+=1;
+ID_SANDAL           = i; i+=1;
+ID_SAFETYGOGGLES    = i; i+=1; # eyewear
+ID_SUNGLASSES       = i; i+=1;
+ID_GLASSES          = i; i+=1;
+ID_MASK             = i; i+=1; # facewear
+ID_RESPIRATOR       = i; i+=1;
+ID_GASMASK          = i; i+=1;
+ID_PLAGUEMASK       = i; i+=1;
+ID_WELDINGMASK      = i; i+=1;
+ID_WELDINGMASK      = i; i+=1;
+ID_MOTORCYCLEHELM   = i; i+=1; # headwear
+ID_BIOHELM          = i; i+=1;
+ID_PADDEDCOIF       = i; i+=1;
+ID_MAILCOIF         = i; i+=1;
+ID_HELMET           = i; i+=1; # skull cap to half helm
+ID_HELM             = i; i+=1; # half to full helm
+ID_GLOVE            = i; i+=1; # hand armor
+ID_GAUNTLET         = i; i+=1;
+ID_CLOAK            = i; i+=1; # about
+
+# misc. items
+ID_RAG              = i; i+=1;
+ID_RAGS             = i; i+=1; # big rag / cloth
+ID_BANDAGE          = i; i+=1;
+ID_RUBBERBAND       = i; i+=1;
+ID_SCALPEL          = i; i+=1;
+ID_SCISSORS         = i; i+=1;
+ID_PLIERS           = i; i+=1;
+ID_SCREWDRIVER      = i; i+=1;
+ID_WHETSTONE        = i; i+=1;
+
+IDENTIFICATION={
+ID_CLUB             : "club",
+ID_MACE             : "mace",
+ID_HAMMER           : "hammer",
+ID_AXE              : "axe",
+ID_KNIFE            : "knife",
+ID_SWORD            : "sword",
+ID_LONGSWORD        : "longsword",
+ID_STAFF            : "staff",
+ID_JAVELIN          : "javelin",
+ID_SHIELD           : "shield",
+ID_LONGSTAFF        : "longstaff",
+ID_SPEAR            : "spear",
+ID_POLEARM          : "polearm",
+ID_GREATSWORD       : "greatsword",
+ID_GREATAXE         : "greataxe",
+ID_GREATHAMMER      : "greathammer",
+ID_GREATCLUB        : "greatclub",
+ID_PUSHDAGGER       : "pushdagger",
+ID_BATON            : "baton",
+ID_WHIP             : "whip",
+ID_KNUCKLES         : "knuckles",
+ID_BOOMERANG        : "boomerang",
+ID_MACHETE          : "machete",
+
+ID_SHIRT            : "tee",
+ID_VEST             : "vest",
+ID_LONGSHIRT        : "shirt",
+ID_HOODY            : "hoody",
+ID_MAILSHIRT        : "mail vest",
+ID_MAILLONGSHIRT    : "mail shirt",
+ID_PADDEDCOIF       : "padded coif",
+ID_MAILCOIF         : "mail coif",
+ID_HELMET           : "helmet",
+ID_HELM             : "helm",
+ID_PADDEDSHIRT      : "padded vest",
+ID_PADDEDLONGSHIRT  : "padded shirt",
+ID_PADDEDLEGGING    : "padded legging",
+ID_MAILLEGGING      : "mail legging",
+ID_GREAVE           : "greave",
+ID_VAMBRACE         : "vambrace",
+ID_BOOT             : "boot",
+ID_SHOE             : "shoe",
+ID_SANDAL           : "sandal",
+ID_ARMOR            : "armor",
+ID_GEAR             : "gear",
+ID_CUIRASS          : "cuirass",
+ID_SUIT             : "suit",
+ID_CLOAK            : "cloak",
+ID_FURSUIT          : "fur suit",
+
+ID_RAGS             : "rags",
+ID_BANDAGE          : "bandage",
+ID_RUBBERBAND       : "rubber band",
+ID_SCALPEL          : "scalpel",
+ID_SCISSORS         : "scissors",
+ID_PLIERS           : "pliers",
+ID_SCREWDRIVER      : "screwdriver",
+ID_WHETSTONE        : "whetstone",
+    }
+
+
 
 
 ##class Struct_Sound():

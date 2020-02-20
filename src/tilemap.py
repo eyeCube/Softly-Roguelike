@@ -227,6 +227,7 @@ RENDERER:
             # init special grids
         self.grid_things =      [ [ [] for y in range(h)] for x in range(w) ]
         self.grid_lights =      [ [ [] for y in range(h)] for x in range(w) ]
+        self.grid_height =      [ [ 0 for y in range(h)] for x in range(w) ]
         #self.grid_fluids =      [ [ [] for y in range(h)] for x in range(w) ]
             # Init root FOVmap
         self.fov_map = libtcod.map_new(w,h)
@@ -401,10 +402,14 @@ Reason: entity has no position component.'''.format(ent))
         self.grid_lighting[x][y] += value
     def tile_darken(self, x, y, value):
         self.grid_lighting[x][y] = max(0, self.grid_lighting[x][y] - value)
-    def tile_set_light_value(self, x, y, value):
-        self.grid_lighting[x][y]=value
-    def get_light_value(self, x, y):
+    def get_perceived_light_value(self, x, y):
+        return lights.Light.perceivedBrightness(self.grid_lighting[x][y])
+    def get_light_value(self, x, y): # actual light value
         return self.grid_lighting[x][y]
+    def get_height(self, x, y):
+        return self.grid_height[x][y]
+    def get_cm(self, x, y):
+        return self.grid_height[x][y] * CM_PER_TILE * HEIGHTMAP_GRADIENT
     
     # private functions
     
@@ -569,7 +574,7 @@ Reason: entity has no position component.'''.format(ent))
             if x is None: return
             if maths.dist(pos.x,pos.y, x,y) > sight: return
             if self.get_blocks_sight(x,y):  return
-            if self.get_light_value(x,y):
+            if self.get_perceived_light_value(x,y):
                 libtcod.console_put_char(self.con_map_state, tx,ty, "?")
                 return
 

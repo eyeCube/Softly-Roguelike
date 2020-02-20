@@ -134,8 +134,6 @@ class Rogue:
         cls.world.add_processor(proc.FluidProcessor(), 92)
         cls.world.add_processor(proc.FireProcessor(), 91)
         cls.world.add_processor(proc.TimersProcessor(), 90)
-            # after all changes have been made
-        cls.world.add_processor(proc.GUIProcessor(), 71)
             # AI function and queued actions processor
         cls.world.add_processor(proc.ActorsProcessor(), 50)
     
@@ -221,7 +219,12 @@ def msg_clear():
 def dlvl():             return Rogue.data.dlvl() #current dungeon level of player
 def level_up():         Rogue.data.dlvl_update(Rogue.data.dlvl() + 1)
 def level_down():       Rogue.data.dlvl_update(Rogue.data.dlvl() - 1)
-def level_set(lv):      Rogue.data.dlvl_update(lv)
+def level_set(lv):
+    # TODO: code for loading / unloading levels into the map
+    # unload current map from Rogue.map into the levels dict
+    # load new map into Rogue.map from the levels dict
+    # update dlvl
+    Rogue.data.dlvl_update(lv)
 
 # clock
 def turn_pass():        Rogue.clock.turn_pass()
@@ -246,19 +249,16 @@ def view_max_y():   return  ROOMH - Rogue.view.h
 def fixedViewMode_toggle(): Rogue.view.fixed_mode_toggle()
 
 # map
-def map(z = -99):
-    # TODO: code for loading / unloading levels into the map
-    if z == -99:
+def getmap(z=None): # get TileMap obj for the corresponding dungeon level
+    if z is None:
         z = dlvl()
-    if dlvl() == z:
+    if z == dlvl():
         return Rogue.map
     else:
-        # unload current map from Rogue.map into the levels dict
-        # load new map into Rogue.map from the levels dict
-        # update dlvl
         level_set(z)
         return Rogue.map
 def tile_get(x,y):          return Rogue.map.get_char(x,y)
+def tile_height(x,y):       return Rogue.map.get_height(x,y)
 def tile_change(x,y,char):
     updateNeeded=Rogue.map.tile_change(x,y,char)
     if updateNeeded:
@@ -266,8 +266,10 @@ def tile_change(x,y,char):
 def map_reset_lighting():   Rogue.map.grid_lighting_init()
 def tile_lighten(x,y,value):Rogue.map.tile_lighten(x,y,value)
 def tile_darken(x,y,value): Rogue.map.tile_darken(x,y,value)
-def tile_set_light_value(x,y,value):Rogue.map.tile_set_light_value(x,y,value)
-def get_light_value(x,y):   return Rogue.map.get_light_value(x,y)
+def get_actual_light_value(x,y):
+    return Rogue.map.get_light_value(x,y)
+def get_perceived_light_value(x,y):
+    return Rogue.map.get_perceived_light_value(x,y)
 ##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
 def identify_symbol_at(x,y):
     asci = libtcod.console_get_char(0, getx(x),gety(y))
@@ -412,8 +414,50 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 # end def
 
 
-    # "Fun"ctions #
+# Name functions
 
+def fullname_gear(ent):
+    world=Rogue.world
+    fullname = world.component_for_entity(ent, cmp.Name).name
+    if ( world.has_component(ent, cmp.Fitted)
+         and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
+        fullname = "fitted {}".format(fullname)
+    return fullname
+# end def
+def fullname(ent):
+    ''' get the full name with any prefixes, suffixes, etc.
+         (but do not add the title)
+    '''
+    world=Rogue.world
+    fullname = world.component_for_entity(ent, cmp.Name).name
+    
+    if world.has_component(ent, cmp.Prefixes):
+        compo = world.component_for_entity(ent, cmp.Prefixes)
+        for string in compo.strings:
+            fullname = "{} {}".format(string, fullname)
+            
+    if world.has_component(ent, cmp.StatusRusted):
+        compo = world.component_for_entity(ent, cmp.StatusRusted)
+        for k,v in RUST_QUALITIES.items():
+            if compo.quality == k:
+                string = RUSTEDNESS[v][2] # TODO: test
+                fullname = "{} {}".format(string, fullname)
+                break
+            
+    if world.has_component(ent, cmp.StatusRotted):
+        compo = world.component_for_entity(ent, cmp.StatusRotted)
+        for k,v in ROT_QUALITIES.items():
+            if compo.quality == k:
+                string = ROTTEDNESS[v][2] # TODO: test
+                fullname = "{} {}".format(string, fullname)
+                break
+            
+    return fullname
+# end def
+
+
+    # "Fun"ctions #
+    
 def ceil(i): return math.ceil(i)
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
     return round(i + 0.00001)
@@ -591,17 +635,36 @@ def make(ent, flag):
     Rogue.world.component_for_entity(ent, cmp.Flags).flags.add(flag)
 def makenot(ent, flag):
     Rogue.world.component_for_entity(ent, cmp.Flags).flags.remove(flag)
+def makeimmune(ent, flag):
+    make(ent, flag)
+    if flag==IMMUNEBLEED:
+        make(ent, DIRTYSTATS)
+        clear_status(ent, cmp.StatusBleed)
+    elif flag==IMMUNERUST:
+        make(ent, DIRTYSTATS)
+        clear_status(ent, cmp.StatusRusted)
+    elif flag==IMMUNEROT:
+        make(ent, DIRTYSTATS)
+        clear_status(ent, cmp.StatusRotted)
+    elif flag==IMMUNEPAIN:
+        make(ent, DIRTYSTATS)
+        clear_status(ent, cmp.StatusPain)
 #
 
-##def has_equip(obj,item):
-##    return item in Rogue.world.component_for_entity(obj, )
+# inventory give/take items
 def give(ent,item):
+    assert(Rogue.world.has_component(item, cmp.Encumberance))
+    
     if get_status(item, cmp.StatusBurn):
         burn(ent, FIRE_BURN)
         cooldown(item)
+    
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
+# end def
+
 def take(ent,item):
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.remove(item)
+
 def mutate(ent):
     # TODO: do mutation
     mutable = Rogue.world.component_for_entity(ent, cmp.Mutable)
@@ -609,20 +672,28 @@ def mutate(ent):
     entn = Rogue.world.component_for_entity(ent, cmp.Name)
     # TODO: message based on mutation (i.e. "{t}{n} grew an arm!") Is this dumb?
     event_sight(pos.x,pos.y,"{t}{n} mutated!".format(t=entn.title,n=entn.name))
+
 def has_sight(ent):
     if (Rogue.world.has_component(ent, cmp.SenseSight) and not on(ent,BLIND)):
         return True
     else:
         return False
+def has_hearing(ent):
+    if (Rogue.world.has_component(ent, cmp.SenseHearing) and not on(ent,DEAF)):
+        return True
+    else:
+        return False
+
 def port(ent,x,y): # move thing to absolute location, update grid and FOV
     grid_remove(ent)
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
     grid_insert(ent)
-##    update_fov(ent)
+    update_fov(ent) # is this necessary? It was commented out, but AI seems to have no way to set the flag to update its FOV.
     if Rogue.world.has_component(ent, cmp.LightSource):
         compo = Rogue.world.component_for_entity(ent, cmp.LightSource)
         compo.light.reposition(x, y)
+
 def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
     take(ent,item)              #on ground nearby ent.
     itempos=Rogue.world.component_for_entity(item, cmp.Position)
@@ -630,6 +701,7 @@ def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
     itempos.x=entpos.x + dx
     itempos.y=entpos.y + dy
     grid_insert(ent)
+
 def givehp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.hp = min(getms(ent, 'hpmax'), stats.hp + val)
@@ -670,6 +742,11 @@ def damage(ent, dmg: int):
     stats.hp -= dmg
     if stats.hp <= 0:
         kill(ent)
+def damage_phys(ent, dmg: int):
+    if dmg <= 0: return
+    resMult = 0.01*(100 - getms(ent, 'resphys'))     # resistance multiplier
+    damage(ent, around(dmg*resMult))
+
 #damage mp (stamina)
 def sap(ent, dmg: int, exhaustOnZero=True):
 ##    assert isinstance(dmg, int)
@@ -683,9 +760,11 @@ def sap(ent, dmg: int, exhaustOnZero=True):
             exhaust(ent) # TODO
         else:
             stats.mp = 0
+
 def exhaust(ent):
     print('ent {} exhausted.'.format(ent))
     kill(ent)
+
 # satiation / hydration
 def feed(ent, sat, hyd): # add satiation / hydration w/ Digest status
     if world.has_component(ent, cmp.StatusDigest):
@@ -701,7 +780,25 @@ def sate(ent, pts):
 def hydrate(ent, pts):
     compo = Rogue.world.component_for_entity(ent, cmp.Body)
     compo.hydration = min(compo.hydration + pts, compo.hydrationMax)
-# elemental damage
+
+    #------------------#
+    # elemental damage #
+    #------------------#
+
+# RECursively apply ELEMent to all items touching/held/carried by the entity
+def recelem(ent, func, dmg, **kwargs):
+    # apply to inventory items
+    inv=Rogue.world.component_for_entity(ent, cmp.Inventory).data
+##    invres=... # inventory resistance. Should backpack be a separate entity w/ its own inventory? Inventories combine into one?
+    for item in inv:
+        func(item, dmg, kwargs)
+    # apply to the entity itself
+    return func(ent, dmg, kwargs)
+# INTENDED SYNTAX: (TODO: test to make sure this works before applying to all elements.)
+def NEWburn(ent, dmg, maxTemp=999999):
+    return recelem(ent, entities.burn, dmg, maxTemp=maxTemp)
+        
+        
 def settemp(ent, temp):
     Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
 def burn(ent, dmg, maxTemp=999999):
@@ -734,6 +831,8 @@ def paralyze(ent, dur):
     return entities.paralyze(ent, dur)
 def wet(ent, g):
     return entities.wet(ent, g)
+def rot(ent, g):
+    return entities.rot(ent, g)
 def dirty(ent, g):
     return entities.dirty(ent, g)
 def mutate(ent):
@@ -861,6 +960,7 @@ def pc_listen_sounds():
     #----------------#
 
 # TODO: test FOV for NPCs to make sure it works properly!!!
+def getfovmap(mapID): return Rogue.map.fov_map# Rogue.fov_maps[mapID] #
 def update_fov(ent):
     Rogue.c_managers['fov'].update(ent)
 def run_fov_manager(ent):
@@ -887,15 +987,13 @@ def fov_compute(ent):
         algorithm=libtcod.FOV_RESTRICTIVE)
 def update_fovmap_property(fovmap, x,y, value):
     libtcod.map_set_properties( fovmap, x,y,value,True)
-# circular FOV function
-def can_see(ent,x,y,sight=None):
+
+# vision functions
+def can_see(ent,x,y,sight=None): # circular FOV function
     run_fov_manager(ent) # compute entity's FOV if necessary
     world = Rogue.world
-    light=get_light_value(x,y)
-    if (light < 1
-        or (light <= 4**lights.Light.LOGBASE
-            and not on(ent,NVISION))
-        ):
+    light=get_perceived_light_value(x,y)
+    if ( light < 1 or (light <= 4 and not on(ent,NVISION)) ):
         return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
@@ -905,8 +1003,37 @@ def can_see(ent,x,y,sight=None):
         globalreturn(dist,light)
         return True
     return False
-def getfovmap(mapID):
-    return Rogue.map.fov_map# Rogue.fov_maps[mapID] #
+#
+def can_see_obj(ent, target,sight=None): # take heightmap into account
+    h = HEIGHTMAP_GRADIENT * CM_PER_TILE
+    world = Rogue.world
+    
+    # regular FOV algo
+    if not can_see(ent,x,y,sight): # idea: instead of relying on this function,
+        return False # implement whole FOV function using custom algos (no libtcod FOV)
+    # (at least for exterior (outdoor) areas)
+    #
+    
+    entpos = world.component_for_entity(ent, cmp.Position)
+    targetpos = world.component_for_entity(target, cmp.Position)
+    eyesh = (getms(ent, 'height') - 5) // h # - 5 is temporary; height of the viewer's eye-holes with respect to the ground
+    targeth = (getms(target, 'height')*0.8333334)) // h
+    entz = tile_height(entpos.x, entpos.y) + eyesh
+    targetz = tile_height(targetpos.x, targetpos.y) + targeth
+    zz = targetz + targeth
+    # cast thin-cover line to the target
+    line = misc.Bresenham3D(
+        entpos.x, entpos.y, entz + eyesh,
+        targetpos.x, targetpos.y, zz
+        )
+    # look at heightmap for collisions
+    for tile in line:
+        x,y,z = tile
+        if z < tile_height(x, y): # blocked by hill/cliff, etc.
+            return False
+    # end for
+    return True # if we made it this far
+#
 #copies Map 's fov data to all creatures - only do this when needed
 #   also flag all creatures for updating their fov maps
 def update_all_fovmaps():
@@ -1483,17 +1610,26 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         world.remove_component(item, cmp.Position)
     # make item a child of its equipper so it has equipper's position / direction
     world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
-
-        # BUGGY CODE: FIXME! TODO: distinguish between covered and holding, for held items vs armor that covers the slot....
-    # put it in the right slot -- is it a held item or a worn item?
+    
+    # put it in the right slot (held or worn?)
     if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
-        eqcompo.held.item = item # wielded / held
+        # wielded / held
+        eqcompo.held.item = item
         eqcompo.holding = True # cover this BP
     else:
-        eqcompo.slot.item = item # worn
+        # worn
+        eqcompo.slot.item = item 
         eqcompo.covered = True # cover this BP
-        eqcompo.slot.covers = tuple(clslis)
+
+    if ( (equipType==EQ_MAINLEG or equipType==EQ_OFFLEG)
+         and equipable.coversBoth
+        ):
+        # for now just cover all legs (TEMPORARY OBV.)
+        for leg in findbps(ent, cmp.BP_Leg):
+            clis.append(leg)
     
+    # cover
+    eqcompo.slot.covers = tuple(clslis)
     # cover the BPs
     for _com in clis:
         _com.covered=True
@@ -1686,6 +1822,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     world=Rogue.world
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
+
+    # skills
     if world.has_component(ent, cmp.Skills):
         skills = world.component_for_entity(ent, cmp.Skills)
         athlete = _getskill(skills.skills.get(SKL_ATHLETE,0)) # athletic skill Lv
@@ -1696,13 +1834,19 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         athlete = 0
         armorSkill = 0
         unarmored = 0
+
     # RESET all modded stats to their base
     for k,v in base.__dict__.items():
         modded.__dict__[k] = v
+
     # init pseudo-stats (stats which have no base value)
     modded.tatk=modded.tdmg=modded.tpen=modded.tasp=modded.trng=0
     modded.ratk=modded.rdmg=modded.rpen=modded.rasp=modded.minrng=modded.maxrng=0
+    
+    # useful stats to keep track of
+    basemass = base.mass / MULT_MASS
 # /init #--------------------------------------------------------------#
+
 
 #~~~~~~~#-------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # Get Body Data / Equips  #
@@ -1717,7 +1861,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         keys = body.parts.keys()
         
         # body component top level vars
-        entities._update_from_body_class(body, modded)
+        bodymass = entities._update_from_body_class(body, modded)
+        basemass = (base.mass + bodymass) / MULT_MASS
         # encumerance from your own body weight
         modded.enc += modded.mass//MULT_MASS
         
@@ -1782,18 +1927,125 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         #------------#
 
     # add encumberance from all items in inventory
-    # TODO
+    if world.has_component(ent, cmp.Inventory): # TODO: test this
+        inv=world.component_for_entity(ent, cmp.Inventory).data
+        for item in inv:
+            enc=world.component_for_entity(item, cmp.Encumberance).value
+            modded.enc += enc * (getms(item, 'mass') / MULT_MASS)
+            
+#~~~~~~~#--------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # meters #
+        #--------#
+    
+    if world.has_component(ent, cmp.Meters):
+        meters=world.component_for_entity(ent, cmp.Meters)
 
+        # Statuses
+        
+        # all statuses set here must also be unset here
+        # all statuses set here must have timer == -1 (don't auto-expire)
+        
+        # temperature
+##        if meters.temp > bodytemp
 
+        # pain
+        if not on(ent, IMMUNEPAIN):
+            q=0
+            for _q, dec in PAIN_QUALITIES.items():
+                if meters.pain >= MAX_PAIN*dec:
+                    q=_q
+            if q:
+                status=get_status(ent, cmp.StatusPain)
+                if (status and status.quality != q):
+                    clear_status(ent, cmp.StatusPain)
+                set_status(ent, cmp.StatusPain, t=-1, q=q)
+            else:
+                clear_status(ent, cmp.StatusPain)
+        
+        # bleed
+        if not on(ent, IMMUNEBLEED):
+            q = meters.bleed // (0.5*basemass)
+            if q:
+                status=get_status(ent, cmp.StatusBleed)
+                if (status and status.quality != q):
+                    clear_status(ent, cmp.StatusBleed)
+                set_status(ent, cmp.StatusBleed, t=-1, q=q)
+            else:
+                clear_status(ent, cmp.StatusBleed)
+        
+        # dirty
+        q=0
+        for _q, dec in DIRT_QUALITIES.items():
+            if meters.dirt >= MAX_DIRT*dec:
+                q=_q
+        if q:
+            status=get_status(ent, cmp.StatusDirty)
+            if (status and status.quality != q):
+                clear_status(ent, cmp.StatusDirty)
+            set_status(ent, cmp.StatusDirty, t=-1, q=q)
+        else:
+            clear_status(ent, cmp.StatusDirty)
+        
+        # wet
+        if not on(ent, IMMUNEWET):
+            q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
+            if q:
+                status=get_status(ent, cmp.StatusWet)
+                if (status and status.quality != q):
+                    clear_status(ent, cmp.StatusWet)
+                set_status(ent, cmp.StatusWet, t=-1, q=q)
+            else:
+                clear_status(ent, cmp.StatusWet)
+        
+        # rust
+            # TODO: rust status affecting stats
+        q=0
+        for _q, dec in RUST_QUALITIES.items():
+            if meters.rust >= MAX_RUST*dec:
+                q=_q
+        if q:
+            status=get_status(ent, cmp.StatusRust)
+            if (status and status.quality != q):
+                clear_status(ent, cmp.StatusRust)
+            set_status(ent, cmp.StatusRust, t=-1, q=q)
+        else:
+            clear_status(ent, cmp.StatusRust)
+        
+        # rot
+            # TODO: rot status affecting stats
+        q=0
+        for _q, dec in ROT_QUALITIES.items():
+            if meters.rot >= MAX_ROT*dec:
+                q=_q
+        if q:
+            status=get_status(ent, cmp.StatusRot)
+            if (status and status.quality != q):
+                clear_status(ent, cmp.StatusRot)
+            set_status(ent, cmp.StatusRot, t=-1, q=q)
+        else:
+            clear_status(ent, cmp.StatusRot)     
+        
+    
 #~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # statuses that affect attributes #
         #---------------------------------#
         
     # pain
     if world.has_component(ent, cmp.StatusPain):
-        modded.str = min(modded.str, modded.str * PAIN_STRMOD)
-        modded.end = min(modded.end, modded.end * PAIN_ENDMOD)
-        modded.con = min(modded.con, modded.con * PAIN_CONMOD)
+        # TODO
+        if q==1:
+            modded.str = min(modded.str, modded.str * PAIN_STRMOD)
+            modded.end = min(modded.end, modded.end * PAIN_ENDMOD)
+            modded.con = min(modded.con, modded.con * PAIN_CONMOD)
+        elif q==2:
+            modded.str = min(modded.str, modded.str * AGONY_STRMOD)
+            modded.end = min(modded.end, modded.end * AGONY_ENDMOD)
+            modded.con = min(modded.con, modded.con * AGONY_CONMOD)
+        elif q==3:
+            modded.str = min(modded.str, modded.str * EXCRU_STRMOD)
+            modded.end = min(modded.end, modded.end * EXCRU_ENDMOD)
+            modded.con = min(modded.con, modded.con * EXCRU_CONMOD)
+            
     # sick
     if world.has_component(ent, cmp.StatusSick):
         modded.str = min(modded.str, modded.str * SICK_STRMOD)
@@ -1954,11 +2206,13 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             #
     # end for
     
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-    #---------------------------------------------------------------#
+#~~~#---------------------------------------------------------------#~~~#
     #       FINAL        MULTIPLIERS       BEGIN       HERE         #
-    #---------------------------------------------------------------#
+#~~~#---------------------------------------------------------------#~~~#
+    
+    #------------------------------------------------#
+    #   Statuses that affect (non-attribute) stats   #
+    #------------------------------------------------#
     
     # sick
     if world.has_component(ent, cmp.StatusSick):
@@ -1984,12 +2238,6 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.mpregen  = modded.mpregen    * CHILLY_SPREGENMOD
         modded.mpmax    = modded.mpmax      * CHILLY_STAMMOD
     
-    # blind
-    if world.has_component(ent, cmp.StatusBlind):
-        modded.sight = modded.sight * BLIND_SIGHTMOD
-    # deaf
-    if world.has_component(ent, cmp.StatusDeaf):
-        modded.hearing = modded.hearing * DEAF_HEARINGMOD
     # Disoriented
     if world.has_component(ent, cmp.StatusDisoriented):
         modded.sight    = modded.sight      * DISOR_SIGHTMOD
@@ -2055,9 +2303,23 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusFull):
         modded.mpregen = modded.mpregen * FULL_SPREGENMOD
     
-    # quality statuses #
+#---# quality statuses #--------------------------------------------#
     # have variable magnitude
         
+    # recoil
+    if world.has_component(ent, cmp.StatusRecoil):
+        status=world.component_for_entity(ent, cmp.StatusRecoil)
+        modded.ratk = modded.ratk - status.quality*MULT_STATS
+        # TODO: while recoiling, all actions except shooting again ...
+        # ... cost extra AP to perform.
+    # blinded
+    if world.has_component(ent, cmp.StatusBlinded):
+        status=world.component_for_entity(ent, cmp.StatusBlinded)
+        modded.sight = around(modded.sight * status.quality / 100)
+    # deafened
+    if world.has_component(ent, cmp.StatusDeafened):
+        status=world.component_for_entity(ent, cmp.StatusDeafened)
+        modded.hearing = around(modded.hearing * status.quality / 100)
     # drunk
     if world.has_component(ent, cmp.StatusDrunk):
         compo = world.component_for_entity(ent, cmp.StatusDrunk)
@@ -2067,7 +2329,18 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusOffBalance):
         compo = world.component_for_entity(ent, cmp.StatusOffBalance)
         modded.bal = modded.bal - compo.quality*MULT_STATS
-        
+    
+    # wet
+    if world.has_component(ent, cmp.StatusWet):
+        q=world.component_for_entity(ent, cmp.StatusWet).quality
+        modded.resfire += q
+        modded.rescold -= q
+        modded.reselec -= q
+        modded.resdirt -= q
+        modded.resbio -= q
+    
+#---# body positions #-----------------------------------------------#
+    
     # crouched
     if world.has_component(ent, cmp.StatusBPos_Crouched):
 ##        modded.height = modded.height * CROUCHED_HEIGHTMOD
@@ -2141,7 +2414,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 #~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         #   finalize   #
         #--------------#
-            
+    
+    # final multipliers
     # apply mods -- mult mods
     for bps in bpdata:
         for k,v in bps.multMods.items():
@@ -2228,8 +2502,8 @@ def create_moddedStats(ent):
 
 def list_lights(): return list(Rogue.c_managers["lights"].lights.values())
 def create_light(x,y, value, owner=None): # value is range of the light.
-    actual_lumosity = value**lights.Light.LOGBASE
-    light=lights.Light(x,y, actual_lumosity, owner)
+    lumosity = value**lights.Light.LOGBASE
+    light=lights.Light(x,y, lumosity, owner)
     light.fovID=0
     light.shine()
     lightID = Rogue.c_managers['lights'].add(light)
@@ -2302,13 +2576,6 @@ def set_status(ent, status, t=-1, q=None):
         # q         = quality (for specific statuses)
     '''
     proc.Status.add(ent, status, t, q)
-##def set_status_args(ent, status, *args): we might need this....?
-##    '''
-##        # ent       = Thing object to set the status for
-##        # status    = status class (not an object instance)
-##        # t         = duration (-1 is the default duration for that status)
-##    '''
-##    proc.Status.add(ent, status, args)
 def clear_status(ent, status):
     proc.Status.remove(ent, status)
 def clear_status_all(ent):

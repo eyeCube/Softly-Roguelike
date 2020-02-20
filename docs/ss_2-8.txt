@@ -66,3 +66,30 @@ Another difficulty in implementing elevation, of course, is displaying this info
 If I have to, I can always just make hills not block LOS at all (and if I go that route, hills will probably be scarce/less pronounced) but I think it would be such a neat feature and I think would incentivize me to make more interesting terrain.
 
 What are your thoughts on this? What have you or other devs done to implement elevation in Roguelikes? What do you think about the other changes? Thanks for reading!
+
+
+
+
+
+
+
+
+
+
+
+Dropping Weight
+Things have become rather complicated in my game. I believe this is what's called "scope creep." The short version of the story is that, in general I have decided my game is to be an RPG first, and a simulation second; so I believe I will remove some of the more complex mechanics in favor of a more transparent and less-realistic system.
+I will be sad to see the heat dispersion grid go, but go it must. That mechanic would disperse heat across the map in dynamic ways which produced organic fire-spreading that could react to changes in wind direction/speed in interesting and realistic-seeming ways. However, I felt limited in my options with this game moving forward, as a result of that mechanic putting such a big drain on the CPU when the map sizes increased past the standard 80x50. Even with the optimized scipy implementation, the dispersing of heat on large grids seems just too slow to be workable (my computer, I admit, is slow -- but I want the game to be able to run on old machines).
+Even without the speed issue, though, in many ways I feel that the heat dispersion thing is more work than it's worth for this project, which already has a lot of other things going for it. I wanted it to work. But alas, I feel more free relieving this burden and moving forward with large, diverse procedural maps.  may do more with that idea in a future project.
+I will have to rethink and redesign everything having to do with heat/fire, and go for a simpler solution. I will use simple rules -- "if you sleep on a cold ground without a sleeping bag / fire nearby / some adequate heat source, then you die." Although there will be lots of such rules to implement, at least I won't have to worry about things like balancing the metabolism function to ensure warm-blooded creatures produce enough heat and are insulated well enough from their fat / surroundings to keep themselves alive at night (which I was legit doing).
+I'm excited though, about the prospect of being able to have large maps again. It was upsetting me, I think, feeling that I had to stick to small maps, so, I have already begun toying some with larger sized maps. That leads us to...
+Elevation
+With larger maps available to me now, I have been playing with the idea of having outdoor areas with diverse procedural terrain, which, in my mind, cannot exist without some indication of changes in elevation. But, I want this to be simple, and I'm not sure how exactly I'll implement it, but here's what I've been thinking.
+Each tile has an elevation value, which is independent of its terrain type. Moving onto a tile of higher elevation requires more Action Points and Stamina. Large changes in elevation across two tiles would indicate a steep hill or a sort of cliff in extreme cases. Cliffs, of course, would be exponentially harder to traverse than regular sized hills. I feel that this is all easy enough to figure out on my own.
+But the difficult part is how to deal with LOS. I would like for hills to block LOS like walls do, but then of course, when you climb the hill, it does not block your view but enhances it.
+I see two ways to do this right now. The first seems like a bad idea: it's to iterate over every tile in view, for every entity with sight, every time I want to update LOS, and compare the elevation of each tile to the elevation/height of the entity at its position, treating all tiles where the elevation is higher than you as walls. This seems like it would be extremely slow.
+The second idea is to store Tcod FOV objects, one for each level of elevation on the map, where all of the levels of elevation are already pre-calculated so we can just index the appropriate FOV map to use for the LOS calculation. This seems like a better solution. I have begun taking steps to implement this, including switching to a system where all entities access global FOV map(s) by simply passing in an integer value as an index (but right now it's not finished and all it does is return the primary global FOV map).
+Another difficulty in implementing elevation, of course, is displaying this information effectively using ASCII graphics. But I think, with the implementation where each tile has its own elevation value, we can simply use a gradient color where lighter values are higher up. One thing I really don't like is Dwarf Fortress's way of drawing elevation. My hills will be less steep than those, and will not cut the world into 3D slices, rather just provide a sort of illusion of some 3D depth. I'm far more concerned with the FOV issue than how I will display elevation.
+If I have to, I can always just make hills not block LOS at all (and if I go that route, hills will probably be scarce/less pronounced) but I think it would be such a neat feature and I think would incentivize me to make more interesting terrain.
+What are your thoughts on this? What have you or other devs done to implement elevation in Roguelikes? What do you think about the other changes? 
+Thanks for reading! :)
