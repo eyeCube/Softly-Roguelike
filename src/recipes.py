@@ -561,7 +561,7 @@ RECIPES={
 'musket stock':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_WOOD,7,), (SKL_GUNSMITH,3,),),
+    'skills'    : ((SKL_GUNSMITH,3,), (SKL_WOOD,7,),),
     'construct' : 7200,
     'components': ( [ ('slab of wood', 1,), ], ),
     'tools'     : (
@@ -597,7 +597,7 @@ RECIPES={
 'gun barrel, short':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,10,), (SKL_GUNSMITH,6,),),
+    'skills'    : ((SKL_GUNSMITH,6,), (SKL_METAL,10,),),
     'construct' : 43200,
     'components': (
         [ ('metal bar', 1,), ],
@@ -616,7 +616,7 @@ RECIPES={
 'gun barrel':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,5,), (SKL_GUNSMITH,5,),),
+    'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
     'construct' : 9600,
     'components': ( [ ('gun barrel, short', 2,), ], ),
     'tools'     : (
@@ -633,7 +633,7 @@ RECIPES={
 'gun barrel, long':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,5,), (SKL_GUNSMITH,5,),),
+    'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
     'construct' : 9600,
     'components': ( [ ('gun barrel', 1,), ], [ ('gun barrel, short', 1,), ], ),
     'tools'     : (

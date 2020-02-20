@@ -70,9 +70,9 @@ def main():
     rog.init_keyBindings()
         
     #map generation
-    rog.map(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
-    rog.map(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
-    rog.map(rog.dlvl()).generate_dlvl(rog.dlvl())
+    rog.getmap(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
+    rog.getmap(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
+    rog.getmap(rog.dlvl()).generate_dlvl(rog.dlvl())
         
     # init player
 
@@ -81,7 +81,7 @@ def main():
     xpos = 15
     ypos = 15
     _borders = 10
-    while rog.map(rog.dlvl()).tileat(xpos, ypos) == WALL:
+    while rog.getmap(rog.dlvl()).tileat(xpos, ypos) == WALL:
         xpos +=1
         if xpos >= ROOMW - _borders:
             xpos = _borders
@@ -121,7 +121,7 @@ def main():
     
     weap=rog.create_weapon("metal halberd", 0,0)
 ##    rog.damage(weap, 200)
-    rog.fitgear(weap, rog.pc())
+##    rog.fitgear(weap, rog.pc())
     rog.equip(
         rog.pc(),weap,EQ_MAINHAND
         )
@@ -131,47 +131,47 @@ def main():
     rog.equip(
         rog.pc(),shield,EQ_OFFHAND
         )
-    rog.fitgear(shield, rog.pc())
+##    rog.fitgear(shield, rog.pc())
     armor=rog.create_armor("metal gear", 0,0)
     rog.equip(
         rog.pc(),armor,EQ_FRONT
         )
-    rog.fitgear(armor, rog.pc())
+##    rog.fitgear(armor, rog.pc())
     helm=rog.create_headwear("metal helm", 0,0)
     rog.equip(
         rog.pc(),helm,EQ_MAINHEAD
         )
-    rog.fitgear(helm, rog.pc())
+##    rog.fitgear(helm, rog.pc())
     leg1=rog.create_legwear("metal mail legging", 0,0)
     rog.equip(
         rog.pc(),leg1,EQ_MAINLEG
         )
-    rog.fitgear(leg1, rog.pc())
+##    rog.fitgear(leg1, rog.pc())
     leg2=rog.create_legwear("metal mail legging", 0,0)
     rog.equip(
         rog.pc(),leg2,EQ_OFFLEG
         )
-    rog.fitgear(leg2, rog.pc())
+##    rog.fitgear(leg2, rog.pc())
     arm1=rog.create_armwear("metal vambrace", 0,0)
     rog.equip(
         rog.pc(),arm1,EQ_MAINARM
         )
-    rog.fitgear(arm1, rog.pc())
+##    rog.fitgear(arm1, rog.pc())
     arm2=rog.create_armwear("metal vambrace", 0,0)
     rog.equip(
         rog.pc(),arm2,EQ_OFFARM
         )
-    rog.fitgear(arm2, rog.pc())
+##    rog.fitgear(arm2, rog.pc())
     foot1=rog.create_footwear("metal boot", 0,0)
     rog.equip(
         rog.pc(),foot1,EQ_MAINFOOT
         )
-    rog.fitgear(foot1, rog.pc())
+##    rog.fitgear(foot1, rog.pc())
     foot2=rog.create_footwear("metal boot", 0,0)
     rog.equip(
         rog.pc(),foot2,EQ_OFFFOOT
         )
-    rog.fitgear(foot2, rog.pc())
+##    rog.fitgear(foot2, rog.pc())
     #
     
     # create light so player can see

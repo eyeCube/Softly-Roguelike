@@ -343,6 +343,42 @@ def rest_pc(pc):
 #######################################################################
 
 
+#wait
+#just stand still and do nothing
+#recover your Action Points to their maximum
+def wait(ent):
+    rog.setAP(ent, 0)
+    rog.metabolism(ent, CALCOST_REST)
+# end def
+
+def cough(ent):
+    world = rog.world()
+    pos = world.component_for_entity(ent, cmp.Position)
+    entn = world.component_for_entity(ent, cmp.Name)
+    wait(ent)
+    rog.event_sound(pos.x,pos.y, SND_COUGH)
+    rog.event_sight(pos.x,pos.y, "{t}{n} doubles over coughing.".format(
+        t=entn.title,n=entn.name))
+# end def
+
+def intimidate(ent):
+    world=rog.world()
+    stats=world.component_for_entity(ent, cmp.Stats)
+    pos=world.component_for_entity(ent, cmp.Position)
+    entn=world.component_for_entity(ent, cmp.Name)
+    fear=rog.getms(ent, 'intimidation')
+    world.add_component(ent, cmp.StatusFrightening(10))
+    rog.event_sound(pos.x,pos.y,SND_ROAR)
+    rog.event_sight(pos.x,pos.y,"{t}{n} makes an intimidating display.".format(
+        t=entn.title,n=entn.name))
+# end def
+
+#use
+#"use" an item, whatever that means for the specific item
+# context-sensitive use action
+def use(obj, item):
+    pass
+
 # equip
 # try to put item in a specific slot; spend AP for success
 def _equip(ent, item, equipType):
@@ -381,47 +417,7 @@ def wear_eyes(ent, item):       return _equip(ent, item, EQ_MAINEYES)
 def wear_ears(ent, item):       return _equip(ent, item, EQ_MAINEARS)
 #
 
-#wait
-#just stand still and do nothing
-#recover your Action Points to their maximum
-def wait(ent):
-    rog.setAP(ent, 0)
-    rog.metabolism(ent, CALCOST_REST)
-# end def
-
-def cough(ent):
-    world = rog.world()
-    pos = world.component_for_entity(ent, cmp.Position)
-    entn = world.component_for_entity(ent, cmp.Name)
-    wait(ent)
-    rog.event_sound(pos.x,pos.y, SND_COUGH)
-    rog.event_sight(pos.x,pos.y, "{t}{n} doubles over coughing.".format(
-        t=entn.title,n=entn.name))
-# end def
-
-def intimidate(ent):
-    world=rog.world()
-    stats=world.component_for_entity(ent, cmp.Stats)
-    pos=world.component_for_entity(ent, cmp.Position)
-    entn=world.component_for_entity(ent, cmp.Name)
-    fear=rog.getms(ent, 'intimidation')
-    world.add_component(ent, cmp.StatusFrightening(10))
-    rog.event_sound(pos.x,pos.y,SND_ROAR)
-    rog.event_sight(pos.x,pos.y,"{t}{n} makes an intimidating display.".format(
-        t=entn.title,n=entn.name))
-# end def
-
-#use
-#"use" an item, whatever that means for the specific item
-# context-sensitive use action
-def use(obj, item):
-    pass
-
-
-#pocket thing
-#a thing puts a thing in its inventory
-def pocketThing(ent, item):
-##    if not item: return False
+def pocketThing(ent, item): #entity puts item in its inventory
     world = rog.world()
     rog.grid_remove(item)
     rog.give(ent, item)
@@ -665,13 +661,27 @@ def _strike(attkr,dfndr,aweap,dweap,
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
     asp =   max( MIN_ASP, rog.getms(attkr,'asp') )
+    areach =rog.getms(attkr,'reach')
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
     prot =  rog.getms(dfndr,'pro')//MULT_STATS
     arm =   rog.getms(dfndr,'arm')//MULT_STATS
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
+    dreach =rog.getms(dfndr,'reach')
     resphys = rog.getms(dfndr,'resphys')
+
+    # differences btn attacker and defender
+    dcm =   rog.getms(attkr,'height') - rog.getms(dfndr,'height')
+##    dkg =   (rog.getms(attkr,'mass') - rog.getms(dfndr,'mass'))//MULT_MASS # only affects grappling, not fighting
+    
+    # advantages from stat differences
+    # lesser reach has the advantage
+    if areach > dreach:
+        adv = -1
+    elif areach < dreach:
+        adv = 1
+    adv = rog.sign(dcm) * (math.abs(dcm)//CM_ADVANTAGE_BP)
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
@@ -691,7 +701,7 @@ def _strike(attkr,dfndr,aweap,dweap,
 
         # counter-attack
         if (counterable
-        and rog.inreach(dpos.x,dpos.y, apos.x,apos.y, rog.getms(dfndr,'reach'))
+        and rog.inreach(dpos.x,dpos.y, apos.x,apos.y, dreach)
         and rog.on(dfndr,CANCOUNTER)
             ):
             if (dice.roll(100) <= ctr):
@@ -720,8 +730,8 @@ def _strike(attkr,dfndr,aweap,dweap,
         if grazed:
             dmg = dmg*0.5
         resMult = 0.01*(100 - resphys)     # resistance multiplier
-        rmp = 1 #CMB_MDMGMIN + (CMB_MDMG*random.random()) # random multiplier -> variable damage
         rawDmg = dmg - armor
+##        rmp = CMB_MDMGMIN + (CMB_MDMG*random.random()) # random multiplier -> variable damage
         
         # bonus damage (bonus to flesh, to armor, etc.)
 ##        dfndrArmored = False
@@ -736,7 +746,7 @@ def _strike(attkr,dfndr,aweap,dweap,
 ##                bonus = compo.dmg
 ##                rawDmg += bonus
 
-        trueDmg = rog.around( max(0,rawDmg*resMult*rmp) ) # apply modifiers
+        trueDmg = rog.around( max(0,rawDmg*resMult) ) #*rmp # apply modifiers
         
         # elemental damage
         if (world.has_component(aweap,cmp.ElementalDamageMelee)):
@@ -744,18 +754,18 @@ def _strike(attkr,dfndr,aweap,dweap,
         else:
             elements={}
         
-##        # extra critical damage: % based on Attack and Penetration
-##        # you need more atk and more pen than usual to score a crit.
-##        if (hitDie >= dice.roll(20) and pen-prot >= 12 + dice.roll(12) ):
-##            # critical hit!
-##            if skillCompo:
-##                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
-##            else:
-##                critMult = 0.2
-##            # critical hits do a percentage of target's max HP in damage
-##            trueDmg += rog.getms(dfndr, 'hpmax')*critMult
-##            crit=True
-##        # end if
+        # extra critical damage: % based on Attack and Penetration
+        # you need more atk and more pen than usual to score a crit.
+        if (hitDie >= dice.roll(20) and pen-prot >= 24 ):
+            # critical hit!
+            if skillCompo:
+                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
+            else: # default crit damage
+                critMult = WEAPONCLASS_CRITDAMAGE[0]
+            # critical hits do a percentage of target's max HP in damage
+            trueDmg += math.ceil(rog.getms(dfndr, 'hpmax')*critMult)
+            crit=True
+        # end if
 
             #--------------------#
             # body / gear damage #
@@ -963,7 +973,7 @@ def fight(attkr,dfndr,adv=0,power=0):
                 if grazed:
                     v="grazes"
                 else:
-                    v = "crits" if crit else "hits"
+                    v = "*crits*" if crit else "hits"
         if ctrd: # TODO: more detailed counter message (i.e., " and ... counters (8x2)")
             m = " and {dt}{n} counters".format(dt=dt,n=n)
         rog.event_sight(
@@ -1137,15 +1147,37 @@ def _eat_cancelFunc(ent, qa): # helper func for eat action
         cmp.Draw(draw.char, draw.fgcol, draw.bgcol),
         cmp.Position(pos.x, pos.y),
         cmp.Stats(hp=1, mass=newMass),
-        cmp.Prefixes("partially eaten "), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
+        cmp.Prefixes("partially eaten"), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
+        # or should this be just a PartiallyEaten() component?
         )
     
     # finally, delete the food item
     rog.kill(item)
 # end def
 
-
-
+def craft(ent, recipe):
+    world=rog.world()
+    data = recipes.RECIPES.get(recipe, {})
+    if not data:
+        entname=world.component_for_entity(ent, cmp.Name)
+        entpos=world.component_for_entity(ent, cmp.Position)
+        print("entity named '{}' at {},{} tried to craft recipe '{}', which does not exist.".format(
+            entname, entpos.x, entpos.y, recipe))
+        return False
+    
+    # ensure entity has appropriate crafting skill levels
+    apMult = 1
+    for packd in data['skills']:
+        skill,lv = packd
+        if lv > rog.getskill(ent, skill):
+            return False
+        apMult = max(0.1, 1 - (skillLv - lv)*0.005)
+    
+    # begin crafting job
+    apCost = max(1, int( data['construct'] * apMult) )
+    proc.ActionQueue.queue( ent, apCost, _craft_finishFunc,
+                            data=data, cancelFunc=_craft_cancelFunc )
+# end def
 
 
 

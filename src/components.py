@@ -53,19 +53,25 @@ class Name:
         self.title = title
 
 class Form: #physical makeup of the object
-    __slots__=['material','value','length','phase']
-    def __init__(self, mat=0, val=0, length=0, phase=0): #, volume, shape
-        self.material=int(mat)   # fluid types are materials
+    __slots__=['material','value','length','phase','shape']
+    def __init__(self, mat=0, val=0, length=0, phase=0, shape=0): #, volume
+        self.material=int(mat)  # fluid types are materials
         self.value=int(val)
         self.length=int(length)
-        self.phase=int(phase)    # phase of matter, solid, liquid, etc.
+        self.phase=int(phase)   # phase of matter, solid, liquid, etc.
+        self.shape=shape        # SHAPE_ const for identification purposes.
         # TODO: fluids are implemented by:
         # phase, material, mass.
         #   phase-PHASE_FLUID
         #   material is a FL_ constant
         #   mass indicates volume depending on density
-        # TODO: length could be a value for weapons to indicate reach in small degrees, like a sword can reach to hit foes on the ground easily but a dagger cannot unless you're on top of them, etc.
-       
+
+class Identify: # for identification purposes
+    __slots__=["generic"]
+    def __init__(self, generic):
+        self.generic=generic # ID_ const -> indicates name that appears ...
+        # ... when its type is identified (but not the specific class)
+
 
 class Position:
     __slots__=['x','y']
@@ -98,18 +104,27 @@ class Player: # uniquely identify the one entity that's controlled by user
     # the player has some unique stats that only apply to them
     __slots__=['identify']
     def __init__(self, identify=0):
-        self.identify=int(identify)
+        self.identify=int(identify) # base identify stat
 ##        self.luck=luck
 
 class Targetable:
     __slots__=['kind']
     def __init__(self, kind=0):
         self.kind = kind
+
+class Ambidextrous: # can be wielded by either right or left hand dominant entities
+    __slots__=[]
+    def __init__(self):
+        pass
+class LeftHanded: # dominant arm/hand is left
+    __slots__=[]
+    def __init__(self):
+        pass
        
 class Meters:
     __slots__=[
         'temp','rads','sick','expo','pain','bleed',
-        'rust','rot','wet','fear',#'dirt',
+        'rust','rot','wet','fear','dirt',
         ]
     def __init__(self):
         # all floating point values, no need for hyper precision
@@ -123,8 +138,12 @@ class Meters:
         self.rust=0 # amount of rustedness
         self.rot=0 # amount of rot
         self.wet=0 # amount of water it's taken on
-##        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity. Dirtiness can be a component or something...
+        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
 class Stats: #base stats
+    # all stats should be stored as integers
+    # the actual in-game displayed value / value used for calculations
+    # is equal to the stat divided by a multiplier (MULT_STATS) for most
+    # stats, but not resistances, life, mass, etc.
     def __init__(self, hp=1,mp=1, mpregen=1, mass=1,height=0,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
@@ -184,8 +203,8 @@ class Stats: #base stats
         self.cou=int(courage)   # courage -- resistance to fear
         self.idn=int(scary) # intimidation / scariness
         self.bea=int(beauty) # factors into persuasion / love
-        self.camo=camo      # affects visibility
-        self.stealth=stealth # affects audibility
+        self.camo=int(camo)     # affects visibility
+        self.stealth=int(stealth) # affects audibility
 
 class ModdedStats: # stores the modified stat values for an entity
     def __init__(self):
@@ -196,7 +215,7 @@ class LightSource:
     __slots__=['lightID','light']
     def __init__(self, lightID, light):
         self.lightID=lightID
-        self.light=light # Light object
+        self.light=light # lights.Light object
 class Fuel: # fuel for fires
     __slots__=['fuel'] #,'ignition_temp'
     def __init__(self, fuel=1): #, ignition_temp=None
@@ -223,6 +242,12 @@ class Mutable:
     __slots__=['mutations']
     def __init__(self):
         self.mutations=0
+
+class Camo:
+    __slots__=['terrains']
+    def __init__(self, terrains):
+        self.terrains=terrains # {terrain_constant : camo_bonus,}
+        #e.g. {ROUGH : 2, SHRUB : 8, BRAMBLE: 4, JUNGLE: 16, JUNGLE2: 16,}
         
 class Flags:
     __slots__=['flags']
@@ -296,17 +321,91 @@ class CountersRemaining:
     def __init__(self, q=None):
         self.quantity=q
 
-##class Breathes:
-##    __slots__=[]
-##    def __init__(self):
-##        self.
+class Breathes: # needs to breathe to survive
+    __slots__=['status']
+    def __init__(self, status=0):
+        self.status=status # BREATHE_ const; holding breath, inhaling, exhaling, hyperventilating, etc.
+
+class Inventory: #item container
+    __slots__=['capacity','size','money','mass','data','enc']
+    # renamed variable "size" --> "mass"
+    # "size" is now related to capacity
+    def __init__(self, capacity=-1, size=1, money=0):
+        self.capacity=capacity  # encumberance maximum (-1 == infinite) before items fall out of your bag, your bag breaks, your items poke you in the side, etc.
+        self.size=size          # max. encumberance any one item can have inside this container (TODO: implement this! A backpack could have a high size and capacity, and you can share your inventory with the backpack when it's equipped (adds capacity and uses max size of all inventories you possess))
+        self.money=money        # current amount of money in the container
+        self.mass=0             # total mass of all entities in the container
+        self.enc=0              # current total encumberance value
+        self.data=[]            # list of entities
+        
+class FluidContainer:
+    __slots__=['capacity','size','data']
+    def __init__(self, capacity):
+        self.capacity=capacity
+        self.size=0
+        self.data={}    # { FLUIDTYPE : quantity }
+
+
+class Injured: # permanent injury or weakness, independent of BP statuses
+    __slots__=['injuries']
+    def __init__(self, _list):
+        self.injuries=_list
+class _Injury: # for use by Injured component
+    __slots__=['type','name','mods']
+    def __init__(self, _type, name, mods):
+        self.type=_type # injury type constant
+        self.name=name  # name of the injury for display on GUI
+        self.mods=mods  # {component : {var : modf}}
+
+
+
+    #-------------------#
+    # Trigger functions #
+    #-------------------#
+
+# Trigger functions run for entities when certain conditions are met.
+# These classes have a variable "func" which is a pointer to
+#   the function that runs when the trigger is pulled.
+#   The parameters for each function are specified by the class.
+
+class OnImpact: # conglomerate w/ ShattersOnImpact
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func  # params: (entity1, entity2, force)
+                        # where entity1 is the one calling the function
+class OnForce: # G-forces affect creatures even if no impact occurs
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func  # params: (entity, force)
+class ReactsWithWater:
+    __slots__=['func']  # function that runs when it touches water
+    def __init__(self, func):
+        self.func=func  # params: (entity, massOfWater)
+class ReactsWithFire:   # being on fire makes it explode, transform, etc. (melting is transforming.)
+    __slots__=['func']  # function that runs if it catches fire
+    def __init__(self, func):
+        self.func=func  # params: (entity)
+class ReactsWithAir:
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func  # params: (entity)
+class ReactsWithElectricity: # / powered by electricity
+    __slots__=['func']
+    def __init__(self, func):
+        self.func=func  # params: (entity, powerInput)
+        
+
+
+
+    #--------------#
+    #     Body     #
+    #--------------#
 
 class Slot:
     __slots__=['item','covers']
     def __init__(self, item=None, covers=()):
         self.item=item
         self.covers=covers
-
 
 class Body:
     '''
@@ -527,11 +626,12 @@ class BP_Mouth:
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
         self.covered=False
 class BP_Eyes:
-    __slots__=['slot','visualSystem','covered']
+    __slots__=['slot','visualSystem','covered','open']
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
         self.covered=False
+        self.open=True #eyelids open or closed?
 class BP_Ears:
     __slots__=['slot','auditorySystem','covered']
     def __init__(self, quantity=2, quality=60):
@@ -787,10 +887,16 @@ class BPP_Nucleus:
     mods:   stat mod dict {var : modf,}
     fit:    how well it fits currently. 0 to 100 
 '''
-class Fitted: # fitted to an entity. Without this component it's not fitted to anyone.
-    __slots__=['entity'] # fitting gear to your character improves encumberance
+class Fitted: # fitted to an entity.
+    __slots__=['entity','height']
     def __init__(self, entity):
         self.entity=entity # the entity it's fitted to.
+        self.height=height # the height of the entity it's fitted to.
+        # in the case that an entity wants to use a fitted item that was
+        # not fitted for that entity, the relative heights are used to
+        # determine how well the item "fits." Bad fits are exponentially
+        # worse for your stats as the height gap increases, until the item
+        # canot be equipped because it's too small / too big.
 
 class Clothes: # equipable armor-like component is clothing, not armor
     # hence it works with unarmored skill, not armored skill
@@ -951,6 +1057,10 @@ class EquipableInLegSlot:
 ##        self.mods=mods
 
 ###
+
+    #------------------#
+    # Functions / Uses #
+    #------------------#
 
 
 class Ammo: # can be used as ammo
@@ -1118,13 +1228,6 @@ class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, 
         self.energy=energy # energy required to harvest
         self.mats=mats # raw materials that are harvested, and the amount
         self.tools=tools # tools needed, and the quality needed to harvest
-
-class Light:
-    __slots__=['brightness','type']
-    def __init__(self, brightness: int, _type: int):
-        self.brightness=brightness
-        self.type=_type # source const. Fire? Electricity? Something else?
-
        
     #-----------------------#
     #       Tools           #
@@ -1244,8 +1347,8 @@ class Tool_CrossbowReloader:
     def __init__(self, quality: int, kind: int):
         self.quality=quality
         self.kind=kind
-class Tool_Brush:
-    __slots__=['quality']
+class Tool_Brush: # all kinds of brushes; quality distinguishes types. e.g. quality of 1==toothbrush, 2==hair brush, 3==coarse brush, 4==paint brush, 5==cleaning brush, 6==rough brush for industrial cleaning, cleaning tool files, etc.
+    __slots__=['quality'] # if quality is too high for intended use, cannot be used for that purpose. This way we don't need several different brush tool types
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_Mandril:
@@ -1423,70 +1526,6 @@ class Mold_:
         self.quality=quality
 
 
-class Inventory: #item container
-    __slots__=['capacity','mass','data','money','enc']
-    # renamed variable "size" --> "mass" 
-    def __init__(self, capacity=-1, money=0):
-        self.capacity=capacity  # volume total maximum (-1 == infinite) (could be implemented as total encumberance...)
-        self.mass=0             # total mass of all entities in the container
-        self.enc=0              # current total encumberance value
-        self.data=[]            # list of entities
-        self.money=money        # current amount of money in the container
-       
-class FluidContainer:
-    __slots__=['capacity','size','data']
-    def __init__(self, capacity):
-        self.capacity=capacity
-        self.size=0
-        self.data={}    # { FLUIDTYPE : quantity }
-
-class ReactsWithWater:
-    __slots__=['func'] # function that runs when it touches water
-    def __init__(self, func):
-        self.func=func
-class ReactsWithFire: # being on fire makes it explode, transform, etc. (melting is transforming.)
-    __slots__=['func'] # function that runs when it touches fire
-    def __init__(self, func):
-        self.func=func
-class ReactsWithAir:
-    __slots__=['func']
-    def __init__(self, func):
-        self.func=func
-class ReactsWithElectricity: # / powered by electricity
-    __slots__=['func']
-    def __init__(self, func):
-        self.func=func
-       
-##class ShattersOnImpact: # this could be a property of MATERIAL (Form) and need not be a new component... At least I think.
-##    __slots__=['numParticles','particles']
-##    def __init__(self, particles, numParticles):
-##        self.particles=particles # object that it creates when shattered
-##        self.numParticles=numParticles # number of objects to create
-
-
-class Injured: # may be obselete with new body system
-    __slots__=['injuries']
-    def __init__(self, _list):
-        self.injuries=_list
-class _Injury: # for use by Injured component
-    __slots__=['type','name','mods']
-    def __init__(self, _type, name, mods):
-        self.type=_type # injury type constant
-        self.name=name  # name of the injury for display on GUI
-        self.mods=mods  # {component : {var : modf}}
-
-##class StatMods:
-##    __slots__=['mods']
-##    def __init__(self, mods): #{component : {var : modf,}}
-##        self.mods=mods
-##        #*args, **kwargs):
-##        self.mods=[]
-##        for arg in args:
-##            self.mods.append(arg)
-##        for k,w in kwargs:
-##            self.mods.append((k,w,))
-
-
     #-----------------------#
     #    status effects     #
     #-----------------------#
@@ -1501,50 +1540,41 @@ class StatusHot: # too hot -> heat exhaustion
     # This status is unrelated to the fire phenomenon, light,
     #     heat production, etc. Just handles damage over time.
     __slots__=['timer']
-    def __init__(self, t=8):
+    def __init__(self, t=-1):
         self.timer=t
 class StatusBurn: # way too hot and taking constant damage from smoldering/burning
     # This status is unrelated to the fire phenomenon, light,
     #     heat production, etc. Just handles damage over time.
     __slots__=['timer']
-    def __init__(self, t=2):
+    def __init__(self, t=-1):
         self.timer=t
 class StatusChilly: # too cold -> loss of motor functions / higher thought
     __slots__=['timer']
-    def __init__(self, t=8):
+    def __init__(self, t=-1):
         self.timer=t
 class StatusCold: # way too cold -- greater severity of Chilly status
     __slots__=['timer']
-    def __init__(self, t=8):
+    def __init__(self, t=-1):
         self.timer=t
 class StatusFrozen: # frozen solid
     __slots__=['timer']
-    def __init__(self, t=2):
+    def __init__(self, t=-1):
         self.timer=t
 class StatusAcid: # damage over time, can cause deep wounds
     __slots__=['timer']
     def __init__(self, t=8):
         self.timer=t
-class StatusBlind: # vision -90%
-    __slots__=['timer']
-    def __init__(self, t=32):
-        self.timer=t
-class StatusDeaf: # hearing -96%
-    __slots__=['timer']
-    def __init__(self, t=256):
-        self.timer=t
 class StatusDisoriented: # perception down: vision -67%, hearing -67%
-    # less extreme version of blind/deaf
     __slots__=['timer']
     def __init__(self, t=8):
+        self.timer=t
+class StatusDazzled: # vision disrupted by bright light
+    __slots__=['timer']
+    def __init__(self, t=4):
         self.timer=t
 class StatusIrritated: # vision -25%, hearing -25%, respain -25%, 
     __slots__=['timer']
     def __init__(self, t=196):
-        self.timer=t
-class StatusPain: # in overwhelming pain
-    __slots__=['timer']
-    def __init__(self, t=2): # only lasts as long as the pain lasts
         self.timer=t
 class StatusParalyzed: # Speed -90%, Atk -15, Dfn -15
     __slots__=['timer']
@@ -1630,6 +1660,7 @@ class StatusFull: # overeat
     __slots__=['timer']
     def __init__(self, t=384):
         self.timer=t
+# Body Position statuses
 class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)
     __slots__=[]
     def __init__(self):
@@ -1648,21 +1679,56 @@ class StatusBPos_Prone: # body position: prone (lying / on the ground face-down)
         pass
 
 # quality statuses
+class StatusRecoil: # Atk - quality
+    __slots__=['timer','quality']
+    def __init__(self, t=1, q=1):
+        self.timer=t
+        self.quality=q # how much Atk you lose (*MULT_STATS)
+class StatusDirty:
+    __slots__=['timer','quality']
+    def __init__(self, t=-1, q=1):
+        self.timer=t
+        self.quality=q # degree of dirtiness
+class StatusWet:
+    __slots__=['timer','quality']
+    def __init__(self, t=-1, q=1):
+        self.timer=t
+        self.quality=q # degree of wetness
+class StatusRusted:
+    __slots__=['timer','quality']
+    def __init__(self, t=-1, q=1):
+        self.timer=t
+        self.quality=q # degree of rustedness
+class StatusPain: # in overwhelming pain
+    __slots__=['timer','quality']
+    def __init__(self, t=-1, q=1): # only lasts as long as the pain lasts
+        self.timer=t
+        self.quality=q # degree of pain
 class StatusBleed: # bleed: lose blood each turn, drops blood to the floor, gets your clothes bloody
     __slots__=['timer','quality']
-    def __init__(self, t=128, q=-1): # negative quality means you lose blood not gain blood per turn
+    def __init__(self, t=128, q=1): # quality is how much blood lost per turn
         self.timer=t
-        self.quality=q # g of blood you lose per turn (-1==minor, -15==major arterial bleeding)
+        self.quality=q # mass of blood you lose per turn (1g=minor, 15g=major arterial bleeding)
 class StatusOffBalance: # off-balance or staggered temporarily
     __slots__=['timer','quality']
-    def __init__(self, t=4, q=-1):
+    def __init__(self, t=4, q=1):
         self.timer=t
-        self.quality=q # how much balance you lost
+        self.quality=q # how much balance you lose (*MULT_STATS)
 class StatusDrunk: # balance --
     __slots__=['timer','quality']
-    def __init__(self, t=960, q=-1):
+    def __init__(self, t=960, q=1):
         self.timer=t
-        self.quality=q # how much balance you lost
+        self.quality=q # how much balance you lose (*MULT_STATS)
+class StatusBlinded:
+    __slots__=['timer','quality']
+    def __init__(self, t=32, q=90):
+        self.timer=t
+        self.quality=q # % vision lost, int 1-100
+class StatusDeafened:
+    __slots__=['timer','quality']
+    def __init__(self, t=256, q=96):
+        self.timer=t
+        self.quality=q # % hearing lost, int 1-100
 #
 
 # quantity (non-timed) statuses #
