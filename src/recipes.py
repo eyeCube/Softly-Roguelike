@@ -561,7 +561,7 @@ RECIPES={
 'musket stock':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_WOOD,7,), (SKL_GUNSMITH,3,),),
+    'skills'    : ((SKL_GUNSMITH,3,), (SKL_WOOD,7,),),
     'construct' : 7200,
     'components': ( [ ('slab of wood', 1,), ], ),
     'tools'     : (
@@ -597,7 +597,7 @@ RECIPES={
 'gun barrel, short':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,10,), (SKL_GUNSMITH,6,),),
+    'skills'    : ((SKL_GUNSMITH,6,), (SKL_METAL,10,),),
     'construct' : 43200,
     'components': (
         [ ('metal bar', 1,), ],
@@ -616,7 +616,7 @@ RECIPES={
 'gun barrel':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,5,), (SKL_GUNSMITH,5,),),
+    'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
     'construct' : 9600,
     'components': ( [ ('gun barrel, short', 2,), ], ),
     'tools'     : (
@@ -633,7 +633,7 @@ RECIPES={
 'gun barrel, long':{
     'quantity'  : 1,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_METAL,5,), (SKL_GUNSMITH,5,),),
+    'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
     'construct' : 9600,
     'components': ( [ ('gun barrel', 1,), ], [ ('gun barrel, short', 1,), ], ),
     'tools'     : (
@@ -2078,6 +2078,7 @@ RECIPES={
     'components': (
         [ ('pop tab mail ring', 768,), ],
         [ ('padded jack', 1,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2090,6 +2091,7 @@ RECIPES={
     'components': (
         [ ('pop tab mail vest', 1,), ],
         [ ('pop tab mail ring', 512,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2102,6 +2104,7 @@ RECIPES={
     'components': (
         [ ('mail ring, riveted', 320,), ('mail ring, welded', 320,), ],
         [ ('padded jack', 1,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),
@@ -2114,6 +2117,7 @@ RECIPES={
     'components': (
         [ ('metal mail vest', 1,), ],
         [ ('mail ring, riveted', 196,), ('mail ring, welded', 196,), ],
+        [ ('piece of leather', 1,), ],
         ),
     'tools'     : (),
     'byproducts': (),

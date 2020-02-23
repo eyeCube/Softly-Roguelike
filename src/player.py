@@ -692,6 +692,8 @@ wrap=False,con=rog.con_final(),disp='mono'
             #----------------------------------#
             #      Finish creating entity      #
             #----------------------------------#
+
+        female=(_genderName=="female")
         
         # calculate some more stats
         

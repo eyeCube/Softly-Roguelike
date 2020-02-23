@@ -64,9 +64,9 @@ import dice
 ##class GUI:
 ##    def
     
-class GUIProcessor(esper.Processor):
-    def process(self):
-        pass
+##class GUIProcessor(esper.Processor):
+##    def process(self):
+##        pass
 
 
 
@@ -591,8 +591,11 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
 class Status:
     @classmethod
     def add(self, ent, component, t=-1, q=None):
+        '''
+            add a status if entity doesn't already have that status
+            **MUST NOT set the DIRTYSTATS flag.
+        '''
         if rog.world().has_component(ent, component): return False
-        rog.make(ent, DIRTY_STATS)
         status_str = ""
         #attribute modifiers, aux. effects, message (based on status type)
         if component is cmp.StatusHot:
@@ -615,7 +618,7 @@ class Status:
         elif component is cmp.StatusIrritated:
             status_str = " becomes irritated"
         elif component is cmp.StatusBleed:
-            status_str = " begin bleeding"
+            status_str = " begins bleeding"
         elif component is cmp.StatusParalyzed:
             status_str = "'s muscles stiffen"
         elif component is cmp.StatusSick:
@@ -695,7 +698,7 @@ class StatusProcessor(esper.Processor):
         for ent, (status, meters) in world.get_components(
             cmp.StatusBurn, cmp.Meters):
             status.timer -= 1
-            if (status.timer == 0 or meters.temp < FIRE_THRESHOLD): #temporary? When should fire go out?
+            if (status.timer == 0): #temporary? When should fire go out?
                 Status.remove(ent, cmp.StatusBurn)
                 continue
             rog.damage(ent, 1)
@@ -704,7 +707,7 @@ class StatusProcessor(esper.Processor):
         for ent, (status, meters) in world.get_components(
             cmp.StatusFrozen, cmp.Meters):
             status.timer -= 1
-            if (status.timer == 0 or meters.temp > FREEZE_THRESHOLD):
+            if (status.timer == 0):
                 Status.remove(ent, cmp.StatusCold)
                 continue
             
@@ -947,7 +950,7 @@ class MetersProcessor(esper.Processor):
         '''
         for ent,(meters,pos) in self.world.get_components(
             cmp.Meters, cmp.Position ):
-            ambient_temp = Fires.tempat(pos.x, pos.y)
+##            ambient_temp = Fires.tempat(pos.x, pos.y)
             
             # TODO: FIX THIS!!!!!!!
             #print(thing.name," is exchanging heat with the environment...") #TESTING
@@ -972,17 +975,20 @@ class MetersProcessor(esper.Processor):
         for ent,meters in self.world.get_component(
             cmp.Meters ):
             if (meters.sick > 0):
+                rog.make(ent, DIRTYSTATS)
                 meters.sick = max(0, meters.sick - BIO_METERLOSS)
             if (meters.expo > 0):
+                rog.make(ent, DIRTYSTATS)
                 meters.expo = max(0, meters.expo - CHEM_METERLOSS)
             if (meters.pain > 0):
+                rog.make(ent, DIRTYSTATS)
                 meters.pain = max(0, meters.pain - PAIN_METERLOSS)
             if (meters.fear > 0):
+                rog.make(ent, DIRTYSTATS)
                 meters.fear = max(0, meters.fear - FEAR_METERLOSS)
             if (meters.bleed > 0):
+                rog.make(ent, DIRTYSTATS)
                 meters.bleed = max(0, meters.bleed - BLEED_METERLOSS)
-            if (meters.rot > 0):
-                meters.rot = max(0, meters.rot - ROT_METERLOSS)
             # rads meter
 # end class
 
