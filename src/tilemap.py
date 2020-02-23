@@ -34,6 +34,7 @@ import levelgen
 import maths
 import misc
 import dice
+import lights
 
 
 @dataclass
@@ -403,7 +404,7 @@ Reason: entity has no position component.'''.format(ent))
     def tile_darken(self, x, y, value):
         self.grid_lighting[x][y] = max(0, self.grid_lighting[x][y] - value)
     def get_perceived_light_value(self, x, y):
-        return lights.Light.perceivedBrightness(self.grid_lighting[x][y])
+        return lights.Light.perceivedBrightness(self.get_light_value(x,y))
     def get_light_value(self, x, y): # actual light value
         return self.grid_lighting[x][y]
     def get_height(self, x, y):

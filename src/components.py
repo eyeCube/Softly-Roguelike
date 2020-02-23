@@ -65,16 +65,7 @@ class Form: #physical makeup of the object
         #   phase-PHASE_FLUID
         #   material is a FL_ constant
         #   mass indicates volume depending on density
-<<<<<<< HEAD
-=======
 
-class Identify: # for identification purposes
-    __slots__=["generic"]
-    def __init__(self, generic):
-        self.generic=generic # ID_ const -> indicates name that appears ...
-        # ... when its type is identified (but not the specific class)
-
->>>>>>> origin
 
 class Position:
     __slots__=['x','y']
@@ -1207,7 +1198,6 @@ class ElementalDamageRanged: # for ranged attacks using the Shootable component
         self.elements=elements  # {ELEM_CONST : damage}
 
 class BonusToArmor: # bonus offensive power vs. heavy-armor / hard targets (melee attacks)
-<<<<<<< HEAD
     __slots__=['value']
     def __init__(self, val):
         self.value=val
@@ -1227,27 +1217,6 @@ class HacksOffLimbs: # can amputate opponent's limbs in combat (melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-=======
-    __slots__=['value']
-    def __init__(self, val):
-        self.value=val
-class BonusToFlesh: # bonus offensive power vs. flesh / light-armor / soft targets (melee attacks)
-    __slots__=['value']
-    def __init__(self, val):
-        self.value=val
-class BonusToArmorRanged: # for ranged attacks using the Shootable component
-    __slots__=['value']
-    def __init__(self, val):
-        self.value=val
-class BonusToFleshRanged: # for ranged attacks using the Shootable component
-    __slots__=['value']
-    def __init__(self, val):
-        self.value=val
-class HacksOffLimbs: # can amputate opponent's limbs in combat (melee attacks)
-    __slots__=['value']
-    def __init__(self, val):
-        self.value=val
->>>>>>> origin
 class Bludgeon: # can be used as a bludgeon to smash bone, stone, glass, etc. (melee attacks)
     __slots__=['pen','atk','dmg']
     def __init__(self, pen=0, atk=0, dmg=1):
@@ -1734,14 +1703,11 @@ class StatusRusted:
     def __init__(self, t=-1, q=1):
         self.timer=t
         self.quality=q # degree of rustedness
-<<<<<<< HEAD
 class StatusRotted:
     __slots__=['timer','quality']
     def __init__(self, t=-1, q=1):
         self.timer=t
         self.quality=q # degree of rot
-=======
->>>>>>> origin
 class StatusPain: # in overwhelming pain
     __slots__=['timer','quality']
     def __init__(self, t=-1, q=1): # only lasts as long as the pain lasts

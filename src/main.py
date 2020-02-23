@@ -94,8 +94,10 @@ def main():
     
     # TESTING
     # HELP THE PLAYER TO SEE
-    rog.create_envlight(1)
+    rog.create_envlight(2)
     rog.make(rog.pc(), NVISION)
+    #
+    
 ##    import action
     import components as cmp
 ##    from colors import COLORS as COL

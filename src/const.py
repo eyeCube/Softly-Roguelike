@@ -709,8 +709,6 @@ ENCUMBERANCE_MODIFIERS = {
 
 
 
-<<<<<<< HEAD
-=======
     #-------------------#
     #  shape and form   #
     #-------------------#
@@ -756,7 +754,6 @@ SHAPE_STICK         : "stick",
 
 
 
->>>>>>> origin
     #-------------------#
     #       body        #
     #-------------------#
@@ -3064,8 +3061,6 @@ SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
 
 
 
-<<<<<<< HEAD
-
     #-------------------#
     #  shape and form   #
     #-------------------#
@@ -3125,8 +3120,6 @@ SHAPE_ORGANIC       : "organic-shaped object",
     
 
 
-=======
->>>>>>> origin
     #----------------#
     # IDENTIFICATION #
     #----------------#
@@ -3139,10 +3132,7 @@ ID_MACE             = i; i+=1;
 ID_HAMMER           = i; i+=1;
 ID_AXE              = i; i+=1;
 ID_KNIFE            = i; i+=1;
-<<<<<<< HEAD
 ID_DAGGER           = i; i+=1;
-=======
->>>>>>> origin
 ID_SWORD            = i; i+=1;
 ID_LONGSWORD        = i; i+=1;
 ID_STAFF            = i; i+=1;
@@ -3161,7 +3151,6 @@ ID_WHIP             = i; i+=1;
 ID_KNUCKLES         = i; i+=1;
 ID_BOOMERANG        = i; i+=1;
 ID_MACHETE          = i; i+=1;
-<<<<<<< HEAD
 ID_PISTOL           = i; i+=1;
 ID_MUSKET           = i; i+=1;
 ID_SHOTGUN          = i; i+=1;
@@ -3175,8 +3164,6 @@ ID_CROSSBOW         = i; i+=1;
 ID_CANNON           = i; i+=1;
 ID_ENERGYWEAPON     = i; i+=1;
 ID_BLOWGUN          = i; i+=1;
-=======
->>>>>>> origin
 
 # clothing / armor
 ID_VEST             = i; i+=1; # torso clothes
@@ -3212,10 +3199,7 @@ ID_RESPIRATOR       = i; i+=1;
 ID_GASMASK          = i; i+=1;
 ID_PLAGUEMASK       = i; i+=1;
 ID_WELDINGMASK      = i; i+=1;
-<<<<<<< HEAD
-=======
 ID_WELDINGMASK      = i; i+=1;
->>>>>>> origin
 ID_MOTORCYCLEHELM   = i; i+=1; # headwear
 ID_BIOHELM          = i; i+=1;
 ID_PADDEDCOIF       = i; i+=1;
@@ -3231,17 +3215,13 @@ ID_RAG              = i; i+=1;
 ID_RAGS             = i; i+=1; # big rag / cloth
 ID_BANDAGE          = i; i+=1;
 ID_RUBBERBAND       = i; i+=1;
-<<<<<<< HEAD
 
 # tools
-=======
->>>>>>> origin
 ID_SCALPEL          = i; i+=1;
 ID_SCISSORS         = i; i+=1;
 ID_PLIERS           = i; i+=1;
 ID_SCREWDRIVER      = i; i+=1;
 ID_WHETSTONE        = i; i+=1;
-<<<<<<< HEAD
 ID_SHOVEL           = i; i+=1;
 ID_PICKAXE          = i; i+=1;
 
@@ -3429,7 +3409,7 @@ ID_ROPE             : ("rope",SHAPE_LINE,),
 for x in range(NUMIDS+1):
     if (x!=0 and x not in IDENTIFICATION.keys()):
         print("missing ID # {} in IDENTIFICATION".format(x))
-=======
+        print("(previous is {})".format(IDENTIFICATION.get(x-1, None)))
 
 IDENTIFICATION={
 ID_CLUB             : "club",
@@ -3491,7 +3471,6 @@ ID_PLIERS           : "pliers",
 ID_SCREWDRIVER      : "screwdriver",
 ID_WHETSTONE        : "whetstone",
     }
->>>>>>> origin
 
 
 

@@ -57,9 +57,10 @@ class Light(observer.Observer):
     # (lux is the value stored in the lightmap).
     # Example values:
     #   perceived average brightness of sunlight: 10
-    def perceivedBrightness(self, lux: int) -> int:
+    @classmethod
+    def perceivedBrightness(cls, lux: int) -> int:
         return int(math.log2(lux)) # LOGBASE==2 so we use log base 2
-
+    
     def add_tile(self,x,y,lux):
         self.lit_tiles.append( (x,y,lux,) )
 
@@ -69,13 +70,8 @@ class Light(observer.Observer):
         if (attr == "x" or attr == "y"):
             self.reposition(self.owner.x, self.owner.y)
 
-<<<<<<< HEAD
     #shine
     # increases the lightmap values.
-=======
-    # add light
-    # TODO: test new additive property of lights using Logarithms
->>>>>>> origin
     def shine(self): # shine light on environment; add light to lightmap
         assert(self.shone==False)   # cannot shine if we already did
         self.shone=True

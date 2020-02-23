@@ -950,6 +950,7 @@ class MetersProcessor(esper.Processor):
         '''
         for ent,(meters,pos) in self.world.get_components(
             cmp.Meters, cmp.Position ):
+            pass
 ##            ambient_temp = Fires.tempat(pos.x, pos.y)
             
             # TODO: FIX THIS!!!!!!!

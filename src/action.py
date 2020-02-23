@@ -661,44 +661,23 @@ def _strike(attkr,dfndr,aweap,dweap,
     acc =   rog.getms(attkr,'atk')//MULT_STATS
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
-<<<<<<< HEAD
     areach =rog.getms(attkr,'reach')//MULT_STATS
-=======
-    asp =   max( MIN_ASP, rog.getms(attkr,'asp') )
-    areach =rog.getms(attkr,'reach')
->>>>>>> origin
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
     prot =  rog.getms(dfndr,'pro')//MULT_STATS
     arm =   rog.getms(dfndr,'arm')//MULT_STATS
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
-<<<<<<< HEAD
     dreach =rog.getms(dfndr,'reach')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
 
     # differences btn attacker and defender
 ##    dcm =   rog.getms(attkr,'height') - rog.getms(dfndr,'height')
-=======
-    dreach =rog.getms(dfndr,'reach')
-    resphys = rog.getms(dfndr,'resphys')
-
-    # differences btn attacker and defender
-    dcm =   rog.getms(attkr,'height') - rog.getms(dfndr,'height')
->>>>>>> origin
 ##    dkg =   (rog.getms(attkr,'mass') - rog.getms(dfndr,'mass'))//MULT_MASS # only affects grappling, not fighting
     
     # advantages from stat differences
     # lesser reach has the advantage
-<<<<<<< HEAD
     adv = dreach-areach
-=======
-    if areach > dreach:
-        adv = -1
-    elif areach < dreach:
-        adv = 1
-    adv = rog.sign(dcm) * (math.abs(dcm)//CM_ADVANTAGE_BP)
->>>>>>> origin
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)

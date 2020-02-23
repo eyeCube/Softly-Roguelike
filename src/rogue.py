@@ -415,7 +415,6 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 
 
 # Name functions
-<<<<<<< HEAD
 
 def identify(idtype): return IDENTIFICATION[idtype][0]
 def fullname_gear(ent):
@@ -493,49 +492,6 @@ def fullname(ent):
 # end def
 
 
-=======
-
-def fullname_gear(ent):
-    world=Rogue.world
-    fullname = world.component_for_entity(ent, cmp.Name).name
-    if ( world.has_component(ent, cmp.Fitted)
-         and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
-        fullname = "fitted {}".format(fullname)
-    return fullname
-# end def
-def fullname(ent):
-    ''' get the full name with any prefixes, suffixes, etc.
-         (but do not add the title)
-    '''
-    world=Rogue.world
-    fullname = world.component_for_entity(ent, cmp.Name).name
-    
-    if world.has_component(ent, cmp.Prefixes):
-        compo = world.component_for_entity(ent, cmp.Prefixes)
-        for string in compo.strings:
-            fullname = "{} {}".format(string, fullname)
-            
-    if world.has_component(ent, cmp.StatusRusted):
-        compo = world.component_for_entity(ent, cmp.StatusRusted)
-        for k,v in RUST_QUALITIES.items():
-            if compo.quality == k:
-                string = RUSTEDNESS[v][2] # TODO: test
-                fullname = "{} {}".format(string, fullname)
-                break
-            
-    if world.has_component(ent, cmp.StatusRotted):
-        compo = world.component_for_entity(ent, cmp.StatusRotted)
-        for k,v in ROT_QUALITIES.items():
-            if compo.quality == k:
-                string = ROTTEDNESS[v][2] # TODO: test
-                fullname = "{} {}".format(string, fullname)
-                break
-            
-    return fullname
-# end def
-
-
->>>>>>> origin
     # "Fun"ctions #
     
 def ceil(i): return math.ceil(i)
@@ -1094,11 +1050,7 @@ def can_see_obj(ent, target,sight=None): # take heightmap into account
     entpos = world.component_for_entity(ent, cmp.Position)
     targetpos = world.component_for_entity(target, cmp.Position)
     eyesh = (getms(ent, 'height') - 5) // h # - 5 is temporary; height of the viewer's eye-holes with respect to the ground
-<<<<<<< HEAD
     targeth = (getms(target, 'height')*0.8333334) // h
-=======
-    targeth = (getms(target, 'height')*0.8333334)) // h
->>>>>>> origin
     entz = tile_height(entpos.x, entpos.y) + eyesh
     targetz = tile_height(targetpos.x, targetpos.y) + targeth
     zz = targetz + targeth
@@ -2068,11 +2020,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             clear_status(ent, cmp.StatusDirty)
         
         # wet
-<<<<<<< HEAD
         if not on(ent, IMMUNEWATER):
-=======
-        if not on(ent, IMMUNEWET):
->>>>>>> origin
             q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
             if q:
                 status=get_status(ent, cmp.StatusWet)
@@ -2089,21 +2037,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if meters.rust >= MAX_RUST*dec:
                 q=_q
         if q:
-<<<<<<< HEAD
             status=get_status(ent, cmp.StatusRusted)
             if (status and status.quality != q):
                 clear_status(ent, cmp.StatusRusted)
             set_status(ent, cmp.StatusRusted, t=-1, q=q)
         else:
             clear_status(ent, cmp.StatusRusted)
-=======
-            status=get_status(ent, cmp.StatusRust)
-            if (status and status.quality != q):
-                clear_status(ent, cmp.StatusRust)
-            set_status(ent, cmp.StatusRust, t=-1, q=q)
-        else:
-            clear_status(ent, cmp.StatusRust)
->>>>>>> origin
         
         # rot
             # TODO: rot status affecting stats
@@ -2112,21 +2051,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             if meters.rot >= MAX_ROT*dec:
                 q=_q
         if q:
-<<<<<<< HEAD
             status=get_status(ent, cmp.StatusRotted)
             if (status and status.quality != q):
                 clear_status(ent, cmp.StatusRotted)
             set_status(ent, cmp.StatusRotted, t=-1, q=q)
         else:
-            clear_status(ent, cmp.StatusRotted)     
-=======
-            status=get_status(ent, cmp.StatusRot)
-            if (status and status.quality != q):
-                clear_status(ent, cmp.StatusRot)
-            set_status(ent, cmp.StatusRot, t=-1, q=q)
-        else:
-            clear_status(ent, cmp.StatusRot)     
->>>>>>> origin
+            clear_status(ent, cmp.StatusRotted)
         
     
 #~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
