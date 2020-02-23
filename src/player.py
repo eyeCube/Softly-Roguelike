@@ -518,11 +518,14 @@ def chargen(sx, sy):
         libtcod.console_clear(rog.con_final())
         _printElement("name: {}".format(_name), iy-1)
         iy=_printElement("gender: {}".format(_genderName), iy)
-
+        
+        female=(_genderName=="female")
+        
         
         # body type
+        avg = 4 if female else 5
         _cm=rog.prompt( x1,y1+iy,ww,6,maxw=20,
-            q="How tall are you? (press a key from 1 to 9. 5 is average)",
+            q="How tall are you? (press a key from 1 to 9. {} is average)".format(avg),
             mode="wait" )
         try:
             _cm = int(_cm)
@@ -592,8 +595,15 @@ def chargen(sx, sy):
         _printElement("height: {} / 9".format(_cm), iy-2)
         _printElement("mass: {} / 9".format(_kg), iy-1)
         iy=_printElement("class: {}".format(_className), iy)
+        
+        
+        # TODO: attribute selection (??)
+        # cannot use traditional menu. Must create dedicated UI
 
-
+        
+        # TODO: strengths/weaknesses
+        
+        
         # skills (TODO: test new system of skills -- only one dict of skills, and you can pick up to 6(?) of them...
         _skillNames=[]
         _skillIDs=[]
@@ -696,15 +706,17 @@ wrap=False,con=rog.con_final(),disp='mono'
         # height stat mods
         reachMult = 1 + (_cm-5)/8
         if _cm < 5:
-            mspMult = 1 + (_cm-5)/8
+            mspMult = 1 + (_cm-5)/12
+        else:
+            mspMult = 1 + (_cm-5)/16
             
         # create body
         body, basekg = rog.create_body_humanoid(
-            mass=kg, height=cm, female=(_genderName=="female"),
+            mass=kg, height=cm, female=female,
             bodyfat=bodyfat)
         body.hydration = body.hydrationMax * 0.98
         body.satiation = body.satiationMax * 0.85
-        
+        # body temperature
         meters = cmp.Meters()
         meters.temp = BODY_TEMP[BODYPLAN_HUMANOID][0]
         
@@ -746,10 +758,11 @@ wrap=False,con=rog.con_final(),disp='mono'
             gra=BASE_GRA*MULT_STATS, bal=BASE_BAL*MULT_STATS,
             ctr=BASE_CTR*MULT_STATS,
             reach=BASE_REACH*MULT_STATS*reachMult,
-            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
+            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP*mspMult,
             sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
-            courage=BASE_COURAGE, scary=BASE_SCARY,
-            beauty=BASE_BEAUTY
+            courage=BASE_COURAGE + PLAYER_COURAGE, # + MAS_COU if not female else 0,
+            scary=BASE_SCARY, # + MAS_IDN if not female else 0,
+            beauty=BASE_BEAUTY # + FEM_BEA if female else 0
             ))
         
         #add specific class stats

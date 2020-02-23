@@ -70,9 +70,9 @@ def main():
     rog.init_keyBindings()
         
     #map generation
-    rog.map(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
-    rog.map(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
-    rog.map(rog.dlvl()).generate_dlvl(rog.dlvl())
+    rog.getmap(rog.dlvl()).init_specialGrids() # inits fov_map; do this before you init terrain
+    rog.getmap(rog.dlvl()).init_terrain(WALL) # clear the map to all walls
+    rog.getmap(rog.dlvl()).generate_dlvl(rog.dlvl())
         
     # init player
 
@@ -81,7 +81,7 @@ def main():
     xpos = 15
     ypos = 15
     _borders = 10
-    while rog.map(rog.dlvl()).tileat(xpos, ypos) == WALL:
+    while rog.getmap(rog.dlvl()).tileat(xpos, ypos) == WALL:
         xpos +=1
         if xpos >= ROOMW - _borders:
             xpos = _borders

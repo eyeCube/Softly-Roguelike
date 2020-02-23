@@ -155,7 +155,7 @@ def dig(
         
         # add this tile to the corridor
         tiles.append((xpos, ypos,))
-##        rog.map(rog.dlvl()).tile_change(xpos, ypos, ROUGH) # TESTING
+##        rog.getmap(rog.dlvl()).tile_change(xpos, ypos, ROUGH) # TESTING
     
     # sort the list of tiles with beginning tile at start, convert set->list
     return tiles
@@ -346,13 +346,13 @@ def generate_level(width, height, z, density=250, algo="dumb"):
 # helper functions
 def _getnwalls(xx, yy, z, width, height):
     walls = 0
-    if (xx-1 > 0 and rog.map(z).tileat(xx-1, yy) == WALL):
+    if (xx-1 > 0 and rog.getmap(z).tileat(xx-1, yy) == WALL):
         walls += 1
-    if (xx+1 < width-1 and rog.map(z).tileat(xx+1, yy) == WALL):
+    if (xx+1 < width-1 and rog.getmap(z).tileat(xx+1, yy) == WALL):
         walls += 1
-    if (yy-1 > 0 and rog.map(z).tileat(xx, yy-1) == WALL):
+    if (yy-1 > 0 and rog.getmap(z).tileat(xx, yy-1) == WALL):
         walls += 1
-    if (yy+1 < height-1 and rog.map(z).tileat(xx, yy+1) == WALL):
+    if (yy+1 < height-1 and rog.getmap(z).tileat(xx, yy+1) == WALL):
         walls += 1
     return walls
 
@@ -460,21 +460,21 @@ def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
         for tile in diglist:
             ii += 1
             if (ii == 0 or ii == len(diglist) - 1):
-                rog.map(rog.dlvl()).tile_change(tile[0], tile[1], DOORCLOSED)
+                rog.getmap(rog.dlvl()).tile_change(tile[0], tile[1], DOORCLOSED)
                 continue
-            rog.map(rog.dlvl()).tile_change(tile[0], tile[1], FLOOR)
+            rog.getmap(rog.dlvl()).tile_change(tile[0], tile[1], FLOOR)
             # possibly add a door if there's a place to put one along the corridor walls
         
         # dig the room area out
         for tile in room.area:
             xi = tile[0] + room.x_offset
             yi = tile[1] + room.y_offset
-            rog.map(rog.dlvl()).tile_change(xi, yi, FLOOR)
+            rog.getmap(rog.dlvl()).tile_change(xi, yi, FLOOR)
             
 ##        for tile in room.perimeter: # TESTING. OVERLAP OCCURRING!!
 ##            xi = tile[0] + room.x_offset
 ##            yi = tile[1] + room.y_offset
-##            rog.map(rog.dlvl()).tile_change(xi, yi, ROUGH)
+##            rog.getmap(rog.dlvl()).tile_change(xi, yi, ROUGH)
             
         # try to place a door on an adjacent room wall
         for rm in rooms:
@@ -490,7 +490,7 @@ def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
                     x2 = tile2[0] + room.x_offset
                     y2 = tile2[1] + room.y_offset
                     if (x1==x2 and y1==y2):
-                        rog.map(rog.dlvl()).tile_change(x1, y1, DOORCLOSED)
+                        rog.getmap(rog.dlvl()).tile_change(x1, y1, DOORCLOSED)
                         doorPlaced = True
                 # end for
             # end for
@@ -619,7 +619,7 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
     for tile in origin.area:
         xx = tile[0] + origin.x_offset
         yy = tile[1] + origin.y_offset
-        rog.map(z).tile_change(xx, yy, FLOOR)
+        rog.getmap(z).tile_change(xx, yy, FLOOR)
         
     # create other rooms
     _genRecursive(
@@ -642,25 +642,25 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
             xx, yy = tile
             
             # doors
-            if rog.map(z).tileat(xx, yy) == DOORCLOSED:
+            if rog.getmap(z).tileat(xx, yy) == DOORCLOSED:
                 ok = False
-                if (rog.map(z).tileat(xx-1, yy) == WALL and
-                    rog.map(z).tileat(xx+1, yy) == WALL and
-                    rog.map(z).tileat(xx, yy-1) == FLOOR and
-                    rog.map(z).tileat(xx, yy+1) == FLOOR
+                if (rog.getmap(z).tileat(xx-1, yy) == WALL and
+                    rog.getmap(z).tileat(xx+1, yy) == WALL and
+                    rog.getmap(z).tileat(xx, yy-1) == FLOOR and
+                    rog.getmap(z).tileat(xx, yy+1) == FLOOR
                     ):
                     ok = True
-                elif (rog.map(z).tileat(xx-1, yy) == FLOOR and
-                    rog.map(z).tileat(xx+1, yy) == FLOOR and
-                    rog.map(z).tileat(xx, yy-1) == WALL and
-                    rog.map(z).tileat(xx, yy+1) == WALL
+                elif (rog.getmap(z).tileat(xx-1, yy) == FLOOR and
+                    rog.getmap(z).tileat(xx+1, yy) == FLOOR and
+                    rog.getmap(z).tileat(xx, yy-1) == WALL and
+                    rog.getmap(z).tileat(xx, yy+1) == WALL
                     ):
                     ok = True
                 if not ok:
-                    rog.map(z).tile_change(xx, yy, FLOOR)
+                    rog.getmap(z).tile_change(xx, yy, FLOOR)
             
             # dead ends
-            if rog.map(z).tileat(xx, yy) == FLOOR:
+            if rog.getmap(z).tileat(xx, yy) == FLOOR:
                 walls = _getnwalls(xx, yy, z, width, height)
                 if walls == 3: # dead end
 ##                    print("dead end found at {}, {}".format(xx, yy))
@@ -672,22 +672,22 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
                         new_list.append((xx, yy-1,))
                     if yy+1 < height-1:
                         new_list.append((xx, yy+1,))
-                    rog.map(z).tile_change(xx, yy, WALL)
+                    rog.getmap(z).tile_change(xx, yy, WALL)
         list_tiles=new_list
         new_list=[]
     #
 
 ##    for tile in GlobalData.usedareas: # TESTING
 ##        x1,y1,x2,y2 = tile
-##        rog.map().tile_change(x1,y1,STAIRDOWN)
-##        rog.map().tile_change(x1,y2,STAIRDOWN)
-##        rog.map().tile_change(x2,y1,STAIRDOWN)
-##        rog.map().tile_change(x2,y2,STAIRDOWN)
+##        rog.getmap().tile_change(x1,y1,STAIRDOWN)
+##        rog.getmap().tile_change(x1,y2,STAIRDOWN)
+##        rog.getmap().tile_change(x2,y1,STAIRDOWN)
+##        rog.getmap().tile_change(x2,y2,STAIRDOWN)
     
     # finished generating map, tilemap map now contains all level info
     # now populate with entities
     # add walls to all sides
-    rog.map(z).fill_edges()
+    rog.getmap(z).fill_edges()
     print("Done generating level.")
 
 
@@ -920,11 +920,11 @@ def _generate_level_dumb(width, height, z, density=250):
     # from here on out only edit the actual tilemap terrain grid
     
     print("...Clearing map...")
-    rog.map(z).init_terrain(WALL)
+    rog.getmap(z).init_terrain(WALL)
     
     print("...Digging out the rooms and corridors...")
     level_init_from_grids(
-        rog.map(z),
+        rog.getmap(z),
         (floor_grid,),
         width, height,
         digtile=FLOOR
@@ -934,31 +934,31 @@ def _generate_level_dumb(width, height, z, density=250):
     for tile in doors:
         x, y = tile
         canPlaceDoor = False
-        if ( rog.map(z).tileat(x - 1, y) == WALL
-            and rog.map(z).tileat(x + 1, y) == WALL
-            and rog.map(z).tileat(x, y - 1) == FLOOR
-            and rog.map(z).tileat(x, y + 1) == FLOOR ):
+        if ( rog.getmap(z).tileat(x - 1, y) == WALL
+            and rog.getmap(z).tileat(x + 1, y) == WALL
+            and rog.getmap(z).tileat(x, y - 1) == FLOOR
+            and rog.getmap(z).tileat(x, y + 1) == FLOOR ):
             canPlaceDoor = True
-        elif ( rog.map(z).tileat(x, y - 1) == WALL
-            and rog.map(z).tileat(x, y + 1) == WALL
-            and rog.map(z).tileat(x - 1, y) == FLOOR
-            and rog.map(z).tileat(x + 1, y) == FLOOR ):
+        elif ( rog.getmap(z).tileat(x, y - 1) == WALL
+            and rog.getmap(z).tileat(x, y + 1) == WALL
+            and rog.getmap(z).tileat(x - 1, y) == FLOOR
+            and rog.getmap(z).tileat(x + 1, y) == FLOOR ):
             canPlaceDoor = True
         if not canPlaceDoor:
             continue
-        rog.map(z).tile_change(x, y, DOORCLOSED) # TEMPORARY:: see following
+        rog.getmap(z).tile_change(x, y, DOORCLOSED) # TEMPORARY:: see following
 ##        if random.random()*100 < 30:
 ##            pass
 ##        elif random.random()*100 < 50:
-##            rog.map(z).tile_change(x, y, FLOOR)
+##            rog.getmap(z).tile_change(x, y, FLOOR)
 ##        elif random.random()*100 < 75:
-##            rog.map(z).tile_change(x, y, DOORCLOSED)
+##            rog.getmap(z).tile_change(x, y, DOORCLOSED)
 ##        elif random.random()*100 < 85:
-##            rog.map(z).tile_change(x, y, DOOROPEN)
+##            rog.getmap(z).tile_change(x, y, DOOROPEN)
 ##        elif random.random()*100 < 95:
-##            rog.map(z).tile_change(x, y, DOORLOCKED)
+##            rog.getmap(z).tile_change(x, y, DOORLOCKED)
 ##        else:
-##            rog.map(z).tile_change(x, y, SECRETDOOR)
+##            rog.getmap(z).tile_change(x, y, SECRETDOOR)
 
     # add staircases
 
@@ -968,7 +968,7 @@ def _generate_level_dumb(width, height, z, density=250):
 ##            x, y = tile
 ##            xi = x + room.x_offset
 ##            yi = y + room.y_offset
-##            rog.map(z).tile_change(xi, yi, ROUGH)
+##            rog.getmap(z).tile_change(xi, yi, ROUGH)
     
     print("...Populating...") # add entities
     # add creatures

@@ -53,12 +53,11 @@ class Light(observer.Observer):
 
     #shine
     # increases the lightmap values.
-    def shine(self):        # add light to the lightmap
-        assert(self.shone==False)   # must unshine before shining again
+    def shine(self): # shine light on environment; add light to lightmap
+        assert(self.shone==False)   # cannot shine if we already did
         self.shone=True
-        # get the tiles we can see and lighten them up
-        rang = math.log2(self.lum) # LOGBASE==2 so we use log2
-        libtcod.map_compute_fov(
+        rang = self.getLumens(self.lum)
+        libtcod.map_compute_fov( # Get the tiles we can see
             rog.getfovmap(self.fovID), self.x,self.y, rang,
             light_walls = True, algo=libtcod.FOV_RESTRICTIVE
             )
@@ -70,10 +69,11 @@ class Light(observer.Observer):
                             rog.getfovmap(self.fovID), x,y)
                     ):
                     dist=maths.dist(self.x,self.y, x,y)
-                    value=round(rang - dist)
-                    if value > 0:
-                        self.add_tile(x,y, value )
-                        rog.tile_lighten(x,y,value)
+                    # F = L / 4 * pi * d^2 (formula for light dispersion)
+                    lux = self.lum // (12.5663706144 * (dist**2))
+                    if lux:
+                        self.add_tile(x,y,lux)
+                        rog.tile_lighten(x,y,lux)
         # end for
         return True     #success
     #

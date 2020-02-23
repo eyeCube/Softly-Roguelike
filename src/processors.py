@@ -608,9 +608,9 @@ class Status:
             rog.damage(ent, rog.getms(ent, 'hpmax') * FREEZE_DMG_PC)
         elif component is cmp.StatusAcid:
             status_str = " begins corroding"
-        elif component is cmp.StatusBlind:
+        elif component is cmp.StatusBlinded:
             status_str = " becomes blinded"
-        elif component is cmp.StatusDeaf:
+        elif component is cmp.StatusDeafened:
             status_str = " becomes deafened"
         elif component is cmp.StatusIrritated:
             status_str = " becomes irritated"
@@ -719,18 +719,18 @@ class StatusProcessor(esper.Processor):
             
         # blind
         for ent, status in world.get_component(
-            cmp.StatusBlind ):
+            cmp.StatusBlinded ):
             status.timer -= 1
             if status.timer == 0:
-                Status.remove(ent, cmp.StatusBlind)
+                Status.remove(ent, cmp.StatusBlinded)
                 continue
             
         # deaf
         for ent, status in world.get_component(
-            cmp.StatusDeaf ):
+            cmp.StatusDeafened ):
             status.timer -= 1
             if status.timer == 0:
-                Status.remove(ent, cmp.StatusDeaf)
+                Status.remove(ent, cmp.StatusDeafened)
                 continue
             
         # irritated
