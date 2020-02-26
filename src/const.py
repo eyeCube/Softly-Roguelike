@@ -3061,6 +3061,16 @@ SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
 
 
 
+    #--------#
+    # Lights #
+    #--------#
+
+DAZZLING_LIGHT = 15 # perceived light level that results in temp. blindness
+BLINDING_LIGHT = 20 # " permanent blindness
+# TODO: implement light blinding when too bright. How to handle this?
+
+
+
     #-------------------#
     #  shape and form   #
     #-------------------#
@@ -3198,7 +3208,6 @@ ID_MASK             = i; i+=1; # facewear
 ID_RESPIRATOR       = i; i+=1;
 ID_GASMASK          = i; i+=1;
 ID_PLAGUEMASK       = i; i+=1;
-ID_WELDINGMASK      = i; i+=1;
 ID_WELDINGMASK      = i; i+=1;
 ID_MOTORCYCLEHELM   = i; i+=1; # headwear
 ID_BIOHELM          = i; i+=1;

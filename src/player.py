@@ -415,10 +415,13 @@ def chargen(sx, sy):
     
     # name
     _name=rog.prompt(x1,y1,ww,hh,maxw=20, q="What is your name?", mode="text")
-    _title = ""
+    _title = 0
+
+    # print char data so far
     print("name chosen: ", _name)
     libtcod.console_clear(rog.con_final())
     iy=_printElement("name: {}".format(_name), iy)
+    #
 
     # load saved game
     loadedGame = False
@@ -514,29 +517,36 @@ def chargen(sx, sy):
                 elif _gender == 'female':
                     _genderName = "female"
                     _pronouns = ('she','her','hers',)
-        print("gender chosen: ", _genderName)
+        # end while
+        
+        # print char data so far
         libtcod.console_clear(rog.con_final())
         _printElement("name: {}".format(_name), iy-1)
         iy=_printElement("gender: {}".format(_genderName), iy)
+        print("gender chosen: ", _genderName)
+        #
         
         female=(_genderName=="female")
         
         
         # body type
-        avg = 4 if female else 5
+        avg = 3 if female else 5
         _cm=rog.prompt( x1,y1+iy,ww,6,maxw=20,
             q="How tall are you? (press a key from 1 to 9. {} is average)".format(avg),
             mode="wait" )
         try:
             _cm = int(_cm)
         except:
-            _cm = 5
-        if (_cm==0 or not _cm): _cm=5
-        _cmMult = 1 + (_cm - 5)/8
+            _cm = avg
+        if (_cm==0 or not _cm): _cm=avg
+        _cmMult = 1 + (_cm - 5)/20
+        
+        # print char data so far
         _printElement("name: {}".format(_name), iy-2)
         _printElement("gender: {}".format(_genderName), iy-1)
         iy=_printElement("height: {} / 9".format(_cm), iy)
         print("height chosen: ", _cm)
+        #
         
         _kg=rog.prompt( x1,y1+iy,ww,6,maxw=20,
             q="How heavy are you? (press a key from 1 to 9. 3 is average)",
@@ -546,13 +556,16 @@ def chargen(sx, sy):
         except:
             _kg = 3
         if (_kg==0 or not _kg): _kg=3
-        _kgMult = 1 + (_kg - 3)/5
+        _kgMult = 1 + (_kg - 3)/8
+        
+        # print char data so far
         _printElement("name: {}".format(_name), iy-3)
         _printElement("gender: {}".format(_genderName), iy-2)
         _printElement("height: {} / 9".format(_cm), iy-1)
         iy=_printElement("mass: {} / 9".format(_kg), iy)
         print("mass chosen: ", _kg)
-
+        #
+        
         
         # class
         rog.dbox(x1,y1+iy,ww,3,text="What is your profession?",
@@ -589,12 +602,14 @@ def chargen(sx, sy):
         for sk_id in _jobskills:
             rog.setskill(pc, sk_id, SKILL_LEVELS_JOB)
         
+        # print char data so far
         print("class chosen: ", _className)
         _printElement("name: {}".format(_name), iy-4)
         _printElement("gender: {}".format(_genderName), iy-3)
         _printElement("height: {} / 9".format(_cm), iy-2)
         _printElement("mass: {} / 9".format(_kg), iy-1)
         iy=_printElement("class: {}".format(_className), iy)
+        #
         
         
         # TODO: attribute selection (??)
@@ -660,6 +675,8 @@ wrap=False,con=rog.con_final(),disp='mono'
         libtcod.console_clear(rog.con_final())
         cm = int(height*_cmMult)
         kg = int(_mass*_kgMult)
+        
+        # print char data
         iy=0
         iy=_printElement("name: {}".format(_name), iy)
         iy=_printElement("gender: {}".format(_genderName), iy)
@@ -668,6 +685,9 @@ wrap=False,con=rog.con_final(),disp='mono'
         iy=_printElement("mass: {} kg ({} / 9)".format(kg, _kg), iy)
         _drawskills(rog.con_final(), skillscompo)
         rog.refresh()
+        #
+        
+        # prompt to continue or restart chargen
         _ans=''
         while _ans!='y':
             # roll character
@@ -692,30 +712,28 @@ wrap=False,con=rog.con_final(),disp='mono'
             #----------------------------------#
             #      Finish creating entity      #
             #----------------------------------#
-
-        female=(_genderName=="female")
         
         # calculate some more stats
         
         # mass stat mods
-        bodyfat=DEFAULT_BODYFAT_HUMAN
+        fatratio=DEFAULT_BODYFAT_HUMAN
         if _kg >= 5:
-            bodyfat += (_kg-4)/16
+            fatratio += (_kg-4)/16
         elif _kg < 3:
-            bodyfat -= bodyfat*(3-_kg)/3
-        print("bodyfat: ", bodyfat)
+            fatratio -= fatratio*(3-_kg)/3
+        print("bodyfat: ", fatratio)
         
         # height stat mods
-        reachMult = 1 + (_cm-5)/8
+        reachMult = 1 + (_cm-5)/20 #/10
         if _cm < 5:
-            mspMult = 1 + (_cm-5)/12
+            mspMult = 1 + (_cm-5)/24 #/12
         else:
-            mspMult = 1 + (_cm-5)/16
+            mspMult = 1 + (_cm-5)/32 #/16
             
         # create body
         body, basekg = rog.create_body_humanoid(
             mass=kg, height=cm, female=female,
-            bodyfat=bodyfat)
+            bodyfat=fatratio)
         body.hydration = body.hydrationMax * 0.98
         body.satiation = body.satiationMax * 0.85
         # body temperature

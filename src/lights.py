@@ -130,13 +130,6 @@ class EnvLight: # Environment Light | Ambient Light | EnvironmentLight | Ambient
         for x in range(ROOMW):
             for y in range(ROOMH):
                 rog.tile_darken(x, y, self.lux)
-    #move the light to a new position, changing the lightmap
-    def reposition(self, x,y):
-        self.unshine()
-        rog.grid_lights_remove(self)
-        self.x=x; self.y=y;
-        rog.grid_lights_insert(self)
-        self.shine()
 # end class
 
 

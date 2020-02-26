@@ -4070,7 +4070,7 @@ def create_stuff(name, x, y) -> int:
     else:
         fgcol = COL[fgcol]
     ent = world.create_entity(
-        cmp.Name(name),
+        cmp.Name(name, title=TITLE_THE),
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
         cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
@@ -4092,7 +4092,7 @@ def create_rawmat(name, x, y) -> int:
     else:
         fgcol = COL[fgcol]
     ent = world.create_entity(
-        cmp.Name(name),
+        cmp.Name(name, title=TITLE_THE),
         cmp.Position(x,y),
         cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
         cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
@@ -4177,7 +4177,7 @@ def create_armor(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
@@ -4239,7 +4239,7 @@ def create_headwear(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
@@ -4299,7 +4299,7 @@ def create_facewear(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
@@ -4355,7 +4355,7 @@ def create_armwear(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
@@ -4411,7 +4411,7 @@ def create_legwear(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
@@ -4467,7 +4467,7 @@ def create_footwear(name,x,y,condition=1) -> int:
     fgcol = COL['accent']
     bgcol = COL['deep']
     
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
@@ -4527,7 +4527,7 @@ def create_weapon(name, x,y, condition=1) -> int:
     fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
     bgcol = COL['deep']
     # build entity
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
     world.add_component(ent, cmp.Form(mat=material,val=value))
@@ -4610,7 +4610,7 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
     bgcol = COL['deep']
     # build entity
-    world.add_component(ent, cmp.Name(name))
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))

@@ -199,16 +199,19 @@ RENDERER:
     def fluidsat(self,x,y):
         return self.grid_fluids[x][y]
 
-    def visibility(self, sight, llum, camo, dist) -> int: # calculate visibility level
+    def visibility(self, sight, plight, camo, dist) -> int: # calculate visibility level
         '''
-            output:
-                0: cannot see
-                1: see '?'
-                2: generic identification
-                3: (potentially) specific type/species identification
-                4: (potentially) unique instance stats identification
+        Parameters:
+            sight  : vision stat of viewer
+            plight : perceived light level
+            camo   : camoflauge of the target to see
+            dist   : distance from viewer to target
+
+            TODO: test this function's output
+                (function logic has been altered)
         '''
-        return int(( 40+sight+math.log2(llum) - (dice.roll(20)+camo+dist) )//20)
+##        _sx = 4 if rog.on(rog.pc(), NVISION) else 1
+        return int( math.log2(plight)*0.5 + ( 40+sight - (dice.roll(20)+camo+dist) )//20)
     
     def COPY(self, tilemap):
         ''' copy another TileMap object into this object '''
@@ -313,6 +316,10 @@ RENDERER:
             print('''Failed to add entity {} to grid.
 Reason: entity has no position component.'''.format(ent))
             return False
+        # this assertion will test that things are working properly
+        # but no assertions should exist in production, ESPECIALLY not
+        # this one or similar which may slow the game down (this is O(n))
+##        assert(ent not in self.grid_things[x][y])
         pos = rog.world().component_for_entity(ent, cmp.Position)
         x = pos.x; y = pos.y;
         if self.monat(x,y): 
@@ -330,9 +337,9 @@ Reason: entity has no position component.'''.format(ent))
         if not rog.world().has_component(ent, cmp.Position):
             return False
         pos = rog.world().component_for_entity(ent, cmp.Position)
-        grid = self.grid_things[pos.x][pos.y]
-        if ent in grid:
-            grid.remove(ent)
+        tile = self.grid_things[pos.x][pos.y]
+        if ent in tile:
+            tile.remove(ent)
             return True
 ##        print('''Error: failed to remove entity {} from grid.
 ##Reason: entity not in grid.'''.format(ent))
@@ -404,7 +411,7 @@ Reason: entity has no position component.'''.format(ent))
     def tile_darken(self, x, y, value):
         self.grid_lighting[x][y] = max(0, self.grid_lighting[x][y] - value)
     def get_perceived_light_value(self, x, y):
-        return lights.Light.perceivedBrightness(self.get_light_value(x,y))
+        return int(math.log2(self.get_light_value(x,y)))
     def get_light_value(self, x, y): # actual light value
         return self.grid_lighting[x][y]
     def get_height(self, x, y):
@@ -440,9 +447,10 @@ Reason: entity has no position component.'''.format(ent))
                 if not rog.can_see(pc, x, y, sight):
                     continue
                 
+                # get return data from rog.can_see
                 ret=rog.fetchglobalreturn()
                 if ret: # unpack
-                    dist, llum = ret
+                    dist, plight = ret
                 
                 ents=self.thingsat(x, y)
                 
@@ -456,9 +464,9 @@ Reason: entity has no position component.'''.format(ent))
                             visibility=10 #VISIBILITY_MAX
                         else:
                             camo = rog.getms(ent, 'camo')
-                            visibility=self.visibility(sight,llum,camo,dist)
+                            visibility=self.visibility(sight,plight,camo,dist)
 ##                            print('visibility: ',visibility)
-##                            print('stats: s{}, l{}, c{}, d{}'.format(sight, llum, camo, dist))
+##                            print('stats: s{}, l{}, c{}, d{}'.format(sight, plight, camo, dist))
                         
                         if visibility<=0: continue
                         # render data based on visibility

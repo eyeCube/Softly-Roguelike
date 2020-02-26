@@ -476,7 +476,8 @@ class MessageLog:
     
     def print(self,index):
         #todo: pass colored indeces into dbox func. to allow colored messages
-        x = rog.msgs_x();y = rog.msgs_y(); w = rog.msgs_w();h = rog.msgs_h()
+        x=rog.msgs_x(); y=rog.msgs_y();
+        w=rog.msgs_w(); h=rog.msgs_h();
         rog.dbox(x,y,w,h,self.msgs[index], border=None,margin=0)
 
     #delineate; indicate that the next turn has begun,
@@ -498,7 +499,7 @@ class MessageLog:
             self.msg_newEntry = False
             self.msgs.append( self.msg_format_start(new, turn) )
         else:
-            self.msgs[-1] += new
+            self.msgs[-1] += " {}".format(new) # NOTE: was simply: += new
         
     def printall_get_wrapped_msgs(self):
         w = rog.msgs_w()

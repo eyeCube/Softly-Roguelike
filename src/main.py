@@ -94,8 +94,8 @@ def main():
     
     # TESTING
     # HELP THE PLAYER TO SEE
-    rog.create_envlight(2)
-    rog.make(rog.pc(), NVISION)
+    rog.create_envlight(16)
+##    rog.make(rog.pc(), NVISION)
     #
     
 ##    import action

@@ -511,15 +511,29 @@ def getstat(ent, stat): return _getstat(getms(ent, stat))
 def getatt(ent, att):   return _getatt(getms(ent, att))
 
 # parent / child functions
-def getpos(ent): # get parent position if applicable else self position
+def getpos(ent):
+    ''' # get parent position if applicable else self position
+        Returns: Position component.
+        Global Returns: whether or not the component belongs
+            to a parent (True) or not (False)
+    '''
     if Rogue.world.has_component(ent, cmp.Child):
         parent=Rogue.world.component_for_entity(ent, cmp.Child).parent
+        globalreturn(True)
         return Rogue.world.component_for_entity(parent, cmp.Position)
+    globalreturn(False)
     return Rogue.world.component_for_entity(ent, cmp.Position)
-def getdir(ent): # get parent direction if applicable else self direction
+def getdir(ent):
+    ''' # get parent direction if applicable else self direction
+        Returns: Direction component.
+        Global Returns: whether or not the component belongs
+            to a parent (True) or not (False)
+    '''
     if Rogue.world.has_component(ent, cmp.Child):
         parent=Rogue.world.component_for_entity(ent, cmp.Child).parent
+        globalreturn(True)
         return Rogue.world.component_for_entity(parent, cmp.Direction)
+    globalreturn(False)
     return Rogue.world.component_for_entity(ent, cmp.Direction)
 
 # tilemap
@@ -727,13 +741,23 @@ def port(ent,x,y): # move thing to absolute location, update grid and FOV
         compo = Rogue.world.component_for_entity(ent, cmp.LightSource)
         compo.light.reposition(x, y)
 
-def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it
-    take(ent,item)              #on ground nearby ent.
-    itempos=Rogue.world.component_for_entity(item, cmp.Position)
-    entpos=Rogue.world.component_for_entity(ent, cmp.Position)
-    itempos.x=entpos.x + dx
-    itempos.y=entpos.y + dy
-    grid_insert(ent)
+def pocket(ent, item):
+    world=Rogue.world
+    grid_remove(item)
+    give(ent, item)
+    spendAP(ent, NRG_POCKET)
+    world.add_component(item, cmp.Child(ent)) # item is Child of Entity carrying the item
+    if world.has_component(item, cmp.Position):
+        world.remove_component(item, cmp.Position)
+    
+def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it on ground nearby ent.
+    world=Rogue.world
+    make(ent, DIRTY_STATS)
+    take(ent,item)
+    world.remove_component(item, cmp.Child)
+    entpos=world.component_for_entity(ent, cmp.Position)
+    world.add_component(item, cmp.Position(entpos.x + dx, entpos.y + dy))
+    grid_insert(item)
 
 def givehp(ent,val=9999):
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
@@ -1026,8 +1050,12 @@ def can_see(ent,x,y,sight=None): # circular FOV function
     run_fov_manager(ent) # compute entity's FOV if necessary
     world = Rogue.world
     light=get_perceived_light_value(x,y)
-    if ( light < 1 or (light <= 4 and not on(ent,NVISION)) ):
+    if not on(ent,NVISION):
+        light -= 3
+    if light < 1:
         return False
+##    if light >= BLINDING_LIGHT:
+##        return False
     pos = world.component_for_entity(ent, cmp.Position)
     senseSight = world.component_for_entity(ent, cmp.SenseSight)
     if sight is None: sight=getms(ent, "sight")
@@ -1639,8 +1667,6 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
     # remove item from the map
     grid_remove(item)
-    if world.has_component(item, cmp.Position):
-        world.remove_component(item, cmp.Position)
     # make item a child of its equipper so it has equipper's position / direction
     world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
     
@@ -1964,7 +1990,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         inv=world.component_for_entity(ent, cmp.Inventory).data
         for item in inv:
             enc=world.component_for_entity(item, cmp.Encumberance).value
-            modded.enc += enc * (getms(item, 'mass') / MULT_MASS)
+            mass = getms(item, 'mass')
+            modded.enc += enc * (mass / MULT_MASS)
+            modded.mass += mass
             
 #~~~~~~~#--------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # meters #
@@ -2548,8 +2576,7 @@ def create_light(x,y, value, owner=None): # value is range of the light.
         Rogue.world.add_component(owner, cmp.LightSource(lightID, light))
     return lightID
 def create_envlight(value, owner=None): # environment light
-    actual_lumosity = value**lights.Light.LOGBASE
-    light=lights.EnvLight(actual_lumosity, owner)
+    light=lights.EnvLight(value, owner)
     light.shine()
     lightID = Rogue.c_managers['lights'].add_env(light)
     if owner:

@@ -215,13 +215,16 @@ def inventory_pc(pc):
 #
 
 def drop_pc(pc,item):
-    rog.alert("Place {i} where?{d}".format(d=dirStr,i=item.name))
+    itemname=rog.world().component_for_entity(item, cmp.Name).name
+    rog.alert("Place {i} where?{d}".format(d=dirStr,i=itemname))
     args=rog.get_direction()
     if not args: return
     dx,dy,dz=args
     
-    if not drop(pc, item):
+    if not drop(pc, item, dx, dy):
         rog.alert("You can't put that there!")
+    rog.update_game()
+    rog.update_hud()
 
 def open_pc(pc): # open or close
     # pick what to open/close
@@ -291,8 +294,9 @@ def equip_pc(pc, item, equipType):
 # end def
 
 def examine_pc(pc, item):
+    itemname=rog.world().component_for_entity(item, cmp.Name).name
     rog.spendAP(pc, NRG_EXAMINE)
-    rog.dbox(0,0,40,30, thing.DESCRIPTIONS[item.name])
+    rog.dbox(0,0,40,30, thing.DESCRIPTIONS[itemname])
 
 def eat_pc(pc, item):
     result = eat(pc, item)
@@ -419,30 +423,39 @@ def wear_ears(ent, item):       return _equip(ent, item, EQ_MAINEARS)
 
 def pocketThing(ent, item): #entity puts item in its inventory
     world = rog.world()
-    rog.grid_remove(item)
-    rog.give(ent, item)
-    rog.spendAP(ent, NRG_POCKET)
-    world.add_component(item, cmp.Child(ent)) # item is Child of Entity carrying the item
+    rog.pocket(ent, item)
     entn = world.component_for_entity(ent, cmp.Name)
     itemn = world.component_for_entity(item, cmp.Name)
+    # messages
     rog.msg("{t}{n} packs {ti}{ni}.".format(
-        t=entn.title,n=entn.name,ti=TITLES[itemn.title],ni=itemn.name))
-##    return True
+        t=TITLES[entn.title],n=entn.name,
+        ti=TITLES[itemn.title],ni=itemn.name) )
+    # over-encumbered message
+    if rog.getms(ent, 'enc') >= rog.getms(ent, 'encmax'):
+        rog.msg("{t}{n} is over-encumbered.".format(
+            t=TITLES[entn.title],n=entn.name) )
+    return True
 
-def drop(ent, item):
+def drop(ent, item, dx, dy):
+    assert((abs(dx) <= 1 and abs(dy) <= 1))
+    
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
-    dx=0; dy=0; # TODO: code AI to find a place to drop item
+    
     if not rog.wallat(pos.x+dx,pos.y+dy):
-        rog.spendAP(ent, NRG_RUMMAGE)
+    #   success, drop the item.
         rog.drop(ent,item, dx,dy)
+        rog.spendAP(ent, NRG_RUMMAGE)
         entn = world.component_for_entity(ent, cmp.Name)
         itemn = world.component_for_entity(item, cmp.Name)
         rog.msg("{t}{n} drops {ti}{ni}.".format(
-            t=entn.title,n=entn.name,ti=itemn.title,ni=itemn.name))
+            t=TITLES[entn.title],n=entn.name,
+            ti=TITLES[itemn.title],ni=itemn.name))
         return True
-    else:
+    
+    else: # failure
         return False
+# end def
 
 
 #quaff

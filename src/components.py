@@ -69,7 +69,7 @@ class Form: #physical makeup of the object
 
 class Position:
     __slots__=['x','y']
-    def __init__(self, x, y):
+    def __init__(self, x=-1, y=-1):
         self.x = int(x)
         self.y = int(y)
 class Direction:
