@@ -510,7 +510,7 @@ def getkg(ent):         return _getmass(getms(ent, 'mass'))
 def getstat(ent, stat): return _getstat(getms(ent, stat))
 def getatt(ent, att):   return _getatt(getms(ent, att))
 
-# parent / child functions
+# component getters | parent / child functions
 def getpos(ent):
     ''' # get parent position if applicable else self position
         Returns: Position component.
@@ -535,6 +535,9 @@ def getdir(ent):
         return Rogue.world.component_for_entity(parent, cmp.Direction)
     globalreturn(False)
     return Rogue.world.component_for_entity(ent, cmp.Direction)
+def getname(ent):
+    return Rogue.world.component_for_entity(ent, cmp.Name).name
+    
 
 # tilemap
 def thingat(x,y):       return Rogue.map.thingat(x,y) #entity at
@@ -820,7 +823,7 @@ def sap(ent, dmg: int, exhaustOnZero=True):
             stats.mp = 0
 
 def exhaust(ent):
-    print('ent {} exhausted.'.format(ent))
+    print('ent named {} exhausted.'.format(getname(ent)))
     kill(ent)
 
 # satiation / hydration
@@ -1197,10 +1200,10 @@ def create_monster(typ,x,y,col=None): #init from entities.py
         ent = entities.create_monster(typ,x,y,col)
     else:
         ent = entities.create_monster(typ,x,y)
-##    init_inventory(monst, monst.stats.get('carry')) # do this in create_monster
     register_entity(ent)
     grid_insert(ent)
     givehp(ent)
+    givemp(ent)
     fov_init(ent)
     update_fov(ent)
     return ent
@@ -1227,8 +1230,8 @@ def convert_to_creature(ent, job=None, faction=None, species=None):
     #   Inventory   #
     #---------------#
 
-def init_inventory(ent, capacity):
-    Rogue.world.add_component(ent, cmp.Inventory(capacity))
+##def init_inventory(ent, capacity):
+##    Rogue.world.add_component(ent, cmp.Inventory(capacity))
 
 
 

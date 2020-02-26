@@ -136,6 +136,42 @@ FLEGS   = BODYPLAN_4LEGGED
 EARMS   = BODYPLAN_8ARMS
 CUSTOM  = BODYPLAN_CUSTOM
 
+# colors of materials
+C_CLAY = 'silver'
+C_CERA = 'accent'
+C_CLTH = 'white'
+C_STON = 'gray'
+C_PLAS = 'offwhite'
+C_WOOD = 'brown'
+C_BONE = 'bone'
+C_METL = 'metal'
+C_STEL = 'puremetal'
+C_LETH = 'tan'
+C_FLSH = 'red'
+C_TARP = 'blue'
+C_BOIL = 'dkbrown'
+C_GLAS = 'truegreen'
+C_RUBB = 'magenta'
+C_DUST = 'ltgray'
+C_SAND = 'ltbrown'
+C_DIRT = 'brown'
+C_CARB = 'graypurple'
+C_ROPE = 'tan'
+C_ELEC = 'lime' # electronics
+C_QRTZ = 'crystal'
+
+#types of materials
+RAWM = T_RAWMAT
+SCRP = T_SCRAP
+SHRD = T_SHARD
+STIK = T_STICK
+PRCL = T_PARCEL
+PIEC = T_PIECE
+CHNK = T_CHUNK
+SLAB = T_SLAB
+CUBO = T_CUBOID
+CUBE = T_CUBE
+
 
 
 # FUNCTIONS #
@@ -174,6 +210,10 @@ def get_armor_coversHips(gData):    return gData[7][2]
 def get_armor_coversArms(gData):    return gData[7][3]
 def get_armor_script(gData):        return gData[8]
 def get_armor_idtype(gData):        return gData[9]
+    # legwear
+def get_legwear_coversBoth(gData):  return gData[7]
+def get_legwear_script(gData):      return gData[8]
+def get_legwear_idtype(gData):      return gData[9]
     # eyewear
 def get_eyewear_script(gData):      return gData[7]
 def get_eyewear_idtype(gData):      return gData[8]
@@ -2648,8 +2688,8 @@ def _glasses(item):
     _canThrow(item, acc=0, rng=4, skill=SKL_SPINNING)
 
 # leg armor
-def _pjs(item):
-    _coversBothLegs(item)
+##def _pjs(item):
+##    _coversBothLegs(item)
 
 
 '''
@@ -4406,8 +4446,9 @@ def create_legwear(name,x,y,condition=1) -> int:
     resbleed = get_gear_resbleed(gData)
     reslight = ressound = 0
     sight = 1
-    script = get_gear_script(gData)
-    idtype = get_gear_idtype(gData)
+    coversBoth = get_legwear_coversBoth(gData)
+    script = get_legwear_script(gData)
+    idtype = get_legwear_idtype(gData)
     
     fgcol = COL['accent']
     bgcol = COL['deep']
@@ -4433,6 +4474,8 @@ def create_legwear(name,x,y,condition=1) -> int:
         resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,sight )
     world.add_component(ent, cmp.EquipableInLegSlot(
         apCost, statsDict, strReq=strReq))
+    if coversBoth:
+        _coversBothLegs(ent)
     
     if script: script(ent)
     return ent
@@ -6049,22 +6092,27 @@ ARMARMOR={
 "metal vambrace"        :(70,    1.0,  200, 200,  METL,12,(1,  0.4,0.4,3,  -6, -2, 0,  -6, 0,  2,),None,ID_VAMBRACE,),
 }
 
+'''
+leg armor | legwear
+    b (both) - covers both legs?
+'''
 LEGARMOR={
-#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script,ID,
-"pajamas"               :(5,     0.1,  5,   200,  CLTH,1, (0,  0,  0.1,14, -3, 0,  0,  0,  0,  0,),_pjs,ID_PJS,),
-"wooden greave"         :(10,    1.6,  30,  200,  WOOD,7, (0,  0.1,0.4,8,  -9, 1,  0,  0,  0,  1,),None,ID_GREAVE,),
-"leather greave"        :(20,    1.1,  75,  200,  LETH,8, (0,  0.2,0.5,6,  -3, 3,  0,  1,  0,  1,),None,ID_GREAVE,),
-"metal greave"          :(95,    1.5,  300, 200,  METL,12,(0,  0.5,0.8,8,  -6, -3, 0,  -6, 0,  2,),None,ID_GREAVE,),
-"padded hose"           :(15,    0.8,  100, 300,  CLTH,4, (1,  0.2,0.8,3,  -6, 3,  0,  3,  0,  1,),None,ID_PADDEDLEGGING,),
-"padded legging"        :(25,    1.4,  100, 300,  CLTH,6, (1,  0.3,1.0,4,  -9, 3,  0,  3,  0,  1,),None,ID_PADDEDLEGGING,),
-"metal mail legging"    :(85,    1.5,  250, 300,  METL,14,(1,  0.4,1.3,6.5,-9, 0,  0,  -3, 0,  2,),None,ID_MAILLEGGING,),
+#--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),b,script,ID,
+"pajamas"               :(5,     0.1,  5,   200,  CLTH,1, (0,  0,  0.1,14, -3, 0,  0,  0,  0,  0,),1,None,ID_PJS,),
+"padded hose"           :(15,    0.8,  100, 300,  CLTH,4, (1,  0.2,0.8,3,  -6, 6,  1,  3,  0,  1,),0,None,ID_PADDEDLEGGING,),
+"padded legging"        :(25,    1.4,  160, 300,  CLTH,6, (1,  0.3,1.0,4,  -9, 9,  2,  3,  0,  2,),0,None,ID_PADDEDLEGGING,),
+"jeans"                 :(35,    0.4,  75,  400,  CLTH,3, (0,  0.1,1.0,5,  -12,6,  2,  3,  0,  1,),1,None,ID_PANTS,),
+"wooden greave"         :(10,    1.6,  30,  200,  WOOD,7, (0,  0.1,0.4,8,  -9, 1,  0,  0,  0,  1,),0,None,ID_GREAVE,),
+"leather greave"        :(20,    1.1,  75,  200,  LETH,8, (0,  0.2,0.5,6,  -3, 3,  0,  1,  0,  1,),0,None,ID_GREAVE,),
+"metal greave"          :(95,    1.5,  300, 200,  METL,12,(0,  0.5,0.8,8,  -6, -3, 0,  -6, 0,  2,),0,None,ID_GREAVE,),
+"metal mail legging"    :(85,    1.5,  250, 300,  METL,14,(1,  0.4,1.3,6.5,-9, 0,  0,  -3, 0,  2,),0,None,ID_MAILLEGGING,),
 }
 
 HANDARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script,ID,
-"leather glove"         :(5,     0.1,  40,  100,  LETH,2, (0,  0,  0.1,6,  -2, 2,  2,  1,  1,  1,),None,ID_GLOVE,),
-"plastic gauntlet"      :(1,     0.45, 30,  200,  PLAS,6, (0,  0.1,0.2,7,  -5, 0,  2,  1,  2,  1,),None,ID_GAUNTLET,),
-"metal gauntlet"        :(25,    0.4,  200, 200,  METL,6, (0,  0.2,0.4,8,  -3, 0,  2,  -1, 2,  1,),None,ID_GAUNTLET,),
+"leather glove"         :(5,     0.1,  40,  100,  LETH,2, (0,  0,  0.1,6,  -2, 2,  5,  1,  1,  1,),None,ID_GLOVE,),
+"plastic gauntlet"      :(1,     0.45, 30,  200,  PLAS,6, (0,  0.1,0.2,7,  -5, 0,  5,  1,  2,  1,),None,ID_GAUNTLET,),
+"metal gauntlet"        :(25,    0.4,  200, 200,  METL,6, (0,  0.2,0.4,8,  -3, 0,  5,  -1, 2,  1,),None,ID_GAUNTLET,),
 }
 
 FOOTARMOR={
@@ -6083,53 +6131,8 @@ ABOUTARMOR={ # Actual Encumberance == encumberance * mass
 
 
 
-'''
-    weapon mods
-        ornate : cost ++, dur -
-        war : cost+, dur+, Dmg+, Pen+
-        crude : cost-, dur-, Dmg-, Pen-
-        
-'''
-
-
 
 # raw materials
-
-# colors of materials
-C_CLAY = 'silver'
-C_CERA = 'accent'
-C_CLTH = 'white'
-C_STON = 'gray'
-C_PLAS = 'offwhite'
-C_WOOD = 'brown'
-C_BONE = 'bone'
-C_METL = 'metal'
-C_STEL = 'puremetal'
-C_LETH = 'tan'
-C_FLSH = 'red'
-C_TARP = 'blue'
-C_BOIL = 'dkbrown'
-C_GLAS = 'truegreen'
-C_RUBB = 'magenta'
-C_DUST = 'ltgray'
-C_SAND = 'ltbrown'
-C_DIRT = 'brown'
-C_CARB = 'graypurple'
-C_ROPE = 'tan'
-C_ELEC = 'lime' # electronics
-C_QRTZ = 'crystal'
-
-#types of materials
-RAWM = T_RAWMAT
-SCRP = T_SCRAP
-SHRD = T_SHARD
-STIK = T_STICK
-PRCL = T_PARCEL
-PIEC = T_PIECE
-CHNK = T_CHUNK
-SLAB = T_SLAB
-CUBO = T_CUBOID
-CUBE = T_CUBE
 
 '''
 progression of material mass (exponential growth):

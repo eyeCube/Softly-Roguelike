@@ -3106,6 +3106,7 @@ SHAPE_Y             = i; i+=1;
 SHAPE_CURVED        = i; i+=1;
 SHAPE_JAGGED        = i; i+=1;
 SHAPE_RIGHTANGLES   = i; i+=1;
+SHAPE_SILKY         = i; i+=1; # cloth
 SHAPE_INDISTINCT    = i; i+=1;
 SHAPE_AMORPHOUS     = i; i+=1;
 # names of shapes, for identification purposes
@@ -3212,6 +3213,7 @@ ID_VAMBRACE         = i; i+=1; # arm
 ID_PADDEDLEGGING    = i; i+=1; # leg
 ID_MAILLEGGING      = i; i+=1;
 ID_GREAVE           = i; i+=1;
+ID_PANTS            = i; i+=1;
 ID_PJS              = i; i+=1;
 ID_BOOT             = i; i+=1; # feet
 ID_SHOE             = i; i+=1;
@@ -3362,9 +3364,10 @@ ID_HAZARDSUIT       : ("hazard suit",SHAPE_AMORPHOUS,),
 ID_PPE              : ("PPE",SHAPE_AMORPHOUS,),
 ID_BULLETPROOFVEST  : ("bullet-proof vest",SHAPE_AMORPHOUS,),
 ID_VAMBRACE         : ("vambrace",SHAPE_INDISTINCT,),
-ID_PADDEDLEGGING    : ("padded legging",SHAPE_AMORPHOUS,),
+ID_PADDEDLEGGING    : ("padded legging",SHAPE_SILKY,),
 ID_MAILLEGGING      : ("mail legging",SHAPE_AMORPHOUS,),
 ID_GREAVE           : ("greave",SHAPE_INDISTINCT,),
+ID_PANTS            : ("pants",SHAPE_SILKY,),
 ID_PJS              : ("P-Js",SHAPE_AMORPHOUS,),
 ID_BOOT             : ("boot",SHAPE_INDISTINCT,),
 ID_SHOE             : ("shoe",SHAPE_INDISTINCT,),
