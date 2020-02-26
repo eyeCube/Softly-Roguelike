@@ -224,16 +224,16 @@ class Manager_SightsSeen(Manager):
         
         self.init_sights()
     
-    def run(self, pc):
+    def run(self):
         super(Manager_SightsSeen,self).run()
         
+        pc=rog.pc()
         atLeastOneMsg=False
         text=""
         for k,v in self.sights.items():
             if not v: continue
             atLeastOneMsg=True
             lis=v
-            pc=rog.pc()
             
             dirStr=DIRECTIONS_TERSE[k]
             if not dirStr == "self":
@@ -291,9 +291,10 @@ class Manager_SoundsHeard(Manager):
         
         self.init_sounds()
     
-    def run(self, pc):
+    def run(self):
         super(Manager_SoundsHeard,self).run()
         
+        pc=rog.pc()
         atLeastOneMsg=False
         text="You hear "
         skills=rog.world().component_for_entity(pc, cmp.Skills)
@@ -301,7 +302,7 @@ class Manager_SoundsHeard(Manager):
             vol,lis=v
             if not vol: continue
             if vol > VOLUME_DEAFEN:
-                rog.set_status(rog.pc(), DEAF)
+                rog.set_status(pc, DEAF)
             #super hearing
             if SKL_SUPERHEARING in skills.skills:
                 volTxt=self.get_volume_name(vol)

@@ -270,7 +270,8 @@ def getMonMat(_char):       return BESTIARY[_char][3]
 def getMonBodyPlan(_char):  return BESTIARY[_char][4]
 def getMonFlags(_char):     return BESTIARY[_char][5]
 def getMonScript(_char):    return BESTIARY[_char][6]
-def getMonStats(_char):     return BESTIARY[_char][7]
+def getMonID(_char):        return BESTIARY[_char][7]
+def getMonStats(_char):     return BESTIARY[_char][8]
 #name, KG, bodyplan, (FLAGS), script, {Stat Dict},
 
 
@@ -546,7 +547,7 @@ def _incendiary(tt):
         pos=rog.world().component_for_entity(ent, cmp.Position)
         rog.set_fire(pos.x, pos.y)
         radius=1
-        rog.explosion("{}{}".format(entn.title,entn.name), pos.x,pos.y, radius)
+        rog.explosion("{}{}".format(TITLES[entn.title],entn.name), pos.x,pos.y, radius)
     rog.world().add_component(tt, cmp.DeathFunction(deathFunc))
 def _paperCartridge(tt):
     _canThrow(tt, acc=0, rng=7, dmg=1, skill=SKL_PITCHING)
@@ -5050,24 +5051,24 @@ diplomacy={
 ##''':(), # TODO: REMOVE
 
 BESTIARY={
-#Type, name, KG, CM, Material, bodyplan, (FLAGS), script, {Stat Dict},
-'h':('human', 70, 175, MAT_FLESH, HUMAN, (), None,
+#Type, name,            KG, CM,  Material,  plan,  (FLAGS), script, ID, {Stat Dict},
+'h':('human',           70, 175, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {}, ),
-'a':('abomination', 140, 140, MAT_FLESH, FLEGS, (), None,
+'a':('abomination',     140,140, MAT_FLESH, FLEGS, (), None, ID_4LEGBEAST,
     {'str':4,'end':-8,'dex':-12,'int':-8,'con':4,'agi':-8,'msp':20,'resbio':50,'sight':0.25,'hearing':0,},),
-'d':('dog', 60, 60, MAT_FLESH, FLEGS, (MEAN,), None, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
+'d':('dog',             60, 60,  MAT_FLESH, FLEGS, (MEAN,), None, ID_4LEGBEAST, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
     {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
-'L':('raving lunatic', 70, 165, MAT_FLESH, HUMAN, (MEAN,), None,
+'L':('raving lunatic',  70, 165, MAT_FLESH, HUMAN, (MEAN,), None, ID_HUMANOID,
     {'str':6,'end':6,'int':-6,'dex':-6,'sight':-60,'resbio':40,'reselec':60,}, ),
-'r':('ravaged', 35, 150, MAT_FLESH, HUMAN, (), None,
+'r':('ravaged',         35, 150, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
-'R':('orctepus', 100, 140, MAT_FLESH, EARMS, (IMMUNEWATER,), None,
+'R':('orctepus',        100,140, MAT_FLESH, EARMS, (IMMUNEWATER,), None, ID_8ARMS,
     {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
-'U':('obese scrupula', 190, 190, MAT_FLESH, HUMAN, (), None,
+'U':('obese scrupula',  190,190, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {'str':4,'end':-10,'dex':-6,'int':-4,'con':12,'agi':-10,'sight':0.5,'hearing':0,}, ),
-'W':('whipmaster', 85, 220, MAT_FLESH, HUMAN, (), _whipmaster,
+'W':('whipmaster',      85, 220, MAT_FLESH, HUMAN, (), _whipmaster, ID_HUMANOID,
     {'str':2,'end':-4,'dex':2,'int':-10,'con':6,'agi':4,'sight':1,'hearing':1,}, ),
-'z':('zomb', 50, 160, MAT_FLESH, HUMAN, (), None,
+'z':('zomb',            50, 160, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {'str':4,'end':-8,'dex':-4,'int':-10,'con':-8,'agi':-10,'sight':1,'hearing':0,}, ),
 }
 

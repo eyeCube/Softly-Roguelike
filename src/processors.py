@@ -645,7 +645,7 @@ class Status:
             gender=rog.world().component_for_entity(ent, cmp.Gender)
             status_str = " begins slurring {} speech".format(gender.pronouns[2])
         #if status_str:
-            #"{}{}{}".format(name.title, name.name, status_str)
+            #"{}{}{}".format(TITLES[name.title], name.name, status_str)
 
         # TODO: events to display the messages
         
@@ -671,7 +671,7 @@ class Status:
         elif component is cmp.StatusSlow:
             status_str = "'s movements speed up"
         #if status_str:
-            #"{}{}{}".format(name.title, name.name, status_str)
+            #"{}{}{}".format(TITLES[name.title], name.name, status_str)
         rog.world().remove_component(ent, component)
         return True
     

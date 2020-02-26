@@ -480,7 +480,7 @@ def quaff(ent, drink):
         rog.msg("It tastes {t}".format(t=quaffable.taste))
     else:
         rog.event_sight(pos.x,pos.y, "{t}{n} quaffs a {p}.".format(
-            t=entn.title, n=entn.name, p=drinkn.name))
+            t=TITLES[entn.title], n=entn.name, p=drinkn.name))
     #events - sound
     rog.event_sound(pos.x,pos.y, SND_QUAFF)
     # TODO: make sure this works...
@@ -614,14 +614,16 @@ def openClose(ent, xto, yto):
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOOROPEN)
         ss = "opened a door"
-        rog.msg("{t}{n} {ss}.".format(t=entn.title,n=entn.name,ss=ss))
+        rog.msg("{t}{n} {ss}.".format(
+            t=TITLES[entn.title],n=entn.name,ss=ss))
         return True
     #close doors
     if rog.tile_get(xto,yto) == DOOROPEN:
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOORCLOSED)
         ss = "closed a door"
-        rog.msg("{t}{n} {ss}.".format(t=entn.title,n=entn.name,ss=ss))
+        rog.msg("{t}{n} {ss}.".format(
+            t=TITLES[entn.title],n=entn.name,ss=ss))
         return True
     if ent==rog.pc(): rog.alert("It won't open.") # TODO: message about why you failed
     return False
@@ -662,12 +664,12 @@ def _strike(attkr,dfndr,aweap,dweap,
     dbody=world.component_for_entity(dfndr, cmp.Body)
 
     # skill
-    if world.has_component(aweap,cmp.WeaponSkill):
-        skillCompo=world.component_for_entity(aweap, cmp.WeaponSkill)
-        skillLv=world.component_for_entity(attkr, cmp.Skills)
-    else:
-        skillCompo=None
-        skillLv=0
+    if (aweap and world.has_component(aweap,cmp.WeaponSkill)): # weapon skill
+        skill=world.component_for_entity(aweap, cmp.WeaponSkill).skill
+        skillLv=rog.getskill(attkr, skill)
+    else: # boxing
+        skill=None
+        skillLv=rog.getskill(attkr, SKL_BOXING)
     
     # attacker stats
     asp =   max( MIN_ASP, rog.getms(attkr,'asp') )
@@ -758,7 +760,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         trueDmg = rog.around( max(0,rawDmg*resMult) ) #*rmp # apply modifiers
         
         # elemental damage
-        if (world.has_component(aweap,cmp.ElementalDamageMelee)):
+        if (aweap and world.has_component(aweap,cmp.ElementalDamageMelee)):
             elements=world.component_for_entity(aweap,cmp.ElementalDamageMelee).elements
         else:
             elements={}
@@ -767,8 +769,8 @@ def _strike(attkr,dfndr,aweap,dweap,
         # you need more atk and more pen than usual to score a crit.
         if (hitDie >= dice.roll(20) and pen-prot >= 24 ):
             # critical hit!
-            if skillCompo:
-                critMult = WEAPONCLASS_CRITDAMAGE[skillCompo.skill]
+            if skill:
+                critMult = WEAPONCLASS_CRITDAMAGE[skill]
             else: # default crit damage
                 critMult = WEAPONCLASS_CRITDAMAGE[0]
             # critical hits do a percentage of target's max HP in damage
@@ -792,11 +794,11 @@ def _strike(attkr,dfndr,aweap,dweap,
         # damage body part (inflict status)
         if _boolDamageBodyPart:
             # get damage type
-            if world.has_component(aweap, cmp.DamageTypeMelee): # custom?
+            if (aweap and world.has_component(aweap, cmp.DamageTypeMelee)): # custom?
                 compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
                 dmgtype = compo.type
             else: # damage type based on skill of the weapon by default
-                dmgtype = DMGTYPES[skillCompo.skill]
+                dmgtype = DMGTYPES[skill]
             # deal body damage
             rog.damagebp(bptarget, dmgtype)
             
@@ -952,7 +954,8 @@ def fight(attkr,dfndr,adv=0,power=0):
         )
     
     # AP cost
-    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / max(1, asp) )
+    asp = max(1, rog.getms(attkr, 'asp'))
+    aactor.ap -= rog.around( NRG_ATTACK * AVG_SPD / asp )
     
     # stamina cost
     rog.sap(attkr, stamina_cost)
@@ -962,8 +965,9 @@ def fight(attkr,dfndr,adv=0,power=0):
     
     # finishing up
     message = True # TEMPORARY!!!!
-    a=aname.name; n=dname.name; at=aname.title; dt=dname.title;
-    x='.'; ex="";
+    a=aname.name; n=dname.name;
+    at=TITLES[aname.title]; dt=TITLES[dname.title];
+    x='.'; ex=""; m="";
     dr="d{}".format(CMB_ROLL_ATK) #"d20"
         # make a message describing the fight
     if message:

@@ -718,7 +718,8 @@ def mutate(ent):
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     entn = Rogue.world.component_for_entity(ent, cmp.Name)
     # TODO: message based on mutation (i.e. "{t}{n} grew an arm!") Is this dumb?
-    event_sight(pos.x,pos.y,"{t}{n} mutated!".format(t=entn.title,n=entn.name))
+    event_sight(pos.x,pos.y,"{t}{n} mutated!".format(
+        t=TITLES[entn.title],n=entn.name))
 
 def has_sight(ent):
     if (Rogue.world.has_component(ent, cmp.SenseSight) and not on(ent,BLIND)):

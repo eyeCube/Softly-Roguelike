@@ -3077,8 +3077,14 @@ BLINDING_LIGHT = 20 # " permanent blindness
 
 # shapes, the lowest level of identification on an entity you can achieve
 i=0;
-SHAPE_INDISTINCT    = i; i+=1;
-SHAPE_AMORPHOUS     = i; i+=1;
+SHAPE_FIGURE        = i; i+=1;
+SHAPE_CREATURE      = i; i+=1;
+SHAPE_BEAST         = i; i+=1;
+SHAPE_MACHINE       = i; i+=1;
+SHAPE_ORGANIC       = i; i+=1;
+SHAPE_DEVICE        = i; i+=1;
+SHAPE_TOOL          = i; i+=1;
+SHAPE_GUN           = i; i+=1;
 SHAPE_SPHERE        = i; i+=1;
 SHAPE_ROCK          = i; i+=1;
 SHAPE_BLOCK         = i; i+=1;
@@ -3090,18 +3096,18 @@ SHAPE_CROSS         = i; i+=1;
 SHAPE_CLUB          = i; i+=1;
 SHAPE_DISC          = i; i+=1;
 SHAPE_SLAB          = i; i+=1;
-SHAPE_DEVICE        = i; i+=1;
-SHAPE_TOOL          = i; i+=1;
 SHAPE_TUBE          = i; i+=1;
 SHAPE_STICK         = i; i+=1;
 SHAPE_SQUARE        = i; i+=1;
 SHAPE_SHARP         = i; i+=1;
 SHAPE_LINE          = i; i+=1;
 SHAPE_RECTANGLE     = i; i+=1;
-SHAPE_ORGANIC       = i; i+=1;
 SHAPE_Y             = i; i+=1;
 SHAPE_CURVED        = i; i+=1;
-SHAPE_GUN           = i; i+=1;
+SHAPE_JAGGED        = i; i+=1;
+SHAPE_RIGHTANGLES   = i; i+=1;
+SHAPE_INDISTINCT    = i; i+=1;
+SHAPE_AMORPHOUS     = i; i+=1;
 # names of shapes, for identification purposes
 SHAPES={
 SHAPE_INDISTINCT    : "indistinct object",
@@ -3135,6 +3141,15 @@ SHAPE_ORGANIC       : "organic-shaped object",
     #----------------#
 
 i=1;
+
+# creatures
+ID_HUMANOID         = i; i+=1;
+ID_INSECTOID        = i; i+=1;
+ID_4LEGBEAST        = i; i+=1;
+ID_2LEGBEAST        = i; i+=1;
+ID_8ARMS            = i; i+=1;
+ID_ANDROID          = i; i+=1;
+ID_ROBOT            = i; i+=1;
 
 # weapon-type items
 ID_CLUB             = i; i+=1;
@@ -3279,6 +3294,17 @@ ID_ROPE             = i; i+=1;
 NUMIDS = i - 1
 
 IDENTIFICATION={
+    
+# creatures
+ID_HUMANOID         : ("humanoid",SHAPE_FIGURE,),
+ID_INSECTOID        : ("insectoid",SHAPE_CREATURE,),
+ID_4LEGBEAST        : ("beast",SHAPE_BEAST,),
+ID_2LEGBEAST        : ("2-legged beast",SHAPE_FIGURE,),
+ID_8ARMS            : ("octopodal creature",SHAPE_ORGANIC,),
+ID_ANDROID          : ("android",SHAPE_FIGURE,),
+ID_ROBOT            : ("robot",SHAPE_MACHINE,),
+
+# weapons
 ID_CLUB             : ("club",SHAPE_CLUB,),
 ID_MACE             : ("mace",SHAPE_CLUB,),
 ID_HAMMER           : ("hammer",SHAPE_TOOL,),
@@ -3317,6 +3343,7 @@ ID_CANNON           : ("cannon",SHAPE_CYLINDER,),
 ID_ENERGYWEAPON     : ("energy weapon",SHAPE_DEVICE,),
 ID_BLOWGUN          : ("blowgun",SHAPE_TUBE,),
 
+# clothing / armor
 ID_VEST             : ("vest",SHAPE_AMORPHOUS,),
 ID_SHIRT            : ("tee",SHAPE_AMORPHOUS,),
 ID_LONGSHIRT        : ("shirt",SHAPE_AMORPHOUS,),
@@ -3360,11 +3387,13 @@ ID_GLOVE            : ("glove",SHAPE_INDISTINCT,),
 ID_GAUNTLET         : ("gauntlet",SHAPE_INDISTINCT,),
 ID_CLOAK            : ("cloak",SHAPE_AMORPHOUS,),
 
+# misc. items
 ID_RAG              : ("rag",SHAPE_AMORPHOUS,),
 ID_RAGS             : ("rags",SHAPE_AMORPHOUS,),
 ID_BANDAGE          : ("bandage",SHAPE_AMORPHOUS,),
 ID_RUBBERBAND       : ("rubber band",SHAPE_INDISTINCT,),
 
+# tools
 ID_SCALPEL          : ("scalpel",SHAPE_TOOL,),
 ID_SCISSORS         : ("scissors",SHAPE_TOOL,),
 ID_PLIERS           : ("pliers",SHAPE_TOOL,),
@@ -3373,6 +3402,7 @@ ID_WHETSTONE        : ("whetstone",SHAPE_BLOCK,),
 ID_SHOVEL           : ("shovel",SHAPE_STICK,),
 ID_PICKAXE          : ("pickaxe",SHAPE_STICK,),
 
+# raw mats
 ID_STRING           : ("string",SHAPE_LINE,),
 ID_PARTICLES        : ("particles",SHAPE_AMORPHOUS,),
 ID_POWDER           : ("powder",SHAPE_AMORPHOUS,),
@@ -3420,66 +3450,6 @@ for x in range(NUMIDS+1):
         print("missing ID # {} in IDENTIFICATION".format(x))
         print("(previous is {})".format(IDENTIFICATION.get(x-1, None)))
 
-IDENTIFICATION={
-ID_CLUB             : "club",
-ID_MACE             : "mace",
-ID_HAMMER           : "hammer",
-ID_AXE              : "axe",
-ID_KNIFE            : "knife",
-ID_SWORD            : "sword",
-ID_LONGSWORD        : "longsword",
-ID_STAFF            : "staff",
-ID_JAVELIN          : "javelin",
-ID_SHIELD           : "shield",
-ID_LONGSTAFF        : "longstaff",
-ID_SPEAR            : "spear",
-ID_POLEARM          : "polearm",
-ID_GREATSWORD       : "greatsword",
-ID_GREATAXE         : "greataxe",
-ID_GREATHAMMER      : "greathammer",
-ID_GREATCLUB        : "greatclub",
-ID_PUSHDAGGER       : "pushdagger",
-ID_BATON            : "baton",
-ID_WHIP             : "whip",
-ID_KNUCKLES         : "knuckles",
-ID_BOOMERANG        : "boomerang",
-ID_MACHETE          : "machete",
-
-ID_SHIRT            : "tee",
-ID_VEST             : "vest",
-ID_LONGSHIRT        : "shirt",
-ID_HOODY            : "hoody",
-ID_MAILSHIRT        : "mail vest",
-ID_MAILLONGSHIRT    : "mail shirt",
-ID_PADDEDCOIF       : "padded coif",
-ID_MAILCOIF         : "mail coif",
-ID_HELMET           : "helmet",
-ID_HELM             : "helm",
-ID_PADDEDSHIRT      : "padded vest",
-ID_PADDEDLONGSHIRT  : "padded shirt",
-ID_PADDEDLEGGING    : "padded legging",
-ID_MAILLEGGING      : "mail legging",
-ID_GREAVE           : "greave",
-ID_VAMBRACE         : "vambrace",
-ID_BOOT             : "boot",
-ID_SHOE             : "shoe",
-ID_SANDAL           : "sandal",
-ID_ARMOR            : "armor",
-ID_GEAR             : "gear",
-ID_CUIRASS          : "cuirass",
-ID_SUIT             : "suit",
-ID_CLOAK            : "cloak",
-ID_FURSUIT          : "fur suit",
-
-ID_RAGS             : "rags",
-ID_BANDAGE          : "bandage",
-ID_RUBBERBAND       : "rubber band",
-ID_SCALPEL          : "scalpel",
-ID_SCISSORS         : "scissors",
-ID_PLIERS           : "pliers",
-ID_SCREWDRIVER      : "screwdriver",
-ID_WHETSTONE        : "whetstone",
-    }
 
 
 

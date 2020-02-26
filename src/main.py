@@ -105,7 +105,7 @@ def main():
 ##    import entities
     #
     pos=rog.get(rog.pc(),cmp.Position)
-##    rog.create_monster('W',pos.x,pos.y-1) # all entities showing up as '@'
+##    rog.create_monster('W',pos.x,pos.y-1)
         
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
 ##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
