@@ -1154,7 +1154,10 @@ def put_text_special_colors(con, txt, offset):
 '''
 
 def itemize(items):
+    _nums=False
+    stopped=False
     ch=0
+    r=0
     start=97                    #<- start with a-z
     for item in items:
         if ch >= 26:
@@ -1163,9 +1166,17 @@ def itemize(items):
                 start=65        #<- start with A-Z
             else:
                 start=48        #<- start with 0-9
-        elif (ch > 9 and start == 48):
-            break               #<- finished early, too many items
-        yield (chr(ch+start),item)
+                _nums=True
+        elif (ch > 9 and _nums):
+            # now do ctrl-keys (symbolized by the key value + 256)
+            r += 1
+            ch = 0
+            start = 97
+            _nums = False
+        if r >= 2: # too many items. Stop giving them unique keys
+            yield (-1, item,)
+        else:
+            yield (ch + start + r*MENU_CTRL_MOD, item,)            
         ch += 1
         
 # to reverse the num-to-char method from itemize()

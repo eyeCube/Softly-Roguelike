@@ -676,9 +676,11 @@ def _solarPanel(ent):
     _canThrow(ent, rng=3, acc=-5, dmg=1)
 def _skeleton(ent):
     rog.world().add_component(ent, cmp.Harvestable(
-        500, {'bone':2, 'bone, small':16, 'skull':1,
-              'piece of bone':1, 'parcel of bone':8, 'scrap bone':16,},
-        {}))
+        500,
+        {'bone':2, 'bone, small':16, 'skull':1,
+         'piece of bone':1, 'parcel of bone':8, 'scrap bone':16,},
+        {}
+        ))
 def _campfire(ent):
     pass
 def _foliage(ent):
@@ -800,7 +802,9 @@ def _grave(tt):
 
 def _meatFlower(item):
     rog.world().add_component(item, cmp.Harvestable(
-        300, {'parcel of flesh' : 1}, {cmp.Tool_Chop : 1}
+        300,
+        {'parcel of flesh' : 1},
+        {cmp.Tool_Chop : 1}
         ))
 
 
@@ -1076,7 +1080,10 @@ def _pSlab(item):
 def _wSlab(item):
     _slab(item)
     rog.world().add_component( item, cmp.Harvestable(
-        4800, {'wooden plank':20}, {cmp.Tool_Saw:4}) )
+        4800,
+        {'wooden plank':20},
+        {cmp.Tool_Saw:4}
+        ) )
 def _fSlab(item):
     _slab(item)
 def _bSlab(item):
@@ -1152,7 +1159,10 @@ def _dust(item):
 ##    rog.world().add_component(item, cmp.Usable(funcPC, funcNPC))
 def _log(item):
     rog.world().add_component( item, cmp.Harvestable(
-        4800, {'slab of wood':3}, {cmp.Tool_Saw:4}) )
+        4800,
+        {'slab of wood':3},
+        {cmp.Tool_Saw:4}
+        ) )
 def _plank(item):
     rog.make(item, TWOHANDS)
     _weapon(item, acc=3,dmg=3,pen=1,av=1,pro=1,asp=-51,enc=26)

@@ -70,6 +70,8 @@ STARTING_TIME = 25200
 
 CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes
 
+MENU_CTRL_MOD       = 256
+
 
 #
 # Engine Constants
@@ -824,9 +826,6 @@ BODYPLAN_INSECTOID  : 50000,
     # statuses of bodies / body parts #
     #---------------------------------#
 
-# rule: the higher the value of the constant, the higher priority it has
-#   when deciding whether to overwrite a status with another
-
 # body positions
 i=0;
 BODYPOS_UPRIGHT     = i; i+=1;
@@ -834,6 +833,9 @@ BODYPOS_CROUCHED    = i; i+=1;
 BODYPOS_SEATED      = i; i+=1;
 BODYPOS_SUPINE      = i; i+=1;
 BODYPOS_PRONE       = i; i+=1;
+BODYPOS_OFFENSIVE   = i; i+=1;
+BODYPOS_DEFENSIVE   = i; i+=1;
+BODYPOS_CQB         = i; i+=1;
 
 BODYPOSITIONS={
 BODYPOS_UPRIGHT     : "upright",
@@ -841,57 +843,102 @@ BODYPOS_CROUCHED    : "crouched",
 BODYPOS_SEATED      : "seated",
 BODYPOS_SUPINE      : "supine",
 BODYPOS_PRONE       : "prone",
+BODYPOS_OFFENSIVE   : "offensive stance",
+BODYPOS_DEFENSIVE   : "defensive stance",
+BODYPOS_CQB         : "CQB stance",
     }
 
 # position stat modifiers
-CROUCHED_MSPMOD         = 0.6666667
-CROUCHED_HEIGHTMOD      = 0.75
-CROUCHED_AGIMOD         = 0.9
-CROUCHED_ATK            = -5
-CROUCHED_DFN            = -10
-CROUCHED_PEN            = -3
-CROUCHED_PRO            = -3
-CROUCHED_GRA            = 3
+CROUCHED_MSPMOD     = 0.6666667
+CROUCHED_HEIGHTMOD  = 0.75
+CROUCHED_AGIMOD     = 0.9
+CROUCHED_ATK        = -5
+CROUCHED_DFN        = -10
+CROUCHED_PEN        = -3
+CROUCHED_PRO        = -3
+CROUCHED_GRA        = 3
 
-SEATED_MSPMOD           = 0.15
-SEATED_HEIGHTMOD        = 0.5
-SEATED_AGIMOD           = 0.666667
-SEATED_ATK              = -20
-SEATED_DFN              = -20
-SEATED_PEN              = -6
-SEATED_PRO              = -6
-SEATED_GRA              = -3
+SEATED_MSPMOD       = 0.15
+SEATED_HEIGHTMOD    = 0.5
+SEATED_AGIMOD       = 0.666667
+SEATED_ATK          = -20
+SEATED_DFN          = -20
+SEATED_PEN          = -6
+SEATED_PRO          = -6
+SEATED_GRA          = -3
 
-SUPINE_MSPMOD           = 0.1
-SUPINE_HEIGHTMOD        = 0.2
-SUPINE_AGIMOD           = 0.25
-SUPINE_ATK              = -25
-SUPINE_DFN              = -25
-SUPINE_PEN              = -9
-SUPINE_PRO              = -9
-SUPINE_GRA              = -6
+SUPINE_MSPMOD       = 0.1
+SUPINE_HEIGHTMOD    = 0.2
+SUPINE_AGIMOD       = 0.25
+SUPINE_ATK          = -25
+SUPINE_DFN          = -25
+SUPINE_PEN          = -9
+SUPINE_PRO          = -9
+SUPINE_GRA          = -6
 
-PRONE_MSPMOD            = 0.075
-PRONE_HEIGHTMOD         = 0.2
-PRONE_AGIMOD            = 0.5
-PRONE_ATK               = -30
-PRONE_DFN               = -30
-PRONE_PEN               = -12
-PRONE_PRO               = -12
-PRONE_GRA               = -12
+PRONE_MSPMOD        = 0.075
+PRONE_HEIGHTMOD     = 0.2
+PRONE_AGIMOD        = 0.5
+PRONE_ATK           = -30
+PRONE_DFN           = -30
+PRONE_PEN           = -12
+PRONE_PRO           = -12
+PRONE_GRA           = -12
+
+OFFENSIVE_REACHMOD  = 1.2
+OFFENSIVE_DMGMOD    = 1.5
+OFFENSIVE_ASP       = -40
+OFFENSIVE_ATK       = 4
+OFFENSIVE_DFN       = -8
+OFFENSIVE_GRA       = -6
+OFFENSIVE_PEN       = 2
+OFFENSIVE_PRO       = -3
+
+DEFENSIVE_REACHMOD  = 0.75
+DEFENSIVE_DMGMOD    = 0.666667
+DEFENSIVE_ASP       = 40
+DEFENSIVE_ATK       = -4
+DEFENSIVE_DFN       = 4
+DEFENSIVE_GRA       = 4
+DEFENSIVE_PEN       = -4
+DEFENSIVE_PRO       = 2
+DEFENSIVE_CTR       = 5
+DEFENSIVE_SPLASHMOD = 1.5
+
+CQB_REACHMOD        = 0
+CQB_ATK             = 4
+CQB_DFN             = -4
+CQB_GRA             = 6
+CQB_PEN             = 6
+CQB_PRO             = 1
+CQB_SPLASHMOD       = 0.25
 
 # body parts
 
 i=0;
-BP_LIMB     = i; i+=1;
-BP_HEAD     = i; i+=1;
-BP_NECK     = i; i+=1;
-BP_FACE     = i; i+=1;
-BP_TORSO    = i; i+=1;
-BP_HAND     = i; i+=1;
-BP_FOOT     = i; i+=1;
-BP_EYES     = i; i+=1;
-BP_EARS     = i; i+=1;
+BP_LIMB         = i; i+=1;
+BP_HEAD         = i; i+=1;
+BP_NECK         = i; i+=1;
+BP_FACE         = i; i+=1;
+BP_TORSO        = i; i+=1;
+BP_HAND         = i; i+=1;
+BP_FOOT         = i; i+=1;
+BP_EYES         = i; i+=1;
+BP_EARS         = i; i+=1;
+BP_WING         = i; i+=1;
+BP_TAIL         = i; i+=1;
+BP_MOUTH        = i; i+=1;
+BP_BEAK         = i; i+=1;
+BP_GENITALS     = i; i+=1;
+BP_APPENDAGE    = i; i+=1;
+BP_TENTACLE     = i; i+=1;
+BP_PSEUDOPOD    = i; i+=1;
+BP_AMEBOID      = i; i+=1;
+BP_MANDIBLE     = i; i+=1;
+BP_INSECTHEAD   = i; i+=1;
+BP_INSECTLEG    = i; i+=1;
+BP_INSECTTHORAX = i; i+=1;
+BP_INSECTABDOMEN= i; i+=1;
 
 # body parts pieces
 
@@ -913,6 +960,9 @@ BPP_FACE        = i; i+=1;
 BPP_HAIR        = i; i+=1;
 
 # body part statuses
+
+# rule: the higher the value of the constant, the higher priority it has
+#   when deciding whether to overwrite a status with another
 
 i=0;
 BONESTATUS_NORMAL       = i; i+=1;
@@ -1966,38 +2016,41 @@ FL_HAZMATS      =i; i+=1;
 
 # material names
 MATERIALS={
-MAT_FLESH       : "flesh",
-MAT_BONE        : "bone",
-MAT_METAL       : "metal",
-MAT_CARBON      : "carbon",
-MAT_PLASTIC     : "plastic",
-MAT_TARP        : "tarp",
-MAT_STONE       : "stone",
-MAT_DUST        : "dust",
-MAT_WOOD        : "wood",
-MAT_PAPER       : "paper",
-MAT_LEATHER     : "leather",
-MAT_BLEATHER    : "boiled leather",
-MAT_CLOTH       : "cloth",
-MAT_ROPE        : "rope",
-MAT_GLASS       : "glass",
-MAT_RUST        : "rust",
-MAT_CLAY        : "clay", 
-MAT_CERAMIC     : "ceramic",
-MAT_QUARTZ      : "quartz",
-MAT_RUBBER      : "rubber",
-MAT_CHITIN      : "chitin",
-MAT_KERATIN     : "keratin",
-FL_WATER        : "water",
-FL_OIL          : "oil",
-FL_BLOOD        : "blood",
-FL_ACID         : "acid",
-FL_STRONGACID   : "acid",
-FL_SMOKE        : "smoke",
-FL_ALCOHOL      : "alcohol",
-FL_NAPALM       : "napalm",
-FL_GASOLINE     : "petrol",
-FL_HAZMATS      : "bio-hazard",
+    # DT : damage threshold; how much damage a generic item of this
+        # material can take before breaking (independent of durability)
+# ID            : (name, DT,)
+MAT_FLESH       : ("flesh", 100,),
+MAT_BONE        : ("bone", 20,),
+MAT_METAL       : ("metal", 40,),
+MAT_CARBON      : ("carbon", 80,),
+MAT_PLASTIC     : ("plastic", 10,),
+MAT_TARP        : ("tarp", 100,),
+MAT_STONE       : ("stone", 20,),
+MAT_DUST        : ("dust", 100,),
+MAT_WOOD        : ("wood", 20,),
+MAT_PAPER       : ("paper", 20,),
+MAT_LEATHER     : ("leather", 60,),
+MAT_BLEATHER    : ("boiled leather", 30,),
+MAT_CLOTH       : ("cloth", 100,),
+MAT_ROPE        : ("rope", 50,),
+MAT_GLASS       : ("glass", 10,),
+MAT_RUST        : ("rust", 5,),
+MAT_CLAY        : ("clay", 100,), 
+MAT_CERAMIC     : ("ceramic", 10,),
+MAT_QUARTZ      : ("quartz", 20,),
+MAT_RUBBER      : ("rubber", 100,),
+MAT_CHITIN      : ("chitin", 20,),
+MAT_KERATIN     : ("keratin", 20,),
+FL_WATER        : ("water", 999,),
+FL_OIL          : ("oil", 999,),
+FL_BLOOD        : ("blood", 999,),
+FL_ACID         : ("acid", 999,),
+FL_STRONGACID   : ("strong acid", 999,),
+FL_SMOKE        : ("smoke", 999,),
+FL_ALCOHOL      : ("alcohol", 999,),
+FL_NAPALM       : ("napalm", 999,),
+FL_GASOLINE     : ("petrol", 999,),
+FL_HAZMATS      : ("bio-hazard", 999,),
     }
 
 # material fuel values
@@ -2358,6 +2411,7 @@ SKL_SURVIVAL    = i; i+=1; #harvesting animals, plants, fungi, rocks, etc.
 SKL_LOCKPICK    = i; i+=1; #
 SKL_MEDICINE    = i; i+=1; #healing using herbs, bandages, potions, etc. (healing the skin and minor damages)
 SKL_SURGERY     = i; i+=1; #stiching, organ/limb removal/transplanting, repairing organs (healing major damages)
+SKL_MASSAGE     = i; i+=1; #healing muscle/connective tissue using manual working of the tissue
 ##SKL_PERCEPTION  = i; i+=1; #hear exactly what happens, hearing range ++
 # Crafting
 SKL_ASSEMBLY    = i; i+=1; #crafting base skill
@@ -2378,6 +2432,9 @@ SKL_HARDWARE    = i; i+=1; #computer building and repair
 SKL_MECHANIC    = i; i+=1; #machine building and repair
 SKL_ARMORSMITH  = i; i+=1; #making and repairing armor
 SKL_WELDING     = i; i+=1; #
+SKL_TESTER1     = i; i+=1; #
+SKL_TESTER2     = i; i+=1; #
+SKL_TESTER3     = i; i+=1; #
 ##SKL_SWORDSMITH  = i; i+=1; #making and repairing swords (bladesmithing skill -- incorporated)
 # Languages
 ##SKL_CHINESE     = i; i+=1; #related to: cantonese, tibetan, burmese
@@ -2436,8 +2493,8 @@ SKILLS={ # ID : (SP,name,)
 SKL_ARMOR       :(3,'armored combat',),
 SKL_UNARMORED   :(2,'unarmored combat',),
 SKL_SHIELDS     :(2,'shields',),
-SKL_BOXING      :(3,'boxer',),
-SKL_WRESTLING   :(3,'wrestler',),
+SKL_BOXING      :(3,'boxing',),
+SKL_WRESTLING   :(3,'wrestling',),
 SKL_AXES        :(1,'axes, one-handed',),
 SKL_GREATAXES   :(2,'axes, two-handed',),
 SKL_HAMMERS     :(1,'hammers, one-handed',),
@@ -2466,19 +2523,20 @@ SKL_MACHINEGUNS :(3,'machine guns',),
 SKL_HEAVY       :(3,'heavy weapons',),
 SKL_ENERGY      :(4,'energy weapons',),
 # Physical / Technical Skills
-SKL_ATHLETE     :(2,'athlete',),
+SKL_ATHLETE     :(2,'athleticism',),
 SKL_STEALTH     :(1,'stealth',),
 SKL_COMPUTERS   :(4,'computers',),
-SKL_PILOT       :(2,'pilot',),
+SKL_PILOT       :(2,'piloting',),
 SKL_PERSUASION  :(2,'speech',),
-SKL_CHEMISTRY   :(5,'chemist',),
-SKL_SURVIVAL    :(1,'survivor',),
-SKL_LOCKPICK    :(1,'lockpick',),
+SKL_CHEMISTRY   :(5,'chemistry',),
+SKL_SURVIVAL    :(1,'survival',),
+SKL_LOCKPICK    :(1,'lockpicking',),
 SKL_MEDICINE    :(3,'medicine',),
-SKL_SURGERY     :(6,'surgeon',),
+SKL_SURGERY     :(6,'surgery',),
+SKL_MASSAGE     :(2,'massage',),
 # Crafting Skills
-SKL_ASSEMBLY    :(1,'assembler',),
-SKL_COOKING     :(1,'cook',),
+SKL_ASSEMBLY    :(1,'crafting',),
+SKL_COOKING     :(1,'cooking',),
 SKL_WOOD        :(1,'woodcraft',),
 SKL_BONE        :(1,'bonecraft',),
 SKL_LEATHER     :(2,'leathercraft',),
@@ -2486,15 +2544,18 @@ SKL_PLASTIC     :(1,'plasticraft',),
 SKL_STONE       :(1,'stonecraft',),
 SKL_GLASS       :(3,'glasscraft',),
 SKL_METAL       :(3,'metalcraft',),
-SKL_BOWYER      :(2,'bowyer',),
-SKL_FLETCHER    :(1,'fletcher',),
-SKL_BLADESMITH  :(3,'bladesmith',),
-SKL_GUNSMITH    :(3,'gunsmith',),
-SKL_HARDWARE    :(2,'technosmith',),
-SKL_MECHANIC    :(2,'autosmith',),
-SKL_ARMORSMITH  :(3,'armorsmith',),
+SKL_BOWYER      :(2,'bowcraft',),
+SKL_FLETCHER    :(1,'fletching',),
+SKL_BLADESMITH  :(3,'bladesmithing',),
+SKL_GUNSMITH    :(3,'gunsmithing',),
+SKL_HARDWARE    :(2,'technosmithing',),
+SKL_MECHANIC    :(2,'autosmithing',),
+SKL_ARMORSMITH  :(3,'armorsmithing',),
 SKL_WELDING     :(2,'welding',),
-0               :(0,'no skill',),
+0               :(0,'<no skill>',),
+SKL_TESTER1     :(1,'TESTER1',),
+SKL_TESTER2     :(2,'TESTER2',),
+SKL_TESTER3     :(3,'TESTER3',),
     }
     
 

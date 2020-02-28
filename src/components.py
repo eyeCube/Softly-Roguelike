@@ -409,7 +409,8 @@ class Slot:
     __slots__=['item','covers']
     def __init__(self, item=None, covers=()):
         self.item=item
-        self.covers=covers
+        self.covers=covers  # tuple of additional component instances
+                            # covered by the item in this slot
 
 class Body:
     '''
@@ -419,7 +420,7 @@ class Body:
                     e.g. humanoid which has 2 arms, 2 legs, a torso and a head.
     slot        the "About" slot which is for wearing things over your body
     core        the BPC sub-component of the core (where the hearts are)
-    parts       list of all other BPC sub-components
+    parts       dict of all other BPC sub-components {compoClass : instance}
     position    int refers to an int const corresponding to predefined position
     bodyfat     int, total mass of fat in the whole body
     blood       int, total mass of blood in the whole body / bloodMax=maximum
@@ -621,14 +622,13 @@ class BP_Face:
         self.features=BPP_FacialFeatures()
         self.skin=BPP_Skin()
         self.covered=False
-class BP_Mouth:
-    __slots__=['bone','muscle','teeth','gustatorySystem','covered']
+class BP_Mouth: #TODO: mouth holding items
+    __slots__=['bone','muscle','teeth','gustatorySystem']
     def __init__(self, taste=20): # quality of taste system
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.teeth=BPP_Teeth()
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
-        self.covered=False
 class BP_Eyes:
     __slots__=['slot','visualSystem','covered','open']
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
@@ -704,15 +704,21 @@ class BP_InsectAbdomen:
         self.covered=False
 class BP_InsectHead:
     __slots__=['slot','exoskeleton','brain','antennae','visualSystem',
-               'mandible','covered']
+               'covered']
     def __init__(self):
         self.slot=Slot()
         self.exoskeleton=BPP_Exoskeleton()
         self.brain=BPP_Brain()
         self.antennae=BPP_Antennae()
         self.visualSystem=BPP_VisualSystem()
-        self.mandible=BPP_Mandible()
         self.covered=False
+class BP_Mandible:
+    __slots__=['held','exoskeleton','muscle','holding']
+    def __init__(self):
+        self.held=Slot()
+        self.exoskeleton=BPP_Exoskeleton()
+        self.muscle=BPP_Muscle()
+        self.holding=False
 class BP_InsectLeg:
     __slots__=['slot','exoskeleton','muscle','covered']
     def __init__(self):
@@ -721,14 +727,17 @@ class BP_InsectLeg:
         self.exoskeleton=BPP_Exoskeleton()
         self.covered=False
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
-    __slots__=['slot','artery','muscle','skin','stickies','covered']
+    __slots__=['slot','held','artery','muscle','skin','stickies',
+               'covered','holding']
     def __init__(self, stickies=0):
         self.slot=Slot()
+        self.held=Slot()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
         self.covered=False
+        self.holding=False
 class BP_Pseudopod:
     __slots__=['slot','covered']
     def __init__(self):
@@ -878,11 +887,15 @@ class BPP_Nucleus:
 ##        self.mass=mass
 ##        self.status=0
        
-##class Equipped: # entity has been equipped by someone
-##    __slots__=['owner','slot']
-##    def __init__(self, owner, slot):
-##        self.owner=owner # entity that has equipped this item
-##        self.slot=slot   # EQ_ const: slot the item is equipped in
+class Carried: # entity is inside an inventory
+    __slots__=['owner']
+    def __init__(self, owner):
+        self.owner=owner # entity who is carrying this item
+class Equipped: # entity has been equipped by someone
+    __slots__=['owner','equipType']
+    def __init__(self, owner, equipType):
+        self.owner=owner # entity that has equipped this item
+        self.equipType=equipType   # EQ_ const: slot the item is equipped in
 
 '''
     Equippable components
@@ -1232,7 +1245,7 @@ class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, 
         self.energy=energy # energy required to harvest
         self.mats=mats # raw materials that are harvested, and the amount
         self.tools=tools # tools needed, and the quality needed to harvest
-       
+    
     #-----------------------#
     #       Tools           #
     #-----------------------#
@@ -1681,6 +1694,18 @@ class StatusBPos_Prone: # body position: prone (lying / on the ground face-down)
     __slots__=[]
     def __init__(self):
         pass
+class StatusBPos_Offensive: # body position: offensive stance
+    __slots__=[]            # power stance
+    def __init__(self):
+        pass
+class StatusBPos_Defensive: # body position: defensive stance
+    __slots__=[]            # protective, withdrawn stance
+    def __init__(self):
+        pass
+class StatusBPos_CQB:   # body position: CQB (close-quarters battle) stance
+    __slots__=[]        # grappling and half-swording stances, etc.
+    def __init__(self):
+        pass
 
 # quality statuses
 class StatusRecoil: # Atk - quality
@@ -1959,7 +1984,7 @@ BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
     }
 
 EQ_BPS_HOLD=(EQ_MAINHAND, EQ_OFFHAND,)
-BP_BPS_HOLD=(BP_HAND,)
+BP_BPS_HOLD=(BP_HAND,BP_TENTACLE,)
 
 
 

@@ -677,6 +677,7 @@ def _strike(attkr,dfndr,aweap,dweap,
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
     areach =rog.getms(attkr,'reach')//MULT_STATS
+    aweap1mat = rog.world().component_for_entity(aweap, cmp.Form).material
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
@@ -685,6 +686,7 @@ def _strike(attkr,dfndr,aweap,dweap,
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     dreach =rog.getms(dfndr,'reach')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
+    dweap1mat = rog.world().component_for_entity(dweap, cmp.Form).material
 
     # differences btn attacker and defender
 ##    dcm =   rog.getms(attkr,'height') - rog.getms(dfndr,'height')
@@ -730,6 +732,8 @@ def _strike(attkr,dfndr,aweap,dweap,
             while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
                 pens += 1   # number of penetrations ++
             armor = rog.around(arm * (0.5**pens))
+        else:
+            armor = arm
         # end if
         
             #------------------#
@@ -781,18 +785,22 @@ def _strike(attkr,dfndr,aweap,dweap,
             #--------------------#
             # body / gear damage #
             #--------------------#
-            
-        hitpp = min(BODY_DMG_PEN_BPS-1, pens)
-        _boolDamageBodyPart = (hitpp!=0)
+        
         # TODO: pick body part to hit randomly based on parameters
         if bptarget:
             bptarget = bptarget # TEMPORARY
         else:
             bptarget = rog.findbps(dfndr, cmp.BP_TorsoFront)[0]  # TEMPORARY
         # end if
+        
+        # body damage #
+        # calculate damage dealt to body parts
+        bpdmg = min(BODY_DMG_PEN_BPS, hitDie // 5 + pens)
+        _boolDamageBodyPart = (bpdmg!=0)
         #
         # damage body part (inflict status)
         if _boolDamageBodyPart:
+            hitpp = bpdmg - 1   # status index
             # get damage type
             if (aweap and world.has_component(aweap, cmp.DamageTypeMelee)): # custom?
                 compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
@@ -800,14 +808,13 @@ def _strike(attkr,dfndr,aweap,dweap,
             else: # damage type based on skill of the weapon by default
                 dmgtype = DMGTYPES[skill]
             # deal body damage
-            rog.damagebp(bptarget, dmgtype)
+            rog.damagebp(bptarget, dmgtype, hitpp)
             
             # organ damage (TODO) # how should this be done..?
-            # criticals only? (criticals (temporarily?) disabled as of 2020-02-01)
-            
+            # criticals only?
         # end if
-        #
-        # damage gear
+        
+        # gear damage #
         gearitem = bptarget.slot.item
         if (gearitem and pens < GEAR_DMG_PEN_THRESHOLD):
             # the damage dealt to the gear is based on attacker's damage,
@@ -816,6 +823,8 @@ def _strike(attkr,dfndr,aweap,dweap,
             # Idea: could depend on armor-wearing skill of the wearer...
             geardmg = dmg - rog.getms(gearitem, 'arm')
             rog.damage(gearitem, geardmg)
+            if geardmg >= rog.material_damage_threshold(dweap1mat):
+                rog.breakitem(gearitem, aweap)
         # end if
         
             #-------------------------------------#

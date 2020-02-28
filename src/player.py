@@ -204,6 +204,14 @@ def commands(pc, pcAct):
                         )
         # end conditional
 
+        if act == "change-pos": # change body position
+            action.change_bodypos_pc(pc)
+            _Update()
+            return
+        if act == "change-spd": # change speed of movement (walking, running, jogging, etc.)
+            action.change_speed_pc(pc)
+            _Update()
+            return
         if act == "target-prompt": #target entity + fire / throw / attack
             action.target_pc(pc)
             _Update()

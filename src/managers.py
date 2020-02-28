@@ -641,6 +641,18 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
     #   or automatically created if autoItemize == True
     #       (in which case you pass in an iterable)
     #       iterable can contain strings or an object with attr "name"
+        
+        # ensure that all keys are integers
+        if not autoItemize: # if we are given keys by the caller,
+            delete=[]
+            for k,v in keysItems.items():
+                if isinstance(k, str):
+                    delete.append((k,v,))
+            for (k,v,) in delete:
+                keysItems[ord(k)] = v
+                del keysItems[k]
+        #
+        
         self.name=name
         self.x=x
         self.y=y
@@ -650,10 +662,9 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         self.border_h=1
         self.view_pos = 0
         if autoItemize:
-            new={}
+            self.keysItems={}
             for k,v in misc.itemize(keysItems):
-                new.update({k:v})
-            self.keysItems=new
+                self.keysItems.update({k:v})
         else: self.keysItems=keysItems
         #   get width and height from items
         widest=0
@@ -719,9 +730,16 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
                 self.scroll_top()
             if key.vk == libtcod.KEY_END:
                 self.scroll_bottom()
+            if (key.c and (key.lctrl or key.rctrl)):
+                k = key.c + MENU_CTRL_MOD
+                self.refresh()
+                n=self.keysItems.get(k,None) #.decode()
+                if n:
+                    self.set_result(n)
         if key.vk == libtcod.KEY_TEXT: # select
+            k = ord(key.text)
             self.refresh()
-            n=self.keysItems.get(key.text,None) #.decode()
+            n=self.keysItems.get(k,None) #.decode()
             if n:
                 self.set_result(n)
     
@@ -762,17 +780,24 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
     def sort(self):
         def sorter(val):
             k,v = val
-            ordk=ord(k)
-            if ordk == 42: # asterisk first
+            if k == 42: # asterisk first
                 return 0
-            if (ordk < (65+26) and ordk >= 65): 
-                return ordk+256 #caps after lowercase keys
-            if ordk < 60: 
-                return ordk+512 #numbers last
-            return ord(k)
+            ret = 0
+            if k >= MENU_CTRL_MOD: # ctrl-keys
+                k = k % MENU_CTRL_MOD
+                ret += 1024 # ctrl-keys after non-ctrl keys
+            if (k < (65+26) and k >= 65): 
+                ret += k+256 #caps after lowercase keys
+            elif k < 60: 
+                ret += k+512 #numbers last
+            else:
+                ret += k
+            return ret
+        # end def
         self.sorted=list(self.keysItems.items())
         self.sorted.sort(key=sorter)
-        
+    # end def
+    
     def draw(self):
         y=0
         #   draw title and box
@@ -785,9 +810,13 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         libtcod.console_print(self.con, tx, 0, title)
         #   draw options
         for key,item in self.sorted:
+            if key > MENU_CTRL_MOD:
+                ck = "(^{})".format(chr(key % MENU_CTRL_MOD))
+            else:
+                ck = "({}) ".format(chr(key))
             name=self.get_name(item)
             libtcod.console_print(
-                self.con_text, 1, y, '({i}) {nm}'.format(i=key, nm=name) )
+                self.con_text, 1, y, '{i}{nm}'.format(i=ck, nm=name) )
             y += 1
         # blit text onto box
         libtcod.console_blit(

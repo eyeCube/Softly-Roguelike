@@ -907,21 +907,41 @@ def kill(ent): #remove a thing from the world
         world.component_for_entity(ent, cmp.DeathFunction).func(ent)
     make(ent, DEAD)
     clear_status_all(ent)
-    #drop inventory
+    
+    # handle any dependencies shared by this entity before removing it #
+    
+    # unequip entity if it's currently being worn / held as an equip
+    if world.has_component(ent, cmp.Equipped):
+        compo = world.component_for_entity(ent, cmp.Equipped)
+        deequip(compo.owner, compo.equipType)
+        
+    # drop entity's equipped items if applicable
+    if world.has_component(ent, cmp.Body):
+        deequip_all(ent)
+    
+    # remove entity from inventory if it's being carried
+    if world.has_component(ent, cmp.Carried):
+        compo = world.component_for_entity(ent, cmp.Carried)
+        drop(compo.owner, ent)
+        
+    # drop entity's inventory if it's carrying anything
     if world.has_component(ent, cmp.Inventory):
         for tt in world.component_for_entity(ent, cmp.Inventory).data:
             drop(ent, tt)
-    #creatures
+    
+    # remains #
+    
+    # creatures
     isCreature = world.has_component(ent, cmp.Creature)
     if isCreature:
-        #create a corpse
+        # create a corpse
         if dice.roll(100) < entities.corpse_recurrence_percent[_type]:
             create_corpse(ent)
-    #inanimate things
+    # inanimate things
     else:
-        #burn to ashes
+        # burn to ashes
         if get_status(ent, cmp.StatusBurn):
-            mat = world.component_for_entity(ent, cmp.Material).flag
+            mat = world.component_for_entity(ent, cmp.Form).material
             if (mat==MAT_FLESH
                 or mat==MAT_WOOD
                 or mat==MAT_FUNGUS
@@ -929,8 +949,10 @@ def kill(ent): #remove a thing from the world
                 or mat==MAT_LEATHER
                 ):
                 create_ashes(ent)
-    #remove dead thing
-    release_entity(ent)
+    # end if
+    
+    # cleanup #
+    release_entity(ent) #remove dead thing
 # end def
 
 def zombify(ent):
@@ -1188,6 +1210,27 @@ def create_entity():
 ##    ent = Rogue.world.create_entity()
 ##    Rogue.world.add_component(ent, cmp.Flags) #flagset
 ##    return ent
+def material_damage_threshold(mat):
+    return MATERIALS[mat][1]
+
+# harvesting
+def breakitem(item, tool=None):
+    ''' destroy an entity using tool; attempt to harvest it with tool
+    '''
+    harvest(item, tool, quality=0)
+    kill(item)
+def harvest(item, tool=None, quality=1):
+    ''' attempt to harvest a Harvestable entity using tool
+    Parameters:
+        item:     the entity to harvest
+        tool:     the entity that is being used to harvest the thing
+        quality:  higher quality -> greater chance at successful harvest
+    '''
+    if Rogue.world.has_component(item, cmp.Harvestable):
+        compo = Rogue.world.component_for_entity(item, cmp.Harvestable)
+        return True
+    return False
+
 
 
     #  creature/monsters  #
@@ -1271,9 +1314,9 @@ def init_fluidContainer(ent, size):
 
 
 
-    #---------------------#
-    #   Equipment / Body  #
-    #---------------------#
+    #---------#
+    #   Body  #
+    #---------#
 
 def get_arm_length(bodyplan, height): #temporary solution to get arm length based on body type
     if bodyplan==BODYPLAN_HUMANOID:
@@ -1390,15 +1433,17 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
 # end def
 
 # damage body part (potentially call damagebpp multiple times)
-def damagebp(bptarget, dmgtype):
+def damagebp(bptarget, dmgtype, hitpp):
     '''
         bptarget   BP_ (Body Part) component object instance to damage
         dmgtype    DMGTYPE_ const
+        hitpp      0 to 3: damage value -- how high of a priority of
+                    status is inflicted? 3 is most severe, 0 least severe.
     '''
         
     # abrasions
     if dmgtype==DMGTYPE_ABRASION:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[hitpp])
@@ -1409,7 +1454,7 @@ def damagebp(bptarget, dmgtype):
                     bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[hitpp])
     # burns
     elif dmgtype==DMGTYPE_BURN:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[hitpp])
@@ -1420,7 +1465,7 @@ def damagebp(bptarget, dmgtype):
                     bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[hitpp])
     # lacerations
     elif dmgtype==DMGTYPE_CUT:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[hitpp])
@@ -1429,7 +1474,7 @@ def damagebp(bptarget, dmgtype):
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[hitpp])
     # puncture wounds
     elif dmgtype==DMGTYPE_PIERCE:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_PUNCTURE[hitpp])
@@ -1440,7 +1485,7 @@ def damagebp(bptarget, dmgtype):
         # organ damage is handled separately.
     # hacking / picking damage
     elif dmgtype==DMGTYPE_HACK:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
@@ -1452,7 +1497,7 @@ def damagebp(bptarget, dmgtype):
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # blunt / crushing damage
     elif dmgtype==DMGTYPE_BLUNT:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_MUSCLE in cd:
             damagebpp(
                 bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
@@ -1461,7 +1506,7 @@ def damagebp(bptarget, dmgtype):
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # mace-like weapons
     elif dmgtype==DMGTYPE_SPUDS:            
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[hitpp])
@@ -1473,7 +1518,7 @@ def damagebp(bptarget, dmgtype):
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
     # morning-star like long-spiked weapons
     elif dmgtype==DMGTYPE_SPIKES:
-        cd=cmp.BP_BPPS[type(bptarget).__name__]
+        cd=cmp.BP_BPPS[type(bptarget)]
         if BPP_SKIN in cd:
             damagebpp(
                 bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[hitpp])
@@ -1588,15 +1633,21 @@ def findbps(ent, cls): # ent + cls -> list of BP component objects
         return (body.parts[cmp.BPC_Legs].legs[0].foot,
                 body.parts[cmp.BPC_Legs].legs[1].foot,)
 
-#equipping things
+
+    #-----------------#
+    #    Equipment    #
+    #-----------------#
+
 def equip(ent,item,equipType): # equip an item in 'equipType' slot
     '''
         equip ent with item in the slot designated by equipType const
+        (functions for held or worn items)
         return tuple: (result, compo,)
             where result is a negative value for failure, or 1 for success
             and compo is None or the item's equipable component if success
         
 ##                #TODO: add special effects; light, etc. How to??
+            light: make the light a Child of the equipper
     '''
 # init and failure checking #
     # first check that the entity can equip the item in the indicated slot.
@@ -1620,47 +1671,34 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     # (TODO)
 ##    if EQTYPES_TO_BODYPARTS[equipType] in BODYPLAN_BPS[body.plan]:
 ##        ...
+
+    # coverage #
     
     # figure out what additional slots the equipment covers, if any
-    def __cov(ent, clis, hlis, flis, eqtype, cls): # cover additional body part
-        holdtype=(eqtype in cmp.EQ_BPS_HOLD)
-        for _com in findbps(ent, cls):
-            # held type or armor type?
-            if holdtype: # holding type
-                if _com.holding: # make sure you can't equip something if ...
-                    flis.append(_com) # ... any required slots are occupied.
-                else:
-                    hlis.append(_com)
-                    clslis.append(cls)
-            else: # cover type
-                if _com.covered: # make sure you can't equip something if ...
-                    flis.append(_com) # ... any required slots are occupied.
-                else:
-                    clis.append(_com)
-                    clslis.append(cls)
+    def __cov(ent, clis, flis, eqtype, cls): # cover additional body part
+        for _com in findbps(ent, cls): # temporary
+            if _com.covered: # make sure you can't equip something if ...
+                flis.append(_com) # ... any required slots are occupied.
+            else:
+                clis.append(_com)
     # end def
     clis = [] # success list - covered
-    hlis = [] # success list - holding
     flis = [] # failure list
-    clslis = [] # covers list (class types)
-    if ( equipType==EQ_MAINHAND and on(item, TWOHANDS) ):
-        __cov(ent,clis,hlis,flis,equipType,cmp.BP_Hand) # Fixme: this covers ALL hands. 
+    
+    # two hands
+    # TODO : change logic so that you CAN wield 2-h weapon in 1-h
+    # it's just that you get a big penalty for doing so.
+##    if ( equipType==EQ_MAINHAND and on(item, TWOHANDS) ):
+##        __cov(ent,clis,hlis,flis,equipType,cmp.BP_Hand) # Fixme: this covers ALL hands. 
     if equipType==EQ_FRONT:
-        if equipable.coversBack:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_TorsoBack)
-        if equipable.coversCore:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_TorsoCore)
-        if equipable.coversHips:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Hips)
+        if equipable.coversBack: __cov(ent,clis,flis,equipType,cmp.BP_TorsoBack)
+        if equipable.coversCore: __cov(ent,clis,flis,equipType,cmp.BP_TorsoCore)
+        if equipable.coversHips: __cov(ent,clis,flis,equipType,cmp.BP_Hips)
     if equipType==EQ_MAINHEAD:
-        if equipable.coversFace:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Face)
-        if equipable.coversNeck:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Neck)
-        if equipable.coversEyes:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Eyes)
-        if equipable.coversEars:
-            __cov(ent,clis,hlis,flis,equipType,cmp.BP_Ears)
+        if equipable.coversFace: __cov(ent,clis,flis,equipType,cmp.BP_Face)
+        if equipable.coversNeck: __cov(ent,clis,flis,equipType,cmp.BP_Neck)
+        if equipable.coversEyes: __cov(ent,clis,flis,equipType,cmp.BP_Eyes)
+        if equipable.coversEars: __cov(ent,clis,flis,equipType,cmp.BP_Ears)
     if flis:
         return (-10, flis,) # failed to equip because the BPs in flis are already covered.
 # /init #
@@ -1671,16 +1709,15 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
     # remove item from the map
     grid_remove(item)
-    # make item a child of its equipper so it has equipper's position / direction
-    world.add_component(item, cmp.Child(ent)) # TODO: implement Child component
+    # indicate that the item is equipped using components
+    world.add_component(item, cmp.Child(ent))
+    world.add_component(item, cmp.Equipped(ent, equipType))
     
     # put it in the right slot (held or worn?)
-    if (equipType==EQ_MAINHAND or equipType==EQ_OFFHAND):
-        # wielded / held
+    if holdtype: # held
         eqcompo.held.item = item
         eqcompo.holding = True # cover this BP
-    else:
-        # worn
+    else: # worn
         eqcompo.slot.item = item 
         eqcompo.covered = True # cover this BP
 
@@ -1692,12 +1729,10 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
             clis.append(leg)
     
     # cover
-    eqcompo.slot.covers = tuple(clslis)
+    eqcompo.slot.covers = tuple(clis)
     # cover the BPs
     for _com in clis:
         _com.covered=True
-    for _com in hlis:
-        _com.holding=True
     #
     
     make(ent, DIRTY_STATS)
@@ -1705,42 +1740,93 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
 # end def
 
+def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    # TODO: differentiate with different body types for the following
+    _deequipSlot(ent, body.slot)
+    deequip(ent, EQ_FRONT)
+    deequip(ent, EQ_BACK)
+    deequip(ent, EQ_HIPS)
+    deequip(ent, EQ_CORE)
+    # parts
+    for cls, part in body.parts.items():
+        if type(part)==cmp.BPC_Arms:
+            for arm in part.arms:
+                _dewield(ent, arm.hand)
+                _deequip(ent, arm.hand)
+                _deequip(ent, arm.arm)
+        if type(part)==cmp.BPC_Legs:
+            for leg in part.legs:
+                _deequip(ent, leg.foot)
+                _deequip(ent, leg.leg)
+        if type(part)==cmp.BPC_Heads:
+            for head in part.heads:
+                _deequip(ent, head.head)
+                _deequip(ent, head.face)
+                _deequip(ent, head.neck)
+                _deequip(ent, head.eyes)
+                _deequip(ent, head.ears)
+    # end for
+# end def
 def deequip(ent,equipType):
-    '''
-        remove equipment from slot 'equipType'
+    ''' remove worn equipment from slot 'equipType' (not held)
         return the item that was equipped there
-            or None if failed to de-equip
+            or None if failed to un-equip
     '''
     compo = _get_eq_compo(ent, equipType)
     if not compo:
         return None
-    
     item = compo.slot.item
     if not item: #nothing equipped here
         return None
-    
-        #-----------------#
-        # remove the item #
-        #-----------------#
-        
-    world.remove_component(item, cmp.Child)
-    compo.slot.item = None
-    compo.covered = False
-    
-    # covers
-    def __uncov(ent, cls): # cover additional body part
-        for compo in findbps(ent, cls):
-            compo.covered = False
-    if equipType==EQ_FRONT:
-        if equipable.coversBack: __uncov(ent,cmp.BP_TorsoBack)
-        if equipable.coversCore: __uncov(ent,cmp.BP_TorsoCore)
-        if equipable.coversHips: __uncov(ent,cmp.BP_Hips)
-    if equipType==EQ_MAINHEAD:
-        if equipable.coversFace: __uncov(ent,cmp.BP_Face)
-        if equipable.coversNeck: __uncov(ent,cmp.BP_Neck)
-        if equipable.coversEyes: __uncov(ent,cmp.BP_Eyes)
-        if equipable.coversEars: __uncov(ent,cmp.BP_Ears)    
+
+    return _deequip(ent, compo)
+# end def
+def _deequip(ent, compo):
+    ''' unequip the worn item in the component's wear slot (not held)
+        consider coverage of other slots that may be affected
+    '''
+    # uncover the covered slot(s)
+    for compo in compo.slot.covers:
+        compo.covered = False
     compo.slot.covers = ()
+    
+    return _deequipSlot(ent, compo.slot)
+# end def
+def _deequipSlot(ent, slot):
+    ''' unequip the worn item from equip slot slot (not held)
+        unconcerned with coverage of other slots
+    '''
+    world=Rogue.world
+    world.remove_component(item, cmp.Child)
+    world.remove_component(item, cmp.Equipped)
+             
+    item = slot.item
+    slot.item = None
+    slot.covered = False
+             
+    make(ent, DIRTY_STATS)
+    return item
+# end def
+
+def dewield(ent,equipType): # for held items only (not worn)
+    compo = _get_eq_compo(ent, equipType)
+    if not compo:
+        return None
+    
+    item = compo.held.item
+    if not item: #nothing equipped here
+        return None
+
+    return _dewield(ent, compo)
+# end def
+def _dewield(ent, compo):
+    world=Rogue.world
+    world.remove_component(item, cmp.Child)
+    world.remove_component(item, cmp.Equipped)
+    
+    item = compo.held.item
+    compo.held.item = None
     
     make(ent, DIRTY_STATS)
     return item

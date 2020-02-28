@@ -271,11 +271,6 @@ g
 ,
 NONE
 
-// grab (grappling OR pickup item & hold in hand)
-shift+g
-NONE
-NONE
-
 // grab item (pickup item & hold in hand)
 ctrl+,
 NONE
@@ -288,17 +283,37 @@ NONE
 
 // open/Close
 o
-None
+NONE
 NONE
 
 // close
 Shift+=
-None
+NONE
 NONE
 
 // open
 -
-None
+NONE
+NONE
+
+// inventory
+i
+NONE
+NONE
+
+// abilities menu
+Tab
+NONE
+NONE
+
+// change body position (crouch, stand, lie prone, change stance, etc.)
+p
+NONE
+NONE
+
+// change movement speed (walking, jogging, running, sprining)
+s
+NONE
 NONE
 
 // enable / disable jog
@@ -343,11 +358,6 @@ NONE
 
 // show player location (find player)
 Ctrl+f
-NONE
-NONE
-
-// inventory
-i
 NONE
 NONE
 
@@ -479,12 +489,15 @@ COMMANDS = {        # translate commands into actions
     'shoot-prompt'  : {'shoot-prompt': True},
     'throw-prompt'  : {'throw-prompt': True},
     'get-prompt'    : {'get-prompt': True},
-    'grab-prompt'   : {'grab-prompt': True},
     'grabitem-prompt':{'grabitem-prompt': True},
     'grapple-prompt': {'grapple-prompt': True},
     'openclose-prompt':{'openclose-prompt': True},
     'close-prompt'  : {'close-prompt': True},
     'open-prompt'   : {'open-prompt': True},
+    'inventory'     : {'inventory': True},
+    'abilities'     : {'abilities': True},
+    'change-pos'    : {'change-pos': True},
+    'change-spd'    : {'change-spd': True},
     'jog'           : {'jog': True},
     'run'           : {'run': True},
     'sprint'        : {'sprint': True},
@@ -494,7 +507,6 @@ COMMANDS = {        # translate commands into actions
     'move view'     : {'move view': True},
     'fixed view'    : {'fixed view': True},
     'find player'   : {'find player': True},
-    'inventory'     : {'inventory': True},
     'msg history'   : {'message history': True},
     'char page'     : {'character page': True},
     'quit'          : {'quit game': True},
