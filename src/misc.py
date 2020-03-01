@@ -548,7 +548,12 @@ def _get_body_effects(world, body): # TODO: finish all of these for each body pa
     if effects: effects=effects[:-1] # remove final '\n'
     return effects
 
-def _get_skills(compo):
+def _get_skills(compo, showxp=True):
+    ''' get a string showing a list of an entity's skills
+        Parameters:
+            compo:      entity's Skills component
+            showxp:     boolean, whether to show xp (experience)
+    '''
     skills=""
 
     # alphabetical ordering
@@ -559,13 +564,10 @@ def _get_skills(compo):
     
     # create string for each skill that is above a certain exp level
     for name,exp in lis:
+        xp=""
         lvl=exp//EXP_LEVEL
-        if lvl < 1: # too low of a level to show the exp
-            continue
-        if lvl < 100:
+        if (showxp and lvl < MAX_LEVEL):
             xp="  | xp. {xp}".format(xp=exp%EXP_LEVEL)
-        else:
-            xp=""
         skills += "{n:>28}: lv. {lv}{xp}\n".format(
             n=name, lv=lvl, xp=xp)
     if skills: skills=skills[:-1] # remove final '\n'

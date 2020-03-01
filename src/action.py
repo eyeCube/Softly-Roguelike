@@ -677,7 +677,10 @@ def _strike(attkr,dfndr,aweap,dweap,
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
     areach =rog.getms(attkr,'reach')//MULT_STATS
-    aweap1mat = rog.world().component_for_entity(aweap, cmp.Form).material
+    if aweap:
+        aweap1mat = rog.world().component_for_entity(aweap, cmp.Form).material
+    else:
+        aweap1mat = rog.world().component_for_entity(attkr, cmp.Form).material
     
     # defender stats
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS

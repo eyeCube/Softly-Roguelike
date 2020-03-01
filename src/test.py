@@ -1,2 +1,4 @@
-import math
-print(int(math.log2(6)))
+s="s"
+if s==-1:
+    print('yo')
+    

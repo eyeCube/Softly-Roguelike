@@ -331,7 +331,7 @@ FOVMAP_NORMAL       = i; i+=1;
 # Gameplay Constants
 #
 
-MAX_LEVEL           = 100   # skill level
+MAX_LEVEL           = 100   # max skill level maximum skill lvl maxskilllvl
 CM_ADVANTAGE_BP     = 8     # how much extra height you need to gain +1 advantage in combat
 HEIGHTMAP_GRADIENT  = 0.1   # ratio of height value on heightmap to the width/height of a tile
 CM_PER_TILE         = 100   # tiles are exactly 1x1m
@@ -2484,6 +2484,9 @@ SKL_TESTER3     = i; i+=1; #
 #
 
 SKILLPOINTS = 32 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
+ATTRIBUTEPOINTS = 12
+STATPOINTS = 8
+CHARACTERPOINTS = 4
 SKILL_LEVELS_PER_SELECTION = 10
 SKILL_LEVELS_JOB = 30 # starting skill level for given job
 SKILL_INCREQ = 25   # how many skill levels before the skill costs 1 more skill point.
@@ -2552,10 +2555,9 @@ SKL_HARDWARE    :(2,'technosmithing',),
 SKL_MECHANIC    :(2,'autosmithing',),
 SKL_ARMORSMITH  :(3,'armorsmithing',),
 SKL_WELDING     :(2,'welding',),
-0               :(0,'<no skill>',),
-SKL_TESTER1     :(1,'TESTER1',),
-SKL_TESTER2     :(2,'TESTER2',),
-SKL_TESTER3     :(3,'TESTER3',),
+##SKL_TESTER1     :(1,'TESTER1',),
+##SKL_TESTER2     :(2,'TESTER2',),
+##SKL_TESTER3     :(3,'TESTER3',),
     }
     
 
@@ -3044,6 +3046,73 @@ CLS_PROGRAMMER  = i; i+=1;
 CLS_MONK        = i; i+=1;
 CLS_BOUNTYHUNTER= i; i+=1;
 
+
+
+
+
+#
+# Chargen
+#
+
+# Characteristics / traits / "perks"
+CHARACTERISTICS={
+    # CP: character points, how many points are gained/lost by
+    #    choosing a particular characteristic/trait
+    # stat mods beginning with "m" signify that it's a multiplier value
+    #    otherwise, by default, all stat mods are adders.
+# name                  : (CP, info)
+"obese"                 : (4, {"mmass":1.75,"fat":5,"mfat":2,"end":-6,},),
+"gaunt"                 : (2, {"mmass":0.8,"mfat":0.5,"end":-3,},),
+"long"                  : (-2,{'mcm':1.34,'mreach':1.25,'mmsp':1.2,},),
+"dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
+"wealthy upbringing"    : (-8,{'money':5000,},),
+"masculine"             : (-2,{'cou':16,'idn':16,'str':2,'con':2,},),
+"feminine"              : (-2,{'bea':32,'end':2,'agi':2,},),
+"educated"              : (-4,{'identify':20,},),
+"acclimated to heat"    : (-2,{'resheat':30,},),
+"acclimated to cold"    : (-2,{'rescold':30,},),
+"pain tolerance"        : (-2,{'respain':50,},),
+"strong immune system"  : (-2,{'resbio':50,},),
+"big stomach"           : (-2,{'mgut':3},), # stomach capacity
+"astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
+"cancer"                : (8, {'cancer':True,},),
+"rapid metabolism"      : (-2,{'rapidMetabolism':True,},),
+"iron gut"              : (-2,{'ironGut':True,},),
+"immunity"              : (-2,{'immuneVenom':True},),
+"hydrophobia"           : (1, {'hydrophobia':True,},),
+"attracted to men"      : (1, {'attractedMen':True,},),
+"attracted to women"    : (1, {'attractedWomen':True,},),
+"talented"              : (-4,{'talent':True,},),
+"traumatic childhood"   : (2, {'trauma':True,},),
+"addiction"             : (4, {'addiction':True,},),
+"allergy"               : (1, {'allergy':True,},),
+    }
+
+CHARGEN_STATS={
+# stat  : add,
+"hpmax"     : 1,
+"mpmax"     : 10,
+"encmax"    : 3,
+"asp"       : 3,
+"msp"       : 2,
+"gra"       : 1*MULT_STATS,
+"bal"       : 1*MULT_STATS,
+"ctr"       : 1*MULT_STATS,
+"cou"       : 4,
+"bea"       : 4,
+"idn"       : 4,
+"camo"      : 1,
+"stealth"   : 1,
+    }
+
+CHARGEN_ATTRIBUTES={
+# if x >= current value : cost to upgrade +1
+0 : 1,
+15 : 2,
+18 : 3,
+21 : 4,
+24 : 5,
+    }
 
 
 #

@@ -669,7 +669,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         #   get width and height from items
         widest=0
         for k,v in self.keysItems.items():
-            leni=len(self.get_name(v)) + 4 + self.border_w*2
+            leni=len(self.get_name(v)) + 2 + self.border_w*2
             if leni > widest:
                 widest=leni
         lenTitlePadding=4
@@ -748,7 +748,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         
         libtcod.console_delete(self.con)
         rog.refresh()
-
+    
     def scroll_up(self):
         if not self.scrolling: return
         self.view_pos = max(0, self.view_pos - 1)
@@ -776,17 +776,17 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         if not self.scrolling: return
         self.view_pos = self.h - self.drawh
         self.draw()
-
+    
     def sort(self):
         def sorter(val):
             k,v = val
-            if k == 42: # asterisk first
-                return 0
-            ret = 0
+            ret = 0     # default
             if k >= MENU_CTRL_MOD: # ctrl-keys
                 k = k % MENU_CTRL_MOD
                 ret += 1024 # ctrl-keys after non-ctrl keys
-            if (k < (65+26) and k >= 65): 
+            if k==42: # asterisk comes first
+                ret -= 9999
+            elif (k < (65+26) and k >= 65): 
                 ret += k+256 #caps after lowercase keys
             elif k < 60: 
                 ret += k+512 #numbers last
@@ -816,7 +816,7 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
                 ck = "({}) ".format(chr(key))
             name=self.get_name(item)
             libtcod.console_print(
-                self.con_text, 1, y, '{i}{nm}'.format(i=ck, nm=name) )
+                self.con_text, 0, y, '{i}{nm}'.format(i=ck, nm=name) )
             y += 1
         # blit text onto box
         libtcod.console_blit(
@@ -825,17 +825,20 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             self.con, 1, 1
         )
         self.refresh()
-
+    
     def get_name(self,item):
         if type(item) is int:
             return rog.world().component_for_entity(item, cmp.Name).name
         return item
+    
     def refresh(self):
         # blit whole thing onto screen
         libtcod.console_blit(
             self.con, 0,0, self.w, self.h,
             0, self.x, self.y
         )
+        
+        # up/down symbol to show that the menu extends beyond screen
         if self.scrolling:
             add=""
             if self.view_pos < self.h - self.drawh:
@@ -846,6 +849,8 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             libtcod.console_print( 0,
                 self.x+2, self.y + min(self.h, self.drawh) - 1,
                 add )
+        #
+        
         libtcod.console_flush()
 
 
