@@ -346,8 +346,9 @@ MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 1
 MULT_HYD            = 1000  # finer scale for hydration control
 MIN_MSP             = 5     # minimum movement speed under normal conditions
 
-__MULTSTATS=('atk','dfn','pen','pro','arm','dmg','gra','bal','ctr',
-             'str','con','int','agi','dex','end',)
+MULTSTATS=(
+    'atk','dfn','pen','pro','arm','dmg','gra','bal','ctr','str','con','int','agi','dex','end',
+    )
 ##__MULTATT=('str','con','int','agi','dex','end',)
 
 # fire / ice
@@ -2483,7 +2484,7 @@ SKL_TESTER3     = i; i+=1; #
 # Skills data skill data
 #
 
-SKILLPOINTS = 32 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
+SKILLPOINTS = 16 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
 ATTRIBUTEPOINTS = 12
 STATPOINTS = 8
 CHARACTERPOINTS = 4
@@ -3061,30 +3062,32 @@ CHARACTERISTICS={
     # stat mods beginning with "m" signify that it's a multiplier value
     #    otherwise, by default, all stat mods are adders.
 # name                  : (CP, info)
-"obese"                 : (4, {"mmass":1.75,"fat":5,"mfat":2,"end":-6,},),
-"gaunt"                 : (2, {"mmass":0.8,"mfat":0.5,"end":-3,},),
-"long"                  : (-2,{'mcm':1.34,'mreach':1.25,'mmsp':1.2,},),
-"dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
-"wealthy upbringing"    : (-8,{'money':5000,},),
+"long bones"            : (-2,{'mcm':1.34,'mreach':1.25,'mmsp':1.2,},),
 "masculine"             : (-2,{'cou':16,'idn':16,'str':2,'con':2,},),
 "feminine"              : (-2,{'bea':32,'end':2,'agi':2,},),
-"educated"              : (-4,{'identify':20,},),
 "acclimated to heat"    : (-2,{'resheat':30,},),
 "acclimated to cold"    : (-2,{'rescold':30,},),
 "pain tolerance"        : (-2,{'respain':50,},),
 "strong immune system"  : (-2,{'resbio':50,},),
 "big stomach"           : (-2,{'mgut':3},), # stomach capacity
-"astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
-"cancer"                : (8, {'cancer':True,},),
+"wealthy upbringing"    : (-8,{'money':5000,},),
+"apprentice"            : (-8,{"skillPts":16,},),
+"educated"              : (-4,{'identify':20,},),
 "rapid metabolism"      : (-2,{'rapidMetabolism':True,},),
 "iron gut"              : (-2,{'ironGut':True,},),
 "immunity"              : (-2,{'immuneVenom':True},),
-"hydrophobia"           : (1, {'hydrophobia':True,},),
+"talented"              : (-4,{'talent':True,},),
+"fast learner"          : (-4,{'fastLearner':True,},),
+"dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
+"obese"                 : (4, {"mmass":1.75,"fat":5,"mfat":2,"end":-6,},),
+"gaunt"                 : (2, {"mmass":0.8,"mfat":0.5,"end":-3,},),
+"astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
 "attracted to men"      : (1, {'attractedMen':True,},),
 "attracted to women"    : (1, {'attractedWomen':True,},),
-"talented"              : (-4,{'talent':True,},),
+"hydrophobia"           : (2, {'hydrophobia':True,},),
+"cancer"                : (8, {'cancer':True,},),
 "traumatic childhood"   : (2, {'trauma':True,},),
-"addiction"             : (4, {'addiction':True,},),
+"addiction"             : (4, {'addict':True,},),
 "allergy"               : (1, {'allergy':True,},),
     }
 

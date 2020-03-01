@@ -761,13 +761,13 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         self.draw()
     def page_up(self):
         if not self.scrolling: return
-        self.view_pos = max(0, self.view_pos - (self.h - 4))
+        self.view_pos = max(0, self.view_pos - (self.drawh - 4))
         self.draw()
     def page_down(self):
         if not self.scrolling: return
         self.view_pos = min(
             self.h - self.drawh,
-            self.view_pos + (self.h - 4)
+            self.view_pos + (self.drawh - 4)
             )
         self.draw()
     def scroll_top(self):

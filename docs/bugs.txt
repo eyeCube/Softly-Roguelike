@@ -1,3 +1,2 @@
 glitches:
-	- PageDn/Up doesn't work right with menu (works like home/end).
 	- pick up item on same tile as you -> you disappear

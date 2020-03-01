@@ -300,52 +300,67 @@ def commands(pc, pcAct):
 #
 ''' global data for use by character generation function '''
 class Chargen:
-    pc = None
-    # pre-big menu data
-    _name=""
-    _genderName=""
-    _cm=0
-    _cmMult=0
-    _kg=0
-    _kgMult=0
-    statsCompo=None
-    skillsCompo=None
-    flags=None
-    # multipliers and characteristics (component indicators)
-    mreach=1
-    mmsp=1
-    mmass=1
-    mass=0
-    mcm=1
-    mbodyfat=1
-    bodyfat=0
-    mgut=1
-    mvision=1
-    astigmatism=False
-    # menu dicts
-    menu={} # <- big meta-menu containing all choices
-    skilldict={}
-##    _skilldict={} # used for getting the skill ID from the skill name
-    statdict={}
-    traitdict={}
-    attdict={}
-    # selected data
-    _skillIDs=[]
-    _skillNames=[]
-    _stats=[]
-    _traits=[]
-    _attributes=[]
+    pass
+def __init__Chargen():
+    Chargen.pc = None # player character entity
     # points remaining
-    skillPts=0
-    statPts=0
-    traitPts=0
-    attPts=0
+    Chargen.skillPts=SKILLPOINTS
+    Chargen.attPts=ATTRIBUTEPOINTS
+    Chargen.statPts=STATPOINTS
+    Chargen.traitPts=CHARACTERPOINTS
+    # pre-big menu data
+    Chargen._name=""
+    Chargen._genderName=""
+    Chargen._pronouns=()
+    Chargen._cm=0
+    Chargen._cmMult=0
+    Chargen._kg=0
+    Chargen._kgMult=0
+    Chargen.statsCompo=None
+    Chargen.skillsCompo=None
+    Chargen.flags=None
+    # multipliers and characteristics (component indicators)
+    Chargen.mreach=1
+    Chargen.mmsp=1
+    Chargen.mmass=1
+    Chargen.mass=0
+    Chargen.mcm=1
+    Chargen.mbodyfat=1
+    Chargen.bodyfat=0
+    Chargen.mgut=1
+    Chargen.mvision=1
+    Chargen.astigmatism=False
+    Chargen.cancer=False
+    Chargen.rapidMetabolism=False
+    Chargen.ironGut=False
+    Chargen.immuneVenom=False
+    Chargen.hydrophobia=False
+    Chargen.attractedMen=False
+    Chargen.attractedWomen=False
+    # menu dicts
+    Chargen.menu={} # <- big meta-menu containing all choices
+    Chargen.skilldict={}
+##    _skilldict={} # used for getting the skill ID from the skill name
+    Chargen.statdict={}
+    Chargen.traitdict={}
+    Chargen.attdict={}
+    # selected data
+    Chargen._skillIDs=[]
+    Chargen._skillNames=[]
+    Chargen._stats=[]
+    Chargen._traits=[]
+    Chargen._attributes=[]
     # menu states
-    confirm = False
-    open_skills=False
-    open_stats=False
-    open_traits=False
-    open_attributes=False
+    Chargen.confirm = False
+    Chargen.open_skills=False
+    Chargen.open_stats=False
+    Chargen.open_traits=False
+    Chargen.open_attributes=False
+    # menu position / window size
+    Chargen.x1 = 0; Chargen.y1 = 0;
+    Chargen.xx = 0; Chargen.yy = 3;
+    Chargen.iy = 0;
+    Chargen.ww = rog.window_w(); Chargen.hh = 5;
 # end class
 
 # draw the string to con_game
@@ -372,15 +387,11 @@ def chargen(sx, sy):
     # Arguments:
     #   sx, sy: starting position x, y of player entity
     '''
-    
     # TODO: saving/loading game
     
     # init
     world = rog.world()
-    Chargen.x1 = 0; Chargen.y1 = 0;
-    Chargen.xx = 0; Chargen.yy = 3;
-    Chargen.iy = 0;
-    Chargen.ww = rog.window_w(); Chargen.hh = 5;
+    __init__Chargen()   # init some global vars for use during chargen
     height_default = 175
     libtcod.console_clear(0)
     libtcod.console_clear(rog.con_game())
@@ -392,16 +403,16 @@ def chargen(sx, sy):
     # name
     Chargen._name=rog.prompt(Chargen.x1,Chargen.y1,Chargen.ww,Chargen.hh,maxw=20, q="what is your name?", mode="text")
     _title = 0
-
+    
     # print char data so far
     print("name chosen: ", Chargen._name)
     libtcod.console_clear(rog.con_final())
     Chargen.iy=_printElement("name: {}".format(Chargen._name), Chargen.iy)
     #
-
+    
     # load saved game
     loadedGame = False
-
+    
         # TODO: forget this -- use Pickle or similar
     
 ##    savedir=os.listdir(os.path.join(
@@ -429,12 +440,13 @@ def chargen(sx, sy):
         pass
     else:
         # make a new character
-        
+
+        # create a basic entity for the PC, with no defining characteristics
         Chargen.skillsCompo = cmp.Skills()
         Chargen.flags = cmp.Flags(IMMUNERUST,)
         Chargen.pc = world.create_entity(
             Chargen.skillsCompo, Chargen.flags)
-        #continue chargen...
+        #continue chargen by refining the details of the PC...
         
         #gender selection
         _select_gender()
@@ -477,17 +489,15 @@ def chargen(sx, sy):
         _mass = entities.getJobMass(_classID)
         _jobstats = entities.getJobStats(_classID).items()
         _jobskills = entities.getJobSkills(_classID)
+        Chargen._className = _className
         
         #add specific class skills
         for sk_id in _jobskills:
             rog.setskill(Chargen.pc, sk_id, SKILL_LEVELS_JOB)
         
         # print char data so far
-        _printElement("name: {}".format(Chargen._name), Chargen.iy-4)
-        _printElement("gender: {}".format(Chargen._genderName), Chargen.iy-3)
-        _printElement("height: {} / 9".format(Chargen._cm), Chargen.iy-2)
-        _printElement("mass: {} / 9".format(Chargen._kg), Chargen.iy-1)
-        Chargen.iy=_printElement("class: {}".format(_className), Chargen.iy)
+        _printChargenData()
+        rog.refresh()
         print("class chosen: ", _className)
         #
         
@@ -530,27 +540,6 @@ def chargen(sx, sy):
         #----------------#
         
         # (attributes/stats/skills/characteristics)
-        
-            # init
-        Chargen._skillNames=[]
-        Chargen._skillIDs=[]
-        
-        Chargen.skillPts=SKILLPOINTS
-        Chargen.attPts=ATTRIBUTEPOINTS
-        Chargen.statPts=STATPOINTS
-        Chargen.traitPts=CHARACTERPOINTS
-        
-        Chargen.open_stats=False
-        Chargen.open_attributes=False
-        Chargen.open_skills=False
-        Chargen.open_traits=False
-        Chargen.confirm=False
-        
-        Chargen.mbodyfat=1
-        Chargen.mgut=1
-        Chargen.mvision=1
-        Chargen.astigmatism=False
-            # /init
         
         # menu loop until uer selects "<confirm>"
         while(not Chargen.confirm):
@@ -607,7 +596,7 @@ def chargen(sx, sy):
         Chargen.iy=0
         Chargen.iy=_printElement("name: {}".format(Chargen._name), Chargen.iy)
         Chargen.iy=_printElement("gender: {}".format(Chargen._genderName), Chargen.iy)
-        Chargen.iy=_printElement("class: {} ({})".format(_className, _type), Chargen.iy)
+        Chargen.iy=_printElement("class: {} ({})".format(Chargen._className, _type), Chargen.iy)
         Chargen.iy=_printElement("height: {} cm ({} / 9)".format(cm, Chargen._cm), Chargen.iy)
         Chargen.iy=_printElement("mass: {} kg ({} / 9)".format(kg, Chargen._kg), Chargen.iy)
         _drawskills(rog.con_final())
@@ -656,7 +645,7 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.Form(
             mat=MAT_FLESH, val=VAL_HUMAN*MULT_VALUE ))
         world.add_component(pc, cmp.Creature(
-            job = _className,
+            job = Chargen._className,
             faction = FACT_ROGUE,
             species = SPECIE_HUMAN
             ))
@@ -664,16 +653,16 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.SenseHearing())
         world.add_component(pc, cmp.Mutable())
         world.add_component(pc, cmp.Inventory())
-        world.add_component(pc, cmp.Gender(_genderName,_pronouns))
+        world.add_component(pc, cmp.Gender(
+            Chargen._genderName,Chargen._pronouns))
         
         #add specific class stats
         for stat, val in _jobstats:
             value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
             rog.alts(pc, stat, value)
     # end if
-
     
-    # init
+    # init PC entity
     pc=Chargen.pc
     rog.register_entity(pc)
     rog.add_listener_sights(pc)
@@ -684,9 +673,14 @@ def chargen(sx, sy):
     return pc
 #
 
+def _printChargenData():
+    _printElement("name: {}".format(Chargen._name), Chargen.iy-4)
+    _printElement("gender: {}".format(Chargen._genderName), Chargen.iy-3)
+    _printElement("height: {} / 9".format(Chargen._cm), Chargen.iy-2)
+    _printElement("mass: {} / 9".format(Chargen._kg), Chargen.iy-1)
+    _printElement("class: {}".format(Chargen._className), Chargen.iy)
+
 def _select_gender():
-    Chargen.x1=0
-    Chargen.y1=1
     Chargen.ww=rog.window_w()
     rog.dbox(Chargen.x1,Chargen.y1+Chargen.iy,Chargen.ww,3,text="what is your gender?",
         wrap=True,border=None,con=rog.con_final(),disp='mono')
@@ -745,6 +739,7 @@ def _select_gender():
     # end while
     
     # save selected data
+    Chargen._pronouns = _pronouns
     Chargen._genderName = _genderName
     Chargen.female=(Chargen._genderName=="female")
     # print char data so far
@@ -811,12 +806,12 @@ def _chargen_attributes():
         Chargen.menu.update(
             {"- attributes (pts: {})".format(Chargen.attPts) : "close-attributes",})
         Chargen.attdict={
-"    ({}) CON   {}".format(_get_attribute_cost("con"),_con) : "con",
-"    ({}) INT   {}".format(_get_attribute_cost("int"),_int) : "int",
-"    ({}) STR   {}".format(_get_attribute_cost("str"),_str) : "str",
-"    ({}) AGI   {}".format(_get_attribute_cost("agi"),_agi) : "agi",
-"    ({}) DEX   {}".format(_get_attribute_cost("dex"),_dex) : "dex",
-"    ({}) END   {}".format(_get_attribute_cost("end"),_end) : "end",
+"... ({}) CON   {}".format(_get_attribute_cost("con"),_con) : "con",
+"... ({}) INT   {}".format(_get_attribute_cost("int"),_int) : "int",
+"... ({}) STR   {}".format(_get_attribute_cost("str"),_str) : "str",
+"... ({}) AGI   {}".format(_get_attribute_cost("agi"),_agi) : "agi",
+"... ({}) DEX   {}".format(_get_attribute_cost("dex"),_dex) : "dex",
+"... ({}) END   {}".format(_get_attribute_cost("end"),_end) : "end",
         }
         for k,v in Chargen.attdict.items():
             Chargen.menu.update({k:v})
@@ -885,19 +880,19 @@ def _chargen_stats():
         Chargen.menu.update(
             {"- stats (pts: {})".format(Chargen.statPts) : "close-stats",})
         Chargen.statdict={
-"    HPMAX   {s:<4}(+-{d})".format(d=hp_d,s=_hp) : "hpmax",
-"    SPMAX   {s:<4}(+-{d})".format(d=sp_d,s=_sp) : "mpmax",
-"    ENCMAX  {s:<4}(+-{d})".format(d=enc_d,s=_enc) : "encmax",
-"    ASP     {s:<4}(+-{d})".format(d=asp_d,s=_asp) : "asp",
-"    MSP     {s:<4}(+-{d})".format(d=msp_d,s=_msp) : "msp",
-"    GRA     {s:<4}(+-{d})".format(d=gra_d,s=_gra) : "gra",
-"    BAL     {s:<4}(+-{d})".format(d=bal_d,s=_bal) : "bal",
-"    CTR     {s:<4}(+-{d})".format(d=ctr_d,s=_ctr) : "ctr",
-"    COU     {s:<4}(+-{d})".format(d=cou_d,s=_cou) : "cou",
-"    IDN     {s:<4}(+-{d})".format(d=idn_d,s=_idn) : "idn",
-"    BEA     {s:<4}(+-{d})".format(d=bea_d,s=_bea) : "bea",
-"    Camo    {s:<4}(+-{d})".format(d=camo_d,s=_camo) : "camo",
-"    Stealth {s:<4}(+-{d})".format(d=stealth_d,s=_stealth) : "stealth",
+"... HPMAX   {s:<4}(+-{d})".format(d=hp_d,s=_hp) : "hpmax",
+"... SPMAX   {s:<4}(+-{d})".format(d=sp_d,s=_sp) : "mpmax",
+"... ENCMAX  {s:<4}(+-{d})".format(d=enc_d,s=_enc) : "encmax",
+"... ASP     {s:<4}(+-{d})".format(d=asp_d,s=_asp) : "asp",
+"... MSP     {s:<4}(+-{d})".format(d=msp_d,s=_msp) : "msp",
+"... GRA     {s:<4}(+-{d})".format(d=gra_d,s=_gra) : "gra",
+"... BAL     {s:<4}(+-{d})".format(d=bal_d,s=_bal) : "bal",
+"... CTR     {s:<4}(+-{d})".format(d=ctr_d,s=_ctr) : "ctr",
+"... COU     {s:<4}(+-{d})".format(d=cou_d,s=_cou) : "cou",
+"... IDN     {s:<4}(+-{d})".format(d=idn_d,s=_idn) : "idn",
+"... BEA     {s:<4}(+-{d})".format(d=bea_d,s=_bea) : "bea",
+"... Camo    {s:<4}(+-{d})".format(d=camo_d,s=_camo) : "camo",
+"... Stealth {s:<4}(+-{d})".format(d=stealth_d,s=_stealth) : "stealth",
         }
         for k,v in Chargen.statdict.items():
             Chargen.menu.update({k:v})
@@ -931,9 +926,11 @@ def _chargen_skills():
         Chargen.menu.update(
             {"- skills (pts: {})".format(Chargen.skillPts) : "close-skills",})
         Chargen.skilldict={}
-        for k, sk in SKILLS.items(): # Python 3.6+ remembers dict ordering so skills are already ordered
+        sortdict = {k:v for k,v in sorted(
+            SKILLS.items(), key=lambda item: item[1][1].lower())}
+        for k, sk in sortdict.items(): # Python 3.6+ remembers dict ordering so skills are already ordered
             x = rog.getskill(pc, k)//SKILL_INCREQ
-            string = "    {}: {}".format(sk[0] + x, sk[1])
+            string = "... {}: {}".format(sk[0] + x, sk[1])
             Chargen.skilldict.update({string : k})
         
         for k,v in Chargen.skilldict.items():
@@ -945,10 +942,7 @@ def _chargen_skills():
 
 def _select_skill(_skillID):
     pc=Chargen.pc
-    _skillName = SKILLS[_skillID][1]
-    
-    print("name: {}; ID: {};".format(_skillName, _skillID))
-    
+    _skillName = SKILLS[_skillID][1]    
     _skillPts = SKILLS[_skillID][0] + rog.getskill(pc, _skillID)//SKILL_INCREQ
     if rog.getskill(pc, _skillID) >= MAX_LEVEL:
         _maxedSkill(_skillName)
@@ -977,10 +971,12 @@ def _chargen_traits():
         Chargen.menu.update(
             {"- traits (pts: {})".format(Chargen.traitPts) : "close-traits",})
         Chargen.traitdict={}
-        for k,v in CHARACTERISTICS.items():
+        sortdict = {k:v for k,v in sorted(
+            CHARACTERISTICS.items(), key=lambda item: item[0])}
+        for k,v in sortdict.items():
             cost = cost = "+{}".format(v[0]) if v[0] > 0 else v[0]
             t = "<TAKEN> " if k in Chargen._traits else "({c}) ".format(c=cost)
-            Chargen.traitdict.update({"    {t}{k}".format(t=t,k=k):k})
+            Chargen.traitdict.update({"... {t}{k}".format(t=t,k=k):k})
         
         for k,v in Chargen.traitdict.items():
             Chargen.menu.update({k:v})
@@ -996,6 +992,7 @@ def _select_trait(_trait):
         _insufficientPoints(Chargen.traitPts, -pts, "trait")
         return False
     if _trait in Chargen._traits:
+        _alreadyHaveTrait(_trait)
         return False    # already have this trait
     
     Chargen.traitPts += pts
@@ -1006,8 +1003,37 @@ def _select_trait(_trait):
     # apply trait
     data = CHARACTERISTICS[_trait][1]
     for k,v in data.items():
+                # meta traits
+        if k=="skillPts":
+            Chargen.skillPts += v
+                # component flags
+        elif k=="astigmatism": # TODO: make these apply components in chargen
+            Chargen.astigmatism=True
+        elif k=="cancer":
+            Chargen.cancer=True
+        elif k=="rapidMetabolism":
+            Chargen.rapidMetabolism=True
+        elif k=="ironGut":
+            Chargen.ironGut=True
+        elif k=="immuneVenom":
+            Chargen.immuneVenom=True
+        elif k=="hydrophobia":
+            Chargen.hydrophobia=True
+        elif k=="attractedMen":
+            Chargen.attractedMen=True
+        elif k=="attractedWomen":
+            Chargen.attractedWomen=True
+                # sub-menu traits
+        elif k=="talent":
+            _select_talent()
+        elif k=="trauma":
+            _select_trauma()
+        elif k=="addict":
+            _select_addict()
+        elif k=="allergy":
+            _select_allergy()
                 # body stats
-        if k=="mfat":
+        elif k=="mfat":
             Chargen.mbodyfat *= v #(TODO: make these change stats in chargen)
         elif k=="fat":
             Chargen.bodyfat += v #(TODO: make these change stats in chargen)
@@ -1015,10 +1041,6 @@ def _select_trait(_trait):
             Chargen.mgut *= v #(TODO: make these change stats in chargen)
         elif k=="mvision":
             Chargen.mvision *= v #(TODO: make these change stats in chargen)
-                # component flags
-        elif k=="astigmatism":
-            Chargen.astigmatism=True # will apply component (TODO)
-        #TODO: other characteristics
                 # stats
         elif k=="mmass":
             Chargen.mmass *= v
@@ -1068,9 +1090,12 @@ def _selectFromBigMenu():
     ''' run the big menu, return whether any char data has changed
     '''
     libtcod.console_clear(0)
+    libtcod.console_clear(rog.con_final())
+    _printChargenData()
+    rog.refresh()
     _drawskills(0)
     _drawtraits(0)
-    _choice = rog.menu( "character specs", Chargen.xx,Chargen.y1, Chargen.menu.keys() )
+    _choice = rog.menu( "character specs", Chargen.xx,10, Chargen.menu.keys() )
     if _choice == -1: # Esc
         Chargen.confirm = True
         return False
@@ -1129,6 +1154,15 @@ def _maxedSkill(string):
         text='''You've reached the maximum skill level in skill:
 "{}". Please choose another skill, or select "<confirm>" on the
 "character specs" menu to continue.
+<Press any key to continue>'''.format(string),
+wrap=True,con=rog.con_final(),disp='mono'
+        )
+    rog.refresh()
+    rog.Input(rog.window_w()-2,1,mode='wait')
+def _alreadyHaveTrait(string):
+    rog.dbox(
+        0,0,rog.window_w(),4,
+        text='''You already have this trait: "{}".
 <Press any key to continue>'''.format(string),
 wrap=True,con=rog.con_final(),disp='mono'
         )

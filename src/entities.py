@@ -340,7 +340,7 @@ def _clothes(item):
 
 def _mod(item, _typ, mods):
     for k,v in mods.items():
-        if k in __MULTSTATS.keys():
+        if k in MULTSTATS:
             mods[k] = mods[k] * MULT_STATS
     rog.world().add_component(item, cmp.Mod(_typ, mods))
     
@@ -3115,7 +3115,7 @@ def apply_penalties_weapon(eqdadd, item):
 #
 def _add(dadd, modDict):
     for stat,val in modDict.items():
-        if stat in __MULTSTATS:
+        if stat in MULTSTATS:
             val = val * MULT_STATS
         dadd[stat] = dadd.get(stat, 0) + val
 def _mult(dmul, modDict):

@@ -668,7 +668,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         skill=world.component_for_entity(aweap, cmp.WeaponSkill).skill
         skillLv=rog.getskill(attkr, skill)
     else: # boxing
-        skill=None
+        skill=SKL_BOXING
         skillLv=rog.getskill(attkr, SKL_BOXING)
     
     # attacker stats
@@ -809,7 +809,15 @@ def _strike(attkr,dfndr,aweap,dweap,
                 compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
                 dmgtype = compo.type
             else: # damage type based on skill of the weapon by default
-                dmgtype = DMGTYPES[skill]
+                if skill:
+                    dmgtype = DMGTYPES[skill]
+                else:
+                    # no skill, use body damage type
+                    if world.has_component(attkr, cmp.DamageTypeMelee):
+                        compo=world.component_for_entity(attkr, cmp.DamageTypeMelee)
+                        dmgtype = compo.type
+                    else: # default to blunt damage
+                        dmgtype = DMGTYPE_BLUNT
             # deal body damage
             rog.damagebp(bptarget, dmgtype, hitpp)
             
