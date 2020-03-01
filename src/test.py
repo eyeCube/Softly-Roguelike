@@ -1,4 +1,3 @@
-s="s"
-if s==-1:
-    print('yo')
+s=ord(chr(99).upper())
+print(s)
     

@@ -573,6 +573,18 @@ def _get_skills(compo, showxp=True):
     if skills: skills=skills[:-1] # remove final '\n'
     return skills
 
+def _get_traits(lis):
+    traits=""
+
+    # alphabetical ordering
+    lis.sort(key = lambda x: x[0]) #, reverse=True
+    
+    # create string for each skill that is above a certain exp level
+    for name in lis:
+        traits += "* {}\n".format(name)
+    if traits: traits=traits[:-1] # remove final '\n'
+    return traits
+
 def _get_satiation(body):
     string=""
     satpc = body.satiation / body.satiationMax

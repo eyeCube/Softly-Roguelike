@@ -22,11 +22,11 @@ class Tool_Cut:
 class Tool_Chop:
 		level 	can chop through:
 		1: 		flesh
-		2: 		thin wood
-		3: 		wood
-		4: 		trees
+		2: 		thin wood / plywood
+		3: 		most wood
+		4: 		trees (logs, thick wood)
 		5: 		log splitting, hardwood, thin metal
-		6: 		rockwood
+		6: 		rockwood (super hard wood)
 		7: 		stone
 		8: 		crystal
 class Tool_Saw:
@@ -47,13 +47,14 @@ class Tool_Machete:
 		4: 		jungle
 class Tool_Hammer:
 		level 	can be used for:
-		1: 		basic carpentry (driving nails), work crude plastic
-		2: 		advanced carpentry, basic weaponsmithing, armorsmithing
-		3: 		for fine wood, stoneworking, crude metalsmithing.
-		4: 		metalsmithing, fine glass working, very fine wood, stoneworking
-		5: 		fine metalsmithing, crude steelsmithing, crude gemsmithing
-		6: 		fine steelsmithing, specialized metalsmithing, gemsmithing
-		7: 		specialized smithing, fast hammering, fine gemsmithing
+		1: 		driving wedges, smashing shit, very crude hammering tasks
+		2: 		basic carpentry (driving nails), work crude plastic
+		3: 		advanced carpentry, basic weaponsmithing, armorsmithing
+		4: 		for fine wood, stoneworking, crude metalsmithing.
+		5: 		metalsmithing, fine glass working, very fine wood, stoneworking
+		6: 		fine metalsmithing, crude steelsmithing, crude gemsmithing
+		7: 		fine steelsmithing, specialized metalsmithing, gemsmithing
+		8: 		specialized smithing, fast hammering, fine gemsmithing
 		crazy high levels for automated hammering machines
 class Tool_Striker:  #specialized hammer - large, heavy 2-h hammer
 		level	can be used for
@@ -174,13 +175,18 @@ class Tool_Mandril:
 		2: 		can make gun barrels for cartridge guns
 class Tool_Dig:
 		level	can dig through:
-		1: 		dirt
-		2: 		rocky dirt
+		1:      sand
+		2: 		dirt
+		3:		gravel
+		4: 		rocky dirt
 		crazy high levels for rapid digging motors like excavators
 class Tool_Pickaxe:
 		level	can pick:
-		1: 		cobblestone
-		2: 		stone
+		1: 		rocky dirt
+		2: 		cobblestone
+		3: 		stone
+		4: 		marble
+		crazy high levels for rapid digging motors like jackhammers
 class Tool_Crush: # hydraulic/power presser / crusher, only for when very high pressure/force is needed or when heavy / variable pressure is needed for an extended period of time. Smashing nuts can be done with a level 1 hammer.
 		level	can crush/flatten:
 		1: 		

@@ -1,0 +1,48 @@
+
+new HUD design
+on left side of screen
+
+width: 20 (21 including right border)
+--------------------.
+@ John Wanker		|
+	HP 	  42 / 46   |
+	SP   135 / 402  |
+	Enc  68% 		|
+	Con		15 		|
+	Int		11 		|       @.. 
+	Str		14 		|		..f
+	Agi 	13 		|
+	Dex		10 		|
+	End 	16 		|
+				 	|
+	Status: 		|
+crouched 			|
+uncomfortable 		|
+bleeding, moderate  |
+					|
+	Feel: 			|
+---					|
+	Hear:			|
+(f)  <NW> fighting	|
+(mp) <E>  fire		|
+(pp) <?>  dripping	|
+	See:			|
+<E>  *				|
+<N>  -				|
+<NW> /				|
+<NW> a				|
+<NW> $				|
+<NW> f				|
+<W>  /				|
+<SE> (				|
+					|
+
+
+
+
+
+NOTES:
+see list organized by degrees from the player (0 to 359.999...) (starting from East and going ccw)
+hear list organized by loudness (loudest on top)
+some information may be withheld from player (e.g. quality of statuses. Bleeding quality is e.g. 400 meaning you lose 4g of blood per turn. Instead uses simplified chart like <=1g/turn is minor, <=15g/turn is moderate, and >15g/turn is major bleeding.)
+

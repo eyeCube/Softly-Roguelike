@@ -1,4 +1,4 @@
-//file name: .\settings\key_bindings.txt
+//file name: .\..\settings\key_bindings.txt
 
 //These are comments.
 //  All empty lines, and all lines beginning with "//"
@@ -43,7 +43,7 @@
 // Bindings |
 //---------//
 
-// display help menu
+// display commands / help
 Shift+/
 NONE
 NONE
@@ -138,11 +138,6 @@ g
 ,
 NONE
 
-// grab (grappling OR pickup item & hold in hand)
-shift+g
-NONE
-NONE
-
 // grab item (pickup item & hold in hand)
 ctrl+,
 NONE
@@ -155,17 +150,37 @@ NONE
 
 // open/Close
 o
-None
+NONE
 NONE
 
 // close
 Shift+=
-None
+NONE
 NONE
 
 // open
 -
-None
+NONE
+NONE
+
+// inventory
+i
+NONE
+NONE
+
+// abilities menu
+Tab
+NONE
+NONE
+
+// change body position (crouch, stand, lie prone, change stance, etc.)
+p
+NONE
+NONE
+
+// change movement speed (walking, jogging, running, sprining)
+s
+NONE
 NONE
 
 // enable / disable jog
@@ -210,11 +225,6 @@ NONE
 
 // show player location (find player)
 Ctrl+f
-NONE
-NONE
-
-// inventory
-i
 NONE
 NONE
 

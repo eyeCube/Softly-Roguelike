@@ -312,13 +312,20 @@ class Chargen:
     skillsCompo=None
     flags=None
     # multipliers and characteristics (component indicators)
-    bodyfat=1
-    gut=1
-    vision=1
+    mreach=1
+    mmsp=1
+    mmass=1
+    mass=0
+    mcm=1
+    mbodyfat=1
+    bodyfat=0
+    mgut=1
+    mvision=1
     astigmatism=False
     # menu dicts
     menu={} # <- big meta-menu containing all choices
     skilldict={}
+##    _skilldict={} # used for getting the skill ID from the skill name
     statdict={}
     traitdict={}
     attdict={}
@@ -346,10 +353,15 @@ def _printElement(elemStr,iy):
     rog.dbox(Chargen.x1,Chargen.y1+iy,Chargen.ww,3,text=elemStr,
         wrap=False,border=None,con=rog.con_final(),disp='mono')
     return iy+1
-def _drawskills(con, skillscompo):
-    skillstr = misc._get_skills(skillscompo, showxp=False)
+def _drawskills(con):
+    skillstr = misc._get_skills(Chargen.skillsCompo, showxp=False)
     libtcod.console_print(con, 48,2, "-- skills --")
     libtcod.console_print(con, 24,4, skillstr)
+def _drawtraits(con):
+    traitstr = misc._get_traits(Chargen._traits)
+    yy = 6 + len(Chargen.skillsCompo.skills.keys())
+    libtcod.console_print(con, 48,yy, "-- traits --")
+    libtcod.console_print(con, 40,yy+2, traitstr)
 ##def reroll(stats, skills):
     
 
@@ -484,39 +496,10 @@ def chargen(sx, sy):
         # start creating player components #
         #----------------------------------#
         
-            # calculate some stats
-        cm = int(height_default * Chargen._cmMult)
-        kg = int(_mass * Chargen._kgMult)
-        
-            # mass stat mods
-        fatratio=DEFAULT_BODYFAT_HUMAN
-        if Chargen._kg >= 5:
-            fatratio += (Chargen._kg-4)/16
-        elif Chargen._kg < 3:
-            fatratio -= fatratio*(3-Chargen._kg)/3
-        print("bodyfat: ", fatratio)
-        
-            # height stat mods
-        reachMult = 1 + (Chargen._cm-5)/20 #/10
-        if Chargen._cm < 5:
-            mspMult = 1 + (Chargen._cm-5)/24 #/12
-        else:
-            mspMult = 1 + (Chargen._cm-5)/32 #/16
-            #
-        
-        # create body
-        body, basekg = rog.create_body_humanoid(
-            mass=kg, height=cm, female=Chargen.female,
-            bodyfat=fatratio)
-        body.hydration = body.hydrationMax * 0.98
-        body.satiation = body.satiationMax * 0.85
-        # body temperature
-        meters = cmp.Meters()
-        meters.temp = BODY_TEMP[BODYPLAN_HUMANOID][0]
         # create stats component
         Chargen.statsCompo=cmp.Stats(
             hp=BASE_HP, mp=BASE_MP, mpregen=BASE_MPREGEN*MULT_STATS,
-            mass=basekg, # base mass before weight of water and blood and fat is added
+            mass=0, # base mass before weight of water and blood and fat is added
             encmax=BASE_ENCMAX,
             resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
             resbio=BASE_RESBIO, reselec=BASE_RESELEC,
@@ -532,8 +515,8 @@ def chargen(sx, sy):
             arm=BASE_ARM*MULT_STATS, pro=BASE_PRO*MULT_STATS,
             gra=BASE_GRA*MULT_STATS, bal=BASE_BAL*MULT_STATS,
             ctr=BASE_CTR*MULT_STATS,
-            reach=BASE_REACH*MULT_STATS*reachMult,
-            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP*mspMult,
+            reach=BASE_REACH*MULT_STATS,
+            spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
             sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
             courage=BASE_COURAGE + PLAYER_COURAGE, # + MAS_COU if not female else 0,
             scary=BASE_SCARY, # + MAS_IDN if not female else 0,
@@ -563,9 +546,9 @@ def chargen(sx, sy):
         Chargen.open_traits=False
         Chargen.confirm=False
         
-        Chargen.bodyfat=1
-        Chargen.gut=1
-        Chargen.vision=1
+        Chargen.mbodyfat=1
+        Chargen.mgut=1
+        Chargen.mvision=1
         Chargen.astigmatism=False
             # /init
         
@@ -581,6 +564,42 @@ def chargen(sx, sy):
         # end while
         
         
+        # continue creating player entity #
+        
+            # calculate some stats
+        cm = int(height_default * Chargen._cmMult * Chargen.mcm)
+        kg = int((_mass + Chargen.mass) * Chargen._kgMult * Chargen.mmass)
+        
+            # mass stat mods
+        fatratio=DEFAULT_BODYFAT_HUMAN
+        if Chargen._kg >= 5:
+            fatratio += (Chargen._kg-4)/16
+        elif Chargen._kg < 3:
+            fatratio -= fatratio*(3-Chargen._kg)/3
+        fatratio += Chargen.bodyfat/100
+        fatratio *= Chargen.mbodyfat
+        print("bodyfat: ", fatratio)
+        
+            # height stat mods
+        reachMult = 1 + (Chargen._cm-5)/20 #/10
+        reachMult *= Chargen.mreach
+        if Chargen._cm < 5:
+            mspMult = 1 + (Chargen._cm-5)/24 #/12
+        else:
+            mspMult = 1 + (Chargen._cm-5)/32 #/16
+        mspMult *= Chargen.mmsp
+            #
+        
+        # create body
+        body, basekg = rog.create_body_humanoid(
+            mass=kg, height=cm, female=Chargen.female,
+            bodyfat=fatratio)
+        body.hydration = body.hydrationMax * 0.98
+        body.satiation = body.satiationMax * 0.85
+        # body temperature
+        meters = cmp.Meters()
+        meters.temp = BODY_TEMP[BODYPLAN_HUMANOID][0]
+        
         # confirmation #
         
         # print char data
@@ -591,7 +610,8 @@ def chargen(sx, sy):
         Chargen.iy=_printElement("class: {} ({})".format(_className, _type), Chargen.iy)
         Chargen.iy=_printElement("height: {} cm ({} / 9)".format(cm, Chargen._cm), Chargen.iy)
         Chargen.iy=_printElement("mass: {} kg ({} / 9)".format(kg, Chargen._kg), Chargen.iy)
-        _drawskills(rog.con_final(), Chargen.skillsCompo)
+        _drawskills(rog.con_final())
+        _drawtraits(rog.con_final())
         rog.refresh()
         #
         
@@ -614,6 +634,12 @@ def chargen(sx, sy):
             #----------------------------------#
             #     finish creating player       #
             #----------------------------------#
+
+        # apply any stat changes from Chargen that haven't been applied
+
+        Chargen.statsCompo.mass += basekg
+        Chargen.statsCompo.reach *= reachMult
+        Chargen.statsCompo.msp *= mspMult
         
         #create pc object from the data given in chargen
         
@@ -783,7 +809,7 @@ def _chargen_attributes():
         _dex=stats.dex//MULT_STATS
         _end=stats.end//MULT_STATS
         Chargen.menu.update(
-            {" - attributes (pts: {})".format(Chargen.attPts) : "close-attributes",})
+            {"- attributes (pts: {})".format(Chargen.attPts) : "close-attributes",})
         Chargen.attdict={
 "    ({}) CON   {}".format(_get_attribute_cost("con"),_con) : "con",
 "    ({}) INT   {}".format(_get_attribute_cost("int"),_int) : "int",
@@ -796,7 +822,7 @@ def _chargen_attributes():
             Chargen.menu.update({k:v})
     else:
         Chargen.menu.update(
-            {" + attributes (pts: {})".format(Chargen.attPts) : "open-attributes",})
+            {"+ attributes (pts: {})".format(Chargen.attPts) : "open-attributes",})
 # end def
 
 def _select_attribute(_stat):
@@ -857,7 +883,7 @@ def _chargen_stats():
         _camo=stats.camo
         _stealth=stats.stealth
         Chargen.menu.update(
-            {" - stats (pts: {})".format(Chargen.statPts) : "close-stats",})
+            {"- stats (pts: {})".format(Chargen.statPts) : "close-stats",})
         Chargen.statdict={
 "    HPMAX   {s:<4}(+-{d})".format(d=hp_d,s=_hp) : "hpmax",
 "    SPMAX   {s:<4}(+-{d})".format(d=sp_d,s=_sp) : "mpmax",
@@ -877,7 +903,7 @@ def _chargen_stats():
             Chargen.menu.update({k:v})
     else:
         Chargen.menu.update(
-            {" + stats (pts: {})".format(Chargen.statPts) : "open-stats",})
+            {"+ stats (pts: {})".format(Chargen.statPts) : "open-stats",})
 # end def
 
 def _select_stat(_stat):
@@ -903,7 +929,7 @@ def _chargen_skills():
     pc=Chargen.pc
     if Chargen.open_skills:
         Chargen.menu.update(
-            {" - skills (pts: {})".format(Chargen.skillPts) : "close-skills",})
+            {"- skills (pts: {})".format(Chargen.skillPts) : "close-skills",})
         Chargen.skilldict={}
         for k, sk in SKILLS.items(): # Python 3.6+ remembers dict ordering so skills are already ordered
             x = rog.getskill(pc, k)//SKILL_INCREQ
@@ -914,14 +940,19 @@ def _chargen_skills():
             Chargen.menu.update({k:v})
     else:
         Chargen.menu.update(
-            {" + skills (pts: {})".format(Chargen.skillPts) : "open-skills",})
+            {"+ skills (pts: {})".format(Chargen.skillPts) : "open-skills",})
 # end def
 
-def _select_skill(_skill):
+def _select_skill(_skillID):
     pc=Chargen.pc
-    _skillID = Chargen.skilldict[_skill]
     _skillName = SKILLS[_skillID][1]
+    
+    print("name: {}; ID: {};".format(_skillName, _skillID))
+    
     _skillPts = SKILLS[_skillID][0] + rog.getskill(pc, _skillID)//SKILL_INCREQ
+    if rog.getskill(pc, _skillID) >= MAX_LEVEL:
+        _maxedSkill(_skillName)
+        return False
     if Chargen.skillPts < _skillPts:
         _insufficientPoints(Chargen.skillPts, _skillPts, "skill")
         return False
@@ -944,51 +975,63 @@ def _chargen_traits():
     # characteristics #
     if Chargen.open_traits:
         Chargen.menu.update(
-            {" - traits (pts: {})".format(Chargen.traitPts) : "close-traits",})
+            {"- traits (pts: {})".format(Chargen.traitPts) : "close-traits",})
         Chargen.traitdict={}
-        for k in CHARACTERISTICS.keys():
-            Chargen.traitdict.update({"    {}".format(k)})
+        for k,v in CHARACTERISTICS.items():
+            cost = cost = "+{}".format(v[0]) if v[0] > 0 else v[0]
+            t = "<TAKEN> " if k in Chargen._traits else "({c}) ".format(c=cost)
+            Chargen.traitdict.update({"    {t}{k}".format(t=t,k=k):k})
+        
+        for k,v in Chargen.traitdict.items():
+            Chargen.menu.update({k:v})
     else:
         Chargen.menu.update(
-            {" + traits (pts: {})".format(Chargen.traitPts) : "open-traits",})
+            {"+ traits (pts: {})".format(Chargen.traitPts) : "open-traits",})
 # end def
 
 def _select_trait(_trait):
     pc=Chargen.pc
     pts = CHARACTERISTICS[_trait][0]
-    if Chargen.charPts < -pts:
-        _insufficientPoints(Chargen.charPts, -pts, "trait")
+    if Chargen.traitPts < -pts:
+        _insufficientPoints(Chargen.traitPts, -pts, "trait")
         return False
-    if _trait in Chargen.traits:
+    if _trait in Chargen._traits:
         return False    # already have this trait
     
-    Chargen.charPts += pts
-    if Chargen.charPts <= 0:
+    Chargen.traitPts += pts
+    if Chargen.traitPts <= 0:
         Chargen.open_traits = False
+    Chargen._traits.append(_trait)
     
     # apply trait
     data = CHARACTERISTICS[_trait][1]
     for k,v in data.items():
+                # body stats
         if k=="mfat":
-            Chargen.bodyfat *= v
+            Chargen.mbodyfat *= v #(TODO: make these change stats in chargen)
         elif k=="fat":
-            Chargen.bodyfat += v
+            Chargen.bodyfat += v #(TODO: make these change stats in chargen)
         elif k=="mgut":
-            Chargen.gut *= v
+            Chargen.mgut *= v #(TODO: make these change stats in chargen)
         elif k=="mvision":
-            Chargen.vision *= v
+            Chargen.mvision *= v #(TODO: make these change stats in chargen)
+                # component flags
+        elif k=="astigmatism":
+            Chargen.astigmatism=True # will apply component (TODO)
+        #TODO: other characteristics
+                # stats
         elif k=="mmass":
-            Chargen.statsCompo.mass *= v
+            Chargen.mmass *= v
         elif k=="mass":
-            Chargen.statsCompo.mass += v
+            Chargen.mass += v
         elif k=="mcm":
-            Chargen.statsCompo.cm *= v
+            Chargen.mcm *= v
         elif k=="mreach":
-            Chargen.statsCompo.reach *= v
+            Chargen.mreach *= v
         elif k=="mreach":
-            Chargen.statsCompo.reach *= v
+            Chargen.mreach *= v
         elif k=="mmsp":
-            Chargen.statsCompo.msp *= v
+            Chargen.mmsp *= v
         elif k=="bea":
             Chargen.statsCompo.bea += v
         elif k=="idn":
@@ -1015,18 +1058,18 @@ def _select_trait(_trait):
             Chargen.statsCompo.rescold += v
         elif k=="respain":
             Chargen.statsCompo.respain += v
-        elif k=="astigmatism":
-            Chargen.astigmatism=True # will apply component (TODO)
     # end for
     
-    print("trait chosen: {} (pts: {})".format(_trait, Chargen.charPts))
+    print("trait chosen: {} (pts: {})".format(_trait, Chargen.traitPts))
     return True
 # end def
 
 def _selectFromBigMenu():
     ''' run the big menu, return whether any char data has changed
     '''
-    _drawskills(0, Chargen.skillsCompo)
+    libtcod.console_clear(0)
+    _drawskills(0)
+    _drawtraits(0)
     _choice = rog.menu( "character specs", Chargen.xx,Chargen.y1, Chargen.menu.keys() )
     if _choice == -1: # Esc
         Chargen.confirm = True
@@ -1074,8 +1117,20 @@ def _insufficientPoints(points, cost, string):
     rog.dbox(
         0,0,rog.window_w(),5,
         text='''Not enough {} points remaining.
-(Cost: {} | Points remaining: {})'''.format(string, cost, points),
+(Cost: {} | Points remaining: {})
+<Press any key to continue>'''.format(string, cost, points),
 wrap=False,con=rog.con_final(),disp='mono'
+        )
+    rog.refresh()
+    rog.Input(rog.window_w()-2,1,mode='wait')
+def _maxedSkill(string):
+    rog.dbox(
+        0,0,rog.window_w(),8,
+        text='''You've reached the maximum skill level in skill:
+"{}". Please choose another skill, or select "<confirm>" on the
+"character specs" menu to continue.
+<Press any key to continue>'''.format(string),
+wrap=True,con=rog.con_final(),disp='mono'
         )
     rog.refresh()
     rog.Input(rog.window_w()-2,1,mode='wait')

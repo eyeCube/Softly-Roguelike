@@ -1,0 +1,43 @@
+
+idea_stances
+
+
+apply to all weapon types, even unarmed
+
+the stat modifications apply while the stance is active, which is held until the actor sends a command to change their stance, or their stance is broken (e.g. they fall down)
+
+Standard stance:
+	(default stance)
+	standard reach, standard stats w/ no change
+	
+Offensive stance:
+	Reach *1.2
+	Dmg *1.5
+	ASp -40
+	Atk +4
+	Dfn -8
+	Gra -6
+	Pen +2
+	Pro -3
+	
+Defensive stance:
+	Reach *0.75
+	Dmg *0.67
+	ASp +40
+	Atk -4
+	Dfn +4
+	Gra +4
+	Pen -4
+	Pro +2
+	Ctr +5
+	Splash *1.5
+	
+CQB stance:
+	Reach: 0 reach gained from weapon (attack at arm's reach, even with a weapon)
+	Atk +4
+	Dfn -4
+	Gra +6
+	Pen +6
+	Pro +1
+	Splash *0.25
+	

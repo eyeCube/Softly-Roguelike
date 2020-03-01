@@ -1,6 +1,50 @@
 
 Chargen
 
+	idea: menus all on one page for the following, for which you can expand/collapse the individual menus (+-)
+	IDEA: all of this can be accomplished without changing anything...
+		just use a regular menu with each row here as an option in the menu. If you select a header it either expands or collapses the row. This, of course, changes what options are available in the menu, so a new menu pops up with the changed options (and, necessarily, a new set of characters to identify the rows)
+		PROBLEM: removing stats/attributes/characteristics/skills is not possible. Will extend beyond max capacity limit of menu options. Need to expand menu to be able to handle that.
+		POSSIBLE SOLUTION: another menu option that switches mode from adding to subtracting the selected option......
+
+Chargen
+a) - Attributes (pts: 12)
+b) 	  CON   	12  (1)
+c) 	  INT 		12  (1)
+d) 	  STR 		12  (1)
+e) 	  AGI 		12  (1)
+f)	  DEX 		12  (1)
+g)	  END 		12  (1)
+h) - Stats (pts: 8)
+i)	  HPMAX		42 	(+- 1)
+j)	  SPMAX		420 (+- 10)
+k)	  ENCMAX	142 (+- 3)
+l)	  ASP 		40 	(+- 3)
+m)	  MSP		100 (+- 2)
+n)	  GRA		2	(+- 1)
+o)	  BAL		2	(+- 1)
+p)	  CTR		0	(+- 1)
+q)	  COU		32	(+- 4)
+r)	  IDN		32	(+- 4)
+s)	  BEA		32	(+- 4)
+t)	  Camo 		0	(+- 1)
+u)	  Stealth	0	(+- 1)
+v) + Skills (pts: 32)
+w) + Characteristics (pts: 4)
+x) [switch to subtract mode]
+
+
+Starts with everything collapsed like so:
+
+Chargen
+a) + Attributes (pts: 12)
+b) + Stats (pts: 8)
+c) + Skills (pts: 32)
+d) + Characteristics (pts: 4)
+
+
+
+
 
 TODO: random roll to create char
 
@@ -10,87 +54,23 @@ Gender
 
 
 
-Job
+Job (starting class)
 
 	
+
+
+
+
+
+
 	
-Skills
-	Talents (bonuses to learning potential for talents)
-	Training (char starts off with certain skill level in these)
+		~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ 
+
+		~~~~~~~ OLD IDEAS (ABANDONED/ OBSELETE) ~~~~~~~
+
+		~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ 
 
 
-
-ATTRIBUTES
-	should there be attributes? What would they be if so?
-	
-	ATTRIBUTES THAT ARE SIGNIFICANT OR NEEDED:
-		(having one or more effects that aren't coverable by other stats.
-	Strength
-		Gra+ 	//grappling
-		Dmg+
-		Throwing Range +
-		Carrying capacity +
-		Required to wield equipment
-	Constitution
-		Encumberance from equipment is reduced
-		HP+
-		Sta+
-		Capacity for physical augmentations +
-	Intelligence
-		Identify+
-		Capacity for mental augmentations +
-		
-	OTHERS:
-	Dexterity
-		Atk+
-		Asp+
-		Range+ 	//throwing and ranged weapons
-		Required to wield weapons
-	Agility
-		DV+
-		Asp+
-		Msp+
-	Endurance
-		HP+
-	Willpower
-		bravery+
-		
-	
-
-
-
-PERKS (lul need a different name)
-Choose 1 perk:
-
-Frail
-	Max HP -50%
-	AV -1
-	Mass -15kg
-Overweight
-	Dmg +2
-	Pen +2
-	DV -8
-	Pro +2
-	Msp -50%
-	Mass +60kg
-Anxious
-	Atk -4
-	Bravery -4 (resistance to intimidation)
-Depressed
-	DV -2
-	MP -25%
-Opie Addict
-	Get withdrawals if you don't frequently take opies
-		Light withdrawal: status effect: Spd -10%
-		Withdrawal: status effect: Spd -25%
-		Heavy withdrawal: status effect: Spd -50%
-	Opies have 5% their usual effect
-	Start with 20 opies
-Antisocial
-	Your dice for social interactions is only 1-5 instead of the usual 1-10
-Ravenous
-	You require 3x as much food as usual.
-	You require 2x as much fresh water as usual.
 
 
 BODY TYPES

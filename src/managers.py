@@ -731,7 +731,9 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
             if key.vk == libtcod.KEY_END:
                 self.scroll_bottom()
             if (key.c and (key.lctrl or key.rctrl)):
-                k = key.c + MENU_CTRL_MOD
+                # consider Shift and Ctrl keys to get a unique int code
+                kk = ord(chr(key.c).upper()) if key.shift else key.c
+                k = kk + MENU_CTRL_MOD
                 self.refresh()
                 n=self.keysItems.get(k,None) #.decode()
                 if n:

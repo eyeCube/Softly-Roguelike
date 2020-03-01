@@ -1,6 +1,7 @@
 
 bug list
-	when user closes/opens a door, sometimes loses LOS for 1 turn
+	
+	CLEARED: when user closes/opens a door, sometimes loses LOS for 1 turn
 
 
 todo list (what needs to get done before Softly Into the Night is playable?)
@@ -13,6 +14,7 @@ todo list (what needs to get done before Softly Into the Night is playable?)
 	augmentations
 	inventory
 		item viewer manager
+	map generation
 		
 	
 	

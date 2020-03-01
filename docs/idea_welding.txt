@@ -1,0 +1,36 @@
+
+welding is a separate skill from metalworking.
+
+
+information about welding:
+
+braze welding:
+	lowest level (weakest weld / cheapest)
+	use a metal like bronze, aluminum etc. that acts like a glue when heated
+	oxygen propane torch is sufficient to heat the filler (is it called that?)
+	generally easier to do
+	
+gas welding (oxy / acetylene torch welding):
+	use a filler metal with other hand
+	no electricity required
+	old-style welding
+	
+welding machine
+	can perform most types of welding
+	
+arc welding:
+	good efficient type of welding, just requires electricity
+	Stick, TIG, MIG, Flux Core
+
+Stick welding:
+	easy to do
+	very effective
+	requires flux/electrode stick
+	only works on certain metals like iron/steel
+	can be used anywhere (even underwater)
+	dangerous
+
+TIG
+	use a filler metal
+	most precise
+	
