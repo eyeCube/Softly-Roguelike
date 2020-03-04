@@ -90,6 +90,9 @@ def commands(pc, pcAct):
     directional_command = 'move'
     
     for act,arg in pcAct:
+
+        print(act)
+        print(arg)
         
         rog.update_base()
         
@@ -157,6 +160,23 @@ def commands(pc, pcAct):
             # out of bounds
             if ( not rog.is_in_grid_x(xto) or not rog.is_in_grid_y(yto) ):
                 return
+
+            # warning for slow move speed
+            if rog.allow_warning_msp():
+                msp=rog.getms(pc, 'msp')
+                if msp <= 10:
+                    inp=rog.prompt(
+                        0,0,rog.window_w(), 6, wrap=True,
+                        q='''Warning: your movement speed is critically slow
+(MSP: {}). Are you sure you want to move? y/n'''.format(msp)
+                        )
+                    if inp!='y':
+                        return
+                    else:
+                        rog.expire_warning_msp() #TODO: when is best time to reset this warning?
+            # end if
+            
+            # choose context-sensitive action #
             
             # fight if there is a monster present
             mon = rog.monat(xto,yto)
@@ -168,7 +188,7 @@ def commands(pc, pcAct):
                 if action.move(pc, dx,dy):
                     rog.view_center_player()
             else:
-                rog.alert("That tile is occupied.")
+                rog.alert("That space is occupied.")
         # end conditional
         
         # "attack" : (x, y, z,)
@@ -337,6 +357,7 @@ def __init__Chargen():
     Chargen.hydrophobia=False
     Chargen.attractedMen=False
     Chargen.attractedWomen=False
+    Chargen.fastLearner=False
     # menu dicts
     Chargen.menu={} # <- big meta-menu containing all choices
     Chargen.skilldict={}
@@ -370,13 +391,13 @@ def _printElement(elemStr,iy):
     return iy+1
 def _drawskills(con):
     skillstr = misc._get_skills(Chargen.skillsCompo, showxp=False)
-    libtcod.console_print(con, 48,2, "-- skills --")
-    libtcod.console_print(con, 24,4, skillstr)
+    libtcod.console_print(con, 64,2, "-- skills --")
+    libtcod.console_print(con, 40,4, skillstr)
 def _drawtraits(con):
     traitstr = misc._get_traits(Chargen._traits)
     yy = 6 + len(Chargen.skillsCompo.skills.keys())
-    libtcod.console_print(con, 48,yy, "-- traits --")
-    libtcod.console_print(con, 40,yy+2, traitstr)
+    libtcod.console_print(con, 64,yy, "-- traits --")
+    libtcod.console_print(con, 56,yy+2, traitstr)
 ##def reroll(stats, skills):
     
 
@@ -532,6 +553,10 @@ def chargen(sx, sy):
             scary=BASE_SCARY, # + MAS_IDN if not female else 0,
             beauty=BASE_BEAUTY # + FEM_BEA if female else 0
             )
+        #add specific class stats
+        for stat, val in _jobstats:
+            value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
+            Chargen.statsCompo.__dict__[stat] += value
         #
         
         
@@ -627,8 +652,14 @@ def chargen(sx, sy):
         # apply any stat changes from Chargen that haven't been applied
 
         Chargen.statsCompo.mass += basekg
-        Chargen.statsCompo.reach *= reachMult
-        Chargen.statsCompo.msp *= mspMult
+        Chargen.statsCompo.reach = round(reachMult*Chargen.statsCompo.reach)
+        Chargen.statsCompo.msp = round(mspMult*Chargen.statsCompo.msp)
+        if Chargen.fastLearner:
+            world.add_component(pc, cmp.FastLearner())
+        if Chargen.attractedMen:
+            world.add_component(pc, cmp.AttractedToMen())
+        if Chargen.attractedWomen:
+            world.add_component(pc, cmp.AttractedToWomen())
         
         #create pc object from the data given in chargen
         
@@ -655,11 +686,6 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.Inventory())
         world.add_component(pc, cmp.Gender(
             Chargen._genderName,Chargen._pronouns))
-        
-        #add specific class stats
-        for stat, val in _jobstats:
-            value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
-            rog.alts(pc, stat, value)
     # end if
     
     # init PC entity
@@ -806,12 +832,12 @@ def _chargen_attributes():
         Chargen.menu.update(
             {"- attributes (pts: {})".format(Chargen.attPts) : "close-attributes",})
         Chargen.attdict={
-"... ({}) CON   {}".format(_get_attribute_cost("con"),_con) : "con",
-"... ({}) INT   {}".format(_get_attribute_cost("int"),_int) : "int",
-"... ({}) STR   {}".format(_get_attribute_cost("str"),_str) : "str",
-"... ({}) AGI   {}".format(_get_attribute_cost("agi"),_agi) : "agi",
-"... ({}) DEX   {}".format(_get_attribute_cost("dex"),_dex) : "dex",
-"... ({}) END   {}".format(_get_attribute_cost("end"),_end) : "end",
+"... ({}) CON: Constitution {}".format(_get_attribute_cost("con"),_con) : "con",
+"... ({}) INT: Intelligence {}".format(_get_attribute_cost("int"),_int) : "int",
+"... ({}) STR: Strength     {}".format(_get_attribute_cost("str"),_str) : "str",
+"... ({}) AGI: Agility      {}".format(_get_attribute_cost("agi"),_agi) : "agi",
+"... ({}) DEX: Dexterity    {}".format(_get_attribute_cost("dex"),_dex) : "dex",
+"... ({}) END: Endurance    {}".format(_get_attribute_cost("end"),_end) : "end",
         }
         for k,v in Chargen.attdict.items():
             Chargen.menu.update({k:v})
@@ -853,21 +879,20 @@ def _chargen_stats():
         hp_d=CHARGEN_STATS['hpmax']
         sp_d=CHARGEN_STATS['mpmax']
         enc_d=CHARGEN_STATS['encmax']
-        asp_d=CHARGEN_STATS['asp']
         msp_d=CHARGEN_STATS['msp']
-        gra_d=CHARGEN_STATS['gra']/MULT_STATS
-        bal_d=CHARGEN_STATS['bal']/MULT_STATS
-        ctr_d=CHARGEN_STATS['ctr']/MULT_STATS
+        gra_d=CHARGEN_STATS['gra']//MULT_STATS
+        bal_d=CHARGEN_STATS['bal']//MULT_STATS
+        ctr_d=CHARGEN_STATS['ctr']//MULT_STATS
         cou_d=CHARGEN_STATS['cou']
         bea_d=CHARGEN_STATS['bea']
         idn_d=CHARGEN_STATS['idn']
         camo_d=CHARGEN_STATS['camo']
         stealth_d=CHARGEN_STATS['stealth']
+        
         stats=Chargen.statsCompo
         _hp=stats.hpmax
         _sp=stats.mpmax
         _enc=stats.encmax
-        _asp=stats.asp
         _msp=stats.msp
         _gra=stats.gra//MULT_STATS
         _bal=stats.bal//MULT_STATS
@@ -877,22 +902,22 @@ def _chargen_stats():
         _idn=stats.idn
         _camo=stats.camo
         _stealth=stats.stealth
+        
         Chargen.menu.update(
-            {"- stats (pts: {})".format(Chargen.statPts) : "close-stats",})
+            {"- base stats (pts: {})".format(Chargen.statPts) : "close-stats",})
         Chargen.statdict={
-"... HPMAX   {s:<4}(+-{d})".format(d=hp_d,s=_hp) : "hpmax",
-"... SPMAX   {s:<4}(+-{d})".format(d=sp_d,s=_sp) : "mpmax",
-"... ENCMAX  {s:<4}(+-{d})".format(d=enc_d,s=_enc) : "encmax",
-"... ASP     {s:<4}(+-{d})".format(d=asp_d,s=_asp) : "asp",
-"... MSP     {s:<4}(+-{d})".format(d=msp_d,s=_msp) : "msp",
-"... GRA     {s:<4}(+-{d})".format(d=gra_d,s=_gra) : "gra",
-"... BAL     {s:<4}(+-{d})".format(d=bal_d,s=_bal) : "bal",
-"... CTR     {s:<4}(+-{d})".format(d=ctr_d,s=_ctr) : "ctr",
-"... COU     {s:<4}(+-{d})".format(d=cou_d,s=_cou) : "cou",
-"... IDN     {s:<4}(+-{d})".format(d=idn_d,s=_idn) : "idn",
-"... BEA     {s:<4}(+-{d})".format(d=bea_d,s=_bea) : "bea",
-"... Camo    {s:<4}(+-{d})".format(d=camo_d,s=_camo) : "camo",
-"... Stealth {s:<4}(+-{d})".format(d=stealth_d,s=_stealth) : "stealth",
+"... HPMAX: Life       {s:<4}(+{d})".format(d=hp_d,s=_hp) : "hpmax",
+"... SPMAX: Stamina    {s:<4}(+{d})".format(d=sp_d,s=_sp) : "mpmax",
+"... ENCMAX: Carry     {s:<4}(+{d})".format(d=enc_d,s=_enc) : "encmax",
+"... MSP: Move Speed   {s:<4}(+{d})".format(d=msp_d,s=_msp) : "msp",
+"... GRA: Grappling    {s:<4}(+{d})".format(d=gra_d,s=_gra) : "gra",
+"... BAL: Balance      {s:<4}(+{d})".format(d=bal_d,s=_bal) : "bal",
+"... CTR: Counter      {s:<4}(+{d})".format(d=ctr_d,s=_ctr) : "ctr",
+"... COU: Courage      {s:<4}(+{d})".format(d=cou_d,s=_cou) : "cou",
+"... IDN: Intimidation {s:<4}(+{d})".format(d=idn_d,s=_idn) : "idn",
+"... BEA: Beauty       {s:<4}(+{d})".format(d=bea_d,s=_bea) : "bea",
+"... CAMO: Camo        {s:<4}(+{d})".format(d=camo_d,s=_camo) : "camo",
+"... STEL: Stealth     {s:<4}(+{d})".format(d=stealth_d,s=_stealth) : "stealth",
         }
         for k,v in Chargen.statdict.items():
             Chargen.menu.update({k:v})
@@ -929,8 +954,10 @@ def _chargen_skills():
         sortdict = {k:v for k,v in sorted(
             SKILLS.items(), key=lambda item: item[1][1].lower())}
         for k, sk in sortdict.items(): # Python 3.6+ remembers dict ordering so skills are already ordered
-            x = rog.getskill(pc, k)//SKILL_INCREQ
-            string = "... {}: {}".format(sk[0] + x, sk[1])
+            skilllv = rog.getskill(pc, k)
+            x = skilllv // SKILL_INCREQ
+            cost = "({})".format(sk[0] + x) if skilllv < 100 else "<MAX>"
+            string = "... {} {}".format(cost, sk[1])
             Chargen.skilldict.update({string : k})
         
         for k,v in Chargen.skilldict.items():
@@ -944,7 +971,7 @@ def _select_skill(_skillID):
     pc=Chargen.pc
     _skillName = SKILLS[_skillID][1]    
     _skillPts = SKILLS[_skillID][0] + rog.getskill(pc, _skillID)//SKILL_INCREQ
-    if rog.getskill(pc, _skillID) >= MAX_LEVEL:
+    if rog.getskill(pc, _skillID) >= MAX_SKILL:
         _maxedSkill(_skillName)
         return False
     if Chargen.skillPts < _skillPts:
@@ -988,102 +1015,155 @@ def _chargen_traits():
 def _select_trait(_trait):
     pc=Chargen.pc
     pts = CHARACTERISTICS[_trait][0]
+    # already have
+    if _trait in Chargen._traits:
+        _alreadyHaveTrait(_trait)
+        return False
+    # confirmation prompt
+    description = CHARACTERISTICS_DESCRIPT[_trait]
+    c = "Costs" if pts < 0 else "Gives"
+    description = '{}: {}. {}: {} pts. Points remaining: {}'.format(
+        _trait, description, c, abs(pts), Chargen.traitPts)
+    rog.dbox( 0,0,Chargen.ww,8,
+              text=description, wrap=True, con=rog.con_final() )
+    inp=rog.prompt(0,10,Chargen.ww,4,q="select this trait? y/n", mode='wait')
+    if inp!='y':
+        return False
+    # insufficient points
     if Chargen.traitPts < -pts:
         _insufficientPoints(Chargen.traitPts, -pts, "trait")
         return False
-    if _trait in Chargen._traits:
-        _alreadyHaveTrait(_trait)
-        return False    # already have this trait
     
-    Chargen.traitPts += pts
-    if Chargen.traitPts <= 0:
-        Chargen.open_traits = False
-    Chargen._traits.append(_trait)
+    success = False
     
-    # apply trait
+    # (attempt to) apply trait
     data = CHARACTERISTICS[_trait][1]
     for k,v in data.items():
                 # meta traits
         if k=="skillPts":
             Chargen.skillPts += v
+            success = True
                 # component flags
         elif k=="astigmatism": # TODO: make these apply components in chargen
             Chargen.astigmatism=True
+            success = True
         elif k=="cancer":
             Chargen.cancer=True
+            success = True
         elif k=="rapidMetabolism":
             Chargen.rapidMetabolism=True
+            success = True
         elif k=="ironGut":
             Chargen.ironGut=True
+            success = True
         elif k=="immuneVenom":
             Chargen.immuneVenom=True
+            success = True
         elif k=="hydrophobia":
             Chargen.hydrophobia=True
+            success = True
         elif k=="attractedMen":
             Chargen.attractedMen=True
+            success = True
         elif k=="attractedWomen":
             Chargen.attractedWomen=True
+            success = True
+        elif k=="fastLearner":
+            Chargen.fastLearner=True
+            success = True
                 # sub-menu traits
         elif k=="talent":
-            _select_talent()
+            success = _select_talent()
         elif k=="trauma":
-            _select_trauma()
+            success = _select_trauma()
         elif k=="addict":
-            _select_addict()
+            success = _select_addict()
         elif k=="allergy":
-            _select_allergy()
+            success = _select_allergy()
+        elif k=="scarred":
+            success = _select_scar()
                 # body stats
         elif k=="mfat":
             Chargen.mbodyfat *= v #(TODO: make these change stats in chargen)
+            success = True
         elif k=="fat":
             Chargen.bodyfat += v #(TODO: make these change stats in chargen)
+            success = True
         elif k=="mgut":
             Chargen.mgut *= v #(TODO: make these change stats in chargen)
+            success = True
         elif k=="mvision":
             Chargen.mvision *= v #(TODO: make these change stats in chargen)
+            success = True
                 # stats
         elif k=="mmass":
             Chargen.mmass *= v
+            success = True
         elif k=="mass":
             Chargen.mass += v
+            success = True
         elif k=="mcm":
             Chargen.mcm *= v
+            success = True
         elif k=="mreach":
             Chargen.mreach *= v
+            success = True
         elif k=="mreach":
             Chargen.mreach *= v
+            success = True
         elif k=="mmsp":
             Chargen.mmsp *= v
+            success = True
         elif k=="bea":
             Chargen.statsCompo.bea += v
+            success = True
         elif k=="idn":
             Chargen.statsCompo.idn += v
+            success = True
         elif k=="cou":
             Chargen.statsCompo.cou += v
+            success = True
         elif k=="str":
-            Chargen.statsCompo.str += v
+            Chargen.statsCompo.str += v*MULT_STATS
+            success = True
         elif k=="agi":
-            Chargen.statsCompo.agi += v
+            Chargen.statsCompo.agi += v*MULT_STATS
+            success = True
         elif k=="dex":
-            Chargen.statsCompo.dex += v
+            Chargen.statsCompo.dex += v*MULT_STATS
+            success = True
         elif k=="end":
-            Chargen.statsCompo.end += v
+            Chargen.statsCompo.end += v*MULT_STATS
+            success = True
         elif k=="con":
-            Chargen.statsCompo.con += v
+            Chargen.statsCompo.con += v*MULT_STATS
+            success = True
         elif k=="int":
-            Chargen.statsCompo.int += v
+            Chargen.statsCompo.int += v*MULT_STATS
+            success = True
         elif k=="resbio":
             Chargen.statsCompo.resbio += v
+            success = True
         elif k=="resfire":
             Chargen.statsCompo.resfire += v
+            success = True
         elif k=="rescold":
             Chargen.statsCompo.rescold += v
+            success = True
         elif k=="respain":
             Chargen.statsCompo.respain += v
+            success = True
     # end for
     
-    print("trait chosen: {} (pts: {})".format(_trait, Chargen.traitPts))
-    return True
+    if success:
+        # trait chosen successfully
+        Chargen.traitPts += pts
+        if Chargen.traitPts <= 0:
+            Chargen.open_traits = False
+        Chargen._traits.append(_trait)
+        print("trait chosen: {} (pts: {})".format(_trait, Chargen.traitPts))
+        return True
+    return False
 # end def
 
 def _selectFromBigMenu():
@@ -1137,6 +1217,21 @@ def _selectFromBigMenu():
     
     return False
 # end def
+
+def _select_talent():
+    menu={}
+    for k,v in sorted(SKILLS.items(), key=lambda x: x[1][1].lower()):
+        menu[v[1]] = k
+    menu["<cancel>"] = -1
+    choice=rog.menu(
+        "In which skill are you talented?",
+        0,0, menu.keys(), autoItemize=True
+        )
+    if choice!=-1:
+        selected = menu[choice]
+        rog.world().add_component(Chargen.pc, cmp.Talented(selected))
+        return True
+    return False
 
 def _insufficientPoints(points, cost, string):
     rog.dbox(

@@ -61,14 +61,8 @@ HISTORY_ROADNAMES=(
 
 GAME_TITLE = "Softly Into the Night"
 
-ROOMW       = 400            #max level size, width and height
-ROOMH       = 200
-MAXLEVEL    = 20            #deepest dungeon level
 TILES_PER_ROW = 16          # Num tiles per row (size of the char sheet 
 TILES_PER_COL = 16          # " per column         used for ASCII display)
-STARTING_TIME = 25200
-
-CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes
 
 MENU_CTRL_MOD       = 256
 
@@ -331,7 +325,13 @@ FOVMAP_NORMAL       = i; i+=1;
 # Gameplay Constants
 #
 
-MAX_LEVEL           = 100   # max skill level maximum skill lvl maxskilllvl
+ROOMW       = 300          #max level size, width and height
+ROOMH       = 300
+MAXLEVEL    = 100            #deepest dungeon level
+STARTING_TIME = 25200
+CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes
+
+MAX_SKILL           = 100   # max skill level maximum skill lvl maxskilllvl
 CM_ADVANTAGE_BP     = 8     # how much extra height you need to gain +1 advantage in combat
 HEIGHTMAP_GRADIENT  = 0.1   # ratio of height value on heightmap to the width/height of a tile
 CM_PER_TILE         = 100   # tiles are exactly 1x1m
@@ -340,7 +340,7 @@ CM_PER_TILE         = 100   # tiles are exactly 1x1m
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
-MULT_MASS           = 100000  # @1000, smallest mass unit == 1 gram. multiplier for mass of all things (to make it stored as an integer by Python)
+MULT_MASS           = 100000  # @1000, smallest mass unit == 1/100 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 10 (assuming the value is 10) makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
@@ -371,19 +371,6 @@ DURMOD_ASP = -50
 
 FITTED_ENCMOD = 0.75
 
-# insufficient strength penalties
-INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
-INSUFF_STR_ATK_PENALTY  = 3
-INSUFF_STR_DFN_PENALTY  = 1.5
-INSUFF_STR_GRA_PENALTY  = 2
-INSUFF_STR_ASP_PENALTY  = 24
-# insufficient dexterity penalties
-INSUFF_DEX_PEN_PENALTY  = 2 # each is a penalty PER Dex point missing
-INSUFF_DEX_ATK_PENALTY  = 4
-INSUFF_DEX_DFN_PENALTY  = 1.25
-INSUFF_DEX_GRA_PENALTY  = 1.5
-INSUFF_DEX_ASP_PENALTY  = 12
-#TODO: insufficient penalties for ranged stats!!!
 
 
 
@@ -551,6 +538,21 @@ PAUG_LIMITBREAKER_STR   : ("str",5,),
 
 
 # 1-h / 2-h constants
+
+# insufficient strength penalties
+INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
+INSUFF_STR_ATK_PENALTY  = 3
+INSUFF_STR_DFN_PENALTY  = 1.5
+INSUFF_STR_GRA_PENALTY  = 2
+INSUFF_STR_ASP_PENALTY  = 18
+# insufficient dexterity penalties
+INSUFF_DEX_PEN_PENALTY  = 2 # each is a penalty PER Dex point missing
+INSUFF_DEX_ATK_PENALTY  = 4
+INSUFF_DEX_DFN_PENALTY  = 1.25
+INSUFF_DEX_GRA_PENALTY  = 1.5
+INSUFF_DEX_ASP_PENALTY  = 12
+#TODO: insufficient penalties for ranged stats!!!
+
 # attribute bonuses and multipliers
 MULT_1HANDBONUS_STR_DMG = 0.5     # strength bonus for 1-h wielding per STR
 MULT_1HANDBONUS_STR_PEN = 0.25    # strength bonus for 1-h wielding per STR
@@ -570,13 +572,15 @@ MOD_2HANDBONUS_DFN    = 2       # defense you gain
 MOD_2HANDBONUS_ARM    = 1       # armor you gain
 MOD_2HANDBONUS_PRO    = 1       # protection you gain
 # penalties for when you fight with a 2-handed weapon in 1 hand
-MOD_1HANDPENALTY_ASP  = 75      # attack speed you lose
-MOD_1HANDPENALTY_ATK  = 10      # attack you lose
+MULT_1HANDPENALTY_STRREQ = 1.5  # strength required multiplier
+MOD_1HANDPENALTY_ASP  = -75     # attack speed you lose
+MOD_1HANDPENALTY_ATK  = -10     # attack you lose
 MULT_1HANDPENALTY_DMG = 0.5     # multiplier
 MULT_1HANDPENALTY_PEN = 0.5     # multiplier
-MOD_1HANDPENALTY_DFN  = 5       # defense you lose
-MOD_1HANDPENALTY_ARM  = 2       # armor you lose
-MOD_1HANDPENALTY_PRO  = 2       # protection you lose
+MOD_1HANDPENALTY_PEN  = -6      # penetration you lose
+MOD_1HANDPENALTY_DFN  = -5      # defense you lose
+MOD_1HANDPENALTY_ARM  = -2      # armor you lose
+MOD_1HANDPENALTY_PRO  = -2      # protection you lose
 
 
 # maximum + quality upgrade
@@ -600,7 +604,7 @@ CMB_MDMG            = 0.4   # multplier for damage (diff. btn min/max)
 MISS_BAL_PENALTY    = 5     # balance penalty for attacking nothing
 BAL_MASS_MULT       = 20    # X where effective mass == mass*bal/X (for purposes of getting knocked off-balance)
 MAXREACH            = 6     # meters
-BODY_DMG_PEN_BPS    = 4     # number of penetration breakpoints for body status inflicting
+BODY_DMG_PEN_BPS    = 6     # number of penetration breakpoints for body status inflicting
 GEAR_DMG_PEN_THRESHOLD = 4  # number of penetrations before attacks do not damage gear, but only damage the body wearing it
 CHANCE_HURT_SELF    = 0.01  # decimal chance to hurt self with weapon when unskilled
 SKILL_HURT_SELF     = 0.02  # decrease chance to hurt self when skilled (each skill level decreases chance by this ratio)
@@ -1493,55 +1497,67 @@ LUNGSTATUS_MAJORDAMAGE  : 0.33,
 LUNGSTATUS_MANGLED      : 0,
     }
 
-# damage types -> bpp classes constants | dmgtypes -> bppstatus
+# damage types -> bpp statuses constants | dmgtypes -> bppstatus
 # progressive level of damage as index increases
 SKINSTATUSES_SPIKES=(
     SKINSTATUS_MAJORABRASION, SKINSTATUS_CUT,
     SKINSTATUS_DEEPCUT, SKINSTATUS_MULTIDEEPCUTS,
+    SKINSTATUS_FULLYSKINNED, SKINSTATUS_MANGLED,
     )
 SKINSTATUSES_SPUDS=(
     SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION,
     SKINSTATUS_MAJORABRASION, SKINSTATUS_SKINNED,
+    SKINSTATUS_FULLYSKINNED, SKINSTATUS_MANGLED,
     )
 SKINSTATUSES_CUT=(
     SKINSTATUS_MINORABRASION, SKINSTATUS_CUT,
     SKINSTATUS_DEEPCUT, SKINSTATUS_SKINNED,
+    SKINSTATUS_FULLYSKINNED, SKINSTATUS_MANGLED,
     )
 MUSCLESTATUSES_CUT=(
     MUSCLESTATUS_STRAINED, MUSCLESTATUS_TORN,
     MUSCLESTATUS_RIPPED, MUSCLESTATUS_RUPTURED,
+    MUSCLESTATUS_RUPTURED, MUSCLESTATUS_MANGLED,
     )
 SKINSTATUSES_PUNCTURE=(
     SKINSTATUS_CUT, SKINSTATUS_DEEPCUT,
     SKINSTATUS_DEEPCUT, SKINSTATUS_DEEPCUT,
+    SKINSTATUS_MULTIDEEPCUTS, SKINSTATUS_MULTIDEEPCUTS,
     )
 MUSCLESTATUSES_PUNCTURE=(
     MUSCLESTATUS_KNOTTED, MUSCLESTATUS_STRAINED,
     MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
+    MUSCLESTATUS_RUPTURED, MUSCLESTATUS_MANGLED,
     )
 MUSCLESTATUSES_BLUNT=(
     MUSCLESTATUS_SORE, MUSCLESTATUS_KNOTTED,
     MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED,
+    MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
     )
 BONESTATUSES_BLUNT=(
     BONESTATUS_FRACTURED, BONESTATUS_CRACKED,
     BONESTATUS_BROKEN, BONESTATUS_MULTIBREAKS,
+    BONESTATUS_SHATTERED, BONESTATUS_MANGLED,
     )
 SKINSTATUSES_BURN=(
     SKINSTATUS_BLISTER, SKINSTATUS_BURNED,
-    SKINSTATUS_DEEPBURNED, SKINSTATUS_MANGLED,
+    SKINSTATUS_DEEPBURNED, SKINSTATUS_DEEPBURNED,
+    SKINSTATUS_FULLYSKINNED, SKINSTATUS_MANGLED,
     )
 MUSCLESTATUSES_BURN=(
     MUSCLESTATUS_SORE, MUSCLESTATUS_BURNED,
-    MUSCLESTATUS_DEEPBURNED, MUSCLESTATUS_MANGLED,
+    MUSCLESTATUS_DEEPBURNED, MUSCLESTATUS_DEEPBURNED,
+    MUSCLESTATUS_MANGLED, MUSCLESTATUS_MANGLED,
     )
 SKINSTATUSES_ABRASION=(
     SKINSTATUS_SCRAPED, SKINSTATUS_MINORABRASION,
     SKINSTATUS_MAJORABRASION, SKINSTATUS_SKINNED,
+    SKINSTATUS_FULLYSKINNED, SKINSTATUS_MANGLED,
     )
 MUSCLESTATUSES_ABRASION=(
     MUSCLESTATUS_CONTUSION, MUSCLESTATUS_STRAINED,
     MUSCLESTATUS_TORN, MUSCLESTATUS_RIPPED,
+    MUSCLESTATUS_RUPTURED, MUSCLESTATUS_MANGLED,
     )
 
 
@@ -1845,25 +1861,81 @@ CH_TRC      = [191, 184, 187] # top-right corner
 #
 # equip types / slots
 #
+# ordered: we have a slot EQ_ const followed by all EQ_ consts
+# of the same type for increasing number of BPs
+# main arm -> off arm -> 3rd arm -> 4th arm, etc.
+# This proximity makes it easy to find EQ_ consts based on body part type
+# for instance, to get the next limb, just add +1
 i=1;
-EQ_MAINHAND =i; i+=1;
+EQ_ABOUT    =i; i+=1; # about the body (e.g. a cloak)
+EQ_MAINHANDW=i; i+=1; # W == WIELDED
+EQ_OFFHANDW =i; i+=1;
+EQ_3HANDW   =i; i+=1;
+EQ_4HANDW   =i; i+=1;
+EQ_5HANDW   =i; i+=1;
+EQ_6HANDW   =i; i+=1;
+EQ_7HANDW   =i; i+=1;
+EQ_8HANDW   =i; i+=1; # 8 arms is the limit
+EQ_MAINHAND =i; i+=1; # hand - worn
 EQ_OFFHAND  =i; i+=1;
-EQ_MAINARM  =i; i+=1;
+EQ_3HAND    =i; i+=1;
+EQ_4HAND    =i; i+=1;
+EQ_5HAND    =i; i+=1;
+EQ_6HAND    =i; i+=1;
+EQ_7HAND    =i; i+=1;
+EQ_8HAND    =i; i+=1; # 8 arms is the limit
+EQ_MAINARM  =i; i+=1; # arm worn slots
 EQ_OFFARM   =i; i+=1;
-EQ_MAINFOOT =i; i+=1;
+EQ_3ARM     =i; i+=1;
+EQ_4ARM     =i; i+=1;
+EQ_5ARM     =i; i+=1;
+EQ_6ARM     =i; i+=1;
+EQ_7ARM     =i; i+=1;
+EQ_8ARM     =i; i+=1; # 8 arms is the limit
+EQ_MAINFOOT =i; i+=1; # feet
 EQ_OFFFOOT  =i; i+=1;
-EQ_MAINLEG  =i; i+=1;
+EQ_3FOOT    =i; i+=1;
+EQ_4FOOT    =i; i+=1;
+EQ_MAINLEG  =i; i+=1; # legs
 EQ_OFFLEG   =i; i+=1;
-EQ_FRONT    =i; i+=1;
+EQ_3LEG     =i; i+=1;
+EQ_4LEG     =i; i+=1;
+EQ_FRONT    =i; i+=1; # core
 EQ_BACK     =i; i+=1;
 EQ_HIPS     =i; i+=1;
 EQ_CORE     =i; i+=1;
-EQ_MAINHEAD =i; i+=1;
+EQ_ABDOMEN  =i; i+=1;
+EQ_MAINHEAD =i; i+=1; # head
+EQ_OFFHEAD  =i; i+=1;
 EQ_MAINFACE =i; i+=1;
+EQ_OFFFACE  =i; i+=1;
 EQ_MAINNECK =i; i+=1;
+EQ_OFFNECK  =i; i+=1;
 EQ_MAINEYES =i; i+=1;
+EQ_OFFEYES  =i; i+=1;
 EQ_MAINEARS =i; i+=1;
+EQ_OFFEARS  =i; i+=1;
 EQ_AMMO     =i; i+=1;
+EQ_IHEAD    =i; i+=1; # insect parts (beginning w/ "I")
+EQ_ITHORAX  =i; i+=1;
+EQ_IABDOMEN =i; i+=1;
+EQ_IMAINLEG =i; i+=1;
+EQ_IOFFLEG  =i; i+=1;
+EQ_I3LEG    =i; i+=1;
+EQ_I4LEG    =i; i+=1;
+
+# names of limbs based on index (ordering of EQ_ consts)
+#   [MAINARM is first, then OFFARM, then 3ARM, etc.]
+BPINDEX={
+    0 : 'main',
+    1 : 'off',
+    2 : '3rd',
+    3 : '4th',
+    4 : '5th',
+    5 : '6th',
+    6 : '7th',
+    7 : '8th',
+}
 
 
 
@@ -2180,6 +2252,12 @@ ELEM_LIGHT  : ('LGT','light',),
 ELEM_SOUND  : ('SND','sound',),
     }
 
+LIGHT_DMG_BLIND         = 1024      #2^10
+LIGHT_DMG_PERMABLIND    = 32768     #2^15
+LIGHT_DMG_BURN          = 4096      #2^12
+SOUND_DMG_DEAFEN        = 10000
+
+
 # Elemental Meters
 
 MAX_PAIN    = 1000
@@ -2351,6 +2429,7 @@ SKILL_EFFECTIVENESS_MULTIPLIER = 0.6666667 # higher -> skills have more effect
 SKILL_MAXIMUM       = 100   # max level of skills
 EXP_LEVEL           = 1000  # experience needed to level up skills
 EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
+EXP_INT_BONUS       = 0.008333   # % bonus EXP for skills per INT point
 
 #
 # Skills IDs skills unique IDs skill unique IDs
@@ -2415,7 +2494,7 @@ SKL_SURGERY     = i; i+=1; #stiching, organ/limb removal/transplanting, repairin
 SKL_MASSAGE     = i; i+=1; #healing muscle/connective tissue using manual working of the tissue
 ##SKL_PERCEPTION  = i; i+=1; #hear exactly what happens, hearing range ++
 # Crafting
-SKL_ASSEMBLY    = i; i+=1; #crafting base skill
+SKL_ASSEMBLY    = i; i+=1; #crafting base skill (should it include firestarting??)
 SKL_COOKING     = i; i+=1; #food prep
 SKL_WOOD        = i; i+=1; #woodcraft and repairing wooden things
 SKL_BONE        = i; i+=1; #bonecraft and repairing bone things
@@ -2486,7 +2565,7 @@ SKL_TESTER3     = i; i+=1; #
 
 SKILLPOINTS = 16 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
 ATTRIBUTEPOINTS = 12
-STATPOINTS = 8
+STATPOINTS = 16
 CHARACTERPOINTS = 4
 SKILL_LEVELS_PER_SELECTION = 10
 SKILL_LEVELS_JOB = 30 # starting skill level for given job
@@ -3062,6 +3141,9 @@ CHARACTERISTICS={
     # stat mods beginning with "m" signify that it's a multiplier value
     #    otherwise, by default, all stat mods are adders.
 # name                  : (CP, info)
+"ugly"                  : (1, {'bea':-64,},),
+"timid"                 : (1, {'cou':-64,},),
+"feeble"                : (1, {'idn':-64,},),
 "long bones"            : (-2,{'mcm':1.34,'mreach':1.25,'mmsp':1.2,},),
 "masculine"             : (-2,{'cou':16,'idn':16,'str':2,'con':2,},),
 "feminine"              : (-2,{'bea':32,'end':2,'agi':2,},),
@@ -3076,28 +3158,68 @@ CHARACTERISTICS={
 "rapid metabolism"      : (-2,{'rapidMetabolism':True,},),
 "iron gut"              : (-2,{'ironGut':True,},),
 "immunity"              : (-2,{'immuneVenom':True},),
-"talented"              : (-4,{'talent':True,},),
+"talented"              : (-2,{'talent':True,},),
 "fast learner"          : (-4,{'fastLearner':True,},),
 "dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
-"obese"                 : (4, {"mmass":1.75,"fat":5,"mfat":2,"end":-6,},),
-"gaunt"                 : (2, {"mmass":0.8,"mfat":0.5,"end":-3,},),
+"obese"                 : (2, {"mmass":1.75,"fat":5,"mfat":2,"end":-2,},),
+"gaunt"                 : (1, {"mmass":0.8,"mfat":0.5,"end":-2,},),
 "astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
 "attracted to men"      : (1, {'attractedMen':True,},),
 "attracted to women"    : (1, {'attractedWomen':True,},),
 "hydrophobia"           : (2, {'hydrophobia':True,},),
 "cancer"                : (8, {'cancer':True,},),
-"traumatic childhood"   : (2, {'trauma':True,},),
+"traumatic childhood"   : (4, {'trauma':True,},),
 "addiction"             : (4, {'addict':True,},),
 "allergy"               : (1, {'allergy':True,},),
+"scarred"               : (0, {'scarred':True,},),
     }
+CHARACTERISTICS_DESCRIPT={ # TODO: apply these when selecting traits in chargen. Input wait w/ y/n option like "do you want to select this trait?" confirmation
+    # TODO: do a similar thing for class selection as well, to give context for what each class is good at / shortcomings etc.
+"ugly"                  : '''beauty is significantly reduced''',
+"timid"                 : '''courage is significantly reduced''',
+"feeble"                : '''intimidation is significantly reduced''',
+"long bones"            : '''much taller; more reach; faster movement speed''',
+"masculine"             : '''increased courage, intimidation, strength, and constitution''',
+"feminine"              : '''increased beauty, endurance, and agility''',
+"acclimated to heat"    : '''increased resistance to heat''',
+"acclimated to cold"    : '''increased resistance to cold''',
+"pain tolerance"        : '''increased resistance to pain''',
+"strong immune system"  : '''increased resistance to bio-hazards''',
+"big stomach"           : '''larger stomach capacity''',
+"wealthy upbringing"    : '''start with extra money''',
+"apprentice"            : '''gain extra skill points''',
+"educated"              : '''increased identify stat''',
+"rapid metabolism"      : '''gain energy/water from consumed food and fluids more rapidly; gain overall less energy/water''',
+"iron gut"              : '''increased resistance to ingested poisons''',
+"immunity"              : '''immune to venom''',
+"talented"              : '''<choose> talented in one chosen skill, for which you gain experience more rapidly''',
+"fast learner"          : '''gain experience more rapidly in all skills''',
+"dwarf"                 : '''much shorter; less reach; slower movement speed''',
+"obese"                 : '''much fatter and more massive; also reduces endurance''',
+"gaunt"                 : '''greatly reduced bodyfat and overall body mass; also reduces endurance''',
+"astigmatism"           : '''reduced vision while not wearing glasses that are fitted to your eyes''',
+"attracted to men"      : '''you have a weakness for men; penalty to all rolls against men (persuasion rolls, attack rolls, etc.)''',
+"attracted to women"    : '''you have a weakness for women; penalty to all rolls against women (persuasion rolls, attack rolls, etc.)''',
+"hydrophobia"           : '''deathly afraid of water''',
+"scarred"               : '''you sport a nasty scar on chosen body part(s); stat changes to intimidation and beauty''',
+"cancer"                : '''you have cancer, and in order to remain healthy you must receive regular treatments.
+These can result in negative side effects''',
+"traumatic childhood"   : '''<choose> adds one chosen mental illness.
+Mental illnesses vary wildly in effects, and can be debilitating, though they can be treated with medication''',
+"addiction"             : '''<choose> you require regular doses of a chosen drug class in order to avoid withdrawal''',
+"allergy"               : '''<choose> you are allergic to one chosen class of allergens.
+Contact with items of this class will result in irritation (bio damage) to the afflicted tissue''',
+    }
+CHAR_SCARRED=( # where are you scarred?
+'chest','back','leg','arm','head','face',
+    )
 
 CHARGEN_STATS={
 # stat  : add,
 "hpmax"     : 1,
 "mpmax"     : 10,
 "encmax"    : 3,
-"asp"       : 3,
-"msp"       : 2,
+"msp"       : 1,
 "gra"       : 1*MULT_STATS,
 "bal"       : 1*MULT_STATS,
 "ctr"       : 1*MULT_STATS,
@@ -3116,6 +3238,8 @@ CHARGEN_ATTRIBUTES={
 21 : 4,
 24 : 5,
     }
+TALENTED_EXPMOD=1.25
+FASTLEARNER_EXPMOD=1.1
 
 
 #

@@ -43,8 +43,10 @@ import tilemap
 
 
 EQUIPABLE_CONSTS={
-EQ_MAINHAND : cmp.EquipableInHoldSlot,
-EQ_OFFHAND  : cmp.EquipableInHoldSlot,
+EQ_MAINHANDW: cmp.EquipableInHoldSlot,
+EQ_OFFHANDW : cmp.EquipableInHoldSlot,
+EQ_MAINHAND : cmp.EquipableInHandSlot,
+EQ_OFFHAND  : cmp.EquipableInHandSlot,
 EQ_MAINARM  : cmp.EquipableInArmSlot,
 EQ_OFFARM   : cmp.EquipableInArmSlot,
 EQ_MAINLEG  : cmp.EquipableInLegSlot,
@@ -76,6 +78,8 @@ class Rogue:
     manager = None # current active game state manager
     manager_listeners = [] #
     fov_maps = []
+    # boolean flags
+    allow_warning_msp = True    # for warning prompt for very slow move speed
     
     @classmethod
     def run_endTurn_managers(cls, pc):
@@ -173,6 +177,14 @@ def fetchglobalreturn():
     ret=Return.values
     Return.values=None
     return ret
+
+# global warning flags
+def allow_warning_msp():
+    return Rogue.allow_warning_msp
+def reset_warning_msp():
+    Rogue.allow_warning_msp = True
+def expire_warning_msp():
+    Rogue.allow_warning_msp = False
 
     #----------------#
     #   Functions    #
@@ -493,14 +505,24 @@ def fullname(ent):
 
 
     # "Fun"ctions #
-    
+
 def ceil(i): return math.ceil(i)
+def line(x1,y1,x2,y2):
+    for tupl in misc.Bresenham2D(x1,y1,x2,y2):
+        yield tupl
+def in_range(x1,y1,x2,y2,Range):
+    return (maths.dist(x1,y1, x2,y2) <= Range + .34)
 def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
     return round(i + 0.00001)
 def sign(n):
     if n>0: return 1
     if n<0: return -1
     return 0
+def numberplace(i): # convert integer to numbering position / numbering place / number position / number place
+    if i==1: return "1st"
+    if i==2: return "2nd"
+    if i==3: return "3rd"
+    return "{}th".format(i)
 
 # stat getters
 def _getkg(value):      return value//MULT_MASS
@@ -549,16 +571,15 @@ def wallat(x,y):        return (not Rogue.map.get_nrg_cost_enter(x,y) ) #tile wa
 def fluidsat(x,y):      return Rogue.et_managers['fluids'].fluidsat(x,y) #list
 def lightsat(x,y):      return Rogue.map.lightsat(x,y) #list
 def fireat(x,y):        return False #Rogue.et_managers['fire'].fireat(x,y)
-
+    # calculating cost to move across tiles
 def cost_enter(x,y):    return Rogue.map.get_nrg_cost_enter(x,y)
 def cost_leave(x,y):    return Rogue.map.get_nrg_cost_leave(x,y)
 def cost_move(xf,yf,xt,yt,data):
     return Rogue.map.path_get_cost_movement(xf,yf,xt,yt,data)
-
+    # checking for in bounds / out of bounds / outside of room boundary
 def is_in_grid_x(x):    return (x>=0 and x<ROOMW)
 def is_in_grid_y(y):    return (y>=0 and y<ROOMH)
 def is_in_grid(x,y):    return (x>=0 and x<ROOMW and y>=0 and y<ROOMH)
-def in_range(x1,y1,x2,y2,Range):    return (maths.dist(x1,y1, x2,y2) <= Range + .34)
 
 # view
 def getx(x):        return x + view_port_x() - view_x()
@@ -660,13 +681,27 @@ def setskill(ent, skill, lvl): # set skill level
     skills.skills[skill] = lvl*EXP_LEVEL
     make(ent,DIRTY_STATS)
 def train(ent, skill, pts): # train (improve) skill
+    if getskill(ent, skill) >= MAX_SKILL:
+        return
+    # trait bonuses
+    if Rogue.world.has_component(ent, cmp.Talented):
+        compo = Rogue.world.component_for_entity(ent, cmp.Talented)
+        if compo.skill==skill:
+            pts = pts * TALENTED_EXPMOD
+    if Rogue.world.has_component(ent, cmp.FastLearner):
+        pts = pts * FASTLEARNER_EXPMOD
+    # intelligence bonus to experience
+    pts += around( getms(ent,'int')*pts*EXP_INT_BONUS )
     # diminishing returns on skill gainz
-    pts = pts - getskill(ent)*EXP_DIMINISH_RATE
+    pts = around( pts - getskill(ent)*EXP_DIMINISH_RATE )
+    # points calculated; try to apply experience
     if pts > 0:
         make(ent,DIRTY_STATS)
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
         __train(skills, skill, pts)
 def __train(skills, skill, pts): # train one level at a time
+    if getskill(ent, skill) >= MAX_SKILL:
+        return
     exp = min(pts, EXP_LEVEL)
     skills.skills[skill] = skills.skills.get(skill, 0) + exp
     pts = pts - exp - EXP_DIMINISH_RATE
@@ -983,6 +1018,7 @@ def inreach(x1,y1, x2,y2, reach):
         return True
     return False
 # end def
+def dist(x1,y1,x2,y2): return misc.dist(x1,y1,x2,y2)
 def fitgear(gear, ent):
     Rogue.world.add_component(gear, cmp.Fitted(ent))
 
@@ -1742,12 +1778,16 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
 
 def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
-    # TODO: differentiate with different body types for the following
-    _deequipSlot(ent, body.slot)
-    deequip(ent, EQ_FRONT)
-    deequip(ent, EQ_BACK)
-    deequip(ent, EQ_HIPS)
-    deequip(ent, EQ_CORE)
+    
+    # core
+    if body.plan==BODYPLAN_HUMANOID:
+        _deequipSlot(ent, body.slot)
+        deequip(ent, EQ_FRONT)
+        deequip(ent, EQ_BACK)
+        deequip(ent, EQ_HIPS)
+        deequip(ent, EQ_CORE)
+    else:
+        raise Exception # TODO: differentiate with different body types
     # parts
     for cls, part in body.parts.items():
         if type(part)==cmp.BPC_Arms:
@@ -1755,11 +1795,11 @@ def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
                 _dewield(ent, arm.hand)
                 _deequip(ent, arm.hand)
                 _deequip(ent, arm.arm)
-        if type(part)==cmp.BPC_Legs:
+        elif type(part)==cmp.BPC_Legs:
             for leg in part.legs:
                 _deequip(ent, leg.foot)
                 _deequip(ent, leg.leg)
-        if type(part)==cmp.BPC_Heads:
+        elif type(part)==cmp.BPC_Heads:
             for head in part.heads:
                 _deequip(ent, head.head)
                 _deequip(ent, head.face)
@@ -1775,9 +1815,6 @@ def deequip(ent,equipType):
     '''
     compo = _get_eq_compo(ent, equipType)
     if not compo:
-        return None
-    item = compo.slot.item
-    if not item: #nothing equipped here
         return None
 
     return _deequip(ent, compo)
@@ -1798,10 +1835,12 @@ def _deequipSlot(ent, slot):
         unconcerned with coverage of other slots
     '''
     world=Rogue.world
+    item = slot.item
+    if not item: #nothing equipped here
+        return None
+    
     world.remove_component(item, cmp.Child)
     world.remove_component(item, cmp.Equipped)
-             
-    item = slot.item
     slot.item = None
     slot.covered = False
              
@@ -1813,19 +1852,16 @@ def dewield(ent,equipType): # for held items only (not worn)
     compo = _get_eq_compo(ent, equipType)
     if not compo:
         return None
-    
-    item = compo.held.item
-    if not item: #nothing equipped here
-        return None
-
     return _dewield(ent, compo)
 # end def
 def _dewield(ent, compo):
     world=Rogue.world
+    item = compo.held.item
+    if not item: #nothing equipped here
+        return None
+    
     world.remove_component(item, cmp.Child)
     world.remove_component(item, cmp.Equipped)
-    
-    item = compo.held.item
     compo.held.item = None
     
     make(ent, DIRTY_STATS)
@@ -2332,7 +2368,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         if bps.equip:
             for k,v in bps.equip.addMods.items():
                 modded.__dict__[k] = v + modded.__dict__[k]
-            # Strength Requirement and penalties
+            # Strength Requirement and penalties | insufficient strength penalty
             strd = bps.equip.strReq - modded.str//MULT_STATS
             if strd > 0:
                 # Multiply gear's enc. by ratio based on missing STR
@@ -2344,7 +2380,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
                     modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
                     modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
                     modded.asp -= strd*INSUFF_STR_ASP_PENALTY
-            # Dexterity Requirement and penalties
+            # Dexterity Requirement and penalties | insufficient dexterity penalty
             dexd = bps.equip.dexReq - modded.dex//MULT_STATS
             if dexd > 0:
                 modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
@@ -2813,6 +2849,17 @@ def routine_move_view():
         Rogue.view, Rogue.map.get_map_state(),
         "Direction? (<hjklyubn>; <select> to center; <Esc> to save position)")
     Rogue.view.fixed_mode_disable()
+    
+def aim_find_target(xs, ys, selectfunc):
+    # selectfunc: the function that is ran when you select a valid target
+    clear_active_manager()
+    game_set_state("manager") #move view
+    Rogue.manager=managers.Manager_AimFindTarget(
+        xs, ys, Rogue.view, Rogue.map.get_map_state())
+    Rogue.view.fixed_mode_disable()
+    # listener -- handles the shooting
+    listener = Aim_Manager_Listener(selectfunc)
+    manager_listeners_add(listener)
 
 # Manager_PrintScroll
 def help():
@@ -2932,17 +2979,6 @@ def menu(name, x,y, keysItems, autoItemize=True):
     
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
-
-def aim_find_target(selectfunc):
-    # selectfunc: the function that is ran when you select a valid target
-    clear_active_manager()
-    game_set_state("manager") #move view
-    Rogue.manager=managers.Manager_AimFindTarget(
-        xs, ys, Rogue.view, Rogue.map.get_map_state())
-    Rogue.view.fixed_mode_disable()
-    # listener -- handles the shooting
-    listener = Aim_Manager_Listener(selectfunc)
-    manager_listeners_add(listener)
     
 
 

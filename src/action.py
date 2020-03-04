@@ -37,10 +37,14 @@ dirStr=" <hjklyubn.>"
 
 
 def _get_eq_data(equipType):
-    if equipType == EQ_MAINHAND:
+    if equipType == EQ_MAINHANDW:
         return (wield_main, "wield", "hand",)
-    elif equipType == EQ_OFFHAND:
+    elif equipType == EQ_OFFHANDW:
         return (wield_off, "wield", "hand",)
+    elif equipType == EQ_MAINHAND:
+        return (wield_main, "wear", "hand",)
+    elif equipType == EQ_OFFHAND:
+        return (wield_off, "wear", "hand",)
     elif equipType == EQ_MAINARM:
         return (wear_arm_main, "wear", "arm",)
     elif equipType == EQ_OFFARM:
@@ -143,21 +147,129 @@ def pickup_pc(pc):
         rog.alert("There is nothing there to pick up.")
 
 
+def equipment_pc(pc):
+    world=rog.world()
+    assert(world.has_component(pc, cmp.Body))
+    body = world.component_for_entity(pc, cmp.Body)
+    pcn = world.component_for_entity(pc, cmp.Name)
+    x=0
+    y=rog.view_port_y()
+    
+    
+    # BRO< THIS CODE IS HIDEOUS. HOW CAN WE MAKE BODY PART CODE LESS TRASH????
+    
+    
+    # equipment menu
+    '''
+    format of equipment dict:
+        {'arms' : {
+            'right arm' : Slot,
+            'right hand (w)' : Slot,
+            'right hand' : Slot,
+            'left arm' : Slot,
+            'left hand (w)' : Slot,
+            'left hand' : Slot,
+            '3rd arm' : Slot,
+            '3rd hand (w)' : Slot,
+            '3rd hand' : Slot,
+            }
+        }
+    keys for meta dict are for metamenu submenu distinctions.
+    keys for sub-dicts are for submenu keys.
+    '''
+    equipment = {
+        'heads':{},
+        'torso':{},
+        'arms':{},
+        'legs':{},
+        }
+    
+    # get core slots
+    if body.plan==BODYPLAN_HUMANOID:
+        # get all equipment from body
+        equipment['torso'].update( {
+            'front':(body.core.front.slot,EQ_FRONT,),
+            'back':(body.core.back.slot,EQ_BACK,),
+            'core':(body.core.core.slot,EQ_CORE,),
+            'hips':(body.core.hips.slot,EQ_HIPS,),
+            'about':(body.slot,EQ_ABOUT,),
+        } )
+    else:
+        raise Exception #TODO: logic for other body types
+    # parts (irrespective of body type)
+    for cls, part in body.parts.items():
+        if type(part)==cmp.BPC_Arms:
+            for i in range(len(part.arms)):
+                arm=part.arms[i]
+                n="{} ".format(BPINDEX[i])
+                equipment['arms'].update( {
+                    '{}hand (w)'.format(n) : (arm.hand.held,i+EQ_MAINHANDW,),
+                    '{}hand'.format(n)     : (arm.hand.slot,i+EQ_MAINHAND,),
+                    '{}arm'.format(n)      : (arm.arm.slot, i+EQ_MAINARM,),
+                } )
+            # end for
+        elif type(part)==cmp.BPC_Legs:
+            for i in range(len(part.legs)):
+                leg=part.legs[i]
+                n="{} ".format(BPINDEX[i])
+                equipment['legs'].update( {
+                    '{}foot'.format(n) : (leg.foot.slot,i+EQ_MAINFOOT,),
+                    '{}leg'.format(n)  : (leg.leg.slot,i+EQ_MAINLEG,),
+                } )
+            # end for
+        elif type(part)==cmp.BPC_Heads:
+            for i in range(len(part.heads)):
+                head=part.heads[i]
+                n="{} ".format(rog.numberplace(i+1)) if i > 0 else ""
+                equipment['heads'].update( {
+                    '{}head'.format(n) : (head.head.slot,i+EQ_MAINHEAD,),
+                    '{}face'.format(n) : (head.face.slot,i+EQ_MAINFACE,),
+                    '{}neck'.format(n) : (head.neck.slot,i+EQ_MAINNECK,),
+                    '{}eyes'.format(n) : (head.eyes.slot,i+EQ_MAINEYES,),
+                    '{}ears'.format(n) : (head.ears.slot,i+EQ_MAINEARS,),
+                } )
+            # end for
+    # end for
+    
+    item=rog.menu("{}{}'s equipment".format(
+        pcn.title,pcn.name), x,y, equipment)
+    
+    # viewing equipment item
+    if item != -1:
+        itemn = world.component_for_entity(item, cmp.Name)
+        keysItems={
+            "u" : "use",
+            "r" : "remove",
+            "x" : "examine",
+            }
+        
+        opt=rog.menu(
+            "{}".format(itemn.name), x,y,
+            keysItems, autoItemize=False
+        )
+        #print(opt)
+        if opt == -1: return
+        selected=keysItems[opt].lower()
+        if opt == "use":        rmg=True; use_pc(pc, item)
+        elif opt == "remove":   rmg=True; deequip_pc(pc, item)
+        elif opt == "examine":  rmg=True; examine_pc(pc, item)
+# end def
+
 def inventory_pc(pc):
     world=rog.world()
-    assert world.has_component(pc, cmp.Inventory), "PC missing inventory"
+    assert(world.has_component(pc, cmp.Inventory))
     pcInv = world.component_for_entity(pc, cmp.Inventory)
     pcn = world.component_for_entity(pc, cmp.Name)
     x=0
     y=rog.view_port_y()
-#   items menu
-    item=rog.menu("{}{}'s Inventory".format(
+    #   items menu
+    item=rog.menu("{}{}'s inventory".format(
         pcn.title,pcn.name), x,y, pcInv.data)
     
-#   viewing an item
-    if not item == -1:
+    #   viewing an item
+    if item != -1:
         itemn = world.component_for_entity(item, cmp.Name)
-##        itemn = world.component_for_entity(item, cmp.Name)
+    ##        itemn = world.component_for_entity(item, cmp.Name)
         keysItems={}
         
     #   get available actions for this item...
@@ -200,19 +312,33 @@ def inventory_pc(pc):
         )
         #print(opt)
         if opt == -1: return
-        opt=opt.lower()
-        
+        selected=keysItems[opt].lower()
         rmg=False
-        if   opt == "drop":     rmg=True; drop_pc(pc, item)
-        elif opt == "equip":    rmg=True; equip_pc(pc, item)
-        elif opt == "throw":    rmg=True; target_pc(pc, item)
-        elif opt == "eat":      rmg=True; eat_pc(pc, item)
-        elif opt == "quaff":    rmg=True; quaff_pc(pc, item)
-        elif opt == "use":      rmg=True; use_pc(pc, item)
-        elif opt == "examine":  rmg=True; examine_pc(pc, item)
+        if selected == "drop":
+            rmg=True
+            drop_pc(pc, item)
+        elif selected == "equip":
+            rmg=True
+            equip_pc(pc, item)
+        elif selected == "throw":
+            rmg=True
+            target_pc(pc, item)
+        elif selected == "eat":
+            rmg=True
+            eat_pc(pc, item)
+        elif selected == "quaff":
+            rmg=True
+            quaff_pc(pc, item)
+        elif selected == "use":
+            rmg=True
+            use_pc(pc, item)
+        elif selected == "examine":
+            rmg=True
+            examine_pc(pc, item)
         
-        if rmg: rog.spendAP(pc, NRG_RUMMAGE)
-#
+        if rmg:
+            rog.spendAP(pc, NRG_RUMMAGE)
+# end def
 
 def drop_pc(pc,item):
     itemname=rog.world().component_for_entity(item, cmp.Name).name
@@ -251,14 +377,37 @@ def sprint_pc(pc):
         rog.alert("You're too tired to sprint.")
 
 def target_pc(pc):
+    ''' generic target function; target entity, then choose what to do '''
+    world=rog.world()
     pos = world.component_for_entity(pc, cmp.Position)
-    def targetfunc(target):
-        # Temporary
-        tname=world().component_for_entity(target, cmp.Name)
-        tpos=world().component_for_entity(target, cmp.Position)
-        print("Targeted entity named {} at {},{}".format(tname, tpos.x,tpos.y))
-    rog.aim_find_target(targetfunc)
-    
+    def targetfunc(ent):
+        tpos = world.component_for_entity(ent, cmp.Position)
+        menu={
+            'f' : 'fire/loose arrow',
+            't' : 'throw weapon in mainhand',
+            'x' : 'examine',
+            }
+        opt=rog.menu("targeting...",tpos.x,tpos.y,menu)
+        if opt=='f':
+            xdest=tpos.x
+            ydest=tpos.y
+            fire(pc, xdest,ydest)
+        elif opt=='t':
+            xdest=tpos.x
+            ydest=tpos.y
+            throw_pc(pc, xdest,ydest)
+        elif opt=='x':
+            examine_pc(pc, ent)
+    # end def
+    rog.aim_find_target(pos.x, pos.y, targetfunc)
+# end def
+
+##def throw_pc(pc, xdest,ydest):
+##    rng = rog.getms(ent, 'trng')
+##    if rog.in_range(xstart,ystart, xdest,ydest, rng):
+##        rog.alert("")
+##        return False
+##    return throw(pc, xdest,ydest)
     
 ##def process_target(targeted):
 ##    
@@ -402,8 +551,10 @@ def _equip(ent, item, equipType):
 # end def
 
 # specific equip functions (wrappers)
-def wield_main(ent, item):      return _equip(ent, item, EQ_MAINHAND)
-def wield_off(ent, item):       return _equip(ent, item, EQ_OFFHAND)
+def wield_main(ent, item):      return _equip(ent, item, EQ_MAINHANDW)
+def wield_off(ent, item):       return _equip(ent, item, EQ_OFFHANDW)
+def wear_main(ent, item):       return _equip(ent, item, EQ_MAINHAND)
+def wear_off(ent, item):        return _equip(ent, item, EQ_OFFHAND)
 def wear_arm_main(ent, item):   return _equip(ent, item, EQ_MAINARM)
 def wear_arm_off(ent, item):    return _equip(ent, item, EQ_OFFARM)
 def wear_leg_main(ent, item):   return _equip(ent, item, EQ_MAINLEG)
@@ -683,13 +834,17 @@ def _strike(attkr,dfndr,aweap,dweap,
         aweap1mat = rog.world().component_for_entity(attkr, cmp.Form).material
     
     # defender stats
+    dhpmax =rog.getms(dfndr,'hpmax')
     dv =    rog.getms(dfndr,'dfn')//MULT_STATS
     prot =  rog.getms(dfndr,'pro')//MULT_STATS
     arm =   rog.getms(dfndr,'arm')//MULT_STATS
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     dreach =rog.getms(dfndr,'reach')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
-    dweap1mat = rog.world().component_for_entity(dweap, cmp.Form).material
+    if dweap:
+        dweap1mat = rog.world().component_for_entity(dweap, cmp.Form).material
+    else:
+        dweap1mat = rog.world().component_for_entity(dfndr, cmp.Form).material
 
     # differences btn attacker and defender
 ##    dcm =   rog.getms(attkr,'height') - rog.getms(dfndr,'height')
@@ -798,7 +953,8 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # body damage #
         # calculate damage dealt to body parts
-        bpdmg = min(BODY_DMG_PEN_BPS, hitDie // 5 + pens)
+        bpdmg=dice.roll(6) - 6 + pens + (hitDie//10) + (8*trueDmg//dhpmax)
+        bpdmg=max(0, min( BODY_DMG_PEN_BPS, bpdmg )) # constraints
         _boolDamageBodyPart = (bpdmg!=0)
         #
         # damage body part (inflict status)
@@ -819,6 +975,7 @@ def _strike(attkr,dfndr,aweap,dweap,
                     else: # default to blunt damage
                         dmgtype = DMGTYPE_BLUNT
             # deal body damage
+            print("hitpp is ",hitpp)
             rog.damagebp(bptarget, dmgtype, hitpp)
             
             # organ damage (TODO) # how should this be done..?
@@ -1075,8 +1232,62 @@ def fight(attkr,dfndr,adv=0,power=0):
 ##        )
 ##        rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
 ###
-    
+#
 
+def throw(ent, xdest,ydest):
+    world = rog.world()
+    weap = rog.dominant_arm(ent).hand.held.item
+    if not weap:
+        return False
+    
+    # get thrower's stats
+    apos = world.component_for_entity(ent, cmp.Position)
+    rng = rog.getms(ent, 'trng')
+    atk = rog.getms(ent, 'tatk') + rog.getms(ent, 'atk')
+    pen = rog.getms(ent, 'tpen') + rog.getms(ent, 'pen')
+    dmg = rog.getms(ent, 'tdmg') + rog.getms(ent, 'dmg')
+    #
+    
+    # get defender's stats
+    dfndr = rog.monat(xdest,ydest)
+    if dfndr:
+        dpos = world.component_for_entity(dfndr, cmp.Position)
+        dfn = rog.getms(dfndr, 'dfn')
+        arm = rog.getms(dfndr, 'arm')
+        pro = rog.getms(dfndr, 'pro')
+    
+    # calculate which tile to aim towards
+    
+    # throw the item
+    rog.deequip(ent, EQ_MAINHANDW)
+    prevx=apos.x
+    prevy=apos.y
+    for (xx,yy,) in rog.line(apos.x,apos.y, xdest,ydest):
+        
+        # collision with wall
+        if rog.wallat(xx,yy):
+            rog.port(prevx,prevy)
+        mon=rog.monat(xx,yy)
+        if mon:
+            monpos = world.component_for_entity(mon, cmp.Position)
+            
+            # is this our target? If not, incur penalty to accuracy
+            if (mon != dfndr):
+                atk -= 10
+                
+            # roll to hit
+            atk -= rog.dist(apos.x,apos.y, xx,yy)
+            hit = dice.roll(20) + atk - dfn
+            
+            if hit > 0:
+                collide(ent, -1, mon, dmg)
+            
+        prevx=xx
+        prevy=yy
+    #
+    
+    return True
+# end def
 
 
 #######################################################################

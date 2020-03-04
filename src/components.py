@@ -116,8 +116,26 @@ class Targetable:
     def __init__(self, kind=0):
         self.kind = kind
 
-class Ambidextrous: # can be wielded by either right or left hand dominant entities
+# traits
+class Talented:
+    __slots__=['skill']
+    def __init__(self, skill: int):
+        self.skill=skill
+class AttractedToMen: #TODO: implement this
     __slots__=[]
+    def __init__(self):
+        pass
+class AttractedToWomen:
+    __slots__=[]
+    def __init__(self):
+        pass
+class FastLearner:
+    __slots__=[]
+    def __init__(self):
+        pass
+
+class Ambidextrous: # can be wielded by either right or left hand dominant entities (if a weapon)
+    __slots__=[] # if not a weapon, then this indicates that you can wield weapons in either hand (and have it considered dominant hand)
     def __init__(self):
         pass
 class LeftHanded: # dominant arm/hand is left
@@ -784,28 +802,29 @@ class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc
     contain a STATUS
 '''
 class BPP_Skin: # 16% of total body mass
-    __slots__=['status','material']
+    __slots__=['status','material','flags']
     def __init__(self, mat=-1):
         if mat==-1: mat=MAT_FLESH
         self.material=mat
         self.status=0
+        self.flags=bytearray(0)
 class BPP_Hair:
-    __slots__=['status','length']#,'color']
+    __slots__=['status','length','flags']
     def __init__(self, length=1):
         self.status=0
         self.length=length
-##        self.color=col
-##        self.style=style
+        self.flags=bytearray(0)
 class BPP_Artery:
     __slots__=['status']
     def __init__(self):
         self.status=0
 class BPP_Bone:
-    __slots__=['material','status']
+    __slots__=['material','status','flags']
     def __init__(self, mat=-1):
         if mat==-1: mat=MAT_BONE
         self.material=mat # determines Strength of the bone
         self.status=0
+        self.flags=bytearray(0)
 class BPP_Exoskeleton:
     __slots__=['material','status']
     def __init__(self, mat=-1):
@@ -819,15 +838,17 @@ class BPP_Shell: # chitinous shell
         self.material=mat
         self.status=0
 class BPP_Muscle:
-    __slots__=['status','str']#,'fatigue','fatigueMax'
+    __slots__=['status','str','flags']#,'fatigue','fatigueMax'
     def __init__(self, _str=1):
         self.str=_str # strength of muscle (as a ratio 0 to 1?)
         self.status=0
+        self.flags=bytearray(0)
 class BPP_Brain:
-    __slots__=['status','quality']
+    __slots__=['status','quality','flags']
     def __init__(self, quality=1):
         self.status=0
         self.quality=quality
+        self.flags=bytearray(0)
 class BPP_VisualSystem:
     __slots__=['quantity','quality']
     def __init__(self, quantity=2, quality=20):
@@ -1677,6 +1698,10 @@ class StatusFull: # overeat
     __slots__=['timer']
     def __init__(self, t=384):
         self.timer=t
+class StatusBlink: # eyes blinking
+    __slots__=['timer']
+    def __init__(self, t=2):
+        self.timer=t
 # Body Position statuses
 class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)
     __slots__=[]
@@ -1983,7 +2008,7 @@ BP_Ears         : (BPP_AUDITORY,),
 BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
     }
 
-EQ_BPS_HOLD=(EQ_MAINHAND, EQ_OFFHAND,)
+EQ_BPS_HOLD=(EQ_MAINHANDW, EQ_OFFHANDW,)
 BP_BPS_HOLD=(BP_HAND,BP_TENTACLE,)
 
 

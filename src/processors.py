@@ -593,7 +593,7 @@ class Status:
     def add(self, ent, component, t=-1, q=None):
         '''
             add a status if entity doesn't already have that status
-            **MUST NOT set the DIRTYSTATS flag.
+            **MUST NOT set the DIRTY_STATS flag.
         '''
         if rog.world().has_component(ent, component): return False
         status_str = ""
@@ -976,19 +976,19 @@ class MetersProcessor(esper.Processor):
         for ent,meters in self.world.get_component(
             cmp.Meters ):
             if (meters.sick > 0):
-                rog.make(ent, DIRTYSTATS)
+                rog.make(ent, DIRTY_STATS)
                 meters.sick = max(0, meters.sick - BIO_METERLOSS)
             if (meters.expo > 0):
-                rog.make(ent, DIRTYSTATS)
+                rog.make(ent, DIRTY_STATS)
                 meters.expo = max(0, meters.expo - CHEM_METERLOSS)
             if (meters.pain > 0):
-                rog.make(ent, DIRTYSTATS)
+                rog.make(ent, DIRTY_STATS)
                 meters.pain = max(0, meters.pain - PAIN_METERLOSS)
             if (meters.fear > 0):
-                rog.make(ent, DIRTYSTATS)
+                rog.make(ent, DIRTY_STATS)
                 meters.fear = max(0, meters.fear - FEAR_METERLOSS)
             if (meters.bleed > 0):
-                rog.make(ent, DIRTYSTATS)
+                rog.make(ent, DIRTY_STATS)
                 meters.bleed = max(0, meters.bleed - BLEED_METERLOSS)
             # rads meter
 # end class

@@ -118,6 +118,49 @@ def Bresenham3D(x1, y1, z1, x2, y2, z2):
     return ListOfPoints
 # end def
 
+# thin line cover algo in 2d
+def Bresenham2D(x1, y1, z1, x2): 
+    lis = [] 
+    lis.append((x1, y1,)) 
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    if (x2 > x1):
+        xs = 1
+    else: 
+        xs = -1
+    if (y2 > y1): 
+        ys = 1
+    else: 
+        ys = -1
+    
+    # Driving axis is X-axis
+    if dx >= dy:         
+        p = 2*dy - dx
+        while (x1 != x2): 
+            x1 += xs
+            if (p >= 0): 
+                y1 += ys 
+                p -= 2*dx
+            p += 2*dy
+            lis.append((x1, y1,)) 
+    
+    # Driving axis is Y-axis
+    elif dy >= dx:        
+        p = 2*dx - dy
+        while (y1 != y2): 
+            y1 += ys
+            if (p >= 0): 
+                x1 += xs 
+                p -= 2*dy
+            p += 2*dx
+            lis.append((x1, y1,))
+            
+    return lis
+# end def
+
+def dist(x1,y1,x2,y2):
+    return math.dist(x1,y1,x2,y2)
+
 
 '''
 # func render_charpage_string
@@ -174,13 +217,14 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
         world = rog.world()
         equipable = world.component_for_entity(item, equipableCompo)
         life=int(100*rog.getms(item, "hp")/rog.getms(item, "hpmax"))
+        ishand = 'hand' in bpname
         
 ##        mods=__eqdadd(equipable.mods)
         # covers
         covers = ""
         for cover in slot.covers:
-            covers += "| {} ".format(cmp.BPNAMES[cover])
-        if ( 'hand' in bpname and rog.on(item, TWOHANDS) ):
+            covers += "| {} ".format(cmp.BPNAMES[type(cover)])
+        if ( ishand and rog.on(item, TWOHANDS) ):
             covers += "| off hand wielding "
         #
         # requirements
@@ -201,8 +245,7 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
             # skill modifiers (TODO)
         
         # weapon skill bonus for item-weapons (armed combat)
-        if ( (bpname==EQ_MAINHAND or bpname==EQ_OFFHAND)
-             and world.has_component(item, cmp.WeaponSkill) ):
+        if ( ishand and world.has_component(item, cmp.WeaponSkill) ):
             weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
             skillsCompo=world.component_for_entity(pc, cmp.Skills)
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
@@ -566,7 +609,7 @@ def _get_skills(compo, showxp=True):
     for name,exp in lis:
         xp=""
         lvl=exp//EXP_LEVEL
-        if (showxp and lvl < MAX_LEVEL):
+        if (showxp and lvl < MAX_SKILL):
             xp="  | xp. {xp}".format(xp=exp%EXP_LEVEL)
         skills += "{n:>28}: lv. {lv}{xp}\n".format(
             n=name, lv=lvl, xp=xp)

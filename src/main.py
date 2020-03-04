@@ -125,14 +125,14 @@ def main():
 ##    rog.damage(weap, 200)
 ##    rog.fitgear(weap, rog.pc())
     rog.equip(
-        rog.pc(),weap,EQ_MAINHAND
+        rog.pc(),weap,EQ_MAINHANDW
         )
     rog.create_weapon("wooden club", pos.x,pos.y)
     rog.create_weapon("estoc", pos.x-1,pos.y)
     shield=rog.create_weapon("metal shield", 0,0)
-    rog.equip(
-        rog.pc(),shield,EQ_OFFHAND
-        )
+##    rog.equip(
+##        rog.pc(),shield,EQ_OFFHAND
+##        )
 ##    rog.fitgear(shield, rog.pc())
     armor=rog.create_armor("metal gear", 0,0)
     rog.equip(
@@ -144,35 +144,35 @@ def main():
         rog.pc(),helm,EQ_MAINHEAD
         )
 ##    rog.fitgear(helm, rog.pc())
-    leg1=rog.create_legwear("metal mail legging", 0,0)
-    rog.equip(
-        rog.pc(),leg1,EQ_MAINLEG
-        )
+##    leg1=rog.create_legwear("metal mail legging", 0,0)
+##    rog.equip(
+##        rog.pc(),leg1,EQ_MAINLEG
+##        )
 ##    rog.fitgear(leg1, rog.pc())
-    leg2=rog.create_legwear("metal mail legging", 0,0)
-    rog.equip(
-        rog.pc(),leg2,EQ_OFFLEG
-        )
+##    leg2=rog.create_legwear("metal mail legging", 0,0)
+##    rog.equip(
+##        rog.pc(),leg2,EQ_OFFLEG
+##        )
 ##    rog.fitgear(leg2, rog.pc())
-    arm1=rog.create_armwear("metal vambrace", 0,0)
-    rog.equip(
-        rog.pc(),arm1,EQ_MAINARM
-        )
+##    arm1=rog.create_armwear("metal vambrace", 0,0)
+##    rog.equip(
+##        rog.pc(),arm1,EQ_MAINARM
+##        )
 ##    rog.fitgear(arm1, rog.pc())
-    arm2=rog.create_armwear("metal vambrace", 0,0)
-    rog.equip(
-        rog.pc(),arm2,EQ_OFFARM
-        )
+##    arm2=rog.create_armwear("metal vambrace", 0,0)
+##    rog.equip(
+##        rog.pc(),arm2,EQ_OFFARM
+##        )
 ##    rog.fitgear(arm2, rog.pc())
-    foot1=rog.create_footwear("metal boot", 0,0)
-    rog.equip(
-        rog.pc(),foot1,EQ_MAINFOOT
-        )
+##    foot1=rog.create_footwear("metal boot", 0,0)
+##    rog.equip(
+##        rog.pc(),foot1,EQ_MAINFOOT
+##        )
 ##    rog.fitgear(foot1, rog.pc())
-    foot2=rog.create_footwear("metal boot", 0,0)
-    rog.equip(
-        rog.pc(),foot2,EQ_OFFFOOT
-        )
+##    foot2=rog.create_footwear("metal boot", 0,0)
+##    rog.equip(
+##        rog.pc(),foot2,EQ_OFFFOOT
+##        )
 ##    rog.fitgear(foot2, rog.pc())
     #
     

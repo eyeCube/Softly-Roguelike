@@ -709,10 +709,24 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
         #   mouse
         if mouse.lbutton_pressed:
             self.refresh()
+            if not (mouse.cx > self.x and mouse.cx < self.x + self.w - 1):
+                return
             index=mouse.cy - self.y - self.border_h + self.view_pos
-            if (index >= 0 and index < self.h - self.border_h*2):
-                result=self.keysItems[self.sorted[index][0]]
-                self.set_result(result)
+            if not ( index >= 0 and index < self.h - self.border_h*2 ):
+                return
+            # mouse boundary limits for large menus and mouse scrolling
+            if ( self.scrolling
+                 and ( mouse.cy == 0 or mouse.cy == self.drawh-1 ) ):
+                if mouse.cy == 0:
+                    self.scroll_up()
+                else:
+                    self.scroll_down()
+                return
+            
+            # successfully selected a menu item
+            result=self.keysItems[self.sorted[index][0]]
+            self.set_result(result)
+        # end if
         
         #   key
         if libtcod.console_is_key_pressed(key.vk):
@@ -859,9 +873,9 @@ class Manager_Menu(Manager): # TODO: Make into a GameStateManager ???
 
 
 
-class Manager_AimFindTarget(Manager):
+class Manager_AimFindTarget(GameStateManager):
     def __init__(self, xs,ys, view, con):
-        super(Manager_Aim_Target, self).__init__()
+        super(Manager_AimFindTarget, self).__init__()
 
         self.cursor     = IO.Cursor(0,0,rate=0.3)
         self.set_pos(rog.getx(xs), rog.gety(ys))
@@ -871,7 +885,7 @@ class Manager_AimFindTarget(Manager):
         self.select_hiscore(rog.pc())
     
     def run(self, pcAct):
-        super(Manager_Aim_Target, self).run(pcAct)
+        super(Manager_AimFindTarget, self).run(pcAct)
         
         self.cursor_blink()
         for act,arg in pcAct:
@@ -883,7 +897,7 @@ class Manager_AimFindTarget(Manager):
             elif act=="exit":   self.set_result('exit')
     
     def close(self):
-        super(Manager_Aim_Target, self).close()
+        super(Manager_AimFindTarget, self).close()
 
         pass
     
@@ -896,7 +910,7 @@ class Manager_AimFindTarget(Manager):
         xto,yto,zto = arg
         if (self.x==xto and self.y==yto):
             self.select(); return
-        self.port(arg)
+        self.port((xto,yto,zto,))
     
     def rclick(self,arg):
         self.port(arg)
@@ -970,9 +984,9 @@ class Manager_AimFindTarget(Manager):
         if not interesting:
             return None
         mostinteresting = sorted(interesting, key=lambda x: x[1])
-        targeted = mostinteresting[0]
+        targeted = mostinteresting[0][0]
         tpos = world.component_for_entity(targeted, cmp.Position)
-        self.port((tpos.x, tpos.y, 0,))
+        self.port((rog.getx(tpos.x), rog.gety(tpos.y), 0,))
         return targeted
 #
     

@@ -459,16 +459,22 @@ def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
         ii = -1
         for tile in diglist:
             ii += 1
-            if (ii == 0 or ii == len(diglist) - 1):
-                rog.getmap(rog.dlvl()).tile_change(tile[0], tile[1], DOORCLOSED)
+            x=tile[0]
+            y=tile[1]
+            if not rog.is_in_grid(x,y):
                 continue
-            rog.getmap(rog.dlvl()).tile_change(tile[0], tile[1], FLOOR)
+            if (ii == 0 or ii == len(diglist) - 1):
+                rog.getmap(rog.dlvl()).tile_change(x,y, DOORCLOSED)
+                continue
+            rog.getmap(rog.dlvl()).tile_change(x,y, FLOOR)
             # possibly add a door if there's a place to put one along the corridor walls
         
         # dig the room area out
         for tile in room.area:
             xi = tile[0] + room.x_offset
             yi = tile[1] + room.y_offset
+            if not rog.is_in_grid(xi,yi):
+                continue
             rog.getmap(rog.dlvl()).tile_change(xi, yi, FLOOR)
             
 ##        for tile in room.perimeter: # TESTING. OVERLAP OCCURRING!!
@@ -619,6 +625,8 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
     for tile in origin.area:
         xx = tile[0] + origin.x_offset
         yy = tile[1] + origin.y_offset
+        if not rog.is_in_grid(xx,yy):
+            continue
         rog.getmap(z).tile_change(xx, yy, FLOOR)
         
     # create other rooms

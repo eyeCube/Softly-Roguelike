@@ -420,6 +420,9 @@ def _canThrow(item, func=None, rng=0,acc=0,dmg=0,pen=0,asp=0,
 ##    if skill:
 ##
 
+def _ambidextrous(item):
+    rog.world().add_component(item, cmp.Ambidextrous())
+
 def _addRes(item, resfire=0,resbio=0,reselec=0,resphys=0,resrust=0,resrot=0,reswet=0,resdirt=0):
     stats=rog.world().component_for_entity(item, cmp.Stats)
     if resfire: stats.resfire = resfire
@@ -575,10 +578,14 @@ def _mBullet(tt):
     _canThrow(tt, acc=-6, rng=3, dmg=1)
 def _minnieBall(tt):
     _canThrow(tt, acc=-6, rng=3, dmg=1)
+def _tinyCartridge(tt):
+    _canThrow(tt, acc=-10, rng=3)
 def _mCartridge(tt):
     _canThrow(tt, acc=-5, rng=5)
-def _mCartridgeLarge(tt):
-    _canThrow(tt, acc=5, rng=9, dmg=2)
+def _largeCartridge(tt):
+    _canThrow(tt, acc=0, rng=8, dmg=0)
+def _vlargeCartridge(tt):
+    _canThrow(tt, acc=2, rng=10, dmg=1)
 def _shell(tt):
     _canThrow(tt, acc=0, rng=6, dmg=1)
 def _incendiary(tt):
@@ -792,7 +799,7 @@ def _extinguisher(tt):
 ##    rog.make(tt, CANUSE) # USE COMPONENTS!!
 ##    tt.useFunctionPlayer = action.extinguisher_pc
 ##    tt.useFunctionMonster = action.extinguisher
-##    rog.makeEquip(tt, EQ_MAINHAND)
+##    rog.makeEquip(tt, EQ_MAINHANDW)
 
 def _lighter(tt):
     pass
@@ -2487,20 +2494,27 @@ def _smgLarge(item):
     _canThrow(item, acc=0, rng=5)
     _weapon(item, acc=1, dmg=8, pen=6, asp=-36)
     _length(item, 35)
+def _gluGun(item):
+    _pistolTiny(item)
+    _ambidextrous(item)
+def _pistolTiny(item):
+    _canThrow(item, acc=0, rng=12, dmg=-2)
+    _weapon(item, acc=1, dmg=3, pen=3, asp=-12)
+    _length(item, 10)
 def _pistolSmall(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=10, dmg=-1)
-    _weapon(item, acc=1, dmg=5, pen=6, asp=-12)
+    _weapon(item, acc=1, dmg=5, pen=4, asp=-12)
     _length(item, 10)
 def _pistol(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=12)
-    _weapon(item, acc=2, dmg=7, pen=9, asp=-18)
+    _weapon(item, acc=2, dmg=7, pen=8, asp=-18)
     _length(item, 15)
 def _pistolLarge(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=10, dmg=1)
-    _weapon(item, acc=2, dmg=8, pen=11, asp=-24)
+    _weapon(item, acc=2, dmg=8, pen=10, asp=-24)
     _length(item, 20)
 def _liberator(item, dmg=6, pen=6, rng=12):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2508,9 +2522,9 @@ def _liberator(item, dmg=6, pen=6, rng=12):
     _weapon(item, acc=2, dmg=dmg, pen=pen, asp=-9)
     _length(item, 10)
 def _pLiberator(item):
-    _liberator(item, dmg=2, pen=3, rng=12)
+    _liberator(item, dmg=2, pen=1, rng=12)
 def _mLiberator(item):
-    _liberator(item, dmg=4, pen=6, rng=12)
+    _liberator(item, dmg=4, pen=5, rng=12)
 ##def _revolver(item):
 ##    _canThrow(item, acc=0, rng=10)
 ##    _weapon(item, acc=1, dmg=5, pen=3, asp=-18)
@@ -2522,6 +2536,9 @@ def _rifleSmall(item):
     _canThrow(item, acc=-5, rng=6, dmg=-4, pen=-2)
     _weapon(item, acc=0, dmg=8, pen=6, asp=-42)
     _length(item, 50)
+def _rifleSmallAmbi(item):
+    _rifleSmall(item)
+    _ambidextrous(item)
 def _rifle(item, cm=70):
     rog.make(item, TWOHANDS)
     _canThrow(item, acc=-5, rng=4, dmg=-4, pen=-4)
@@ -2736,7 +2753,7 @@ def _apply_grease(item):
 #   **put set and remove status logic in _update_stats for most meter statuses
 #     for those statuses, make the timer == -1 so they never expire.**
 #   NEVER change meters directly -- change them through these functions
-#   which will properly apply the DIRTYSTATS flag to the entity in question
+#   which will properly apply the DIRTY_STATS flag to the entity in question
 #TODO: bleed works differently too: amount of bleeding and time
 #  depends on how high the meter is.
 # Actually, with this new system, we could easily have pretty much all
@@ -2763,7 +2780,7 @@ def burn(ent, amt, maxTemp):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.temp < MAX_TEMP:
         meters.temp = min(MAX_TEMP, meters.temp + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def cool(ent, amt, minTemp):
     assert(amt > 0)
@@ -2773,19 +2790,19 @@ def cool(ent, amt, minTemp):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.temp > MIN_TEMP:
         meters.temp = max(MIN_TEMP, meters.temp - dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 ##def normalizeTemperature(ent, roomTemp=0): # normalize to room temp
 #TODO: fix to use cooldown and warmup (also make warmup func)
 ##    meters = rog.world().component_for_entity(ent, cmp.Meters)
 ##    meters.temp = meters.temp + rog.sign(roomTemp - meters.temp)
-##    rog.make(ent, DIRTYSTATS)
+##    rog.make(ent, DIRTY_STATS)
 ##def cooldown(ent, amt, minTemp=0): # cool down to given temp e.g. room temp
 ##    assert(val > 0)
 ##    meters = rog.world().component_for_entity(ent, cmp.Meters)
 ##    if meters.temp > minTemp:
 ##        meters.temp = max(minTemp, meters.temp - val)
-##        rog.make(ent, DIRTYSTATS)
+##        rog.make(ent, DIRTY_STATS)
     
 #   PAIN METER
 def hurt(ent, amt):
@@ -2796,7 +2813,7 @@ def hurt(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.pain < MAX_PAIN:
         meters.pain = min(MAX_PAIN, meters.pain + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healhurt(ent, val):
     if rog.on(ent, IMMUNEPAIN): return
@@ -2804,7 +2821,7 @@ def healhurt(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.pain > 0:
         meters.pain = max(0, meters.pain - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
 
 #   BLEED METER
 def bleed(ent, amt):
@@ -2815,7 +2832,7 @@ def bleed(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.bleed < MAX_BLEED:
         meters.bleed = min(MAX_BLEED, meters.bleed + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healbleed(ent, val):
     assert(val > 0)
@@ -2823,7 +2840,7 @@ def healbleed(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.bleed > 0:
         meters.bleed = max(0, meters.bleed - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   SICK METER 
 def disease(ent, amt):
@@ -2836,7 +2853,7 @@ def disease(ent, amt):
     if meters.sick >= MAX_SICK:
         meters.sick = 0
         rog.set_status(ent, cmp.StatusSick)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def intoxicate(ent, amt):
     assert(amt > 0)
@@ -2848,7 +2865,7 @@ def intoxicate(ent, amt):
     if meters.sick >= MAX_SICK:
         meters.sick = 0
         rog.set_status(ent, cmp.StatusDrunk)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healsick(ent, val):
     assert(val > 0)
@@ -2856,7 +2873,7 @@ def healsick(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.sick > 0:
         meters.sick = max(0, meters.sick - val)
-        rog.make(ent, DIRTYSTATS) # this is probably unnecessary since BIO statuses just run out of time. When they do run out of time though, DIRTYSTATS needs to be set!!
+        rog.make(ent, DIRTY_STATS) # this is probably unnecessary since BIO statuses just run out of time. When they do run out of time though, DIRTY_STATS needs to be set!!
         
 #   RADS METER
 def irradiate(ent, amt):
@@ -2869,7 +2886,7 @@ def irradiate(ent, amt):
     if meters.rads >= MAX_RADS:
         meters.rads = 0 # reset rads meter after mutation
         rog.mutate(ent)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healrads(ent, val):
     assert(val > 0)
@@ -2877,7 +2894,7 @@ def healrads(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rads > 0:
         meters.rads = max(0, meters.rads - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   EXPOSURE METER
 def exposure(ent, amt):
@@ -2893,7 +2910,7 @@ def exposure(ent, amt):
         rog.damage(ent, CHEM_DAMAGE)  #instant damage when expo meter fills
         hurt(ent, CHEM_HURT)
         _random_chemical_effect(ent) #inflict chem status effect
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def corrode(ent, amt): # acid
     assert(amt > 0)
@@ -2905,7 +2922,7 @@ def corrode(ent, amt): # acid
     if meters.expo >= MAX_EXPO:
         meters.expo = MAX_EXPO//2 #leave half exposure
         rog.set_status(ent, cmp.StatusAcid)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def cough(ent, amt): # throat irritation
     assert(amt > 0)
@@ -2917,7 +2934,7 @@ def cough(ent, amt): # throat irritation
     if meters.expo >= MAX_EXPO:
         meters.expo = MAX_EXPO//2 #leave half exposure
         rog.set_status(ent, cmp.StatusCough)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def vomit(ent, amt): # nausea
     assert(amt > 0)
@@ -2929,7 +2946,7 @@ def vomit(ent, amt): # nausea
     if meters.expo >= MAX_EXPO:
         meters.expo = MAX_EXPO//2 #leave half exposure
         rog.set_status(ent, cmp.StatusVomit)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def irritate(ent, amt):
     assert(amt > 0)
@@ -2941,7 +2958,7 @@ def irritate(ent, amt):
     if meters.expo >= MAX_EXPO:
         meters.expo = MAX_EXPO//2 #leave half exposure
         rog.set_status(ent, cmp.StatusIrritated)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healexpo(ent, val):
     assert(val > 0)
@@ -2949,7 +2966,7 @@ def healexpo(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.expo > 0:
         meters.expo = max(0, meters.expo - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   WETNESS METER
 def wet(ent, amt):
@@ -2965,7 +2982,7 @@ def wet(ent, amt):
     if meters.wet < max_wet:
         slough = amt + meters.wet - max_wet
         meters.wet = min(max_wet, meters.wet + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     if slough > 0: # IDEA: slough off excess water (how to do this intelligently without causing infinite recursion etc.?)
         rog.globalreturn(slough)
     # apply rust -- should this be in this function?
@@ -2976,7 +2993,7 @@ def healwet(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.wet > 0:
         meters.wet = max(0, meters.wet - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   DIRTINESS METER
 def dirty(ent, amt):
@@ -2987,7 +3004,7 @@ def dirty(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.dirt < MAX_DIRT: # IDEA: slough off excess dirt
         meters.dirt = min(MAX_DIRT, meters.dirt + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healdirt(ent, val):
     assert(val > 0)
@@ -2995,7 +3012,7 @@ def healdirt(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.dirt > 0:
         meters.dirt = max(0, meters.dirt - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   RUST METER
 def rust(ent, amt):
@@ -3006,7 +3023,7 @@ def rust(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rust < MAX_RUST:
         meters.rust = min(MAX_RUST, meters.rust + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healrust(ent, val):
     assert(val > 0)
@@ -3014,7 +3031,7 @@ def healrust(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rust > 0:
         meters.rust = max(0, meters.rust - val)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
         
 #   ROT METER
 def rot(ent, amt):
@@ -3025,7 +3042,7 @@ def rot(ent, amt):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rot < MAX_ROT:
         meters.rot = min(MAX_ROT, meters.rot + dmg)
-        rog.make(ent, DIRTYSTATS)
+        rog.make(ent, DIRTY_STATS)
     return dmg
 def healrot(ent, val):
     assert(val > 0)
@@ -3033,8 +3050,7 @@ def healrot(ent, val):
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rot > 0:
         meters.rot = max(0, meters.rot - val)
-        rog.make(ent, DIRTYSTATS)
-        
+        rog.make(ent, DIRTY_STATS)
         
 #   NON-METER ELEMENTAL DAMAGE #
 
@@ -3048,9 +3064,33 @@ def electrify(ent, amt):
         rog.sap(ent, dmg)
     if dmg >= (rog.getms(ent, 'hpmax')//3):
         paralyze(ent, 3) # paralysis from high damage
-    rog.make(ent, DIRTYSTATS)
+    rog.make(ent, DIRTY_STATS)
     return dmg
 # 
+
+# light damage
+def lightdmg(ent, amt):
+    assert(amt > 0)
+    res = max(-99, rog.getms(ent, 'reslight'))
+    dmg = amt*100/(res+100)
+    if rog.has_sight(ent):
+        if dmg >= LIGHT_DMG_THRESHOLD_PERMABLIND:
+            rog.set_status(ent, cmp.StatusBlink, t=1)
+            vislost = rog.log2(dmg / LIGHT_DMG_THRESHOLD_PERMABLIND)
+            rog.dominant_head(ent).eyes.visualSystem.quality -= vislost
+        if dmg >= LIGHT_DMG_THRESHOLD_BLIND:
+            t = 2 + dmg//10
+            q = min(100, dmg//2)
+            rog.set_status(ent, cmp.StatusBlinded, q=q, t=t)
+        # startling light damage causes dazzling (TODO)
+##        if (startling and dmg >= LIGHT_DMG_DAZZLE):
+##            rog.set_status(ent, cmp.StatusDazzle)
+    _burn = dmg//LIGHT_DMG_BURN
+    if _burn > 0:
+        burn(ent, _burn)
+    return dmg
+
+# other
 def mutate(ent):
     if not rog.world().has_component(ent, cmp.Mutable):
         return False
@@ -3322,28 +3362,10 @@ def _update_from_bpc_arms(lis, ent, bpc, armorSkill, unarmored):
         i += 1
         
         # hand
-        bps=_update_from_bp_hand(ent, bpm.hand, ismainhand)
-        
-        # check for two-handed bonus to 1-h weapons
-        if ( ismainhand and bps.equip):
-            if ( not rog.on(bpm.hand.held.item, TWOHANDS) and
-                 not rog.off_arm(ent).hand.held.item ):
-                bps.equip.addMods['atk'] = bps.equip.addMods.get(
-                    'atk', 0 ) + MOD_2HANDBONUS_ATK*MULT_STATS
-                bps.equip.addMods['pen'] = bps.equip.addMods.get(
-                    'pen', 0 ) + MOD_2HANDBONUS_PEN*MULT_STATS
-                bps.equip.addMods['dfn'] = bps.equip.addMods.get(
-                    'dfn', 0 ) + MOD_2HANDBONUS_DFN*MULT_STATS
-                bps.equip.addMods['arm'] = bps.equip.addMods.get(
-                    'arm', 0 ) + MOD_2HANDBONUS_ARM*MULT_STATS
-                bps.equip.addMods['pro'] = bps.equip.addMods.get(
-                    'pro', 0 ) + MOD_2HANDBONUS_PRO*MULT_STATS
-                bps.equip.addMods['asp'] = bps.equip.addMods.get(
-                    'asp', 1 ) * MULT_2HANDBONUS_ASP
-                bps.equip.addMods['dmg'] = bps.equip.addMods.get(
-                    'dmg', 1 ) * MULT_2HANDBONUS_DMG
-        #
-        
+        item = bpm.hand.held.item
+        twoh = rog.on(item, TWOHANDS) if item else False
+        offw = True if rog.off_arm(ent).hand.held.item else False
+        bps=_update_from_bp_hand(ent, bpm.hand, ismainhand,twoh,offw)
         lis.append(bps)
         
         # arm
@@ -3413,7 +3435,7 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
 # end def
 
 # hand
-def _update_from_bp_hand(ent, hand, ismainhand=False):
+def _update_from_bp_hand(ent, hand, ismainhand=False, twoh=False,offw=False):
     world = rog.world()
     dadd={}
     dmul={}
@@ -3438,12 +3460,11 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         if world.has_component(item, cmp.WeaponSkill):
             weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
-            if ismainhand:
-                if skillLv:
-                    _apply_skillBonus_weapon(eqdadd, skillLv, weapClass)
-            else:
-                if weapClass==SKL_SHIELDS:
-                    _apply_skillBonus_weapon(eqdadd, skillLv, weapClass)
+            if ( (ismainhand and skillLv and weapClass!=SKL_SHIELDS)
+                 or (not ismainhand and skillLv and weapClass==SKL_SHIELDS)
+                 ):
+                _apply_skillBonus_weapon(eqdadd, skillLv, weapClass)
+        # end if
         
         fittedBonus(world,ent,item,eqdadd)
         
@@ -3471,8 +3492,36 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
             eqdadd['pro'] = eqdadd.get('pro', 0) * OFFHAND_PENALTY_PROMOD
         #
         
+        # two-handed penalties and bonuses
+        strReq = equipable.strReq
+        if ismainhand: #(TODO: TEST ALL OF THIS (MOVED))
+            # check for two-handed bonus to 1-h weapons
+            if ( not twoh and not offw ):
+                # adders
+                eqdadd['atk'] = eqdadd.get('atk',0) + MOD_2HANDBONUS_ATK*MULT_STATS
+                eqdadd['pen'] = eqdadd.get('pen',0) + MOD_2HANDBONUS_PEN*MULT_STATS
+                eqdadd['dfn'] = eqdadd.get('dfn',0) + MOD_2HANDBONUS_DFN*MULT_STATS
+                eqdadd['arm'] = eqdadd.get('arm',0) + MOD_2HANDBONUS_ARM*MULT_STATS
+                eqdadd['pro'] = eqdadd.get('pro',0) + MOD_2HANDBONUS_PRO*MULT_STATS
+                # multipliers
+                eqdadd['asp'] = eqdadd.get('asp',1) * MULT_2HANDBONUS_ASP
+                eqdadd['dmg'] = eqdadd.get('dmg',1) * MULT_2HANDBONUS_DMG
+            # check for penalty for wielding 2-h weapon in one hand
+            elif ( twoh and offw ):
+                strReq = rog.ceil(strReq * MULT_1HANDPENALTY_STRREQ)
+                # adders
+                eqdadd['atk'] = eqdadd.get('atk',0) + MOD_1HANDPENALTY_ATK*MULT_STATS
+                eqdadd['asp'] = eqdadd.get('asp',0) + MOD_1HANDPENALTY_ASP
+                eqdadd['dfn'] = eqdadd.get('dfn',0) + MOD_1HANDPENALTY_DFN*MULT_STATS
+                eqdadd['arm'] = eqdadd.get('arm',0) + MOD_1HANDPENALTY_ARM*MULT_STATS
+                eqdadd['pro'] = eqdadd.get('pro',0) + MOD_1HANDPENALTY_PRO*MULT_STATS
+                        # penetration gets multiplier AND adder penalties
+                eqdadd['pen'] = eqdadd.get('pen',0) + MOD_1HANDPENALTY_PEN*MULT_STATS
+                # multipliers
+                eqdadd['pen'] = eqdadd.get('pen',1) * MULT_1HANDPENALTY_PEN
+                eqdadd['dmg'] = eqdadd.get('dmg',1) * MULT_1HANDPENALTY_DMG
+        # end if
         
-        # durability penalty multiplier for the stats
         apply_penalties_weapon(eqdadd, item)
         
         # armed wrestling still grants you some Gra, but significantly
@@ -3484,7 +3533,7 @@ def _update_from_bp_hand(ent, hand, ismainhand=False):
         _apply_skillBonus_weapon(eqdadd, wreLv, SKL_WRESTLING, enc=False)
         
         equip=__EQ(
-            eqdadd['enc'], equipable.strReq, equipable.dexReq,
+            eqdadd['enc'], strReq, equipable.dexReq,
             eqdadd, eqdmul,
             BP_HAND
             )
@@ -3762,7 +3811,8 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
         equip=None
         
     # examine body part
-    if eyes.open:
+        # if eyes are open, add sight from eyes
+    if (not rog.get_status(ent, cmp.StatusBlink) and eyes.open):
         dadd['sight'] = dadd.get('sight', 0) + eyes.visualSystem.quality
     return __BPS(dadd,dmul, equip)
 # end def
@@ -5285,12 +5335,15 @@ AMMUNITION={
 ##"obsidian arrow"        :(A_ARRO,8,  0.03,1, (2,  12, 6,  0,), None,),
 
     #TODO: add ceramic bullets, plastic, rubber bullets, etc.
-
-    # TODO: convert all KG measurements to g (multiply by 1000)
-        # Just do this when you create the objects.
-
+    #   to do this, just make functions to create them, which modify the stats of the original table.
+    # FOR INSTANCE:
+    # plastic: range 33%, pen -6, atk -5, dmg 25% of total
+    # rubber: range 25%, pen -12, atk -5, dmg 10%
+    # ALthough in reality, maybe the base values in the table should be plastic tier, and metal bullets have much higher stats.
+    #   This would allow us to make bigger variations in e.g. damage without having to do percentage modifiers
+    
     # TODO: when you create ammo, set its HP based on what type of ammo it is.
-
+    
     # Range represents a multiplier modifier
     
     # stone
@@ -5301,21 +5354,22 @@ AMMUNITION={
 "stone bullet"          :(A_BULL,1,  0.05, 1,(0.7, -3, -2, -4, 0,),_sBullet,), # 12 gauge
 "metal bullet"          :(A_BULL,6,  0.05, 1,(0.9, 0,  0,  0,  0,),_mBullet,),
 "Minni ball"            :(A_BULL,7,  0.05, 1,(1.2, 5,  2,  2,  0,),_minnieBall,),
-"cartridge, metal bullet":(A_PC, 4,  0.11, 1,(1.0, 0,  0,  0,  0,),_paperCartridge,),
-".22 LR cartridge"      :(A_22LR,1,  0.003,1,(1.0, 0,  0,  0,  0,),_mCartridge,),# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.
-"9mm cartridge"         :(A_9MM, 1,  0.008,1,(1.0, 0,  0,  0,  0,),_mCartridge,),#.38 Spl 
-".357 magnum cartridge" :(A_357, 3,  0.01, 1,(1.33,4,  5,  5,  -15,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
+"cartridge, metal"      :(A_PC,  4,  0.11, 1,(1.0, 0,  0,  0,  0,),_paperCartridge,),
+".22 LR cartridge"      :(A_22LR,1,  0.003,1,(1.0, 0,  0,  0,  0,),_tinyCartridge,),# gunpowder could be expensive because it has to be imported, likewise casings are not cheap being hard to manfucature, so bullets are expensive shit in this world.
+"9mm cartridge"         :(A_9MM, 1,  0.008,1,(1.0, 0,  0,  0,  0,),_tinyCartridge,),#.38 Spl 
+"9mm rat shot"          :(A_9MM, 1,  0.035,10,(0.3,-10,5,  -12,-30,),_largeCartridge,),#like a shotgun shell but in 9mm. NOTE: Only can be fired in single-shot guns.
+".357 magnum cartridge" :(A_357, 3,  0.01, 1,(1.33,4,  5,  5,  -15,),_tinyCartridge,),#can also fire 9mm AKA .38Spl rounds
 "10mm cartridge"        :(A_10MM,2,  0.017,1,(1.0, 0,  0,  0,  0,),_mCartridge,),
 ".45 ACP cartridge"     :(A_45,  2,  0.015,1,(1.0, 0,  0,  0,  0,),_mCartridge,),
-".44 Spl cartridge"     :(A_44S, 5,  0.022,1,(1.5, 0,  0,  0,  0,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
-".44 magnum cartridge"  :(A_44M, 7,  0.025,1,(2.0, 6,  3,  6,  -36,),_mCartridge,),#can also fire 9mm AKA .38Spl rounds
+".44 Spl cartridge"     :(A_44S, 5,  0.022,1,(1.5, 0,  0,  0,  0,),_largeCartridge,),#can also fire 9mm AKA .38Spl rounds
+".44 magnum cartridge"  :(A_44M, 7,  0.025,1,(2.0, 6,  3,  6,  -36,),_largeCartridge,),#can also fire 9mm AKA .38Spl rounds
 "5.56mm cartridge"      :(A_556, 2,  0.012,1,(1.0, 0,  0,  0,  0,),_mCartridge,),#.223 is similar. bullet itself is only 4g
 ".30 carbine cartridge" :(A_30,  2,  0.013,1,(1.0, 0,  0,  0,  0,),_mCartridge,),#7.62x33mm; M1 carbine
 "7.62x39mm cartridge"   :(A_762, 3,  0.017,1,(1.5, 0,  0,  0,  0,),_mCartridge,),#7.62x39mm
-".308 cartridge"        :(A_308, 4,  0.027,1,(2.0, 0,  0,  0,  0,),_mCartridge,),#7.62x51mm
-".30-06 cartridge"      :(A_3006,5,  0.026,1,(2.5, 4,  2,  4,  -9,),_mCartridge,),#7.62x63mm
-".300 magnum cartridge" :(A_300, 9,  0.031,1,(3.0, 6,  6,  8,  -24,),_mCartridge,),#7.62x67mm
-".50 BMG cartridge"     :(A_50,  25, 0.115,1,(0,   0,  0,  0,  0,),_mCartridgeLarge,),
+".308 cartridge"        :(A_308, 4,  0.027,1,(2.0, 0,  0,  0,  0,),_largeCartridge,),#7.62x51mm
+".30-06 cartridge"      :(A_3006,5,  0.026,1,(2.5, 4,  2,  4,  -9,),_largeCartridge,),#7.62x63mm
+".300 magnum cartridge" :(A_300, 9,  0.031,1,(3.0, 6,  6,  8,  -24,),_largeCartridge,),#7.62x67mm
+".50 BMG cartridge"     :(A_50,  25, 0.115,1,(0,   0,  0,  0,  0,),_vlargeCartridge,),
 "12ga rubber shell"     :(A_12GA,1,  0.15, 5,(0.25,-8, -8, -6, -9,),_shell,),
 "12ga rubber slug"      :(A_12GA,1,  0.15, 1,(0.6, -6, -12,-4, -9,),_shell,),
 "12ga plastic shell"    :(A_12GA,1,  0.15, 5,(0.3, -8, -8, -6, -9,),_shell,),
@@ -5446,17 +5500,18 @@ RANGEDWEAPONS={
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
 "pea shooter"           :(A_22LR,90,   0.8, 60, METL,1, 5, (1, 1,100,950,1,  8,  6, 1, 6, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# double-barrel is a mod, adds .1KG and +1 Capacity
 "derringer"             :(A_22LR,135,  0.7, 90, METL,2, 7, (1, 1,100,300,1,  12, 4, 2, 4, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# double-barrel is a mod, adds .1KG and +1 Capacity
-"9mm revolver"          :(A_9MM, 740,  1.15,630,METL,10,8, (6, 1,100,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol,ID_PISTOL,),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
+"9mm glu gun"           :(A_9MM, 85,   0.4, 600,PLAS,10,10,(1, 1,700,1200,1, 6,  -6,0, 4, 0,  0,  1.5,50,),SKL_PISTOLS,_gluGun,ID_PISTOL,),
+"9mm revolver"          :(A_9MM, 740,  1.15,630,METL,8, 8, (6, 1,100,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol,ID_PISTOL,),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
 "9mm handgun"           :(A_9MM, 3750, 0.9, 520,METL,4, 5, (1, 1,100,50, 1,  46, 9, 4, 14,0,  45, 2,  100,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),
 ".357 magnum revolver"  :(A_357, 2075, 1.25,700,METL,13,7, (6, 1,100,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_pistol,ID_PISTOL,),
 "10mm handgun"          :(A_10MM,4475, 1.2, 560,METL,6, 5, (1, 1,100,20, 1,  42, 8, 5, 13,0,  36, 2,  100,),SKL_PISTOLS,_pistol,ID_PISTOL,),
-"plastic liberator"     :(A_45,  9,    0.5, 8,  PLAS,4, 4, (1, 1,200,999,1,  10, -2,0, 2, 0,  -12,2,  33,),SKL_PISTOLS,_pLiberator,ID_PISTOL,),
-"metal liberator"       :(A_45,  95,   0.5, 50, METL,5, 4, (1, 1,200,666,1,  20, 1, 2, 5, 0,  -6, 2,  50,),SKL_PISTOLS,_mLiberator,ID_PISTOL,),
+"plastic liberator"     :(A_45,  9,    0.5, 8,  PLAS,8, 4, (1, 1,200,999,1,  10, -2,0, 2, 0,  -12,2,  33,),SKL_PISTOLS,_pLiberator,ID_PISTOL,),
+"metal liberator"       :(A_45,  95,   0.6, 50, METL,9, 4, (1, 1,200,666,1,  20, 1, 2, 5, 0,  -6, 2,  50,),SKL_PISTOLS,_mLiberator,ID_PISTOL,),
 "autogun"               :(A_45,  3100, 1.1, 300,METL,4, 6, (1, 1,100,10, 1,  36, 4, 5, 10,0,  15, 2,  200,),SKL_PISTOLS,_pistol,ID_PISTOL,),
 "cig sawyer"            :(A_45,  8750, 1.0, 420,METL,3, 6, (1, 1,100,10, 1,  50, 7, 6, 12,0,  24, 2,  150,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),
     # SMGs and machine pistols (9mm, 10mm, .45ACP)
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
-"mech-9"                :(A_9MM, 260,  2.9, 90, METL,7, 10,(1, 3,100,450,1,  15,-2, 1, 6, -1, -6, 2,  30,),SKL_SMGS,_smg,ID_PISTOL,),#mac-10. Moddable w/ suppressor # made of stamped sheet metal.
+"mec-9"                 :(A_9MM, 260,  2.9, 90, METL,7, 10,(1, 3,100,450,1,  15,-2, 1, 6, -1, -6, 2,  30,),SKL_SMGS,_smg,ID_PISTOL,),#mac-10. Moddable w/ suppressor # made of stamped sheet metal.
 "machine pistol"        :(A_9MM, 11200,0.95,560,METL,8, 12,(1, 4,100,50, 1,  24, 1, 3, 10,0,  -6, 2,  50,),SKL_SMGS,_pistolSmall,ID_PISTOL,),#beretta. Moddable w/ stock, suppressor
 "UMP"                   :(A_9MM, 12960,1.7, 540,METL,5, 8, (1, 3,100,10, 1,  36, 5, 4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
 "10mm SMG"              :(A_10MM,18850,2.2, 520,METL,6, 5, (1, 3,100,20, 1,  30, 3, 5, 12,-1, 0,  4,  100,),SKL_SMGS,_smgSmall,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
@@ -5467,11 +5522,11 @@ RANGEDWEAPONS={
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
 "pidgeon plinker"       :(A_22LR,240,  2.3, 110,WOOD,3, 3, (1, 1,100,50, 3,  50, 8, 3, 10,-1, -9, 5,  5,),SKL_RIFLES,_rifleSmall,ID_RIFLE,),#moddable w/ scope, strap, suppressor
 "autocarb"              :(A_22LR,645,  2.6, 180,PLAS,4, 4, (1, 5,100,350,2,  30, 2, 2, 6, -1, -15,6,  5,),SKL_RIFLES,_autocarb,ID_RIFLE,),#integrally suppressed, not highly moddable
-"storm rifle"           :(A_9MM, 1950, 2.75,110,METL,3, 3, (1, 1,100,50, 2,  55, 10,4, 20,-2, 30, 5,  30,),SKL_RIFLES,_rifleSmall,ID_RIFLE,),#ambidextrous; can also come chambered in 10mm or .45ACP
+"storm rifle"           :(A_9MM, 1950, 2.75,110,METL,3, 3, (1, 1,100,50, 2,  55, 10,4, 20,-2, 30, 5,  30,),SKL_RIFLES,_rifleSmallAmbi,ID_RIFLE,),#ambidextrous; can also come chambered in 10mm or .45ACP
 "flemington rifle"      :(A_556, 1320, 3.8, 500,WOOD,16,3, (1, 1,100,10, 4,  140,14,10,24,-3, -21,11, 200,),SKL_RIFLES,_rifleLarge,ID_RIFLE,),#moddable with scope, bayonet, 
 "service rifle"         :(A_556, 4300, 3.1, 760,METL,10,5, (1, 1,100,1,  3,  120,12,12,22,-2, 15, 7,  30,),SKL_RIFLES,_rifle,ID_RIFLE,),#moddable with scope, suppressor, strap, lasers, flashlights, bayonet, bipod, 
 "assault rifle"         :(A_556, 1480, 2.9, 425,METL,14,4, (1, 3,100,100,3,  50, 6, 7, 18,-2, -15,9,  30,),SKL_RIFLES,_rifle,ID_AUTORIFLE,),#moddable with scope, suppressor, strap, lasers, flashlights,
-"bullpup rifle"         :(A_556, 3650, 3.5, 360,METL,7, 5, (1, 3,100,10, 2,  65, 6, 9, 20,-2, 6,  6,  30,),SKL_RIFLES,_rifleSmall,ID_AUTORIFLE,),#ambidextrous; modable with a scope, suppresor, strap,  lasers, flashlights, 
+"bullpup rifle"         :(A_556, 3650, 3.5, 360,METL,7, 5, (1, 3,100,10, 2,  65, 6, 9, 20,-2, 6,  6,  30,),SKL_RIFLES,_rifleSmallAmbi,ID_AUTORIFLE,),#ambidextrous; modable with a scope, suppresor, strap,  lasers, flashlights, 
 "battle rifle"          :(A_556, 7450, 3.3, 550,METL,12,4, (1, 4,100,10, 3,  75, 8, 12,24,-2, 0,  9,  30,),SKL_RIFLES,_rifle,ID_AUTORIFLE,),#m16 moddable with most things
 "paratrooper carbine"   :(A_30,  1050, 2.0, 320,WOOD,5, 3, (1, 1,100,175,1,  45, 6, 10,16,-1, 15, 5,  100,),SKL_RIFLES,_rifleSmall,ID_RIFLE,),#Moddable w/ suppressor
 "garand"                :(A_30,  880,  2.7, 730,WOOD,7, 3, (1, 1,100,100,2,  66, 6, 8, 16,-2, -6, 6,  100,),SKL_RIFLES,_rifleSmall,ID_RIFLE,),#M1 garand carbine. Moddable w/ scope, strap, bayonet, 
@@ -6127,11 +6182,12 @@ HANDARMOR={
 
 FOOTARMOR={
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,FIR,ICE,BIO,ELE,PHS,BLD),script,ID,
-"running shoe"          :(65,    0.25, 75,  300,  LETH,4, (0.2,0,  0,  3,  -2, 2,  0,  3,  0,  0,),_runningShoe,ID_SHOE,),
-"wooden sandal"         :(1,     0.15, 15,  100,  WOOD,5, (0,  0,  0,  18, 0,  0,  0,  0,  0,  0,),None,ID_SANDAL,),
-"leather shoe"          :(3,     0.15, 60,  300,  LETH,4, (0,  0,  0.1,6,  -3, 3,  0,  1,  0,  1,),None,ID_SHOE,),
-"leather boot"          :(7,     0.3,  125, 500,  LETH,7, (0,  0,  0.2,9,  -5, 5,  0,  2,  0,  1,),None,ID_BOOT,),
+"plastic shoe"          :(0.5,   0.25, 10,  300,  PLAS,5, (0.2,0,  0,  3,  -2, 2,  0,  3,  0,  0,),_runningShoe,ID_SHOE,),
+"wooden sandal"         :(1,     0.3,  15,  100,  WOOD,6, (0,  0,  0,  18, 0,  0,  0,  0,  0,  0,),None,ID_SANDAL,),
+"leather shoe"          :(3,     0.15, 60,  300,  LETH,3, (0,  0,  0.1,6,  -3, 3,  0,  1,  0,  1,),None,ID_SHOE,),
+"leather boot"          :(7,     0.3,  125, 500,  LETH,6, (0,  0,  0.2,9,  -5, 5,  0,  2,  0,  1,),None,ID_BOOT,),
 "metal boot"            :(20,    0.45, 150, 500,  LETH,9, (0,  0.1,0.5,12, -6, 3,  0,  2,  0,  1,),None,ID_BOOT,),
+"running shoe"          :(65,    0.25, 75,  300,  LETH,3, (0.2,0,  0,  3,  -2, 2,  0,  3,  0,  0,),_runningShoe,ID_SHOE,),
 }
 
 ABOUTARMOR={ # Actual Encumberance == encumberance * mass
