@@ -1,2 +1,15 @@
+
+BAD BUGS: 
+	- sometimes: 
+		monster won't move
+			- AI of entities only running for 1 turn before it stops forever...?
+				but not if it attacks you...????
+		doesn't equip weapon (can't replicate?????)
+
 glitches:
+	- throw weapon -> player dies (while no weapon is equipped??) (may have been fixed)
+		- duplication of item
+
 	- pick up item on same tile as you -> you disappear
+	- corpse attacking you (last attack of dying entity results in message that the corpse attacked you)
+	

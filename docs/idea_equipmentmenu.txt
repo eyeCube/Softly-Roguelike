@@ -1,0 +1,40 @@
+
+equipment menu
+
+----------------------------------------------------------------
+(a) - head
+(b) ............. head: plastic helm
+(c) ............. face: -
+(d) ............. eyes: -
+(e) ............. ears: -
+(f) ............. neck: <OPEN>
+(g) - torso
+(h) ............ front: plastic gear
+(i) ............. back: -
+(j) ............. core: -
+(k) ............. hips: -
+(l) - arms
+(m) ........ right arm: <OPEN>
+(n) ....... right hand: <OPEN>
+(o) ... right hand (w): wooden sword
+(p) ......... left arm: <OPEN>
+(q) ........ left hand: <OPEN>
+(r) .... left hand (w): wicker shield
+(s) - legs
+(t) ........ right leg: <OPEN>
+(u) ....... right foot: plastic shoe
+(v) ......... left leg: <OPEN>
+(w) ........ left foot: plastic shoe
+
+
+
+while we're at it, we should also make inventory into a meta-menu
+	OR SHOULD WE? Technically in this game, items do not fall into broad categories, due to component-build-up nature of entities. Equipment may also be a usable item and a comestible, etc., so which category would it go under???
+
+(a) + equipment
+(b) + comestibles
+(c) + 
+(d) + 
+(e) + 
+(f) + 
+(g) + 

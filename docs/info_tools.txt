@@ -18,7 +18,7 @@ class Tool_Cut:
 		8: 		bone
 		9: 		metal wire, metal sheet
 		10:		cable, metal rings, thin metal + chains
-		11:		
+		11:		kevlar
 class Tool_Chop:
 		level 	can chop through:
 		1: 		flesh
