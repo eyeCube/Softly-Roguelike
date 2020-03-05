@@ -91,8 +91,8 @@ def commands(pc, pcAct):
     
     for act,arg in pcAct:
 
-        print(act)
-        print(arg)
+##        print(act)
+##        print(arg)
         
         rog.update_base()
         
@@ -166,7 +166,7 @@ def commands(pc, pcAct):
                 msp=rog.getms(pc, 'msp')
                 if msp <= 10:
                     inp=rog.prompt(
-                        0,0,rog.window_w(), 6, wrap=True,
+                        0,0,rog.window_w(), 6,
                         q='''Warning: your movement speed is critically slow
 (MSP: {}). Are you sure you want to move? y/n'''.format(msp)
                         )

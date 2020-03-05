@@ -198,6 +198,12 @@ RENDERER:
         return self.grid_lights[x][y]
     def fluidsat(self,x,y):
         return self.grid_fluids[x][y]
+    def tilefree(self,x,y):
+        if self.monat(x,y):
+            return False
+        if self.solidat(x,y):
+            return False
+        return True
 
     def visibility(self, sight, plight, camo, dist) -> int: # calculate visibility level
         '''

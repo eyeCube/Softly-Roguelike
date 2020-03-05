@@ -142,7 +142,20 @@ class LeftHanded: # dominant arm/hand is left
     __slots__=[]
     def __init__(self):
         pass
-       
+class Stuck: # entity is stuck inside another entity
+    # e.g. an arrow stuck in a monster's flesh.
+    # TODO: implement
+    __slots__=['entity','quality']
+    def __init__(self, entity, quality=1):
+        self.entity=entity
+        self.quality=quality # how stuck are we?? Integer, 1 is least.
+class HasStuck: # entity(s) are stuck inside this entity
+    __slots__=['stuck']
+    def __init__(self, *args):
+        self.stuck=[] # the entities which are stuck
+        for arg in args:
+            self.stuck.append(arg)
+
 class Meters:
     __slots__=[
         'temp','rads','sick','expo','pain','bleed',
@@ -807,13 +820,13 @@ class BPP_Skin: # 16% of total body mass
         if mat==-1: mat=MAT_FLESH
         self.material=mat
         self.status=0
-        self.flags=bytearray(0)
+        self.flags=bytes(0)
 class BPP_Hair:
     __slots__=['status','length','flags']
     def __init__(self, length=1):
         self.status=0
         self.length=length
-        self.flags=bytearray(0)
+        self.flags=bytes(0)
 class BPP_Artery:
     __slots__=['status']
     def __init__(self):
@@ -824,7 +837,7 @@ class BPP_Bone:
         if mat==-1: mat=MAT_BONE
         self.material=mat # determines Strength of the bone
         self.status=0
-        self.flags=bytearray(0)
+        self.flags=bytes(0)
 class BPP_Exoskeleton:
     __slots__=['material','status']
     def __init__(self, mat=-1):
@@ -842,13 +855,13 @@ class BPP_Muscle:
     def __init__(self, _str=1):
         self.str=_str # strength of muscle (as a ratio 0 to 1?)
         self.status=0
-        self.flags=bytearray(0)
+        self.flags=bytes(0)
 class BPP_Brain:
     __slots__=['status','quality','flags']
     def __init__(self, quality=1):
         self.status=0
         self.quality=quality
-        self.flags=bytearray(0)
+        self.flags=bytes(0)
 class BPP_VisualSystem:
     __slots__=['quantity','quality']
     def __init__(self, quantity=2, quality=20):
@@ -1043,13 +1056,16 @@ class EquipableInHandSlot: #gloves/gaunlets
         self.fit=fit
         self.strReq=strReq
 class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
-    __slots__=['ap','mods','stamina','fit','grip','strReq','dexReq',]
-    def __init__(self, ap, sta, mods, fit=0, grip=1, strReq=0, dexReq=0): #{var : modf,}
+    __slots__=['ap','mods','stamina','fit',
+               'grip','strReq','dexReq','force']
+    def __init__(self, ap, sta, mods,
+                 fit=0, grip=1, strReq=0, dexReq=0, force=1): #{var : modf,}
         self.ap=ap
         self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
         self.fit=fit # how well you are currently gripping the thing.
         self.grip=grip # how easily you can get a grip on it.
+        self.force=force # force multiplier
         self.strReq=strReq
         self.dexReq=dexReq
 class EquipableInFootSlot: #shoe / boot
@@ -1642,7 +1658,15 @@ class StatusSprint: # Msp +300%
     __slots__=['timer']
     def __init__(self, t=12):
         self.timer=t
-class StatusFrightening: # add extra scariness for a time
+class StatusFrightening: # add extra intimidation for a time
+    __slots__=['timer']
+    def __init__(self, t=12):
+        self.timer=t
+class StatusCharming: # add extra beauty for a time (TODO: implement!)
+    __slots__=['timer']
+    def __init__(self, t=12):
+        self.timer=t
+class StatusDetermined: # add extra courage for a time (TODO: implement!)
     __slots__=['timer']
     def __init__(self, t=12):
         self.timer=t
@@ -1702,6 +1726,10 @@ class StatusBlink: # eyes blinking
     __slots__=['timer']
     def __init__(self, t=2):
         self.timer=t
+class StatusKO: # knocked out / unconscious (and sleep..?)
+    __slots__=['timer']
+    def __init__(self, t=-1):
+        self.timer=t
 # Body Position statuses
 class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)
     __slots__=[]
@@ -1733,6 +1761,15 @@ class StatusBPos_CQB:   # body position: CQB (close-quarters battle) stance
         pass
 
 # quality statuses
+class StatusAdrenaline: # adrenaline boosts fight/flight capability
+    # boosts resistance to pain, and physical res.
+    # also raises heart rate / breathing rate
+            # what else should it do??
+    # (TODO: implement)
+    __slots__=['timer','quality']
+    def __init__(self, t=32, q=1):
+        self.timer=t
+        self.quality=q
 class StatusRecoil: # Atk - quality
     __slots__=['timer','quality']
     def __init__(self, t=1, q=1):
@@ -1842,7 +1879,10 @@ STATUSES={ # dict of statuses that have a timer
     StatusSprint    : 'sprinting',
     StatusJog       : 'jogging',
     StatusRun       : 'running',
-    StatusFrightening:'intimidating',
+    StatusAdrenaline: 'adrenaline',
+    StatusFrightening:'frightening',
+    StatusCharming  : 'charming',
+    StatusDetermined: 'determined',
     StatusPanic     : 'panicking',
     StatusHaste     : 'hyper',
     StatusSlow      : 'sluggish',
@@ -1856,6 +1896,8 @@ STATUSES={ # dict of statuses that have a timer
     StatusTired     : 'sleepy',
     StatusOffBalance: 'staggered',
     StatusFull      : 'full (overeating)',
+    StatusKO        : 'K.O.',
+    StatusBlink     : 'blinking eyes',
     StatusBPos_Crouched : "crouched",
     StatusBPos_Seated   : "seated",
     StatusBPos_Prone    : "prone",

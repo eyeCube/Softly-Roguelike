@@ -124,12 +124,13 @@ def main():
     weap=rog.create_weapon("metal halberd", 0,0)
 ##    rog.damage(weap, 200)
 ##    rog.fitgear(weap, rog.pc())
-    rog.equip(
+    print(rog.equip(
         rog.pc(),weap,EQ_MAINHANDW
-        )
+        ))
+##    print("QWWQ")
     rog.create_weapon("wooden club", pos.x,pos.y)
     rog.create_weapon("estoc", pos.x-1,pos.y)
-    shield=rog.create_weapon("metal shield", 0,0)
+##    shield=rog.create_weapon("metal shield", 0,0)
 ##    rog.equip(
 ##        rog.pc(),shield,EQ_OFFHAND
 ##        )

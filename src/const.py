@@ -336,6 +336,8 @@ CM_ADVANTAGE_BP     = 8     # how much extra height you need to gain +1 advantag
 HEIGHTMAP_GRADIENT  = 0.1   # ratio of height value on heightmap to the width/height of a tile
 CM_PER_TILE         = 100   # tiles are exactly 1x1m
 
+RNG_ATK_PENALTY = 1     # Atk penalty per tile of distance
+
 # global multipliers
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.
@@ -447,9 +449,9 @@ ATT_STR_ATK             = 0.15 # melee/thrown accuracy -- less than Dex bonus
 ATT_STR_PEN             = 0.2 # melee/thrown penetration -- less than Dex bonus
 ATT_STR_AV              = 0.15 # armor from strength -- less than Con bonus
 ATT_STR_ENCMAX          = 2.5 # strength gives some carrying capacity -- less than Con bonus
-ATT_STR_FORCE           = 1 # pushing / shoving strength +
 ATT_STR_GRA             = 1 # grappling / wrestling, grip, climbing
 ATT_STR_SCARY           = 1 # intimidation +
+ATT_STR_FORCEMULT       = 0.0833334 # ratio extra force for every strength point
 
 # Agility
 ATT_AGI_DV              = 0.5 # dodge value
@@ -541,16 +543,20 @@ PAUG_LIMITBREAKER_STR   : ("str",5,),
 
 # insufficient strength penalties
 INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
+INSUFF_STR_DMG_PENALTY  = 1
 INSUFF_STR_ATK_PENALTY  = 3
 INSUFF_STR_DFN_PENALTY  = 1.5
 INSUFF_STR_GRA_PENALTY  = 2
 INSUFF_STR_ASP_PENALTY  = 18
+INSUFF_STR_RNG_PENALTY  = 0.1 # ratio penalty for throwing range
 # insufficient dexterity penalties
 INSUFF_DEX_PEN_PENALTY  = 2 # each is a penalty PER Dex point missing
 INSUFF_DEX_ATK_PENALTY  = 4
 INSUFF_DEX_DFN_PENALTY  = 1.25
 INSUFF_DEX_GRA_PENALTY  = 1.5
 INSUFF_DEX_ASP_PENALTY  = 12
+INSUFF_DEX_DMG_PENALTY  = 2
+INSUFF_DEX_RNG_PENALTY  = 0.2 # ratio penalty for throwing range
 #TODO: insufficient penalties for ranged stats!!!
 
 # attribute bonuses and multipliers
@@ -1733,6 +1739,9 @@ DEHYD_SPREGENMOD    = 0.5
 DEHYD_RESFIRE       = -25
 DEHYD_RESPAIN       = -25
 
+# KO
+KO_SPDMOD = 0
+
 # trauma
 #
 
@@ -2067,6 +2076,10 @@ MAT_RUBBER      = i; i+=1;
 MAT_CHITIN      = i; i+=1; # fungi, arthropods, crustaceans, insects, molluscs, cephalopod beaks, fish/amphibian scales
 MAT_KERATIN     = i; i+=1; # vertebrates (reptiles, birds, amphibians, mammals, spider silk)
 MAT_OIL         = i; i+=1;
+MAT_COPPER      = i; i+=1;
+MAT_ALUMINUM    = i; i+=1;
+MAT_STEEL       = i; i+=1;
+MAT_DIAMOND     = i; i+=1;
 
 ##MAT_FUNGUS      = i; i+=1; #use flesh
 ##MAT_VEGGIE      = i; i+=1; #use wood
@@ -2091,39 +2104,43 @@ FL_HAZMATS      =i; i+=1;
 MATERIALS={
     # DT : damage threshold; how much damage a generic item of this
         # material can take before breaking (independent of durability)
-# ID            : (name, DT,)
-MAT_FLESH       : ("flesh", 100,),
-MAT_BONE        : ("bone", 20,),
-MAT_METAL       : ("metal", 40,),
-MAT_CARBON      : ("carbon", 80,),
-MAT_PLASTIC     : ("plastic", 10,),
-MAT_TARP        : ("tarp", 100,),
-MAT_STONE       : ("stone", 20,),
-MAT_DUST        : ("dust", 100,),
-MAT_WOOD        : ("wood", 20,),
-MAT_PAPER       : ("paper", 20,),
-MAT_LEATHER     : ("leather", 60,),
-MAT_BLEATHER    : ("boiled leather", 30,),
-MAT_CLOTH       : ("cloth", 100,),
-MAT_ROPE        : ("rope", 50,),
-MAT_GLASS       : ("glass", 10,),
-MAT_RUST        : ("rust", 5,),
-MAT_CLAY        : ("clay", 100,), 
-MAT_CERAMIC     : ("ceramic", 10,),
-MAT_QUARTZ      : ("quartz", 20,),
-MAT_RUBBER      : ("rubber", 100,),
-MAT_CHITIN      : ("chitin", 20,),
-MAT_KERATIN     : ("keratin", 20,),
-FL_WATER        : ("water", 999,),
-FL_OIL          : ("oil", 999,),
-FL_BLOOD        : ("blood", 999,),
-FL_ACID         : ("acid", 999,),
-FL_STRONGACID   : ("strong acid", 999,),
-FL_SMOKE        : ("smoke", 999,),
-FL_ALCOHOL      : ("alcohol", 999,),
-FL_NAPALM       : ("napalm", 999,),
-FL_GASOLINE     : ("petrol", 999,),
-FL_HAZMATS      : ("bio-hazard", 999,),
+# ID            : (name, DT, hardness)
+MAT_FLESH       : ("flesh", 100, 0,),
+MAT_BONE        : ("bone", 20, 3,),
+MAT_METAL       : ("metal", 80, 5,),
+MAT_CARBON      : ("carbon", 160, 4,),
+MAT_PLASTIC     : ("plastic", 10, 1,),
+MAT_TARP        : ("tarp", 100, 0,),
+MAT_STONE       : ("stone", 20, 3,),
+MAT_DUST        : ("dust", 100, 0,),
+MAT_WOOD        : ("wood", 20, 1,),
+MAT_PAPER       : ("paper", 20, 0,),
+MAT_LEATHER     : ("leather", 60, 0,),
+MAT_BLEATHER    : ("boiled leather", 30, 0,),
+MAT_CLOTH       : ("cloth", 100, 0,),
+MAT_ROPE        : ("rope", 50, 0,),
+MAT_GLASS       : ("glass", 10, 5,),
+MAT_RUST        : ("rust", 5, 2,),
+MAT_CLAY        : ("clay", 100, 0,), 
+MAT_CERAMIC     : ("ceramic", 10, 9,),
+MAT_QUARTZ      : ("quartz", 20, 0,),
+MAT_RUBBER      : ("rubber", 100, 0,),
+MAT_CHITIN      : ("chitin", 20, 3,),
+MAT_KERATIN     : ("keratin", 20, 2,),
+MAT_COPPER      : ("copper", 40, 3,),
+MAT_ALUMINUM    : ("aluminum", 40, 2,),
+MAT_STEEL       : ("steel", 160, 6,),
+MAT_DIAMOND     : ("diamond", 60, 10,),
+FL_WATER        : ("water", 999, 0,),
+FL_OIL          : ("oil", 999, 0,),
+FL_BLOOD        : ("blood", 999, 0,),
+FL_ACID         : ("acid", 999, 0,),
+FL_STRONGACID   : ("strong acid", 999, 0,),
+FL_SMOKE        : ("smoke", 999, 0,),
+FL_ALCOHOL      : ("alcohol", 999, 0,),
+FL_NAPALM       : ("napalm", 999, 0,),
+FL_GASOLINE     : ("petrol", 999, 0,),
+FL_HAZMATS      : ("bio-hazard", 999, 0,),
     }
 
 # material fuel values

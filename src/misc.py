@@ -119,7 +119,7 @@ def Bresenham3D(x1, y1, z1, x2, y2, z2):
 # end def
 
 # thin line cover algo in 2d
-def Bresenham2D(x1, y1, z1, x2): 
+def Bresenham2D(x1, y1, x2, y2): 
     lis = [] 
     lis.append((x1, y1,)) 
     dx = abs(x2 - x1)
@@ -159,7 +159,7 @@ def Bresenham2D(x1, y1, z1, x2):
 # end def
 
 def dist(x1,y1,x2,y2):
-    return math.dist(x1,y1,x2,y2)
+    return math.sqrt(abs(x1-x2)**2 + abs(y1-y2)**2)
 
 
 '''

@@ -190,6 +190,25 @@ def expire_warning_msp():
     #   Functions    #
     #----------------#
 
+# BITWISE OPERATORS ON BYTES OBJECT / BYTEARRAY
+
+def AND(abytes, bbytes):
+    return bytes([a & b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NAND(abytes, bbytes):
+    return NOT(AND(abytes, bbytes)) # OR(NOT, NOT)
+def OR(abytes, bbytes):
+    return bytes([a | b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NOR(abytes, bbytes):
+    return NOT(OR(abytes, bbytes))
+def XOR(abytes, bbytes):
+    return bytes([a ^ b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NOT(abytes): # just XOR w/ mask full of 1's
+    return XOR(abytes, bytes([255 for _ in range(len(abytes))]))
+def GETBYTES(abytes):
+    for byte in abytes:
+        yield byte
+    
+
 # global objects
 def settings():     return Rogue.settings
 
@@ -603,7 +622,10 @@ def wind_direction():
     return (1,0,) # TEMPORARY, TODO: create wind processor
 
 
+    
+    #---------------------#
     # component functions #
+    #---------------------#
 
 # NOTE: generally better to call directly and save the function call overhead
 # Thus we should not really use these functions...
@@ -636,8 +658,9 @@ def dupCmpMeters(meters):
     newMeters.wet = meters.wet
     return newMeters
 
-
+    #------------------#
     # entity functions #
+    #------------------#
 
 # getms: GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
@@ -714,6 +737,19 @@ def forget(ent, skill, pts): # lose skill experience
     make(ent,DIRTY_STATS)
 
 # flags
+        # bitwise flags
+    # restricted to 8 flags (1 full byte)
+    #   TODO: expand to be able to take more than 8 flags.
+    # reason: bytes((flag,)) <- flag cannot exceed 255. Must
+    #   potentially have multiple zeroed-out bytes in the bytes object...
+    #   How can we do this?
+def onb(bp, flag: int): 
+    return bool(AND( bytes((flag,)), bp.flags ))
+def makeb(bp, flag: int):
+    bp.flags = OR( bytes((flag,)), bp.flags )
+def makenotb(bp, flag: int):
+    bp.flags = AND( bp.flags, NOT(bytes((flag,))) )
+        # set flags
 def on(ent, flag):
     return flag in Rogue.world.component_for_entity(ent, cmp.Flags).flags
 def make(ent, flag):
@@ -770,7 +806,18 @@ def has_hearing(ent):
     else:
         return False
 
-def port(ent,x,y): # move thing to absolute location, update grid and FOV
+def nudge(ent,xd,yd):
+    pos=Rogue.world.component_for_entity(ent, cmp.Position)
+    x = pos.x + xd
+    y = pos.y + yd
+    if getmap().tilefree(x,y):
+        port(ent, x, y)
+        return True
+    return False
+def port(ent,x,y):
+    ''' move thing to absolute location, update grid and FOV
+        do not check for a free space before moving
+    '''
     grid_remove(ent)
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
@@ -815,18 +862,31 @@ def capmp(ent): # does not make stats dirty! Doing so is a huge glitch!
 
 
 # these aren't tested, nor are they well thought-out
-def knock(ent, amt): # apply force to an entity
+def knock(ent, amt, _dir): # apply force to an entity
+    ''' apply amt force in direction _dir to entity ent '''
     mass = getms(ent, 'mass')
     bal = getms(ent, 'bal')
     effmass = mass * bal / BAL_MASS_MULT # effective mass
     dmg = amt // effmass
     stagger(ent, dmg)
+    # knockback / pushing (TODO)
+    # if force is sufficient to knockback (TODO: calculate (how to?))
+##    push(ent, _dir, 1)
 def stagger(ent, dmg): # reduce balance by dmg
     if Rogue.world.has_component(ent, cmp.StatusOffBalance):
         compo=Rogue.world.component_for_entity(ent, cmp.StatusOffBalance)
         dmg = dmg + compo.quality
     set_status(ent, cmp.StatusOffBalance(
         t = min(8, 1 + dmg//4), q=dmg) )
+def push(ent, _dir, n=1):
+    xd = _dir[0]
+    yd = _dir[1]
+    for ii in range(n):
+        result = nudge(ent, xd,yd)
+        if not result:
+            return False
+    return True
+# end def
 
     
 #damage hp
@@ -838,10 +898,18 @@ def damage(ent, dmg: int):
     stats.hp -= dmg
     if stats.hp <= 0:
         kill(ent)
+        return
+    mat = Rogue.world.component_for_entity(ent, cmp.Form).material
+    dt = MATERIALS[mat][1]
+    if dmg >= dt:
+        kill(ent)
+        return
+# end def
 def damage_phys(ent, dmg: int):
     if dmg <= 0: return
     resMult = 0.01*(100 - getms(ent, 'resphys'))     # resistance multiplier
     damage(ent, around(dmg*resMult))
+# end def
 
 #damage mp (stamina)
 def sap(ent, dmg: int, exhaustOnZero=True):
@@ -859,7 +927,7 @@ def sap(ent, dmg: int, exhaustOnZero=True):
 
 def exhaust(ent):
     print('ent named {} exhausted.'.format(getname(ent)))
-    kill(ent)
+    knockout(ent)
 
 # satiation / hydration
 def feed(ent, sat, hyd): # add satiation / hydration w/ Digest status
@@ -877,6 +945,26 @@ def hydrate(ent, pts):
     compo = Rogue.world.component_for_entity(ent, cmp.Body)
     compo.hydration = min(compo.hydration + pts, compo.hydrationMax)
 
+def contact(ent1,ent2,force=0): # touch two entities together
+    world=Rogue.world
+    mat1=world.component_for_entity(ent1, cmp.Form).material
+    mat2=world.component_for_entity(ent1, cmp.Form).material
+    mass1=getms(ent1, 'mass')
+    mass2=getms(ent2, 'mass')
+    hard1=MATERIALS[mat1][2]
+    hard2=MATERIALS[mat2][2]
+    gforce(ent1, force)
+    gforce(ent2, force)
+    if (hard1 > hard2):
+        scratch(ent1, ent2, force)
+    elif (hard2 > hard1):
+        scratch(ent2, ent1, force)
+# end def
+def gforce(ent, force):
+    pass
+def scratch(ent1, ent2, force):
+    pass
+    
     #------------------#
     # elemental damage #
     #------------------#
@@ -933,6 +1021,8 @@ def dirty(ent, g):
     return entities.dirty(ent, g)
 def mutate(ent):
     return entities.mutate(ent)
+def knockout(ent, t = 32):
+    set_status(ent, cmp.StatusKO, t=t)
     
 def kill(ent): #remove a thing from the world
     if on(ent, DEAD): return
@@ -1571,12 +1661,24 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
     
     # main hand
     if equipType==EQ_MAINHAND:
-        compo = dominant_arm(ent).hand
+        arm = dominant_arm(ent)
+        if arm:
+            compo = arm.hand
+    elif equipType==EQ_MAINHANDW:
+        arm = dominant_arm(ent)
+        if arm:
+            compo = arm.hand
     # main arm
     elif equipType==EQ_MAINARM:
-        compo = dominant_arm(ent).arm
+        arm = dominant_arm(ent)
+        if arm:
+            compo = arm.arm
     # off hand
     elif equipType==EQ_OFFHAND:
+        body = Rogue.world.component_for_entity(ent, cmp.Body)
+        arm = body.parts[cmp.BPC_Arms].arms[1]
+        if arm: compo = arm.hand
+    elif equipType==EQ_OFFHANDW:
         body = Rogue.world.component_for_entity(ent, cmp.Body)
         arm = body.parts[cmp.BPC_Arms].arms[1]
         if arm: compo = arm.hand
@@ -1699,7 +1801,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         return (-3,None,) # already have something covering that slot
     if ( holdtype and eqcompo.holding ):
         return (-4,None,) # reject held item if already holding something
-    if ( equipType==EQ_OFFHAND and on(item, TWOHANDS)):
+    if ( equipType==EQ_OFFHANDW and on(item, TWOHANDS)):
         return (-5,None,) # reject 2-h weapons not equipped in mainhand.
     equipable = world.component_for_entity(item, equipableConst)
     
@@ -1984,6 +2086,45 @@ def get_encumberance_breakpoint(enc, encmax):
         encbp = 7
     return encbp
 
+def _update_from_equip(modded, equip):
+    ''' apply addMods from equipment item, modify stats based on
+        any attribute insufficiencies'''
+    for k,v in equip.addMods.items():
+        modded.__dict__[k] = v + modded.__dict__[k]
+    # Strength Requirement and penalties | insufficient strength penalty
+    strd = equip.strReq - modded.str//MULT_STATS
+    if strd > 0:
+        # Multiply gear's enc. by ratio based on missing STR
+        modded.enc += equip.enc * strd * 0.1
+        modded.dfn -= strd*INSUFF_STR_DFN_PENALTY*MULT_STATS
+        # for held items only, reduce offensive stats
+        if (equip.bptype in cmp.BP_BPS_HOLD):
+            modded.dmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
+            modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+            modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
+            modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
+            modded.asp -= strd*INSUFF_STR_ASP_PENALTY
+            modded.tatk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+            modded.tpen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
+            modded.tdmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
+            modded.trng = (1 - strd*INSUFF_STR_RNG_PENALTY)*modded.trng
+    # Dexterity Requirement and penalties | insufficient dexterity penalty
+    dexd = equip.dexReq - modded.dex//MULT_STATS
+    if dexd > 0:
+        modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
+        # for held items only, reduce offensive stats
+        if (bps.equip.bptype in cmp.BP_BPS_HOLD):
+            modded.dmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
+            modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+            modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+            modded.gra -= dexd*INSUFF_DEX_GRA_PENALTY*MULT_STATS
+            modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
+            modded.tatk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+            modded.tpen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+            modded.tdmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
+            modded.trng = (1 - dexd*INSUFF_DEX_RNG_PENALTY)*modded.trng
+# end def
+
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     '''
         calculate modified stats
@@ -2007,7 +2148,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     world=Rogue.world
     base=world.component_for_entity(ent, cmp.Stats)
     modded=world.component_for_entity(ent, cmp.ModdedStats)
-
+    
     # skills
     if world.has_component(ent, cmp.Skills):
         skills = world.component_for_entity(ent, cmp.Skills)
@@ -2141,48 +2282,24 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             for _q, dec in PAIN_QUALITIES.items():
                 if meters.pain >= MAX_PAIN*dec:
                     q=_q
-            if q:
-                status=get_status(ent, cmp.StatusPain)
-                if (status and status.quality != q):
-                    clear_status(ent, cmp.StatusPain)
-                set_status(ent, cmp.StatusPain, t=-1, q=q)
-            else:
-                clear_status(ent, cmp.StatusPain)
+            _overwrite_status(ent, cmp.StatusPain, q=q)
         
         # bleed
         if not on(ent, IMMUNEBLEED):
             q = meters.bleed // (0.5*basemass)
-            if q:
-                status=get_status(ent, cmp.StatusBleed)
-                if (status and status.quality != q):
-                    clear_status(ent, cmp.StatusBleed)
-                set_status(ent, cmp.StatusBleed, t=-1, q=q)
-            else:
-                clear_status(ent, cmp.StatusBleed)
+            _overwrite_status(ent, cmp.StatusBleed, q=q)
         
         # dirty
         q=0
         for _q, dec in DIRT_QUALITIES.items():
             if meters.dirt >= MAX_DIRT*dec:
                 q=_q
-        if q:
-            status=get_status(ent, cmp.StatusDirty)
-            if (status and status.quality != q):
-                clear_status(ent, cmp.StatusDirty)
-            set_status(ent, cmp.StatusDirty, t=-1, q=q)
-        else:
-            clear_status(ent, cmp.StatusDirty)
+        _overwrite_status(ent, cmp.StatusDirty, q=q)
         
         # wet
         if not on(ent, IMMUNEWATER):
             q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
-            if q:
-                status=get_status(ent, cmp.StatusWet)
-                if (status and status.quality != q):
-                    clear_status(ent, cmp.StatusWet)
-                set_status(ent, cmp.StatusWet, t=-1, q=q)
-            else:
-                clear_status(ent, cmp.StatusWet)
+            _overwrite_status(ent, cmp.StatusWet, q=q)
         
         # rust
             # TODO: rust status affecting stats
@@ -2190,13 +2307,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for _q, dec in RUST_QUALITIES.items():
             if meters.rust >= MAX_RUST*dec:
                 q=_q
-        if q:
-            status=get_status(ent, cmp.StatusRusted)
-            if (status and status.quality != q):
-                clear_status(ent, cmp.StatusRusted)
-            set_status(ent, cmp.StatusRusted, t=-1, q=q)
-        else:
-            clear_status(ent, cmp.StatusRusted)
+        _overwrite_status(ent, cmp.StatusRusted, q=q)
         
         # rot
             # TODO: rot status affecting stats
@@ -2204,13 +2315,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for _q, dec in ROT_QUALITIES.items():
             if meters.rot >= MAX_ROT*dec:
                 q=_q
-        if q:
-            status=get_status(ent, cmp.StatusRotted)
-            if (status and status.quality != q):
-                clear_status(ent, cmp.StatusRotted)
-            set_status(ent, cmp.StatusRotted, t=-1, q=q)
-        else:
-            clear_status(ent, cmp.StatusRotted)
+        _overwrite_status(ent, cmp.StatusRotted, q=q)
         
     
 #~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -2363,33 +2468,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     
     # apply mods -- addMods
     for bps in bpdata:
+        # body part mod dict (other than equipment stat mods)
         for k,v in bps.addMods.items():
             modded.__dict__[k] = v + modded.__dict__[k]
+        # equipment
         if bps.equip:
-            for k,v in bps.equip.addMods.items():
-                modded.__dict__[k] = v + modded.__dict__[k]
-            # Strength Requirement and penalties | insufficient strength penalty
-            strd = bps.equip.strReq - modded.str//MULT_STATS
-            if strd > 0:
-                # Multiply gear's enc. by ratio based on missing STR
-                modded.enc += bps.equip.enc * strd * 0.1
-                modded.dfn -= strd*INSUFF_STR_DFN_PENALTY*MULT_STATS
-                # for held items only, reduce offensive stats
-                if (bps.equip.bptype in cmp.BP_BPS_HOLD):
-                    modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
-                    modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
-                    modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
-                    modded.asp -= strd*INSUFF_STR_ASP_PENALTY
-            # Dexterity Requirement and penalties | insufficient dexterity penalty
-            dexd = bps.equip.dexReq - modded.dex//MULT_STATS
-            if dexd > 0:
-                modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
-                # for held items only, reduce offensive stats
-                if (bps.equip.bptype in cmp.BP_BPS_HOLD):
-                    modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
-                    modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
-                    modded.gra -= dexd*INSUFF_DEX_GRA_PENALTY*MULT_STATS
-                    modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
+            _update_from_equip(modded, bps.equip)
             #
     # end for
     
@@ -2453,6 +2537,10 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.spd = modded.spd * PARAL_SPDMOD
         modded.atk = modded.atk + PARAL_ATK*MULT_STATS
         modded.dfn = modded.dfn + PARAL_DFN*MULT_STATS
+        
+    # KO
+    if world.has_component(ent, cmp.StatusKO):
+        modded.spd = modded.spd * KO_SPDMOD
         
     # slow
     if world.has_component(ent, cmp.StatusSlow):
@@ -2767,6 +2855,17 @@ def clear_status(ent, status):
 def clear_status_all(ent):
     proc.Status.remove_all(ent)
 
+def _overwrite_status(ent, statuscompo, t=-1, q=1):
+    ''' set or clear status depending on q / t
+        overwrite existing status
+    '''
+    if (q and t!=0):
+        status=get_status(ent, statuscompo)
+        if status:
+            clear_status(ent, statuscompo)
+        set_status(ent, statuscompo, t=t, q=q)
+    else:
+        clear_status(ent, statuscompo)
 
 
     #-----------#

@@ -597,7 +597,8 @@ class Status:
         '''
         if rog.world().has_component(ent, component): return False
         status_str = ""
-        #attribute modifiers, aux. effects, message (based on status type)
+        
+        # message, attribute modifiers, aux. effects (based on status type)
         if component is cmp.StatusHot:
             status_str = " becomes hyperthermic"
         elif component is cmp.StatusBurn:
@@ -609,6 +610,7 @@ class Status:
         elif component is cmp.StatusFrozen:
             status_str = " becomes frozen"
             rog.damage(ent, rog.getms(ent, 'hpmax') * FREEZE_DMG_PC)
+            rog.makenot(ent, DIRTY_STATS)
         elif component is cmp.StatusAcid:
             status_str = " begins corroding"
         elif component is cmp.StatusBlinded:
@@ -663,7 +665,8 @@ class Status:
         
     @classmethod
     def remove(self, ent, component):
-        if not rog.world().has_component(ent, component): return False
+        if not rog.world().has_component(ent, component):
+            return False
         status_str = ""
         #attribute modifiers, aux. effects, message (based on status type)
         if component is cmp.StatusHaste:
@@ -897,6 +900,30 @@ class StatusProcessor(esper.Processor):
             status.timer -= 1
             if status.timer == 0:
                 Status.remove(ent, cmp.StatusTired)
+                continue
+            
+        # full
+        for ent, status in world.get_component(
+            cmp.StatusFull ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusFull)
+                continue
+            
+        # blink
+        for ent, status in world.get_component(
+            cmp.StatusBlink ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusBlink)
+                continue
+            
+        # KO
+        for ent, status in world.get_component(
+            cmp.StatusKO ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusKO)
                 continue
             
         #-------------------------------------------------#

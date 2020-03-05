@@ -90,7 +90,7 @@ def pickup_pc(pc):
     args=rog.get_direction()
     if not args:
         rog.alert()
-        return
+        return False
     dx,dy,dz=args
     xx,yy = pcx + dx, pcy + dy
     
@@ -111,15 +111,15 @@ def pickup_pc(pc):
         if things:
             choice=things[0]
 
-    if (choice and not choice == "all"):
-
-        if choice == K_ESCAPE:
-            return
+    if choice==-1:
+        return False
+    
+    if (choice and choice != "all"):
         
         #thing is creature! You can't pick up creatures :( or can you...?
         if world.has_component(choice, cmp.Creature):
             rog.alert("You can't pick that up!")
-            return
+            return False
         #thing is on fire, prompt user & burn persistent rogues
 ##        if rog.on(choice,FIRE):
 ##            answer=""
@@ -135,7 +135,7 @@ def pickup_pc(pc):
 ##                    rog.damage(pc, FIRE_DAMAGE)
 ##                    break
 ##                elif answer == "n" or answer == K_ESCAPE:
-##                    return
+##                    return False
         # put in inventory
         pocketThing(pc, choice)
         
@@ -145,7 +145,9 @@ def pickup_pc(pc):
         
     else:
         rog.alert("There is nothing there to pick up.")
-
+        return False
+    return True
+# end def
 
 def equipment_pc(pc):
     world=rog.world()
@@ -383,31 +385,34 @@ def target_pc(pc):
     def targetfunc(ent):
         tpos = world.component_for_entity(ent, cmp.Position)
         menu={
-            'f' : 'fire/loose arrow',
-            't' : 'throw weapon in mainhand',
+            's' : 'shoot',
+            't' : 'throw',
             'x' : 'examine',
             }
-        opt=rog.menu("targeting...",tpos.x,tpos.y,menu)
-        if opt=='f':
+        _menu={}
+        for k,v in menu.items():
+            _menu[v] = k
+        opt=rog.menu(
+            "targeting...",rog.getx(tpos.x)+1,rog.gety(tpos.y),menu,
+            autoItemize=False
+            )
+        choice=_menu[opt]
+        if choice=='f':
             xdest=tpos.x
             ydest=tpos.y
-            fire(pc, xdest,ydest)
-        elif opt=='t':
+            fire_pc(pc, xdest,ydest)
+        elif choice=='t':
             xdest=tpos.x
             ydest=tpos.y
             throw_pc(pc, xdest,ydest)
-        elif opt=='x':
+        elif choice=='x':
             examine_pc(pc, ent)
     # end def
     rog.aim_find_target(pos.x, pos.y, targetfunc)
 # end def
 
-##def throw_pc(pc, xdest,ydest):
-##    rng = rog.getms(ent, 'trng')
-##    if rog.in_range(xstart,ystart, xdest,ydest, rng):
-##        rog.alert("")
-##        return False
-##    return throw(pc, xdest,ydest)
+def throw_pc(pc, xdest,ydest):
+    return throw(pc, xdest,ydest)
     
 ##def process_target(targeted):
 ##    
@@ -786,6 +791,18 @@ def sprint(ent):
     rog.msg("{n} begins sprinting.".format(n=entn.name))
 
 
+    #------------#
+    #   COMBAT   #
+    #------------#
+
+def _calcPens(pen, prot, arm): # calculate number of penetrations
+    pens=0
+    while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
+        pens += 1   # number of penetrations ++
+    if pens<=0: # no need to calculate new armor value. Just return old.
+        return (0, arm,)
+    return (pens, rog.around(arm * (0.5**pens)),)
+
 def _strike(attkr,dfndr,aweap,dweap,
             adv=0,power=0, counterable=False,
             bptarget=None, targettype=None,
@@ -887,9 +904,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
-            while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
-                pens += 1   # number of penetrations ++
-            armor = rog.around(arm * (0.5**pens))
+            pens, armor = _calcPens(pen, prot, arm)
         else:
             armor = arm
         # end if
@@ -1236,59 +1251,126 @@ def fight(attkr,dfndr,adv=0,power=0):
 
 def throw(ent, xdest,ydest):
     world = rog.world()
-    weap = rog.dominant_arm(ent).hand.held.item
+    arm=rog.dominant_arm(ent)
+    if not arm:
+        return False
+    weap = arm.hand.held.item
     if not weap:
         return False
     
     # get thrower's stats
+    equipable = world.component_for_entity(weap, cmp.EquipableInHoldSlot)
     apos = world.component_for_entity(ent, cmp.Position)
     rng = rog.getms(ent, 'trng')
     atk = rog.getms(ent, 'tatk') + rog.getms(ent, 'atk')
     pen = rog.getms(ent, 'tpen') + rog.getms(ent, 'pen')
     dmg = rog.getms(ent, 'tdmg') + rog.getms(ent, 'dmg')
+    _str = rog.getms(ent, 'str')
+    weapforce = equipable.force
     #
     
-    # get defender's stats
+    # get the entity we're (trying to) target
     dfndr = rog.monat(xdest,ydest)
-    if dfndr:
-        dpos = world.component_for_entity(dfndr, cmp.Position)
-        dfn = rog.getms(dfndr, 'dfn')
-        arm = rog.getms(dfndr, 'arm')
-        pro = rog.getms(dfndr, 'pro')
+    #
     
     # calculate which tile to aim towards
+    dist = rog.dist(apos.x,apos.y,xdest,ydest)
+    if dist <= rng+0.3334: # add a margin of error
+        tile = (xdest,ydest,)
+    else:
+        d1 = 2  # deviation of missile (temporary -- TODO: deviation increases based on distance)
+        d2 = 3
+        tile = (xdest+dice.roll(d2)-d1, ydest+dice.roll(d2)-d1,)
+    #
     
-    # throw the item
+    # init -- prepare to throw
     rog.deequip(ent, EQ_MAINHANDW)
     prevx=apos.x
     prevy=apos.y
-    for (xx,yy,) in rog.line(apos.x,apos.y, xdest,ydest):
+    land=None
+    _break=None
+    strmult = 1 + ATT_STR_FORCEMULT * _str
+    force = strmult * weapforce * rog.getms(weap, 'mass')
+    hitDie=0
+    
+    # throw the item at tile tile
+    for (xx,yy,) in rog.line(apos.x,apos.y, tile[0],tile[1]):
+        if land:
+            break
         
-        # collision with wall
-        if rog.wallat(xx,yy):
-            rog.port(prevx,prevy)
+        # collision with creature
         mon=rog.monat(xx,yy)
-        if mon:
+        if (mon and mon != rog.pc()):
+            # get defender's stats
             monpos = world.component_for_entity(mon, cmp.Position)
+            mdfn = rog.getms(dfndr, 'dfn')
+            marm = rog.getms(dfndr, 'arm')
+            mpro = rog.getms(dfndr, 'pro')
+            #
+            
+            # by default, item lands at feet of monster.
+            land=(monpos.x,monpos.y,)
             
             # is this our target? If not, incur penalty to accuracy
             if (mon != dfndr):
-                atk -= 10
-                
+                # higher penalty the further we are from our original target
+                atk -= int(10*rog.dist(xx,yy, tile[0],tile[1]))
+
+            # penalty to accuracy based on distance
+            excessd = rog.dist(apos.x,apos.y, xx,yy) - rng
+            if excessd:
+                atk -= int(RNG_ATK_PENALTY*excessd)
+            
             # roll to hit
-            atk -= rog.dist(apos.x,apos.y, xx,yy)
-            hit = dice.roll(20) + atk - dfn
-            
-            if hit > 0:
-                collide(ent, -1, mon, dmg)
-            
+            hitDie = dice.roll(20) + atk - mdfn
+            if hitDie > 0:
+                pens, armor = _calcPens(pen, mpro, marm)
+                _dmg = dmg - armor
+                if _dmg > 0:
+                    collide(ent, 1, mon, _dmg, force)
+                # stick into target (TODO)
+                break
+        # end if
+        
+        # collision with wall
+        elif rog.wallat(xx,yy):
+            # TODO: ricochet
+            land=(prevx,prevy,)
+            # TODO: MAKE ENT_WALL global entity that represents an invincible solid wall object
+            collide(weap, 1, rog.ENT_WALL, 0, force)
+        
+        # range limit (add a tiny random deviation)
+        elif rog.dist(apos.x,apos.y, xx,yy) > rng + dice.roll(3):
+            land=(xx,yy,)
+        
+        # remember previous tile, for collision purposes
         prevx=xx
         prevy=yy
-    #
+    # end for
+    
+    # does the item land somewhere nearby or break?
+    if _break: # item breaks if possible else lands
+        # if world.has_component(weap, cmp.Breakable):
+            #breakthing()
+        rog.port(weap, land[0],land[1]) #(TEMPORARY)
+    elif land:
+        rog.port(weap, land[0],land[1])
+    else: # remove the item from the game world
+        rog.kill(weap)
+    
+    # message (TODO)
     
     return True
 # end def
 
+def collide(ent1, dmg1, ent2, dmg2, force):
+    ''' collide two entities together with force force
+        deal damage dmg1,dmg2 to ent1,ent2, respectively
+    '''
+    rog.contact(ent1, ent2, force=force)
+    rog.damage(ent1, dmg1)
+    rog.damage(ent2, dmg2)
+    
 
 #######################################################################
             # Multi-turn actions / delayed actions #
