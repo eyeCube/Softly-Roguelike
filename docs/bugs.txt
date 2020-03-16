@@ -4,12 +4,18 @@ BAD BUGS:
 		monster won't move
 			- AI of entities only running for 1 turn before it stops forever...?
 				but not if it attacks you...????
+				never happens when you are overencumbered and moving at 1 msp....
+			- AI may just be taking a very long time between movements (>100 turns)... but why?
 		doesn't equip weapon (can't replicate?????)
 
 glitches:
 	- throw weapon -> player dies (while no weapon is equipped??) (may have been fixed)
-		- duplication of item
+	
 
 	- pick up item on same tile as you -> you disappear
 	- corpse attacking you (last attack of dying entity results in message that the corpse attacked you)
+	
+	
+FIXED:
+	- duplication of items
 	

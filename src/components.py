@@ -94,6 +94,12 @@ class Actor:
     def __init__(self, ap=0):
         self.ap=int(ap)      #action points (energy/potential to act)
 
+class Momentum: # has some speed built up in a given direction
+    __slots__=['pace','direction']
+    def __init__(self, pace: int, direction: tuple):
+        self.pace=pace           # PACE_ const (speed relative to MSp stat)
+        self.direction=direction # DIRECTIONS dict key
+        
 class Player: # uniquely identify the one entity that's controlled by user
     # the player has some unique stats that only apply to them
     __slots__=['identify']
@@ -115,6 +121,19 @@ class Targetable:
     __slots__=['kind']
     def __init__(self, kind=0):
         self.kind = kind
+        
+class Disposition: # feelings towards the PC
+    __slots__=['disposition']
+    def __init__(self, default=250):
+        self.disposition=int(default)
+class Personality:
+    __slots__=['personality']
+    def __init__(self, personality=1):
+        self.personality=int(personality)
+class Sympathy: # feels sympathy for other creatures
+    __slots__=['sympathy']
+    def __init__(self, sympathy=1):
+        self.sympathy=int(sympathy)
 
 # traits
 class Talented:
@@ -379,6 +398,11 @@ class FluidContainer:
         self.capacity=capacity
         self.size=0
         self.data={}    # { FLUIDTYPE : quantity }
+    
+class Carried: # entity is inside an inventory
+    __slots__=['owner']
+    def __init__(self, owner):
+        self.owner=owner # entity who is carrying this item
 
 
 class Injured: # permanent injury or weakness, independent of BP statuses
@@ -437,9 +461,10 @@ class ReactsWithElectricity: # / powered by electricity
     #--------------#
 
 class Slot:
-    __slots__=['item','covers']
-    def __init__(self, item=None, covers=()):
+    __slots__=['item','fit','covers']
+    def __init__(self, item=None, fit=0, covers=()):
         self.item=item
+        self.fit=fit        # how well this item is secured in its slot currently
         self.covers=covers  # tuple of additional component instances
                             # covered by the item in this slot
 
@@ -690,14 +715,15 @@ class BP_Arm: # upper / middle arm and shoulder
         self.covered=False
 class BP_Hand: # hand and lower forearm
     __slots__=['slot','held','bone','artery','muscle','skin',
-               'covered','holding']
-    def __init__(self):
+               'covered','holding','grip']
+    def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.grip=grip # grip your bare hand has
         self.covered=False
         self.holding=False # holding something?
 class BP_Leg: # thigh and knee
@@ -710,13 +736,14 @@ class BP_Leg: # thigh and knee
         self.skin=BPP_Skin()
         self.covered=False
 class BP_Foot: # foot, ankle and lower leg
-    __slots__=['slot','bone','artery','muscle','skin','covered']
-    def __init__(self):
+    __slots__=['slot','bone','artery','muscle','skin','covered','grip']
+    def __init__(self, grip=10):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.grip=grip # grip your bare foot has
         self.covered=False
 class BP_InsectThorax:
     __slots__=['slot','exoskeleton','muscle','covered']
@@ -852,8 +879,8 @@ class BPP_Shell: # chitinous shell
         self.status=0
 class BPP_Muscle:
     __slots__=['status','str','flags']#,'fatigue','fatigueMax'
-    def __init__(self, _str=1):
-        self.str=_str # strength of muscle (as a ratio 0 to 1?)
+    def __init__(self, _str=1000):
+        self.str=_str # strength of muscle (as a ratio 0 to 1000?)
         self.status=0
         self.flags=bytes(0)
 class BPP_Brain:
@@ -920,24 +947,23 @@ class BPP_Nucleus:
 ##    def __init__(self, mass=1):
 ##        self.mass=mass
 ##        self.status=0
-       
-class Carried: # entity is inside an inventory
-    __slots__=['owner']
-    def __init__(self, owner):
-        self.owner=owner # entity who is carrying this item
+   
+'''
+    Equippable components
+
+    ap:         Action Points cost to equip / remove
+    mods:       stat mod dict {var : modf,}
+    strReq:     strength required to use effectively
+    dexReq:     dexterity required to use effectively
+    covers_:    covers the indicated body part in addition to the primary slot
+    grip:       only for armor covering hands/feet/similar BPs
+                    this affects how well that appendage can grip
+'''
 class Equipped: # entity has been equipped by someone
     __slots__=['owner','equipType']
     def __init__(self, owner, equipType):
         self.owner=owner # entity that has equipped this item
         self.equipType=equipType   # EQ_ const: slot the item is equipped in
-
-'''
-    Equippable components
-
-    ap:     Action Points cost to equip / remove
-    mods:   stat mod dict {var : modf,}
-    fit:    how well it fits currently. 0 to 100 
-'''
 class Fitted: # fitted to an entity.
     __slots__=['entity','height']
     def __init__(self, entity):
@@ -956,140 +982,126 @@ class Clothes: # equipable armor-like component is clothing, not armor
         self.quality=quality
         
 class EquipableInAmmoSlot:
-    __slots__=['ap','mods','fit']
-    def __init__(self, ap, mods, fit=0): #{var : modf,}
+    __slots__=['ap','mods']
+    def __init__(self, ap, mods): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
 class EquipableInFrontSlot: # breastplate
-    __slots__=['ap','mods','fit','strReq',
+    __slots__=['ap','mods','strReq',
                'coversBack','coversCore','coversHips']
-    def __init__(self, ap, mods, fit=0, strReq=0,
+    def __init__(self, ap, mods, strReq=0,
                  coversBack=False, coversCore=False,
-                 coversHips=False): #{var : modf,}
+                 coversHips=False): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.coversBack=coversBack
         self.coversCore=coversCore
         self.coversHips=coversHips
         self.strReq=strReq
 ##        self.coversArms=coversArms
 class EquipableInCoreSlot: # tummy area
-    __slots__=['ap','mods','fit','strReq',] # ap = AP (Energy) cost to equip / take off
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',] # ap = AP (Energy) cost to equip / take off
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInBackSlot: # the back slot is for backpacks, jetpacks, oxygen tanks, etc.
-    __slots__=['ap','mods','fit','strReq']
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq']
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInHipsSlot: #
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInAboutSlot: # about body slot (coverings like disposable PPE, cloaks, capes, etc.)
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInHeadSlot:
-    __slots__=['ap','mods','fit','strReq',
+    __slots__=['ap','mods','strReq',
                'coversFace','coversEyes','coversEars','coversNeck']
-    def __init__(self, ap, mods, fit=0, strReq=0,
+    def __init__(self, ap, mods, strReq=0,
                  coversFace=False, coversEyes=False,
                  coversEars=False, coversNeck=False ): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.coversFace=coversFace
         self.coversEyes=coversEyes
         self.coversEars=coversEars
         self.coversNeck=coversNeck
         self.strReq=strReq
 class EquipableInFaceSlot:
-    __slots__=['ap','mods','fit','strReq',
+    __slots__=['ap','mods','strReq',
                'coversEyes']
-    def __init__(self, ap, mods, fit=0, strReq=0,
+    def __init__(self, ap, mods, strReq=0,
                  coversEyes=False): #{component : {var : modf,}}
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.coversEyes=coversEyes
         self.strReq=strReq
 class EquipableInEyesSlot:
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInEarsSlot:
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInNeckSlot:
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.strReq=strReq
 class EquipableInHandSlot: #gloves/gaunlets
-    __slots__=['ap','mods','fit','strReq']
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','grip','strReq']
+    def __init__(self, ap, mods, grip=0, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
+        self.grip=grip # how much grip you've got on the hand wearing this
         self.strReq=strReq
 class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
-    __slots__=['ap','mods','stamina','fit',
+    __slots__=['ap','mods','stamina',
                'grip','strReq','dexReq','force']
     def __init__(self, ap, sta, mods,
-                 fit=0, grip=1, strReq=0, dexReq=0, force=1): #{var : modf,}
+                 grip=1, strReq=0, dexReq=0, force=1): 
         self.ap=ap
         self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
-        self.fit=fit # how well you are currently gripping the thing.
         self.grip=grip # how easily you can get a grip on it.
         self.force=force # force multiplier
         self.strReq=strReq
         self.dexReq=dexReq
-class EquipableInFootSlot: #shoe / boot
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
-        self.ap=ap
-        self.mods=mods
-        self.fit=fit
-        self.strReq=strReq
 class EquipableInArmSlot:
-    __slots__=['ap','mods','fit','strReq',]
-    def __init__(self, ap, mods, fit=0, strReq=0): #{var : modf,}
+    __slots__=['ap','mods','strReq',]
+    def __init__(self, ap, mods, strReq=0): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
+        self.strReq=strReq
+class EquipableInFootSlot: #shoe / boot
+    __slots__=['ap','mods','grip','strReq',]
+    def __init__(self, ap, mods, grip=0, strReq=0): 
+        self.ap=ap
+        self.mods=mods
+        self.grip=grip # how much grip you've got on the foot wearing this
         self.strReq=strReq
 class EquipableInLegSlot:
-    __slots__=['ap','mods','fit','strReq',
+    __slots__=['ap','mods','strReq',
                'coversBoth']
-    def __init__(self, ap, mods, fit=0, strReq=0,
-                 coversBoth=False): #{var : modf,}
+    def __init__(self, ap, mods, strReq=0,
+                 coversBoth=False): 
         self.ap=ap
         self.mods=mods
-        self.fit=fit
         self.coversBoth=coversBoth # covers two legs?
         self.strReq=strReq
         
@@ -1097,7 +1109,7 @@ class EquipableInLegSlot:
 ##
 ##class EquipableInJewelrySlot: # slot that has infinite room for more shit
 ##    __slots__=['ap','mods']
-##    def __init__(self, ap, mods): #{var : modf,}
+##    def __init__(self, ap, mods): 
 ##        self.ap=ap
 ##        self.mods=mods
        
@@ -1449,12 +1461,60 @@ class Tool_Drillbit_f:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
+class Tool_Clamp:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Flask:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Beaker:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_GraduatedContainer:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Thermometer:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Dropper: # eye dropper / turkey baster
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Syringe:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Post: # chemistry set stand; just a stick poking up
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_ChemistryClamp: # special clamp for chemistry / ring support
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Cork:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Stopper: # like a cork but rubber
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_HeatResistantGloves:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
 class Tool_:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
 
-
+##class Tool_FluidContainer: # FluidContainer is a component, no need for a separate Tool component
 
        
        
@@ -1515,7 +1575,6 @@ class Food_:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-##class Tool_FluidContainer: # FluidContainer is a component, no need for a separate Tool component
 
    
     #-----------------------#
@@ -1825,6 +1884,17 @@ class StatusDeafened:
     def __init__(self, t=256, q=96):
         self.timer=t
         self.quality=q # % hearing lost, int 1-100
+class StatusFlanked: # already dodged/blocked/parried this turn
+    __slots__=['timer','quality']
+    def __init__(self, t=1, q=1):
+        self.timer=t
+        self.quality=q # DV loss (*MULT_STATS)
+class StatusCharmed:
+    __slots__=['timer','entity','quality']
+    def __init__(self, t=86400, ent=0, q=1):
+        self.timer=t
+        self.entity=ent     # entity who charmed me
+        self.quality=q      # change in disposition
 #
 
 # quantity (non-timed) statuses #
@@ -1898,6 +1968,7 @@ STATUSES={ # dict of statuses that have a timer
     StatusFull      : 'full (overeating)',
     StatusKO        : 'K.O.',
     StatusBlink     : 'blinking eyes',
+    StatusCharmed   : 'charmed',
     StatusBPos_Crouched : "crouched",
     StatusBPos_Seated   : "seated",
     StatusBPos_Prone    : "prone",

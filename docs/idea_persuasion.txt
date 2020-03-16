@@ -1,0 +1,148 @@
+
+dialogue and persuasion
+
+each character has a specific personality which indicates what kinds of persuasion will work on them. For instance, a non-confrontational or shy personality will not be persuaded by arguing and may come to dislike you if you try to argue with them. Likewise, flirting with someone with the "low self-esteem" personality will cause them to think you are being disengenuous. Intimidation doesn't work on strong personality types, etc.
+All persuasion types are enhanced by having a higher speech skill.
+
+How to find out what personality type an NPC has? Talk to them for long enough and your character will figure it out.
+
+likes means: this personality is greatly influenced by this method of persuasion.
+dislikes means: this personality type is not influenced very much or at all by this method of persuasion.
+Personality types:
+	proud
+		likes: flattering
+		dislikes: intimidation
+	low self-esteem
+		likes: flattering
+		dislikes: flirting
+	argumentative
+		likes: arguing
+		dislikes: bribery
+	non-confrontational
+		likes: bribery
+		dislikes: arguing
+	outgoing
+		likes: flirting
+		dislikes: intimidation
+	shy
+		likes: flattering
+		dislikes: small talk
+	independent
+		likes: small talk
+		dislikes: bribery
+	codependent
+		likes: intimidation
+		dislikes: bribery
+	bubbly
+		likes: flirting
+		dislikes: flattering
+	low energy
+		likes: small talk
+		dislikes: flirting
+	motivated
+		likes: bribery
+		dislikes: intimidation
+	unmotivated
+		likes: intimidation
+		dislikes: arguing
+	relaxed
+		likes: small talk
+		dislikes: arguing
+	uptight
+		likes: arguing
+		dislikes: small talk
+	proactive
+		likes: arguing
+		dislikes: intimidation
+	apathetic
+		likes: N/A
+		dislikes: N/A
+	
+	
+	
+persuasion to yield services:
+
+ask question
+	relies on: speech skill
+	- can yield information
+	- reduces disposition proportionate to the value of the information given
+interrogate
+	subset of question
+	relies on: speech skill, intimidation
+	- can yield information
+	- reduces disposition greater than asking a question directly
+ask favor
+	relies on: speech skill, heavily influenced by disposition of conversational partner
+	- can convince someone to do something for you, or give you a gift or money. Costs a certain amount of disposition (if you ask someone who likes you to do a bunch of favors without returning anything, they stop liking you)
+	- May not reduce disposition if the partner chooses not to do the favor for you (and if it's a minor favor like asking for $1)
+beg
+	subset of ask favor, but involves you pleading and begging and appealing to their sympathy (so does not work on creatures who have no sympathy).
+	- less heavily influenced by disposition than asking favors, but more than asking questions
+	- on creatures w/ sympathy, begging can yield better results than asking, but begging always reduces disposition by a significantly greater amount than simply asking.
+	- Always reduces disposition regardless of whether the partner agrees to help you.
+barter
+	relies on: speech skill
+	- purchase or sell items to partner
+	- if the transfer of goods is fair, does not affect disposition. Disposition affected by how much in your favor vs. in their favor the trade was.
+	- partner may reject a trade that is significantly out of their favor, if they lack adequate disposition towards you.
+
+
+temporary persuasion / persuasion that is limited in how often it can be used:
+
+charming
+	relies on: speech skill, fame
+	- slightly lowers disposition if it fails, but if it succeeds, just adds Charmed status which temporarily increases disposition (this can exceed the maximum)
+	- cannot be used on someone who is already Charmed
+boasting
+	relies on: fame, intimidation, speech skill
+	- lowers disposition if it fails, but if it succeeds, just adds Charmed status which temporarily increases disposition (this can exceed the maximum)
+	- cannot be used on someone who is already Charmed
+	
+	
+persuasion to (try to) permanently improve disposition:
+	
+small talk
+	relies on: speech skill
+	- raises disposition very slowly, but has low risk of lowering disposition
+	- can only raise target's disposition to 2/3 of the maximum
+bribery and gifts
+	relies on: money/gift/information being given, speech skill (matters less than perceived value of gift offered)
+	- perceived value of gift == actual value of gift + any dispositions towards that thing that the target may have (by default, none)
+	- can raise target's disposition to maximum, but it becomes exponentially more difficult the higher the disposition you aim to achieve.
+intimidation
+	relies on: intimidation stat, speech skill (matters less than IDN stat)
+	countered by: courage
+	- can only raise target's disposition to 1/2 of the maximum
+flattering
+	relies on: speech skill
+	bonus if: target is attracted to you
+	- can only raise target's disposition to 3/4 of the maximum
+flirting
+	relies on: how attracted to you they are (depends on what they find attractive), speech skill (matters less than attraction)
+arguing
+	relies on: intelligence, speech skill
+	countered by: intelligence, opponent's speech skill
+	- if you are very dumb are get into an argument you can win just by "bringing the opponent down to your level"
+	- can raise target's disposition to maximum, but it becomes exponentially more difficult the higher the disposition you aim to achieve.
+torture
+	relies on: intimidation stat, speech skill
+	countered by: pain resistance, courage
+	- can only be used if target is in a position of extreme vulnerability
+	- never raises disposition of the target (always lowers it), but may still cause the target to do what you want on a one-time basis.
+	- works on all personality types, but should never be anything but a last resort
+
+
+disposition levels 0 to 1000:
+	0 			loathe
+	<100 		hate
+	100-199		dislike
+	200-299 	indifferent
+	300-399		partial
+	400-499 	like
+	500-599 	trust
+	600-699		care
+	700-799		love
+	800-899		dependent
+	900-999		worship
+	1000 		unconditional love
+

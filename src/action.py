@@ -307,14 +307,14 @@ def inventory_pc(pc):
         keysItems.update({"x":"examine"})
         keysItems.update({"d":"drop"})
         #
-        
+            
         opt=rog.menu(
             "{}".format(itemn.name), x,y,
             keysItems, autoItemize=False
         )
         #print(opt)
         if opt == -1: return
-        selected=keysItems[opt].lower()
+        selected=opt.lower()
         rmg=False
         if selected == "drop":
             rmg=True
@@ -384,7 +384,9 @@ def target_pc(pc):
     pos = world.component_for_entity(pc, cmp.Position)
     def targetfunc(ent):
         tpos = world.component_for_entity(ent, cmp.Position)
+        char = rog.getidchar(ent)
         menu={
+            'a' : 'attack',
             's' : 'shoot',
             't' : 'throw',
             'x' : 'examine',
@@ -393,18 +395,33 @@ def target_pc(pc):
         for k,v in menu.items():
             _menu[v] = k
         opt=rog.menu(
-            "targeting...",rog.getx(tpos.x)+1,rog.gety(tpos.y),menu,
+            "targeting {}".format(char),
+            rog.getx(tpos.x)+1,rog.gety(tpos.y),menu,
             autoItemize=False
             )
+        if opt==-1:
+            return
         choice=_menu[opt]
-        if choice=='f':
+        # attack melee
+        if choice=='a':
+            if not rog.inreach(
+                pos.x,pos.y, tpos.x,tpos.y,
+                rog.getms(pc,'reach')//MULT_STATS
+                ):
+                rog.alert("You can't reach that.")
+                return
+            fight(pc, ent)
+        # shoot / fire / loose arrow
+        elif choice=='s':
             xdest=tpos.x
             ydest=tpos.y
             fire_pc(pc, xdest,ydest)
+        # throw weapon in main hand
         elif choice=='t':
             xdest=tpos.x
             ydest=tpos.y
             throw_pc(pc, xdest,ydest)
+        # examine
         elif choice=='x':
             examine_pc(pc, ent)
     # end def
@@ -718,7 +735,7 @@ def liesupine(ent):
         ap_cost = 100
     actor.ap -= ap_cost
     
-def move(ent,dx,dy, mx=1):  # actor locomotion
+def move(ent,dx,dy, pace=-1, mx=1):  # actor locomotion
     '''
         move: generic actor locomotion
         Returns True if move was successful, else False
@@ -726,6 +743,8 @@ def move(ent,dx,dy, mx=1):  # actor locomotion
             ent : entity that's moving
             dx  : change in x position
             dy  : change in y position
+            pace: rate of movement (PACE_ const)
+                    -1: use the current pace the actor is moving at
             mx  : AP/Calorie/Stamina cost multiplier value
     '''
     # init
@@ -738,6 +757,21 @@ def move(ent,dx,dy, mx=1):  # actor locomotion
         return False        # 0 means we can't move there
     msp=rog.getms(ent,'msp')
     actor = world.component_for_entity(ent, cmp.Actor)
+    if pace==-1:
+        momentum = rog.getmomentum(ent)
+        if momentum:
+            pace = momentum.pace
+            direction = momentum.direction
+        else:
+            pace = PACE_STOPPED
+            direction = (0,0,)
+            
+        # change momentum; change our pace based on previous momentum
+        # for instance if we turn around rapidly while running,
+        #   our pace halts to a walk
+        # StatusRunning could indicate intention to maintain running pace
+        # Hm.... how should we do this???
+        # Mass should affect momentum; harder to change direction w/ more mass
     #
     
     # AP cost
@@ -803,6 +837,27 @@ def _calcPens(pen, prot, arm): # calculate number of penetrations
         return (0, arm,)
     return (pens, rog.around(arm * (0.5**pens)),)
 
+#
+# strike
+# hit an entity with your weapon (or limb)
+#
+class _StrikeReturn:
+    def __init__(self,
+                 hit,pens,trueDmg,killed,crit,rol,ctrd,
+                 feelStrings,grazed,canreach
+                 ):
+        self.hit=hit
+        self.pens=pens
+        self.trueDmg=trueDmg
+        self.killed=killed
+        self.crit=crit
+        self.rol=rol
+        self.ctrd=ctrd
+        self.feelStrings=feelStrings
+        self.grazed=grazed
+        self.canreach=canreach
+# end class
+
 def _strike(attkr,dfndr,aweap,dweap,
             adv=0,power=0, counterable=False,
             bptarget=None, targettype=None,
@@ -820,7 +875,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         apos;dpos   Attacker Position component; Defender Position component
     '''
     # init
-    hit=killed=crit=ctrd=grazed=False
+    hit=killed=crit=ctrd=grazed=canreach=False
     pens=trueDmg=rol=0
     feelStrings=[]
     
@@ -830,6 +885,10 @@ def _strike(attkr,dfndr,aweap,dweap,
     # components
     abody=world.component_for_entity(attkr, cmp.Body)
     dbody=world.component_for_entity(dfndr, cmp.Body)
+    if not apos:
+        apos = world.component_for_entity(attkr,cmp.Position)
+    if not dpos:
+        dpos = world.component_for_entity(dfndr,cmp.Position)
 
     # skill
     if (aweap and world.has_component(aweap,cmp.WeaponSkill)): # weapon skill
@@ -840,15 +899,25 @@ def _strike(attkr,dfndr,aweap,dweap,
         skillLv=rog.getskill(attkr, SKL_BOXING)
     
     # attacker stats
+    _str =  rog.getms(attkr,'str')//MULT_STATS
     asp =   max( MIN_ASP, rog.getms(attkr,'asp') )
     acc =   rog.getms(attkr,'atk')//MULT_STATS
     pen =   rog.getms(attkr,'pen')//MULT_STATS
     dmg =   max( 0, rog.getms(attkr,'dmg')//MULT_STATS )
     areach =rog.getms(attkr,'reach')//MULT_STATS
+        # attacker's weapon stats
     if aweap:
+        equipable = world.component_for_entity(aweap, cmp.EquipableInHoldSlot)
+        weapforce = equipable.force
         aweap1mat = rog.world().component_for_entity(aweap, cmp.Form).material
     else:
+        weapforce = 1
         aweap1mat = rog.world().component_for_entity(attkr, cmp.Form).material
+        # force
+    strmult = rog.att_str_mult_force(_str)
+    _massm = max(0, 0.25 + power*0.25)
+    massmult = _massm * rog.getms(attkr, 'mass')/MULT_MASS
+    force = (power+1) * strmult * weapforce * massmult
     
     # defender stats
     dhpmax =rog.getms(dfndr,'hpmax')
@@ -858,6 +927,8 @@ def _strike(attkr,dfndr,aweap,dweap,
     ctr =   rog.getms(dfndr,'ctr')//MULT_STATS
     dreach =rog.getms(dfndr,'reach')//MULT_STATS
     resphys = rog.getms(dfndr,'resphys')
+        # defender's weapon stats
+    # material
     if dweap:
         dweap1mat = rog.world().component_for_entity(dweap, cmp.Form).material
     else:
@@ -873,7 +944,14 @@ def _strike(attkr,dfndr,aweap,dweap,
     
         # roll dice, calculate hit or miss
     rol = dice.roll(CMB_ROLL_ATK)
-    hitDie = rol + acc + adv - dv
+    
+    if not rog.inreach(dpos.x,dpos.y, apos.x,apos.y, areach):
+        canreach=False
+        hitDie=0
+    else:
+        canreach=True
+        hitDie = rol + acc + adv - dv
+        
     if (rog.is_pc(dfndr) and rol==1): # when player is attacked, a roll of 1/20 always results in a miss.
         hit=False
     elif (rog.is_pc(attkr) and rol==20): # when player attacks, a roll of 20/20 always results in a hit.
@@ -884,6 +962,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         hit=False
     
     # perform the attack
+##    rog.flank(dfndr, 1) #TODO: flanking
     if hit:
         grazed = (hitDie==0)
 
@@ -894,9 +973,10 @@ def _strike(attkr,dfndr,aweap,dweap,
             ):
             if (dice.roll(100) <= ctr):
                 dweap = rog.dominant_arm(dfndr).hand.held.item
-                _strike(
+                ret=_strike(
                     dfndr, attkr, dweap, aweap,
-                    power=0, counterable=False
+                    power=0, counterable=False,
+                    apos=dpos,dpos=apos
                     )
                 rog.makenot(dfndr,CANCOUNTER)
                 ctrd=True
@@ -1015,10 +1095,19 @@ def _strike(attkr,dfndr,aweap,dweap,
             #-------------------------------------#
             
         rog.damage(dfndr, trueDmg)
+        
+        # TODO: SP damage
 ##        # sap some SP from defender;
 ##        rog.sap(dfndr, force*...)
+        # TODO: force damage -> balance, knockdown, knockback, etc.
+        
         for element, elemDmg in elements.items():
-            if grazed: elemDmg = elemDmg*0.5
+            # elemental damage affected by how well the attack connected
+            if grazed:
+                elemDmg = elemDmg * 0.5
+            elif crit:
+                elemDmg = elemDmg * 1.5
+            # elements
             if element == ELEM_FIRE:
                 rog.burn(dfndr, elemDmg)
                 feelStrings.append("burns!")
@@ -1048,10 +1137,7 @@ def _strike(attkr,dfndr,aweap,dweap,
                     elemDmg = elemDmg * 0.75
                 rog.hurt(dfndr, elemDmg)
             elif element == ELEM_BLEED:
-                if trueDmg <= 0: continue   # if phys dmg==0, no bleeding
-                if pens == 0: continue   # if failed to penetrate, ""
-                if pens == 1: # 1 penetration -> half bleed effect
-                    elemDmg = elemDmg // 2
+                if pens == 0: continue   # if failed to penetrate, no bleeding
                 rog.bleed(dfndr, elemDmg)
             elif element == ELEM_RUST:
                 if pens == 0: continue   # if failed to penetrate, continue
@@ -1067,8 +1153,11 @@ def _strike(attkr,dfndr,aweap,dweap,
     # end if
     #
     # return info for the message log
-    return (hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,)
-
+    return _StrikeReturn(
+        hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed,
+        canreach
+        )
+# end def
 
 def fight(attkr,dfndr,adv=0,power=0):
     '''
@@ -1126,20 +1215,20 @@ def fight(attkr,dfndr,adv=0,power=0):
         equipable = world.component_for_entity(aweap1, cmp.EquipableInHoldSlot)
         stamina_cost = equipable.stamina
     else:
-        stamina_cost = STA_PUNCH
+        stamina_cost = STA_PUNCH # TODO: get from limb-weapon! (and implement limb-weapons!)
     if stamina_cost > rog.getms(attkr, "mp"):
         power=-1
     
     # counterability is affected by range/reach TODO!
 ##    dist=max(abs(apos.x - dpos.x), abs(apos.x - dpos.x))
-##    if rog.withinreach(areach1, dist):
+##    if rog.inreach(areach1, dist):
 ##        counterable = True
 ##    else:
 ##        counterable = False
     counterable = True
     
     # strike!
-    hit,pens,trueDmg,killed,crit,rol,ctrd,feelStrings,grazed = _strike(
+    ret=_strike(
         attkr, dfndr, aweap1, dweap1,
         adv=adv, power=power, counterable=counterable,
         apos=apos,dpos=dpos
@@ -1163,23 +1252,35 @@ def fight(attkr,dfndr,adv=0,power=0):
     dr="d{}".format(CMB_ROLL_ATK) #"d20"
         # make a message describing the fight
     if message:
-        # TODO: show messages for grazed, crit, counter, feelStrings
-        if hit==False:
+        # TODO: make a more consise message, less detail about specific
+        #   calculations
+        # IDEA: show calculations/detail in the HUD (a la Cogmind)
+        #   while messages are reserved for very simple observations.
+        
+        # TODO: show messages for grazed, crit, counter, ret.feelStrings
+        if ret.canreach==False:
+            rog.event_sight(
+                dpos.x,dpos.y,
+                "{at}{a} strikes out at {dt}{n}, but cannot reach.".format(
+                    a=a,n=n,at=at,dt=dt )
+            )
+        if ret.hit==False:
             v="misses"
             if rog.is_pc(attkr):
-                ex=" ({dr}:{ro})".format(dr=dr, ro=rol)
+                ex=" ({dr}:{ro})".format(dr=dr, ro=ret.rol)
         else: # hit
             if rog.is_pc(attkr):
                 ex=" ({dm}x{p})".format( #{dr}:{ro}|
-                    dm=trueDmg, p=pens ) #dr=dr, ro=rol, 
-            if killed:
+                    dm=ret.trueDmg, p=ret.pens ) #dr=dr, ro=ret.rol, 
+            if ret.killed:
                 v="kills"
             else:
-                if grazed:
+                if ret.grazed:
                     v="grazes"
                 else:
-                    v = "*crits*" if crit else "hits"
-        if ctrd: # TODO: more detailed counter message (i.e., " and ... counters (8x2)")
+                    v = "*crits*" if ret.crit else "hits"
+        if ret.ctrd:
+            # TODO: more detailed counter message (i.e., " and ... counters (8x2)")
             m = " and {dt}{n} counters".format(dt=dt,n=n)
         rog.event_sight(
             dpos.x,dpos.y,
@@ -1249,7 +1350,7 @@ def fight(attkr,dfndr,adv=0,power=0):
 ###
 #
 
-def throw(ent, xdest,ydest):
+def throw(ent, xdest,ydest, power=0):
     world = rog.world()
     arm=rog.dominant_arm(ent)
     if not arm:
@@ -1260,13 +1361,13 @@ def throw(ent, xdest,ydest):
     
     # get thrower's stats
     equipable = world.component_for_entity(weap, cmp.EquipableInHoldSlot)
+    weapforce = equipable.force
     apos = world.component_for_entity(ent, cmp.Position)
     rng = rog.getms(ent, 'trng')
     atk = rog.getms(ent, 'tatk') + rog.getms(ent, 'atk')
     pen = rog.getms(ent, 'tpen') + rog.getms(ent, 'pen')
     dmg = rog.getms(ent, 'tdmg') + rog.getms(ent, 'dmg')
     _str = rog.getms(ent, 'str')
-    weapforce = equipable.force
     #
     
     # get the entity we're (trying to) target
@@ -1289,8 +1390,8 @@ def throw(ent, xdest,ydest):
     prevy=apos.y
     land=None
     _break=None
-    strmult = 1 + ATT_STR_FORCEMULT * _str
-    force = strmult * weapforce * rog.getms(weap, 'mass')
+    strmult = rog.att_str_mult_force(_str)
+    force = (power+1) * strmult * weapforce * rog.getms(weap, 'mass')/MULT_MASS
     hitDie=0
     
     # throw the item at tile tile

@@ -525,14 +525,16 @@ def fullname(ent):
 
     # "Fun"ctions #
 
-def ceil(i): return math.ceil(i)
+def ceil(f): return math.ceil(f)
 def line(x1,y1,x2,y2):
     for tupl in misc.Bresenham2D(x1,y1,x2,y2):
         yield tupl
 def in_range(x1,y1,x2,y2,Range):
     return (maths.dist(x1,y1, x2,y2) <= Range + .34)
-def around(i): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
-    return round(i + 0.00001)
+def around(f): # round with an added constant to nudge values ~0.5 up to 1 (attempt to get past some rounding errors)
+    return round(f + 0.00001)
+def about(f1, f2): # return True if the two floating point values are very close to the same value
+    return (abs(f1-f2) < 0.00001)
 def sign(n):
     if n>0: return 1
     if n<0: return -1
@@ -621,7 +623,6 @@ def wind_force():
 def wind_direction():
     return (1,0,) # TEMPORARY, TODO: create wind processor
 
-
     
     #---------------------#
     # component functions #
@@ -687,6 +688,11 @@ def setAP(ent, val):
 def spendAP(ent, amt):
     actor=Rogue.world.component_for_entity(ent, cmp.Actor)
     actor.ap = actor.ap - amt
+def getmomentum(ent):
+    if world.has_component(ent, cmp.Momentum):
+        return world.component_for_entity(ent, cmp.Momentum)
+    else:
+        return None
 
 # skills
 def getskill(ent, skill): # return skill level in a given skill
@@ -964,66 +970,21 @@ def gforce(ent, force):
     pass
 def scratch(ent1, ent2, force):
     pass
-    
-    #------------------#
-    # elemental damage #
-    #------------------#
+def calcwork(force):
+    return force*2
+def exercise(ent, bp, work: int):
+    ''' exercise cmp.BPP_Muscle object muscle by amount work
+        return True if muscle was not fatigued, else False
+    '''
+##    if bp.bone.status
+    fatigue = work // (getms(ent, 'str')//MULT_STATS)
+    if fatigue: bp.muscle.str -= fatigue
+    if bp.muscle.str <= 0:
+        bp.muscle.str = 0
+        return False # ran out of gas
+    return True # still cookin' with gas
 
-# RECursively apply ELEMent to all items touching/held/carried by the entity
-def recelem(ent, func, dmg, **kwargs):
-    # apply to inventory items
-    inv=Rogue.world.component_for_entity(ent, cmp.Inventory).data
-##    invres=... # inventory resistance. Should backpack be a separate entity w/ its own inventory? Inventories combine into one?
-    for item in inv:
-        func(item, dmg, kwargs)
-    # apply to the entity itself
-    return func(ent, dmg, kwargs)
-# INTENDED SYNTAX: (TODO: test to make sure this works before applying to all elements.)
-def NEWburn(ent, dmg, maxTemp=999999):
-    return recelem(ent, entities.burn, dmg, maxTemp=maxTemp)
-        
-        
-def settemp(ent, temp):
-    Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
-def burn(ent, dmg, maxTemp=999999):
-    return entities.burn(ent, dmg, maxTemp)
-def cool(ent, dmg, minTemp=-300):
-    return entities.burn(ent, dmg, minTemp)
-def bleed(ent, dmg):
-    return entities.bleed(ent, dmg)
-def hurt(ent, dmg):
-    return entities.hurt(ent, dmg)
-def disease(ent, dmg):
-    return entities.disease(ent, dmg)
-def intoxicate(ent, dmg):
-    return entities.intoxicate(ent, dmg)
-def irradiate(ent, dmg):
-    return entities.irradiate(ent, dmg)
-def irritate(ent, dmg):
-    return entities.irritate(ent, dmg)
-def exposure(ent, dmg):
-    return entities.exposure(ent, dmg)
-def corrode(ent, dmg):
-    return entities.corrode(ent, dmg)
-def cough(ent, dmg):
-    return entities.cough(ent, dmg)
-def vomit(ent, dmg):
-    return entities.vomit(ent, dmg)
-def electrify(ent, dmg):
-    return entities.electrify(ent, dmg)
-def paralyze(ent, dur):
-    return entities.paralyze(ent, dur)
-def wet(ent, g):
-    return entities.wet(ent, g)
-def rot(ent, g):
-    return entities.rot(ent, g)
-def dirty(ent, g):
-    return entities.dirty(ent, g)
-def mutate(ent):
-    return entities.mutate(ent)
-def knockout(ent, t = 32):
-    set_status(ent, cmp.StatusKO, t=t)
-    
+  
 def kill(ent): #remove a thing from the world
     if on(ent, DEAD): return
     world = Rogue.world
@@ -1084,6 +1045,17 @@ def zombify(ent):
     kill(ent) # temporary
 def explosion(name, x, y, radius):
     event_sight(x, y, "{n} explodes!".format(n=name))
+
+def getid(ent): # get identification level of a given entity (from Player's perspective)
+    if Rogue.world.has_component(ent, cmp.Identified):
+        return Rogue.world.component_for_entity(ent, cmp.Identified).quality
+    return 0
+def getidchar(ent):
+    return _getidchar(ent, getid(ent))
+def _getidchar(ent, idlv):
+    if idlv > 1:
+        return world.component_for_entity(ent, cmp.Draw).char
+    return '?'
 
 # inreach | in reach | in_reach 
 # Calculate if your target is within your reach (melee range).
@@ -1441,17 +1413,63 @@ def init_fluidContainer(ent, size):
 
 
     #---------#
-    #   Body  #
+    #  #Body  #
     #---------#
 
+# fit
+def get_fit(ent, eq_type):
+    ''' get the fit of a body part; assumes body part exists '''
+    compo = _get_eq_compo(ent, eq_type)
+    return compo.slot.fit # (doesn't get fit for held items...)
+# grip
+def get_grip(ent, eq_type):
+    ''' get grip of entity ent for bp indicated by EQ_ const eq_type
+    Grip is not a stat. To get grip of a grabbing appendage,
+        look at the body part. If armor equipped, look at armor grip value
+        which is a variable of the equipable component.
+    Grip does not exist for non-grabbing body parts.
+        (To get how well a non-grabbing body part's armor fits, use get_fit())
+    '''
+    
+    # **TODO**:
+    #   DO NOT: factor in grip of the held item (calculated separately??)
+    #   figure out in general how to handle grip/fit, and write it all down.
+    # should we use _get_eq_compo here? No. We need to do different things w/ different BP types.
+    
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    for i in range(MAXARMS): # for all EQ_ consts following EQ_MAINHAND...
+        if (eq_type==(i + EQ_MAINHAND) or eq_type==(i + EQ_MAINHANDW)):
+            _strmod = getms(ent, 'str')//MULT_STATS * ATT_STR_GRIP
+            _dexmod = getms(ent, 'dex')//MULT_STATS * ATT_DEX_GRIP
+            return around( _strmod + _dexmod + get_grip_hand(
+                body.parts[ent,cmp.BPC_Arms].arms[i].hand ) )
+    for i in range(MAXLEGS):
+        if eq_type==(i + EQ_MAINFOOT):
+            _kgmod = getms(ent, 'mass')//MULT_MASS * MASS_GRIP
+            return around( _kgmod + get_grip_foot(
+                body.parts[ent,cmp.BPC_Legs].legs[i].foot ) )
+# end def
+def get_grip_hand(bp):
+    return _get_grip_bp(bp, cmp.EquipableInHandSlot)
+def get_grip_foot(bp):
+    return _get_grip_bp(bp, cmp.EquipableInFootSlot)
+def get_grip_misc(bp):
+    return
+def _get_grip_bp(bp, cls):
+    if bp.slot.item:
+        return Rogue.world.component_for_entity(bp.slot.item, cls).grip
+    return bp.grip
+#
+
+# body part lengths
 def get_arm_length(bodyplan, height): #temporary solution to get arm length based on body type
     if bodyplan==BODYPLAN_HUMANOID:
-        return around(height / 2.67)
+        return around(height / 2.66667)
+# body part piece damage & healing (inflict / remove BPP status)
 def curebpp(bpp): #<flags> cure BPP status clear BPP status bpp_clear_status clear_bpp_status clear bpp status bpp clear status
     bpp.status = 0 # revert to normal status
-def healbpp(bpp, bpptype, status): #<flags> heal BPP object
+def healbpp(bpp, bpptype, quality=1): #<flags> heal BPP object
     pass #TODO
-# damage body part piece (inflict status)
 def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP status BPP set status set_bpp_status bpp_set_status bpp set status set bpp status
     '''
         * Try to inflict a status on a BPP (body part piece) object
@@ -1656,81 +1674,71 @@ def damagebp(bptarget, dmgtype, hitpp):
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
 # end def
 
+# component getters / finders
 def _get_eq_compo(ent, equipType): # equipType Const -> component
-    compo = None
     
-    # main hand
-    if equipType==EQ_MAINHAND:
-        arm = dominant_arm(ent)
-        if arm:
-            compo = arm.hand
-    elif equipType==EQ_MAINHANDW:
-        arm = dominant_arm(ent)
-        if arm:
-            compo = arm.hand
-    # main arm
-    elif equipType==EQ_MAINARM:
-        arm = dominant_arm(ent)
-        if arm:
-            compo = arm.arm
-    # off hand
-    elif equipType==EQ_OFFHAND:
-        body = Rogue.world.component_for_entity(ent, cmp.Body)
-        arm = body.parts[cmp.BPC_Arms].arms[1]
-        if arm: compo = arm.hand
-    elif equipType==EQ_OFFHANDW:
-        body = Rogue.world.component_for_entity(ent, cmp.Body)
-        arm = body.parts[cmp.BPC_Arms].arms[1]
-        if arm: compo = arm.hand
-    # off arm
-    elif equipType==EQ_OFFARM:
-        body = Rogue.world.component_for_entity(ent, cmp.Body)
-        arm = body.parts[cmp.BPC_Arms].arms[1]
-        if arm: compo = arm.arm
-    # main foot
-    elif equipType==EQ_MAINFOOT:
-        compo = dominant_leg(ent).foot
-    # main leg
-    elif equipType==EQ_MAINLEG:
-        compo = dominant_leg(ent).leg
-    # off foot
-    elif equipType==EQ_OFFFOOT:
-        body = Rogue.world.component_for_entity(ent, cmp.Body)
-        leg = body.parts[cmp.BPC_Legs].legs[1]
-        if leg: compo = leg.foot
-    # off leg
-    elif equipType==EQ_OFFLEG:
-        body = Rogue.world.component_for_entity(ent, cmp.Body)
-        leg = body.parts[cmp.BPC_Legs].legs[1]
-        if leg: compo = leg.leg
-    # head 1
-    elif equipType==EQ_MAINHEAD:
-        compo = dominant_head(ent).head
-    # face 1
-    elif equipType==EQ_MAINFACE:
-        compo = dominant_head(ent).face
-    # neck 1
-    elif equipType==EQ_MAINNECK:
-        compo = dominant_head(ent).neck
-    # eyes 1
-    elif equipType==EQ_MAINEYES:
-        compo = dominant_head(ent).eyes
-    # ears 1
-    elif equipType==EQ_MAINEARS:
-        compo = dominant_head(ent).ears
+        # cores #
     # torso core
-    elif equipType==EQ_CORE:
-        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.core
+    if equipType==EQ_CORE:
+        return Rogue.world.component_for_entity(ent, cmp.Body).core.core
     # torso front chest
     elif equipType==EQ_FRONT:
-        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.front
+        return Rogue.world.component_for_entity(ent, cmp.Body).core.front
     # torso back
     elif equipType==EQ_BACK:
-        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.back
+        return Rogue.world.component_for_entity(ent, cmp.Body).core.back
     # torso hips
     elif equipType==EQ_HIPS:
-        compo = Rogue.world.component_for_entity(ent, cmp.Body).core.hips
-    return compo
+        return Rogue.world.component_for_entity(ent, cmp.Body).core.hips
+    
+        # peripherals #
+    # arms
+    for i in range(MAXARMS):
+        # hands
+        if (equipType==(i + EQ_MAINHAND) or equipType==(i + EQ_MAINHANDW)):
+            arm = body.parts[ent,cmp.BPC_Arms].arms[i]
+            return arm.hand if arm else None
+        # arms
+        if equipType==(i + EQ_MAINARM):
+            arm = body.parts[ent,cmp.BPC_Arms].arms[i]
+            return arm.arm if arm else None
+    # legs
+    for i in range(MAXLEGS):
+        # feet
+        if equipType==(i + EQ_MAINFOOT):
+            leg = body.parts[ent,cmp.BPC_Legs].legs[i]
+            return leg.foot if leg else None
+        # legs
+        if equipType==(i + EQ_MAINLEG):
+            leg = body.parts[ent,cmp.BPC_Legs].legs[i]
+            return leg.leg if leg else None
+    # heads
+    for i in range(MAXHEADS):
+        # heads
+        if equipType==(i + EQ_MAINHEAD):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.head if head else None
+        # faces
+        if equipType==(i + EQ_MAINFACE):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.face if head else None
+        # necks
+        if equipType==(i + EQ_MAINNECK):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.neck if head else None
+        # eyes
+        if equipType==(i + EQ_MAINEYES):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.eyes if head else None
+        # ears
+        if equipType==(i + EQ_MAINEARS):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.ears if head else None
+        # mouths
+        if equipType==(i + EQ_MAINMOUTH):
+            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            return head.mouth if head else None
+    return None
 #end def
 
 # get body parts getbodyparts getbps findbodyparts find body parts
@@ -1770,6 +1778,7 @@ def findbps(ent, cls): # ent + cls -> list of BP component objects
     if cls is cmp.BP_Foot:
         return (body.parts[cmp.BPC_Legs].legs[0].foot,
                 body.parts[cmp.BPC_Legs].legs[1].foot,)
+# end def
 
 
     #-----------------#
@@ -1850,15 +1859,30 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     # indicate that the item is equipped using components
     world.add_component(item, cmp.Child(ent))
     world.add_component(item, cmp.Equipped(ent, equipType))
+    if world.has_component(item, cmp.Fitted):
+        fitted=world.component_for_entity(item, cmp.Fitted)
+        if fitted.entity==ent:
+            armorfit = 30
+            heldfit = 10
+        else:
+            diff = abs(fitted.height - getbase(ent,'height'))//4
+            armorfit = 17 - diff
+            heldfit = 2 - diff
+    else:
+        armorfit = 15
+        heldfit = 0
     
     # put it in the right slot (held or worn?)
     if holdtype: # held
         eqcompo.held.item = item
+        eqcompo.held.fit = heldfit
+# todo: function that adds these values to get how well you're gripping something.
         eqcompo.holding = True # cover this BP
     else: # worn
-        eqcompo.slot.item = item 
+        eqcompo.slot.item = item
+        eqcompo.slot.fit = armorfit
         eqcompo.covered = True # cover this BP
-
+    
     if ( (equipType==EQ_MAINLEG or equipType==EQ_OFFLEG)
          and equipable.coversBoth
         ):
@@ -1945,6 +1969,7 @@ def _deequipSlot(ent, slot):
     world.remove_component(item, cmp.Equipped)
     slot.item = None
     slot.covered = False
+    slot.fit = 0
              
     make(ent, DIRTY_STATS)
     return item
@@ -1964,7 +1989,9 @@ def _dewield(ent, compo):
     
     world.remove_component(item, cmp.Child)
     world.remove_component(item, cmp.Equipped)
+    compo.holding = False
     compo.held.item = None
+    compo.held.fit = 0
     
     make(ent, DIRTY_STATS)
     return item
@@ -2066,6 +2093,10 @@ def dehydrate(ent): entities.dehydrate(ent)
     #     Stats    #
     #--------------#
 
+# attributes
+def att_str_mult_force(_str: int) -> float:
+    return ATT_STR_FORCEMULT * _str # + 1
+
 def get_encumberance_breakpoint(enc, encmax):
     erat = enc/max(1,encmax) # encumberance ratio
     if erat < ENC_BP_1:   # 0: < 25%
@@ -2113,7 +2144,7 @@ def _update_from_equip(modded, equip):
     if dexd > 0:
         modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
         # for held items only, reduce offensive stats
-        if (bps.equip.bptype in cmp.BP_BPS_HOLD):
+        if (equip.bptype in cmp.BP_BPS_HOLD):
             modded.dmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
             modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
             modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
@@ -2282,24 +2313,24 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             for _q, dec in PAIN_QUALITIES.items():
                 if meters.pain >= MAX_PAIN*dec:
                     q=_q
-            _overwrite_status(ent, cmp.StatusPain, q=q)
+            overwrite_status(ent, cmp.StatusPain, q=q)
         
         # bleed
         if not on(ent, IMMUNEBLEED):
             q = meters.bleed // (0.5*basemass)
-            _overwrite_status(ent, cmp.StatusBleed, q=q)
+            overwrite_status(ent, cmp.StatusBleed, q=q)
         
         # dirty
         q=0
         for _q, dec in DIRT_QUALITIES.items():
             if meters.dirt >= MAX_DIRT*dec:
                 q=_q
-        _overwrite_status(ent, cmp.StatusDirty, q=q)
+        overwrite_status(ent, cmp.StatusDirty, q=q)
         
         # wet
         if not on(ent, IMMUNEWATER):
             q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
-            _overwrite_status(ent, cmp.StatusWet, q=q)
+            overwrite_status(ent, cmp.StatusWet, q=q)
         
         # rust
             # TODO: rust status affecting stats
@@ -2307,7 +2338,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for _q, dec in RUST_QUALITIES.items():
             if meters.rust >= MAX_RUST*dec:
                 q=_q
-        _overwrite_status(ent, cmp.StatusRusted, q=q)
+        overwrite_status(ent, cmp.StatusRusted, q=q)
         
         # rot
             # TODO: rot status affecting stats
@@ -2315,8 +2346,9 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for _q, dec in ROT_QUALITIES.items():
             if meters.rot >= MAX_ROT*dec:
                 q=_q
-        _overwrite_status(ent, cmp.StatusRotted, q=q)
-        
+        overwrite_status(ent, cmp.StatusRotted, q=q)
+    # end if
+    
     
 #~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # statuses that affect attributes #
@@ -2595,6 +2627,10 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusDeafened):
         status=world.component_for_entity(ent, cmp.StatusDeafened)
         modded.hearing = around(modded.hearing * status.quality / 100)
+    # flanked
+    if world.has_component(ent, cmp.StatusFlanked):
+        status=world.component_for_entity(ent, cmp.StatusFlanked)
+        modded.dfn = modded.dfn - compo.quality*MULT_STATS 
     # drunk
     if world.has_component(ent, cmp.StatusDrunk):
         compo = world.component_for_entity(ent, cmp.StatusDrunk)
@@ -2654,7 +2690,6 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.gra = modded.gra + PRONE_GRA*MULT_STATS
     
     
-    
 #~~~~~~~#--------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         # encumberance - stat mods #
         #--------------------------#
@@ -2664,8 +2699,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # because encumberance max is dependent on attributes.
     # Ratio of encumberance
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
-    # SP Regen acts differently -- no breakpoints.
-    modded.mpregen = modded.mpregen * (0.5 + 1*encpc)
+    # SP Regen acts differently -- smooth linear scaling
+    modded.mpregen = max(0,modded.mpregen) * (SPREGEN_MIN + SPREGEN_D*encpc)
     # Breakpoint stats -- gotten from ENCUMBERANCE_MODIFIERS dict
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:
@@ -2684,6 +2719,30 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             ENCUMBERANCE_MODIFIERS['gra'][index] * modded.gra)
         modded.bal = min(modded.bal,
             ENCUMBERANCE_MODIFIERS['bal'][index] * modded.bal)
+    #
+        
+#~~~~~~~#---------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # fatigue #
+        #---------#
+    
+    # having a low % of Stamina affects your derived stats.
+    if modded.mp < modded.mpmax:
+        fatigue_modf = 1 - modded.mp / modded.mpmax
+        modded.dfn -= fatigue_modf * FATIGUE_PENALTY_DFN * MULT_STATS
+        modded.gra -= fatigue_modf * FATIGUE_PENALTY_GRA * MULT_STATS
+        modded.ctr -= fatigue_modf * FATIGUE_PENALTY_CTR * MULT_STATS
+        modded.bal -= fatigue_modf * FATIGUE_PENALTY_BAL * MULT_STATS
+        modded.pro -= fatigue_modf * FATIGUE_PENALTY_PRO * MULT_STATS
+        modded.pen -= fatigue_modf * FATIGUE_PENALTY_PEN * MULT_STATS
+        modded.tpen -= fatigue_modf * FATIGUE_PENALTY_TPEN * MULT_STATS
+        modded.rpen -= fatigue_modf * FATIGUE_PENALTY_RPEN * MULT_STATS
+        modded.atk -= fatigue_modf * FATIGUE_PENALTY_ATK * MULT_STATS
+        modded.tatk -= fatigue_modf * FATIGUE_PENALTY_TATK * MULT_STATS
+        modded.ratk -= fatigue_modf * FATIGUE_PENALTY_RATK * MULT_STATS
+        modded.msp -= fatigue_modf * FATIGUE_PENALTY_MSP
+        modded.asp -= fatigue_modf * FATIGUE_PENALTY_ASP
+        modded.tasp -= fatigue_modf * FATIGUE_PENALTY_TASP
+        modded.rasp -= fatigue_modf * FATIGUE_PENALTY_RASP
     #
     
 #~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -2837,25 +2896,24 @@ def douse(x,y): #put out a fire at a tile and cool down all things there
 
 #Status for being on fire separate from the fire entity and light entity.
 
-def get_status(ent, statusCompo): #getstatus #status_get
-    if Rogue.world.has_component(ent, statusCompo):
-        return Rogue.world.component_for_entity(ent, statusCompo)
+def get_status(ent, statuscompo): #getstatus #status_get
+    if Rogue.world.has_component(ent, statuscompo):
+        return Rogue.world.component_for_entity(ent, statuscompo)
     else:
         return None
-def set_status(ent, status, t=-1, q=None):
+def set_status(ent, statuscompo, t=-1, q=None):
     '''
         # ent       = Thing object to set the status for
-        # status    = status class (not an object instance)
+        # statuscompo   = status class (not an object instance)
         # t         = duration (-1 is the default duration for that status)
         # q         = quality (for specific statuses)
     '''
-    proc.Status.add(ent, status, t, q)
-def clear_status(ent, status):
-    proc.Status.remove(ent, status)
+    proc.Status.add(ent, statuscompo, t, q)
+def clear_status(ent, statuscompo):
+    proc.Status.remove(ent, statuscompo)
 def clear_status_all(ent):
     proc.Status.remove_all(ent)
-
-def _overwrite_status(ent, statuscompo, t=-1, q=1):
+def overwrite_status(ent, statuscompo, t=-1, q=1):
     ''' set or clear status depending on q / t
         overwrite existing status
     '''
@@ -2866,7 +2924,85 @@ def _overwrite_status(ent, statuscompo, t=-1, q=1):
         set_status(ent, statuscompo, t=t, q=q)
     else:
         clear_status(ent, statuscompo)
+def compound_status(ent, statuscompo, t=-1, q=1):
+    ''' increment quality of a given status '''
+    if (q and t!=0):
+        status=get_status(ent, statuscompo)
+        if status:
+            nq = q + status.quality
+            clear_status(ent, statuscompo)
+        else:
+            nq = q
+        set_status(ent, statuscompo, t=t, q=nq)
+# end def
+  
+    # non-elemental statuses #
+    
+    # standard statuses
+def knockout(ent, t = 32):
+    set_status(ent, cmp.StatusKO, t=t)
+    # quality-based statuses
+def flank(ent, q: int): # TODO: call this when you attack a creature
+    compound_status(ent, cmp.StatusFlanked, q=q)
+    
+    # elemental damage #
+    
+# RECursively apply ELEMent to all items touching/held/carried by the entity
+def recelem(ent, func, dmg, *args, **kwargs):
+    # apply to inventory items
+    inv=Rogue.world.component_for_entity(ent, cmp.Inventory).data
+##    invres=... # inventory resistance. Should backpack be a separate entity w/ its own inventory? Inventories combine into one?
+    for item in inv:
+        func(item, dmg, *args, **kwargs)
+    # apply to the entity itself
+    return func(ent, dmg, *args, **kwargs)
+# INTENDED SYNTAX: (TODO: test to make sure this works before applying to all elements.)
+def NEWburn(ent, dmg, maxTemp=999999):
+    return recelem(ent, entities.burn, dmg, maxTemp)
 
+        
+def settemp(ent, temp):
+    Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
+def burn(ent, dmg, maxTemp=999999):
+    return entities.burn(ent, dmg, maxTemp)
+def cool(ent, dmg, minTemp=-300):
+    return entities.burn(ent, dmg, minTemp)
+def bleed(ent, dmg):
+    return entities.bleed(ent, dmg)
+def hurt(ent, dmg):
+    return entities.hurt(ent, dmg)
+def disease(ent, dmg):
+    return entities.disease(ent, dmg)
+def intoxicate(ent, dmg):
+    return entities.intoxicate(ent, dmg)
+def irradiate(ent, dmg):
+    return entities.irradiate(ent, dmg)
+def irritate(ent, dmg):
+    return entities.irritate(ent, dmg)
+def exposure(ent, dmg):
+    return entities.exposure(ent, dmg)
+def corrode(ent, dmg):
+    return entities.corrode(ent, dmg)
+def cough(ent, dmg):
+    return entities.cough(ent, dmg)
+def vomit(ent, dmg):
+    return entities.vomit(ent, dmg)
+def electrify(ent, dmg):
+    return entities.electrify(ent, dmg)
+def paralyze(ent, dur):
+    return entities.paralyze(ent, dur)
+def wet(ent, g):
+    return entities.wet(ent, g)
+def rot(ent, g):
+    return entities.rot(ent, g)
+def dirty(ent, g):
+    return entities.dirty(ent, g)
+def mutate(ent):
+    return entities.mutate(ent)
+
+
+
+    
 
     #-----------#
     #  actions  #

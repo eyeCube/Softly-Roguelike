@@ -166,7 +166,7 @@ def commands(pc, pcAct):
                 msp=rog.getms(pc, 'msp')
                 if msp <= 10:
                     inp=rog.prompt(
-                        0,0,rog.window_w(), 6,
+                        0,0,rog.window_w(), 6, mode='wait',
                         q='''Warning: your movement speed is critically slow
 (MSP: {}). Are you sure you want to move? y/n'''.format(msp)
                         )
@@ -228,8 +228,16 @@ def commands(pc, pcAct):
             action.change_bodypos_pc(pc)
             _Update()
             return
-        if act == "change-spd": # change speed of movement (walking, running, jogging, etc.)
+        if act == "change-msp": # change speed of movement (walking, running, jogging, etc.)
             action.change_speed_pc(pc)
+            _Update()
+            return
+        if act == "msp-up": # change from walk to powerwalk, to trot, jog, etc.
+            action.speed_up_pc(pc)
+            _Update()
+            return
+        if act == "msp-down": # change from sprint to run, to jog, to trot, etc.
+            action.slow_down_pc(pc)
             _Update()
             return
         if act == "target-prompt": #target entity + fire / throw / attack
@@ -413,7 +421,7 @@ def chargen(sx, sy):
     # init
     world = rog.world()
     __init__Chargen()   # init some global vars for use during chargen
-    height_default = 175
+    height_default = AVG_HUMAN_HEIGHT
     libtcod.console_clear(0)
     libtcod.console_clear(rog.con_game())
     libtcod.console_clear(rog.con_final())

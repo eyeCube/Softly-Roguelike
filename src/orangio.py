@@ -306,28 +306,23 @@ Tab
 NONE
 NONE
 
-// change body position (crouch, stand, lie prone, change stance, etc.)
+// change body position or stance (crouch, stand, lie prone, etc.)
 p
 NONE
 NONE
 
-// change movement speed (walking, jogging, running, sprining)
+// change movement speed (walking, running, sprinting, etc.)
 s
 NONE
 NONE
 
-// enable / disable jog
-shift+j
+// speed up movement speed
+Shift+s
 NONE
 NONE
 
-// enable / disable run
-shift+r
-NONE
-NONE
-
-// enable / disable sprint
-shift+s
+// slow down movement speed
+Ctrl+s
 NONE
 NONE
 
@@ -497,10 +492,9 @@ COMMANDS = {        # translate commands into actions
     'inventory'     : {'inventory': True},
     'abilities'     : {'abilities': True},
     'change-pos'    : {'change-pos': True},
-    'change-spd'    : {'change-spd': True},
-    'jog'           : {'jog': True},
-    'run'           : {'run': True},
-    'sprint'        : {'sprint': True},
+    'change-msp'    : {'change-msp': True},
+    'msp-up'        : {'msp-up': True},
+    'msp-down'      : {'msp-down': True},
     'look'          : {'look': True},
     'wait'          : {'wait': True},
     'rest'          : {'rest': True},

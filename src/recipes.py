@@ -22,14 +22,18 @@
             Information about recipes and crafting is as follows.
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-data:
+
+data of key,values in key-value pairs of RECIPES dict:
+    tuple of dictionaries where each dict is a recipe for making the item
+        specified by the key string (one item can have multiple recipes).
+data of nested recipe dict:
     key = result (name of object to create)
     values = 
     quantity   : number of instances of object to make
     table      : const. referring to which data table holds the object's info
     category   : const. referring to what skill is used in crafting this recipe
-    construct  : total amount of action points it takes to create
+    construct  : action points (AP) it takes to create per recipe
+    overhead   : AP it takes to create (static no matter how many you make)
     components : items used to craft the result, and the quantity needed
         ** material type determined by the first component-list in the tuple
     tools      : tools needed to craft the result, and the durability used (assuming hardness of tool's mat == hardness of item mat. Hardness determined by material. Metal vs. wood does not dull (damage) metal very much, but wood vs. metal destroys the wood easily.)
@@ -38,6 +42,10 @@ special additional data that can be provided:
         (if not provided, the default will be assumed)
     requires   : string, special requirements to craft this item
                     * default: "none"
+    info       : extra information for the recipe
+                    * default: "none"
+                    * "ratios" - the components are measured in terms of the
+                        ratio of their masses rather than absolute quantity.
     terrain    : string, what terrain type(s) the recipe must be built on
                     * default: "any"
                     * "flat" - must be built on flat ground
@@ -104,35 +112,54 @@ To begin crafting, an entity assigns itself a crafting job.
         this determines how many components will be required
 
     * And it must choose how good of a job it wants to do on this crafting:**
-        * hack job: construct AP cut to 1/3
-            50% chance of failure.
-            75% chance to make crude items.
-        * quick job: construct AP cut to 2/3
-            20% chance of failure.
-            33% chance to make crude items.
+        * hack job: construct AP cut to 1/4
+            x10 chance of failure.
+            x15 chance to make crude items.
+            x1/16 chance to make quality items.
+            x0 chance - masterpiece
+        * quick job: construct AP cut to 1/2
+            x4 chance of failure.
+            x6 chance to make crude items.
+            x1/4 chance to make quality items.
+            x0 chance - masterpiece
         * normal job: construct AP 100%
-            5% chance of failure.
-            5% chance to make crude items.
-            5% chance to make quality items.
-        * detailed job: construct AP x2
-            25% chance to make quality items.
-        * fine job: construct AP x4
-            50% chance to make quality items.
-            1% chance to make masterpiece items.
-        * meticulous job: construct AP x8
-            100% chance to make at least quality items (provided you're using quality ingredients/tools).
-            5% chance to make masterpiece items.
-        * thesis job: construct AP x16
-            100% chance to make at least quality items (provided you're using quality ingredients/tools).
-            25% chance to make masterpiece items.
+            x1 chance of failure.
+            x1 chance to make crude items.
+            x1 chance to make quality items.
+            x0 chance - masterpiece
+        * detailed job: construct AP x2 (skill level: 10+)
+            x1/4 chance - failure
+            x1/4 chance - crude
+            x5 chance to make quality items.
+            x1/16 chance - masterpiece
+        * fine job: construct AP x4 (skill level: 20+)
+            x1/16 chance - failure
+            x1/16 chance - crude
+            x10 chance to make quality items.
+            x1 chance to make masterpiece items.
+        * meticulous job: construct AP x8 (skill level: 40+)
+            x1/64 chance - failure
+            x1/64 chance - crude
+            x20 chance to make at least quality items
+            x5 chance to make masterpiece items.
+        * thesis job: construct AP x16 (skill level: 60+)
+            x1/256 chance - failure
+            x1/256 chance - crude
+            x50 chance to make at least quality items
+            x25 chance to make masterpiece items.
         **Doing a detailed job or greater may require different recipes.
             It may also require:
-                - quality ingredients (can't make a masterpiece w/ shit ingredients, it's tough to make quality items with standard items, and crude ingredients tend to yield crude results; yet you never NEED masterpiece ingredients....)
+                - adequate skill in the relevant crafting technique
+                - quality ingredients (extremely hard to make a masterpiece w/ shit ingredients, it's tough to make quality items with standard items, and crude ingredients tend to yield crude results; yet you never truly NEED quality ingredients....)
                 - quality tools (see quality ingredients)
                 - increased patience (monsters will rarely do long jobs)
                 - no stress or distractions (quality work environment)
                 - vision and light level to be at a certain value or higher
                 - specialist skills
+            IDEA: what constitutes a "quality" or "masterpiece" item
+                also depends on the skill of the artisan.
+                Quality for a skill-level 10 artisan is a +1 item;
+                for a level-100 master, a quality item can be +3, +5, etc.
         This may be unnecessary. It would be nice though. Maybe there's a simpler way to implement it.
             could be handled by flags e.g. CRUDE, QUALITY, and MASTER
             
@@ -219,8 +246,6 @@ Qualities of crafted items:
             item value is 10,000%
 
 
-    TODO: change CRC_ "category" values to a dict of SKL_ constants
-        { SKL_CONST : level_of_skill_required }
 
 '''
 
@@ -231,7 +256,7 @@ from const import *
 RECIPES={
 
     
-##'column of wood':{
+##'column of wood':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_STUFF,
 ##    'category'  : CRC_ASSEMBLY,
@@ -244,9 +269,9 @@ RECIPES={
 ##    'tools'     : (),
 ##    'byproducts': (),
 ##    'recycling' : ( ('wooden plank', 3,) ,),
-##    },
+##    }),
     
-'':{
+'':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -258,7 +283,7 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -272,7 +297,7 @@ RECIPES={
 
 
     # wood
-##'wooden plank':{
+##'wooden plank':({
 ##    'quantity'  : 20,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_WOOD,
@@ -280,8 +305,8 @@ RECIPES={
 ##    'components': ( [ ('slab of wood', 1,), ], ),
 ##    'tools'     : ( [ (cmp.Tool_Saw, 4,), ], ),
 ##    'byproducts': (),
-##    },
-##'slab of wood':{ # harvestable instead of recipe
+##    }),
+##'slab of wood':({ # harvestable instead of recipe
 ##    'quantity'  : 2,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_WOOD,
@@ -291,48 +316,48 @@ RECIPES={
 ##    'byproducts': (
 ##        ('chunk of wood', 4,), ('piece of wood', 4,),
 ##        ('parcel of wood', 4,), ('scrap wood', 4,), ),
-##    },
+##    }),
 
     # cloth
-'scrap cloth':{
+'scrap cloth':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
-    'skills'    : ((SKL_CLOTH,10,),),
+    'skills'    : ((SKL_CLOTH,1,),),
     'construct' : 1800,
     'components': ( [ ('string', 9,), ], ),
     'tools'     : ( [ (cmp.Tool_Sew, 3,), ], ),
     'byproducts': (),
-    },
-'parcel of cloth':{
+    }),
+'parcel of cloth':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
-    'skills'    : ((SKL_CLOTH,10,),),
+    'skills'    : ((SKL_CLOTH,2,),),
     'construct' : 1800,
     'components': ( [ ('scrap cloth', 5,), ], ),
     'tools'     : ( [ (cmp.Tool_Sew, 3,), ], ),
     'byproducts': (),
-    },
-'piece of cloth':{
+    }),
+'piece of cloth':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
-    'skills'    : ((SKL_CLOTH,10,),),
+    'skills'    : ((SKL_CLOTH,3,),),
     'construct' : 2400,
     'components': ( [ ('parcel of cloth', 5,), ], ),
     'tools'     : ( [ (cmp.Tool_Sew, 3,), ], ),
     'byproducts': (),
-    },
-'chunk of cloth':{
+    }),
+'chunk of cloth':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
-    'skills'    : ((SKL_CLOTH,10,),),
+    'skills'    : ((SKL_CLOTH,4,),),
     'construct' : 3200,
     'components': ( [ ('piece of cloth', 5,), ], ),
     'tools'     : ( [ (cmp.Tool_Sew, 3,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # metal
-'scrap metal':{
+'scrap metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,1,),),
@@ -347,8 +372,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': ( ('slag', 1,), ),
-    },
-'parcel of metal':{
+    }),
+'parcel of metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,1,),),
@@ -360,8 +385,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'shard of metal':{
+    }),
+'shard of metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,2,),),
@@ -374,8 +399,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'piece of metal':{
+    }),
+'piece of metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,1,),),
@@ -387,8 +412,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'chunk of metal':{
+    }),
+'chunk of metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,2,),),
@@ -403,8 +428,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'slab of metal':{
+    }),
+'slab of metal':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,3,),),
@@ -419,7 +444,7 @@ RECIPES={
         [ (cmp.Tool_Tongs, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -432,7 +457,7 @@ RECIPES={
     # MISC. STUFF
 
     # mixtures of materials
-'tinder':{
+'tinder':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -443,8 +468,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'plastic stool':{
+    }),
+'plastic stool':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_PLASTIC,1,),),
@@ -460,8 +485,8 @@ RECIPES={
         [ (cmp.Tool_Weld, 1,), (cmp.Tool_Torch, 2,), ],
         ),
     'byproducts': (),
-    },
-'wooden stool':{
+    }),
+'wooden stool':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,2,),),
@@ -479,8 +504,8 @@ RECIPES={
     'byproducts': (
         ('piece of wood', 1,), ('parcel of wood', 1,), ('scrap wood', 1,),
         ),
-    },
-'metal stool':{
+    }),
+'metal stool':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,2,),),
@@ -498,8 +523,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'plastic table':{
+    }),
+'plastic table':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_PLASTIC,1,),),
@@ -519,8 +544,8 @@ RECIPES={
         [ (cmp.Mold_TablePlastic, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden table':{
+    }),
+'wooden table':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,3,),),
@@ -536,8 +561,8 @@ RECIPES={
         [ (cmp.Tool_Saw, 2,), ],
         ),
     'byproducts': (),
-    },
-'metal table':{
+    }),
+'metal table':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,5,),),
@@ -555,10 +580,10 @@ RECIPES={
         [ (cmp.Tool_Furnace, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # gunsmithing
-'musket stock':{
+'musket stock':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GUNSMITH,3,), (SKL_WOOD,7,),),
@@ -576,8 +601,8 @@ RECIPES={
         ('parcel of wood', 2,),
         ('scrap wood', 2,),
         ),
-    },
-'caplock trigger mechanism':{
+    }),
+'caplock trigger mechanism':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GUNSMITH,15,), (SKL_METAL,5,),),
@@ -593,8 +618,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 1,), ],
         ),
     'byproducts': (),
-    },
-'gun barrel, short':{
+    }),
+'gun barrel, short':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GUNSMITH,6,), (SKL_METAL,10,),),
@@ -612,8 +637,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'gun barrel':{
+    }),
+'gun barrel':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
@@ -629,8 +654,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'gun barrel, long':{
+    }),
+'gun barrel, long':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GUNSMITH,5,), (SKL_METAL,5,),),
@@ -646,10 +671,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # metal
-'metal needle':{
+'metal needle':({
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,6,),),
@@ -663,8 +688,8 @@ RECIPES={
         [ (cmp.Tool_Anvil, 3,), ],
         ),
     'byproducts': (),
-    },
-'pop tab mail ring':{
+    }),
+'pop tab mail ring':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,1,),),
@@ -675,8 +700,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 1,), ],
         ),
     'byproducts': (),
-    },
-'mail ring, riveted':{
+    }),
+'mail ring, riveted':({
     'quantity'  : 8,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,12,),),
@@ -692,8 +717,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 2,), ],
         ),
     'byproducts': ( ('scrap metal', 2,), ),
-    },
-'mail ring, welded':{
+    }),
+'mail ring, welded':({
     'quantity'  : 4,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,4,),),
@@ -708,10 +733,10 @@ RECIPES={
         [ (cmp.Tool_Weld, 1,), (cmp.Tool_Torch, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # arrowheads
-'plastic arrowhead':{
+'plastic arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -725,8 +750,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'wooden arrowhead':{
+    }),
+'wooden arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,5,),),
@@ -740,8 +765,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'bone arrowhead':{
+    }),
+'bone arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_BONE,10,),),
@@ -756,8 +781,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 1,), ),
-    },
-'stone arrowhead':{
+    }),
+'stone arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_STONE,10,),),
@@ -772,8 +797,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 2,), (cmp.Tool_File, 2,), ],
         ),
     'byproducts': ( ('gravel', 1,), ),
-    },
-'metal arrowhead':{
+    }),
+'metal arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,15,),),
@@ -790,8 +815,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'glass arrowhead':{
+    }),
+'glass arrowhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GLASS,20,),),
@@ -805,11 +830,11 @@ RECIPES={
         [ (cmp.Tool_Chisel, 4,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 
     # spearheads
-'plastic spearhead':{
+'plastic spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -823,8 +848,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'wooden spearhead':{
+    }),
+'wooden spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,6,),),
@@ -840,8 +865,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'bone spearhead':{
+    }),
+'bone spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_BONE,10,),),
@@ -856,8 +881,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 1,), ),
-    },
-'stone spearhead':{
+    }),
+'stone spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_STONE,12,),),
@@ -872,8 +897,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 2,), (cmp.Tool_File, 2,), ],
         ),
     'byproducts': ( ('gravel', 1,), ),
-    },
-'metal spearhead':{
+    }),
+'metal spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,10,),),
@@ -890,8 +915,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'glass spearhead':{
+    }),
+'glass spearhead':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_GLASS,15,),),
@@ -905,7 +930,7 @@ RECIPES={
         [ (cmp.Tool_Chisel, 4,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # water filters / purifiers
 # water qualities:
@@ -917,7 +942,7 @@ RECIPES={
     # drinkable, but may still make you sick (lower chance than filtered)
 # distilled water (evaporated)
     # drinkable, no risk of sickness
-'plastic water filter':{
+'plastic water filter':({
     # takes 10 minutes to filter 1 liter (1000g or 1KG of water)
     # 1 minute for 100g; 3 seconds for 5g
     'quantity'  : 1,
@@ -926,21 +951,21 @@ RECIPES={
     'construct' : 1200,
     'components': (
         [ ('plastic bottle', 2,), ],
-        [ ('gravel', 500,), ], # filters the large particles
-        [ ('sand', 100,), ], # filters the particulates
-        [ ('powdered charcoal', 50,), ], # filters the toxins
+        [ ('gravel', 0.5*MULT_MASS,), ], # filters the large particles
+        [ ('sand', 0.1*MULT_MASS,), ], # filters the particulates
+        [ ('powdered charcoal', 0.05*MULT_MASS,), ], # filters the toxins
         [ ('scrap cloth', 1,), ], # membrane
         [ ('rubber band', 1,), ],
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
     'byproducts': ( ('scrap plastic', 4,), ),
-    },
-'water purification tablet':{ # stretches out the water purification agent
+    }),
+'water purification tablet':({ # stretches out the water purification agent
     # water purification agent is tetraglycerine hydroperiodide
     # acts in 5 minutes
     'quantity'  : 20,
     'table'     : CRT_STUFF,
-    'skills'    : ((SKL_ASSEMBLY,15,),),
+    'skills'    : ((SKL_ASSEMBLY,2,),),
     'construct' : 4800,
     'components': (
         [ ('water purification agent', 1,), ],
@@ -948,10 +973,26 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
+    }),
+'crystal iodine':({
+    'quantity'  : 4,
+    'table'     : CRT_STUFF,
+    'skills'    : ((SKL_CHEMISTRY,2,),),
+    'construct' : 400,
+    'overhead'  : 2400,
+    'info'      : ('ratios',),
+    'components': (
+        [ ('potassium iodide', 8,), ],
+        [ ('purified water', 40,), ],
+        [ ('strong acid', 5,), ],
+        [ ('bleach', 1,), ('hydrogen peroxide', 1,), ],
+        ),
+    'tools'     : ( [ (cmp.Tool_Flask, 1,), ], ),
+    'byproducts': (),
+    }),
 
     # light sources
-'torch':{
+'torch':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -964,8 +1005,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'torch, large':{
+    }),
+'torch, large':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -978,8 +1019,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'candle':{
+    }),
+'candle':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -993,8 +1034,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'paper lantern':{
+    }),
+'paper lantern':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1006,8 +1047,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'metal lantern':{
+    }),
+'metal lantern':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,8,), (SKL_ASSEMBLY,1,),),
@@ -1024,10 +1065,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # furnaces
-'plastic campfire':{ # Note: make campfire object itself have ReactsWithFire func where it creates a "charred plastic campfire" object that cannot be harvested for the plastic and stone
+'plastic campfire':({ # Note: make campfire object itself have ReactsWithFire func where it creates a "charred plastic campfire" object that cannot be harvested for the plastic and stone
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1041,8 +1082,8 @@ RECIPES={
         ),
     'tools'     : ( (cmp.Tool_Torch, 1,), (cmp.Tool_FireStarter, 1,), ),
     'byproducts': (),
-    },
-'wooden campfire':{ # wooden campfire object could have a function that changes its name to "charred ..." and removes its Harvestable component
+    }),
+'wooden campfire':({ # wooden campfire object could have a function that changes its name to "charred ..." and removes its Harvestable component
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1056,8 +1097,8 @@ RECIPES={
         ),
     'tools'     : ( (cmp.Tool_Torch, 1,), (cmp.Tool_FireStarter, 1,), ),
     'byproducts': (),
-    },
-'clay furnace':{ # level 2 furnace (level 3 furnaces are metal, and cannot be crafted (?) or require machinery to craft.
+    }),
+'clay furnace':({ # level 2 furnace (level 3 furnaces are metal, and cannot be crafted (?) or require machinery to craft.
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -1069,10 +1110,10 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
+    }),
 
     # valves
-'plastic valve':{
+'plastic valve':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_PLASTIC,1,),),
@@ -1087,8 +1128,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'leather valve':{
+    }),
+'leather valve':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,15,), (SKL_LEATHER,5,),),
@@ -1107,8 +1148,8 @@ RECIPES={
         [ (cmp.Tool_Weld, 1,), (cmp.Tool_Torch, 3,), ],
         ),
     'byproducts': ( ('scrap metal', 1,), ),
-    },
-'metal valve':{
+    }),
+'metal valve':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,15,),),
@@ -1127,10 +1168,10 @@ RECIPES={
     'byproducts': (
         ('piece of metal', 1,),('parcel of metal', 1,),('scrap metal', 1,),
         ),
-    },
+    }),
 
     # fluid containers
-'plastic tank':{
+'plastic tank':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,), (SKL_PLASTIC,1,),),
@@ -1143,10 +1184,10 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # motors, dynamos
-'motor, small':{ # electric motor, gets power from battery
+'motor, small':({ # electric motor, gets power from battery
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,2,), (SKL_PLASTIC,1,),),
@@ -1160,8 +1201,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 4,), ], ),
     'byproducts': (),
-    },
-'dynamo, small':{ # outputs power when you turn the crank
+    }),
+'dynamo, small':({ # outputs power when you turn the crank
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,3,), (SKL_PLASTIC,3,), (SKL_WOOD,5,),),
@@ -1180,10 +1221,10 @@ RECIPES={
         [ (cmp.Tool_Hammer, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # fluid compressors
-'plastic compressor':{
+'plastic compressor':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_PLASTIC,2,),),
@@ -1199,11 +1240,11 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
     'byproducts': (),
-    },
-##'wooden air compressor':{ # uses wooden barrel or bucket, standard motor, standard battery, etc.
+    }),
+##'wooden air compressor':({ # uses wooden barrel or bucket, standard motor, standard battery, etc.
 
     # shelters
-'shelter':{
+'shelter':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1224,8 +1265,8 @@ RECIPES={
         ), 
     'byproducts': (),
     'recycling' : (),
-    },
-'wooden shed frame':{
+    }),
+'wooden shed frame':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,10,),),
@@ -1244,8 +1285,8 @@ RECIPES={
         ), 
     'byproducts': (),
     'recycling' : (),
-    },
-'wooden shed':{
+    }),
+'wooden shed':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,10,),),
@@ -1262,8 +1303,8 @@ RECIPES={
         ), 
     'byproducts': (),
     'recycling' : (),
-    },
-'metal shed frame':{
+    }),
+'metal shed frame':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,5,),),
@@ -1281,8 +1322,8 @@ RECIPES={
         ), 
     'byproducts': (),
     'recycling' : (),
-    },
-'metal shed':{
+    }),
+'metal shed':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,5,),),
@@ -1298,10 +1339,10 @@ RECIPES={
         ), 
     'byproducts': (),
     'recycling' : (),
-    },
+    }),
 
     # baskets
-'wooden basket':{
+'wooden basket':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -1310,11 +1351,11 @@ RECIPES={
     'tools'     : (),
     'byproducts': (),
     'recycling' : (),
-    },
+    }),
 
 # NOTE: springs are fucking hard to make mate. They might be too precise to be made for the purposes of this crafting system.
 ##    # spring anvils
-##'spring anvil':{ 
+##'spring anvil':({ 
 ##    'quantity'  : 1,
 ##    'table'     : CRT_STUFF,
 ##    'category'  : CRC_METAL,
@@ -1332,10 +1373,10 @@ RECIPES={
 ##        ),
 ##    'byproducts': (),
 ##    'recycling' : (),
-##    },
+##    }),
 ##
 ##    # springs
-##'torsion spring':{ 
+##'torsion spring':({ 
 ##    'quantity'  : 1,
 ##    'table'     : CRT_STUFF,
 ##    'category'  : CRC_ASSEMBLY,
@@ -1349,10 +1390,10 @@ RECIPES={
 ##        ),
 ##    'byproducts': (),
 ##    'recycling' : (),
-##    },
+##    }),
 
     # traps
-'trap, small':{ #maybe baiting is handled separately. You can bait any kind of bait on any trap and the type of bait influences what is attracted to it.
+'trap, small':({ #maybe baiting is handled separately. You can bait any kind of bait on any trap and the type of bait influences what is attracted to it.
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1365,8 +1406,8 @@ RECIPES={
     'tools'     : (), 
     'byproducts': (),
     'recycling' : (),
-    },
-'trap, net':{
+    }),
+'trap, net':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,6,),),
@@ -1379,8 +1420,8 @@ RECIPES={
     'tools'     : (), 
     'byproducts': (),
     'recycling' : (),
-    },
-'trap, pit':{ # large pit trap must be built inside of a pit
+    }),
+'trap, pit':({ # large pit trap must be built inside of a pit
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,8,),),
@@ -1398,10 +1439,10 @@ RECIPES={
     'tools'     : (), 
     'byproducts': (),
     'recycling' : (),
-    },
+    }),
 
     # medicine
-'bandage':{
+'bandage':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_CLOTH,1,),),
@@ -1413,11 +1454,11 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 3,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # string -> cordage -> rope -> cable
     # chains
-'string':{ # thin cordage, supports 1kg (a single thread is not worth being an item, and it would support like 10g)
+'string':({ # thin cordage, supports 1kg (a single thread is not worth being an item, and it would support like 10g)
     'quantity'  : 3,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -1431,8 +1472,8 @@ RECIPES={
         [ (cmp.Tool_Hammer, 3,), ],
         ),
     'byproducts': ( ('animal fat', 1,), ),
-    },
-'cordage':{ # thin rope, supports 10kg
+    }),
+'cordage':({ # thin rope, supports 10kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -1443,8 +1484,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'rope':{ # rope, supports 150kg
+    }),
+'rope':({ # rope, supports 150kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_ASSEMBLY,4,),),
@@ -1455,8 +1496,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'cable':{ # thick rope, supports 500kg
+    }),
+'cable':({ # thick rope, supports 500kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -1466,8 +1507,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'chain link, small':{
+    }),
+'chain link, small':({
     'quantity'  : 16,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,10,),),
@@ -1487,8 +1528,8 @@ RECIPES={
         [ (cmp.Mold_ChainLinkLight, 1,), ],
         ),
     'byproducts': (),
-    },
-'chain, small':{ # light 5mm chain, supports 200kg
+    }),
+'chain, small':({ # light 5mm chain, supports 200kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,8,),),
@@ -1506,8 +1547,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'chain link':{
+    }),
+'chain link':({
     'quantity'  : 8,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,12,),),
@@ -1527,8 +1568,8 @@ RECIPES={
         [ (cmp.Mold_ChainLink, 1,), ],
         ),
     'byproducts': (),
-    },
-'chain':{ # standard 10mm chain, supports 1000kg
+    }),
+'chain':({ # standard 10mm chain, supports 1000kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,10,),),
@@ -1546,8 +1587,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'chain link, large':{
+    }),
+'chain link, large':({
     'quantity'  : 2,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,15,),),
@@ -1567,8 +1608,8 @@ RECIPES={
         [ (cmp.Mold_ChainLinkHeavy, 1,), ],
         ),
     'byproducts': (),
-    },
-'chain, large':{ # heavy duty 20mm chain, supports 5000kg
+    }),
+'chain, large':({ # heavy duty 20mm chain, supports 5000kg
     'quantity'  : 1,
     'table'     : CRT_RAWMATS,
     'skills'    : ((SKL_METAL,12,),),
@@ -1586,10 +1627,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # fishing
-'fishing hook':{
+'fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1599,8 +1640,8 @@ RECIPES={
         ),
     'tools'     : ( (cmp.Tool_Cut, 5,), ),
     'byproducts': (),
-    },
-'plastic fishing hook':{
+    }),
+'plastic fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -1610,8 +1651,8 @@ RECIPES={
         ),
     'tools'     : ( (cmp.Tool_Cut, 4,), ),
     'byproducts': (),
-    },
-'wooden fishing hook':{
+    }),
+'wooden fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_WOOD,15,),),
@@ -1621,8 +1662,8 @@ RECIPES={
         ),
     'tools'     : ( (cmp.Tool_Cut, 5,), ),
     'byproducts': (),
-    },
-'stone fishing hook':{
+    }),
+'stone fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_STONE,35,),),
@@ -1636,8 +1677,8 @@ RECIPES={
         (cmp.Tool_Hammer, 2,),
         ),
     'byproducts': (),
-    },
-'bone fishing hook':{
+    }),
+'bone fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_BONE,25,),),
@@ -1651,8 +1692,8 @@ RECIPES={
         (cmp.Tool_Hammer, 2,),
         ),
     'byproducts': (),
-    },
-'metal fishing hook':{
+    }),
+'metal fishing hook':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,10,),),
@@ -1666,8 +1707,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 2,), (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': (),
-    },
-'fishing rod':{ # should fishing rod and baited fishing rod be different objects? And same with traps and baited traps? Or is it fine to just abstract baiting away?
+    }),
+'fishing rod':({ # should fishing rod and baited fishing rod be different objects? And same with traps and baited traps? Or is it fine to just abstract baiting away?
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -1684,10 +1725,10 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
+    }),
 
     # magnets
-'magnet, weak':{ # cannot make a strong magnet, it's necessary to have neodymium which is too pure to craft
+'magnet, weak':({ # cannot make a strong magnet, it's necessary to have neodymium which is too pure to craft
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -1698,8 +1739,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'electromagnet':{ 
+    }),
+'electromagnet':({ 
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,8,),), # coil the wire around the metal, connect to battery (?)
@@ -1711,7 +1752,7 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Pliers, 1,), ], ),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -1723,7 +1764,7 @@ RECIPES={
     #--------------------------#
 
     # cloth
-'padded coif':{
+'padded coif':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,20,),),
@@ -1738,8 +1779,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
-'padded coif, heavy':{
+    }),
+'padded coif, heavy':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,25,),),
@@ -1753,10 +1794,10 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # plastic
-'respirator':{
+'respirator':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ASSEMBLY,15,),),
@@ -1775,10 +1816,10 @@ RECIPES={
         [ (cmp.Tool_Drill, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # metal
-'metal respirator':{
+'metal respirator':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ASSEMBLY,15,), (SKL_METAL,10,),),
@@ -1797,7 +1838,7 @@ RECIPES={
         [ (cmp.Tool_Weld, 1,), (cmp.Tool_Torch, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -1811,7 +1852,7 @@ RECIPES={
 
 
     # cloth
-'t-shirt':{
+'t-shirt':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,5,),),
@@ -1825,8 +1866,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 1,), ],
         ),
     'byproducts': ( ('parcel of cloth', 1,), ),
-    },
-'hoody':{
+    }),
+'hoody':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,10,),),
@@ -1840,8 +1881,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 1,), ],
         ),
     'byproducts': ( ('parcel of cloth', 2,), ),
-    },
-'cloth vest':{
+    }),
+'cloth vest':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,10,),),
@@ -1855,8 +1896,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 1,), ],
         ),
     'byproducts': (),
-    },
-'cloth vest, heavy':{
+    }),
+'cloth vest, heavy':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,15,),),
@@ -1870,8 +1911,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 1,), ],
         ),
     'byproducts': (),
-    },
-'padded jacket':{
+    }),
+'padded jacket':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,20,),),
@@ -1885,8 +1926,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
-'padded jack':{
+    }),
+'padded jack':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,25,),),
@@ -1900,8 +1941,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
-'gambeson':{
+    }),
+'gambeson':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_CLOTH,30,),),
@@ -1915,8 +1956,8 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
-'arming doublet':{
+    }),
+'arming doublet':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_LEATHER,10,), (SKL_CLOTH,5,), (SKL_ARMORSMITH,5,),),
@@ -1931,10 +1972,10 @@ RECIPES={
         [ (cmp.Tool_Sew, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # leather
-'leather jacket':{
+'leather jacket':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_LEATHER,15,),),
@@ -1950,10 +1991,10 @@ RECIPES={
         [ (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': ( ('parcel of leather', 2,), ),
-    },
+    }),
 
     # boiled leather
-'boiled leather gear':{
+'boiled leather gear':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_LEATHER,15,), (SKL_ARMORSMITH,10,),),
@@ -1969,10 +2010,10 @@ RECIPES={
         [ (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': ( ('parcel of boiled leather', 2,), ),
-    },
+    }),
 
     # plastic
-'disposable PPE':{
+'disposable PPE':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ASSEMBLY,10,),),
@@ -1982,8 +2023,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 3,), ], ),
     'byproducts': (),
-    },
-'plastic gear':{ # lamellar armor
+    }),
+'plastic gear':({ # lamellar armor
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,20,), (SKL_PLASTIC,15,),),
@@ -2004,10 +2045,10 @@ RECIPES={
         ('parcel of plastic', 5,), ('scrap plastic', 5,),
         ('parcel of cloth', 2,),
         ),
-    },
+    }),
 
     # wood
-'wooden gear':{
+'wooden gear':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,25,), (SKL_WOOD,20,),),
@@ -2026,10 +2067,10 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 5,), ),
-    },
+    }),
 
     # bone
-'bone gear':{
+'bone gear':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,30,), (SKL_BONE,40,),),
@@ -2048,8 +2089,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 5,), ),
-    },
-'bone armor':{
+    }),
+'bone armor':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,20,), (SKL_BONE,20,),),
@@ -2067,10 +2108,10 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 5,), ),
-    },
+    }),
 
     # metal
-'pop tab mail vest':{
+'pop tab mail vest':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,10,),),
@@ -2082,8 +2123,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'pop tab mail shirt':{
+    }),
+'pop tab mail shirt':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,10,),),
@@ -2095,8 +2136,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'metal mail vest':{
+    }),
+'metal mail vest':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,25,),),
@@ -2108,8 +2149,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'metal mail shirt':{
+    }),
+'metal mail shirt':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,25,),),
@@ -2121,8 +2162,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'metal cap':{
+    }),
+'metal cap':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,10,), (SKL_METAL,15,),),
@@ -2140,8 +2181,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'metal mask':{
+    }),
+'metal mask':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
     'skills'    : ((SKL_ARMORSMITH,15,), (SKL_METAL,25,),),
@@ -2159,7 +2200,7 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -2171,7 +2212,7 @@ RECIPES={
 
 
     # arrows
-'plastic primitive arrow':{ # arrow name and stats determined by the material type of the arrowhead, not the shaft. But, since the shaft is the first component, whatever material the shaft is will be the material type of the arrow itself, regardless of the name.
+'plastic primitive arrow':({ # arrow name and stats determined by the material type of the arrowhead, not the shaft. But, since the shaft is the first component, whatever material the shaft is will be the material type of the arrow itself, regardless of the name.
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -2186,8 +2227,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 3,), ],
         ),
     'byproducts': (),
-    },
-'wooden primitive arrow':{
+    }),
+'wooden primitive arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -2202,8 +2243,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'bone primitive arrow':{
+    }),
+'bone primitive arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -2218,8 +2259,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'stone primitive arrow':{
+    }),
+'stone primitive arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,1,),),
@@ -2233,8 +2274,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'metal primitive arrow':{
+    }),
+'metal primitive arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,2,),),
@@ -2248,8 +2289,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'glass primitive arrow':{
+    }),
+'glass primitive arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -2263,8 +2304,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'plastic arrow':{
+    }),
+'plastic arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,5,), (SKL_PLASTIC,1,),),
@@ -2279,8 +2320,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'wooden arrow':{
+    }),
+'wooden arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,8,), (SKL_WOOD,3,),),
@@ -2295,8 +2336,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'bone arrow':{
+    }),
+'bone arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,10,), (SKL_BONE,5,),),
@@ -2311,8 +2352,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'stone arrow':{
+    }),
+'stone arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,10,), (SKL_STONE,5,),),
@@ -2327,8 +2368,8 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
-'metal arrow':{
+    }),
+'metal arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,10,), (SKL_METAL,5,),),
@@ -2343,8 +2384,8 @@ RECIPES={
         [ (cmp.Tool_Hammer, 2,), ],
         ),
     'byproducts': (),
-    },
-'glass arrow':{
+    }),
+'glass arrow':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_FLETCHER,10,), (SKL_GLASS,3,),),
@@ -2359,10 +2400,10 @@ RECIPES={
         [ (cmp.Tool_Cut, 4,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # bullets
-'metal bullet, small':{ 
+'metal bullet, small':({ 
     'quantity'  : 2,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_METAL,10,),),
@@ -2375,8 +2416,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'metal bullet':{
+    }),
+'metal bullet':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_METAL,8,),),
@@ -2389,8 +2430,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'metal bullet, large':{
+    }),
+'metal bullet, large':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_METAL,6,),),
@@ -2403,8 +2444,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'Minni ball':{
+    }),
+'Minni ball':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_METAL,16,),),
@@ -2417,8 +2458,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
-'paper cartridge':{
+    }),
+'paper cartridge':({
     'quantity'  : 1,
     'table'     : CRT_AMMO,
     'skills'    : ((SKL_ASSEMBLY,6,),),
@@ -2430,7 +2471,7 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -2442,7 +2483,7 @@ RECIPES={
 
 
     # anvils
-'stone anvil':{ # anvil level 2
+'stone anvil':({ # anvil level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_STONE,15,),),
@@ -2455,8 +2496,8 @@ RECIPES={
         [ (cmp.Tool_Hammer, 2,), ],
         ),
     'byproducts': ( ('slab of stone', 1,), ('chunk of stone', 1,), ),
-    },
-'metal anvil, small':{ # anvil level 3
+    }),
+'metal anvil, small':({ # anvil level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,25,),),
@@ -2471,8 +2512,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 3,), ],
         ),
     'byproducts': (),
-    },
-'metal anvil':{ # anvil level 4
+    }),
+'metal anvil':({ # anvil level 4
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,35,),),
@@ -2487,8 +2528,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 3,), ],
         ),
     'byproducts': (),
-    },
-'metal anvil, large':{ # anvil level 5
+    }),
+'metal anvil, large':({ # anvil level 5
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,45,),),
@@ -2503,10 +2544,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # axes - plastic or wooden handle with a head of MATERIAL. Chopping implement with secondary chiseling, hammering ability. Distinct from HATCHETS, which are composed of entirely one material.
-'plastic axe':{
+'plastic axe':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -2523,8 +2564,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1), ),
-    },
-'wooden axe':{
+    }),
+'wooden axe':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_WOOD,5,),),
@@ -2542,8 +2583,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('parcel of wood', 1), ('scrap wood', 1), ),
-    },
-'stone axe':{
+    }),
+'stone axe':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_STONE,5,),),
@@ -2560,8 +2601,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('parcel of stone', 2), ('gravel', 1), ),
-    },
-'bone axe':{
+    }),
+'bone axe':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,5,),),
@@ -2579,8 +2620,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('parcel of bone', 1), ('scrap bone', 1), ),
-    },
-'metal axe':{
+    }),
+'metal axe':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,5,),),
@@ -2600,10 +2641,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': ( ('parcel of wood', 2), ),
-    },
+    }),
 
     # chisels
-'plastic chisel':{ # chisel level 1
+'plastic chisel':({ # chisel level 1
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,2,),),
@@ -2618,8 +2659,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden chisel':{ # chisel level 2
+    }),
+'wooden chisel':({ # chisel level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_WOOD,2,),),
@@ -2634,8 +2675,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 1), ),
-    },
-'stone chisel':{ # chisel level 3
+    }),
+'stone chisel':({ # chisel level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_STONE,5,),),
@@ -2650,8 +2691,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 2,), (cmp.Tool_File, 2,), ],
         ),
     'byproducts': ( ('gravel', 1), ),
-    },
-'bone chisel':{ # chisel level 2
+    }),
+'bone chisel':({ # chisel level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,5,),),
@@ -2666,8 +2707,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 1), ),
-    },
-'metal chisel':{ # chisel level 4
+    }),
+'metal chisel':({ # chisel level 4
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,4,),),
@@ -2684,10 +2725,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': ( ('scrap metal', 1), ),
-    },
+    }),
 
     # cutting implements
-'scissors':{ # cut level 7
+'scissors':({ # cut level 7
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,10,),),
@@ -2705,8 +2746,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'wire cutters':{ # cut level 8
+    }),
+'wire cutters':({ # cut level 8
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,30,),),
@@ -2725,8 +2766,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'hedge trimmers':{ # cut level 9
+    }),
+'hedge trimmers':({ # cut level 9
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,40,),),
@@ -2744,10 +2785,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # drilling implements
-'hole puncher':{ # drill level 1
+'hole puncher':({ # drill level 1
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,10,),),
@@ -2765,8 +2806,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-##'hand drill':{ # drill level 2
+    }),
+##'hand drill':({ # drill level 2
 ##    'quantity'  : 1,
 ##    'table'     : CRT_TOOLS,
 ##    'category'  : CRC_METAL,
@@ -2785,8 +2826,8 @@ RECIPES={
 ##        [ (cmp.Tool_Pliers, 2,), ],
 ##        ),
 ##    'byproducts': (),
-##    },
-'electric drill':{ # drill level 2?
+##    }),
+'electric drill':({ # drill level 2?
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,15,),),
@@ -2809,10 +2850,10 @@ RECIPES={
         [ (cmp.Tool_Weld, 1,), (cmp.Tool_Torch, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # hammers
-'plastic hammer':{ # hammer level 3
+'plastic hammer':({ # hammer level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -2828,8 +2869,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1), ),
-    },
-'wooden hammer':{ # hammer level 3
+    }),
+'wooden hammer':({ # hammer level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_WOOD,5,),),
@@ -2846,8 +2887,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': ( ('parcel of wood', 1,), ('scrap wood', 1,), ),
-    },
-'stone hammer':{ # hammer level 3
+    }),
+'stone hammer':({ # hammer level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_STONE,5,),),
@@ -2863,8 +2904,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 2,), ],
         ),
     'byproducts': ( ('parcel of stone', 1,), ('gravel', 1,), ),
-    },
-'bone hammer':{ # hammer level 3
+    }),
+'bone hammer':({ # hammer level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,5,),),
@@ -2880,8 +2921,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 2,), ],
         ),
     'byproducts': ( ('parcel of bone', 1,), ('scrap bone', 1,), ),
-    },
-'metal hammer':{ # hammer level 4
+    }),
+'metal hammer':({ # hammer level 4
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,10,),),
@@ -2898,8 +2939,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'fine hammer':{ # hammer level 5
+    }),
+'fine hammer':({ # hammer level 5
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,35,),),
@@ -2916,11 +2957,11 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': ( ('parcel of wood', 1,), ('scrap wood', 1,), ),
-    },
+    }),
 
     # machetes
 
-'plastic machete':{
+'plastic machete':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,10,),),
@@ -2938,8 +2979,8 @@ RECIPES={
         [ (cmp.Mold_MachetePlastic, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-##'stone machete':{
+    }),
+##'stone machete':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_TOOLS,
 ##    'category'  : CRC_STONE,
@@ -2956,8 +2997,8 @@ RECIPES={
 ##        [ (cmp.Tool_Sharpener, 2,), ],
 ##        ),
 ##    'byproducts': (),
-##    },
-'wooden machete':{
+##    }),
+'wooden machete':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,10,),),
@@ -2975,8 +3016,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('parcel of wood', 2,), ('scrap wood', 3,), ),
-    },
-'bone machete':{
+    }),
+'bone machete':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,20,),),
@@ -2992,8 +3033,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('parcel of bone', 1,), ('scrap bone', 4,), ),
-    },
-'metal machete':{
+    }),
+'metal machete':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,10,),),
@@ -3014,10 +3055,10 @@ RECIPES={
         [ (cmp.Mold_MacheteMetal, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # mandrils
-'metal mandril':{
+'metal mandril':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,30,),),
@@ -3033,11 +3074,11 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # molds
 # staff molds
-'earthenware mold, metal staff':{
+'earthenware mold, metal staff':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,20,),),
@@ -3047,9 +3088,9 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
+    }),
 # sword molds
-'earthenware mold, plastic sword':{
+'earthenware mold, plastic sword':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,15,), (SKL_BLADESMITH,3,),),
@@ -3059,8 +3100,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
-'earthenware mold, metal sword':{
+    }),
+'earthenware mold, metal sword':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,25,), (SKL_BLADESMITH,10,),),
@@ -3070,9 +3111,9 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
+    }),
 # dagger molds
-'earthenware mold, metal dagger':{
+'earthenware mold, metal dagger':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,30,), (SKL_BLADESMITH,20,),),
@@ -3082,9 +3123,9 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
+    }),
 # ammunition molds
-'earthenware mold, bullet, small':{
+'earthenware mold, bullet, small':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,6,),),
@@ -3094,8 +3135,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
-'earthenware mold, bullet':{
+    }),
+'earthenware mold, bullet':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3105,8 +3146,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
-'earthenware mold, bullet, large':{
+    }),
+'earthenware mold, bullet, large':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,4,),),
@@ -3116,8 +3157,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
-'earthenware mold, Minni ball':{
+    }),
+'earthenware mold, Minni ball':({
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_ASSEMBLY,15,),),
@@ -3127,10 +3168,10 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # pliers
-'pliers':{ # pliers level 2
+'pliers':({ # pliers level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,8,),),
@@ -3147,8 +3188,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': ( ('scrap metal', 2,), ),
-    },
-'needle-nose pliers':{ # pliers level 3, also can cut as well as wire cutters
+    }),
+'needle-nose pliers':({ # pliers level 3, also can cut as well as wire cutters
     # should the needle-nose property be an additional Tool component? Only if it's a unique property not fulfilled by any other tool...
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
@@ -3168,10 +3209,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # ramrods
-'metal ramrod, long':{
+'metal ramrod, long':({
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,20,),),
@@ -3187,10 +3228,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # saws
-'plastic saw':{ # saw level 1
+'plastic saw':({ # saw level 1
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,15,),),
@@ -3205,8 +3246,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1), ),
-    },
-'plastic saw, large':{ # saw level 2
+    }),
+'plastic saw, large':({ # saw level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,15,),),
@@ -3222,8 +3263,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('shard of plastic', 2), ('scrap plastic', 1), ),
-    },
-'bone saw':{ # saw level 2
+    }),
+'bone saw':({ # saw level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,35,),),
@@ -3241,8 +3282,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('shard of bone', 1), ),
-    },
-'bone saw, large':{ # saw level 3
+    }),
+'bone saw, large':({ # saw level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,35,),),
@@ -3260,8 +3301,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('shard of bone', 1), ('scrap bone', 1), ),
-    },
-'metal saw':{ # saw level 3
+    }),
+'metal saw':({ # saw level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,20,),),
@@ -3280,8 +3321,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'metal saw, large':{ # saw level 4
+    }),
+'metal saw, large':({ # saw level 4
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,20,),),
@@ -3298,10 +3339,10 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('parcel of metal', 1), ('shard of metal', 1), ('scrap metal', 1), ),
-    },
+    }),
 
     # sewing needles
-'plastic sewing needle':{ # sewing level 1
+'plastic sewing needle':({ # sewing level 1
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_PLASTIC,10,),),
@@ -3316,8 +3357,8 @@ RECIPES={
         [ (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': (),
-    },
-'bone sewing needle':{ # sewing level 2
+    }),
+'bone sewing needle':({ # sewing level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_BONE,20,),),
@@ -3333,8 +3374,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': (),
-    },
-'metal sewing needle':{ # sewing level 3
+    }),
+'metal sewing needle':({ # sewing level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,15,),),
@@ -3352,10 +3393,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # swage blocks
-'wooden swage block':{ # swage level 1
+'wooden swage block':({ # swage level 1
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_WOOD,40,),),
@@ -3370,8 +3411,8 @@ RECIPES={
         [ (cmp.Tool_Saw, 3,), ],
         ),
     'byproducts': ( ('scrap wood', 2,), ),
-    },
-'metal swage block':{ # swage level 2 (level 3 is difficult to fabricate.)
+    }),
+'metal swage block':({ # swage level 2 (level 3 is difficult to fabricate.)
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,50,),),
@@ -3393,10 +3434,10 @@ RECIPES={
     'byproducts': (
         ('metal pipe', 1,), ('stick of metal', 1,),
         ),
-    },
+    }),
 
     # tongs
-'tongs':{ # tongs level 2
+'tongs':({ # tongs level 2
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,8,),),
@@ -3412,8 +3453,8 @@ RECIPES={
         [ (cmp.Tool_Anvil, 2,), ],
         ),
     'byproducts': (),
-    },
-'tongs, large':{ # tongs level 3
+    }),
+'tongs, large':({ # tongs level 3
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,15,),),
@@ -3429,8 +3470,8 @@ RECIPES={
         [ (cmp.Tool_Furnace, 2,), ],
         ),
     'byproducts': (),
-    },
-'fine tongs':{ # tongs level 4
+    }),
+'fine tongs':({ # tongs level 4
     'quantity'  : 1,
     'table'     : CRT_TOOLS,
     'skills'    : ((SKL_METAL,20,),),
@@ -3448,7 +3489,7 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 
 
@@ -3461,7 +3502,7 @@ RECIPES={
 
 
     # misc
-'flamethrower':{
+'flamethrower':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,35,),),
@@ -3477,8 +3518,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 5,), ], ),
     'byproducts': ( ('scrap plastic', 1, ), ),
-    },
-'sling':{
+    }),
+'sling':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,8,),),
@@ -3488,8 +3529,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'slingshot':{
+    }),
+'slingshot':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,5,),),
@@ -3500,10 +3541,10 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Cut, 4,), ], ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
+    }),
 
     # shivs
-'ceramic shiv':{
+'ceramic shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3517,8 +3558,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'plastic shiv':{
+    }),
+'plastic shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3534,8 +3575,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), (cmp.Tool_Cut, 5,), ],
         ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'wooden shiv':{
+    }),
+'wooden shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3551,8 +3592,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), (cmp.Tool_Cut, 6,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'stone shiv':{
+    }),
+'stone shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3568,8 +3609,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 2,), (cmp.Tool_File, 2,), ],
         ),
     'byproducts': ( ('gravel', 1,), ),
-    },
-'bone shiv':{
+    }),
+'bone shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3585,8 +3626,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 1,), ),
-    },
-'glass shiv':{
+    }),
+'glass shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3600,8 +3641,8 @@ RECIPES={
         ),
     'tools'     : (),
     'byproducts': (),
-    },
-'metal shiv':{
+    }),
+'metal shiv':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -3615,10 +3656,10 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Sharpener, 3,), (cmp.Tool_File, 3,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # knives
-'plastic knife':{
+'plastic knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,5,),),
@@ -3635,8 +3676,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 1,), ),
-    },
-'wooden knife':{
+    }),
+'wooden knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,5,),),
@@ -3652,8 +3693,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'stone knife':{
+    }),
+'stone knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_STONE,15,),),
@@ -3671,8 +3712,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 2,), (cmp.Tool_File, 2,), ],
         ),
     'byproducts': ( ('gravel', 1,), ),
-    },
-'bone knife':{
+    }),
+'bone knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,10,),),
@@ -3690,8 +3731,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), (cmp.Tool_File, 1,), ],
         ),
     'byproducts': ( ('scrap bone', 1,), ),
-    },
-'glass knife':{
+    }),
+'glass knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_GLASS,25,),),
@@ -3708,8 +3749,8 @@ RECIPES={
         [ (cmp.Tool_Hammer, 4,), ],
         ),
     'byproducts': (),
-    },
-'metal knife':{
+    }),
+'metal knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,10,),),
@@ -3730,10 +3771,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # serrated knives
-'plastic serrated knife':{
+'plastic serrated knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,10,),),
@@ -3741,8 +3782,8 @@ RECIPES={
     'components': ( [ ('plastic knife', 1,), ], ),
     'tools'     : ( [ (cmp.Tool_File, 1,), ], ),
     'byproducts': (),
-    },
-'wooden serrated knife':{ # serrated knives: Dmg +2, Pen -2, Asp -15, Cut -1, Saw +1, Chisel -1
+    }),
+'wooden serrated knife':({ # serrated knives: Dmg +2, Pen -2, Asp -15, Cut -1, Saw +1, Chisel -1
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,15,),),
@@ -3750,8 +3791,8 @@ RECIPES={
     'components': ( [ ('wooden knife', 1,), ], ),
     'tools'     : ( [ (cmp.Tool_File, 1,), (cmp.Tool_Saw, 5,), ], ),
     'byproducts': (),
-    },
-'stone serrated knife':{
+    }),
+'stone serrated knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_STONE,40,),),
@@ -3759,8 +3800,8 @@ RECIPES={
     'components': ( [ ('stone knife', 1,), ], ),
     'tools'     : ( [ (cmp.Tool_File, 2,), (cmp.Tool_Saw, 5,), ], ),
     'byproducts': (),
-    },
-'bone serrated knife':{
+    }),
+'bone serrated knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,25,),),
@@ -3768,8 +3809,8 @@ RECIPES={
     'components': ( [ ('bone knife', 1,), ], ),
     'tools'     : ( [ (cmp.Tool_File, 1,), (cmp.Tool_Saw, 5,), ], ),
     'byproducts': (),
-    },
-'metal serrated knife':{
+    }),
+'metal serrated knife':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,30,),),
@@ -3777,10 +3818,10 @@ RECIPES={
     'components': ( [ ('metal knife', 1,), ], ),
     'tools'     : ( [ (cmp.Tool_File, 3,), (cmp.Tool_Saw, 5,), ], ),
     'byproducts': (),
-    },
+    }),
 
     # daggers
-'bone dagger':{
+'bone dagger':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,30,),),
@@ -3797,8 +3838,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': (),
-    },
-'glass dagger':{
+    }),
+'glass dagger':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_GLASS,50,),),
@@ -3818,8 +3859,8 @@ RECIPES={
         [ (cmp.Mold_GlassDagger, 1,), ],
         ),
     'byproducts': (),
-    },
-'metal dagger':{
+    }),
+'metal dagger':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,20,),),
@@ -3841,10 +3882,10 @@ RECIPES={
         [ (cmp.Mold_MetalDagger, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # staves / staffs
-'plastic staff':{
+'plastic staff':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,6,),),
@@ -3862,8 +3903,8 @@ RECIPES={
         [ (cmp.Mold_PlasticStaff, 1,), ],
         ),
     'byproducts': ( ('scrap plastic', 2,), ),
-    },
-'wooden staff':{
+    }),
+'wooden staff':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,12,),),
@@ -3882,8 +3923,8 @@ RECIPES={
         ('parcel of wood', 2,),
         ('scrap wood', 2,),
         ),
-    },
-'bone staff':{
+    }),
+'bone staff':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,20,),(SKL_BONE,10,),),
@@ -3906,8 +3947,8 @@ RECIPES={
         ('parcel of bone', 1,),
         ('scrap bone', 2,),
         ),
-    },
-'metal staff':{
+    }),
+'metal staff':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,15,),(SKL_METAL,10,),),
@@ -3931,8 +3972,8 @@ RECIPES={
         ('parcel of wood', 2,),
         ('scrap wood', 2,),
         ),
-    },
-'steel staff':{
+    }),
+'steel staff':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,20,),),
@@ -3949,10 +3990,10 @@ RECIPES={
         [ (cmp.Tool_Swage, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # swords
-'plastic sword':{
+'plastic sword':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,10,), (SKL_BLADESMITH,5,),),
@@ -3970,8 +4011,8 @@ RECIPES={
         [ (cmp.Mold_SwordPlastic, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden sword':{
+    }),
+'wooden sword':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,10,), (SKL_BLADESMITH,5,),),
@@ -3992,8 +4033,8 @@ RECIPES={
         ('parcel of wood', 2,),
         ('scrap wood', 4,),
         ),
-    },
-'bone sword':{
+    }),
+'bone sword':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,20,), (SKL_BLADESMITH,10,),),
@@ -4015,8 +4056,8 @@ RECIPES={
         ('parcel of bone', 2,),
         ('scrap bone', 5,),
         ),
-    },
-'glass sword':{ # glass is the hardest to work with, and making a whole sword out of it is very tough.
+    }),
+'glass sword':({ # glass is the hardest to work with, and making a whole sword out of it is very tough.
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_GLASS,30,), (SKL_BLADESMITH,20,),),
@@ -4037,8 +4078,8 @@ RECIPES={
         [ (cmp.Mold_GlassSword, 1,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'metal sword blade':{
+    }),
+'metal sword blade':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,20,), (SKL_BLADESMITH,12,),),
@@ -4057,8 +4098,8 @@ RECIPES={
         [ (cmp.Mold_SwordMetal, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden sword hilt':{
+    }),
+'wooden sword hilt':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,10,), (SKL_BLADESMITH,10,),),
@@ -4071,8 +4112,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 2,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
-'unsharpened metal sword':{
+    }),
+'unsharpened metal sword':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,5,), (SKL_BLADESMITH,5,),),
@@ -4088,8 +4129,8 @@ RECIPES={
         [ (cmp.Tool_Hammer, 5,), ],
         ),
     'byproducts': (),
-    },
-'metal sword':{
+    }),
+'metal sword':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,1,), (SKL_BLADESMITH,3,),),
@@ -4102,10 +4143,10 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 3,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # boomerangs
-'plastic boomerang':{
+'plastic boomerang':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,10,),),
@@ -4124,8 +4165,8 @@ RECIPES={
         [ (cmp.Mold_BoomerangPlastic, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden boomerang':{
+    }),
+'wooden boomerang':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,10,),),
@@ -4140,8 +4181,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('shard of wood', 1,), ('scrap wood', 1,), ),
-    },
-'bone boomerang':{
+    }),
+'bone boomerang':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,10,),),
@@ -4155,8 +4196,8 @@ RECIPES={
         [ (cmp.Tool_Sharpener, 1,), ],
         ),
     'byproducts': ( ('piece of bone', 2,), ('shard of bone', 2,), ('scrap bone', 2,), ),
-    },
-'metal boomerang':{
+    }),
+'metal boomerang':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,10,),),
@@ -4175,8 +4216,8 @@ RECIPES={
         [ (cmp.Mold_BoomerangMetal, 1,), ],
         ),
     'byproducts': (),
-    },
-'ceramic boomerang':{
+    }),
+'ceramic boomerang':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_CERAMIC,20,),),
@@ -4195,10 +4236,10 @@ RECIPES={
         [ (cmp.Mold_BoomerangCeramic, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # javelins
-'plastic javelin':{
+'plastic javelin':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,3,),),
@@ -4212,8 +4253,8 @@ RECIPES={
         [ (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden javelin':{
+    }),
+'wooden javelin':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,3,),),
@@ -4223,8 +4264,8 @@ RECIPES={
         ),
     'tools'     : ( [ (cmp.Tool_Furnace, 1,), (cmp.Tool_Cut, 4,), ], ),
     'byproducts': (),
-    },
-'metal javelin':{
+    }),
+'metal javelin':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,5,),),
@@ -4241,10 +4282,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # shortspears
-'plastic shortspear':{
+'plastic shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -4259,8 +4300,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden shortspear':{
+    }),
+'wooden shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -4275,8 +4316,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'stone shortspear':{
+    }),
+'stone shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,6,),),
@@ -4291,8 +4332,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'bone shortspear':{
+    }),
+'bone shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,7,),),
@@ -4307,8 +4348,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'metal shortspear':{
+    }),
+'metal shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,6,),),
@@ -4325,8 +4366,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'glass shortspear':{
+    }),
+'glass shortspear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,9,),),
@@ -4341,10 +4382,10 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # spears
-'plastic spear':{
+'plastic spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,3,),),
@@ -4359,8 +4400,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden spear':{
+    }),
+'wooden spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,5,),),
@@ -4375,8 +4416,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'stone spear':{
+    }),
+'stone spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,6,),),
@@ -4391,8 +4432,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'bone spear':{
+    }),
+'bone spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,7,),),
@@ -4407,8 +4448,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
-'metal spear':{
+    }),
+'metal spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,6,),),
@@ -4425,8 +4466,8 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': (),
-    },
-'glass spear':{
+    }),
+'glass spear':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_ASSEMBLY,9,),),
@@ -4441,10 +4482,10 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # cudgels    
-'plastic cudgel':{
+'plastic cudgel':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,2,),),
@@ -4457,8 +4498,8 @@ RECIPES={
         ),
     'tools'     : ( [(cmp.Tool_Hammer, 1),], [(cmp.Tool_Chisel, 1),], ),
     'byproducts': ( ('piece of plastic', 2,), ('shard of plastic', 4,), ('scrap plastic', 1,), ),
-    },
-'wooden cudgel':{
+    }),
+'wooden cudgel':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,3,),),
@@ -4471,8 +4512,8 @@ RECIPES={
         ),
     'tools'     : ( [(cmp.Tool_Hammer, 2),], [(cmp.Tool_Chisel, 2),], ),
     'byproducts': ( ('piece of wood', 2,), ('shard of wood', 4,), ('scrap wood', 1,), ),
-    },
-'bone cudgel':{
+    }),
+'bone cudgel':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,5,), (SKL_WOOD,2,),),
@@ -4485,8 +4526,8 @@ RECIPES={
         ),
     'tools'     : ( [(cmp.Tool_Hammer, 2),], [(cmp.Tool_Chisel, 3),], ),
     'byproducts': ( ('shard of bone', 4,), ('scrap bone', 1,), ),
-    },
-'stone cudgel':{
+    }),
+'stone cudgel':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_STONE,8,), (SKL_WOOD,4,),),
@@ -4498,8 +4539,8 @@ RECIPES={
         ),
     'tools'     : ( [(cmp.Tool_Hammer, 3),], [(cmp.Tool_Chisel, 4),], ),
     'byproducts': ( ('piece of stone', 2,), ('shard of stone', 4,), ('gravel', 1,), ),
-    },
-'metal cudgel':{
+    }),
+'metal cudgel':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,5,), (SKL_WOOD,5,),),
@@ -4516,10 +4557,10 @@ RECIPES={
         [ (cmp.Tool_Tongs, 1,), ],
         ),
     'byproducts': ( ('parcel of metal', 1,), ),
-    },
+    }),
 
     # clubs
-'bone heavy club':{
+'bone heavy club':({
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,10,),),
@@ -4530,11 +4571,11 @@ RECIPES={
         ),
     'tools'     : ( [(cmp.Tool_Hammer, 2),], [(cmp.Tool_Chisel, 3),], ),
     'byproducts': ( ('shard of bone', 4,), ('scrap bone', 1,), ),
-    },
+    }),
 
 
     # warhammers
-'plastic warhammer':{ # hammer level 2
+'plastic warhammer':({ # hammer level 2
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_PLASTIC,10,),),
@@ -4550,8 +4591,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), ],
         ),
     'byproducts': ( ('parcel of plastic', 2,), ('scrap plastic', 1,), ),
-    },
-'wooden warhammer':{ # hammer level 2
+    }),
+'wooden warhammer':({ # hammer level 2
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_WOOD,10,),),
@@ -4568,8 +4609,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 1,), (cmp.Tool_Anvil, 1,), ],
         ),
     'byproducts': ( ('parcel of wood', 1,), ('scrap wood', 1,), ),
-    },
-'stone warhammer':{ # hammer level 2
+    }),
+'stone warhammer':({ # hammer level 2
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_STONE,10,),),
@@ -4585,8 +4626,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 2,), ],
         ),
     'byproducts': ( ('parcel of stone', 2,), ('gravel', 1,), ),
-    },
-'bone warhammer':{ # hammer level 2
+    }),
+'bone warhammer':({ # hammer level 2
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_BONE,10,),),
@@ -4602,8 +4643,8 @@ RECIPES={
         [ (cmp.Tool_Chisel, 2,), ],
         ),
     'byproducts': ( ('scrap bone', 1,), ('scrap wood', 1,), ),
-    },
-'metal warhammer':{ # hammer level 3
+    }),
+'metal warhammer':({ # hammer level 3
     'quantity'  : 1,
     'table'     : CRT_WEAPONS,
     'skills'    : ((SKL_METAL,10,),),
@@ -4620,7 +4661,7 @@ RECIPES={
         [ (cmp.Tool_Tongs, 2,), ],
         ),
     'byproducts': ( ('scrap wood', 1,), ),
-    },
+    }),
 
 
 
@@ -4635,7 +4676,7 @@ RECIPES={
 
 
     # bows
-'plastic bow':{
+'plastic bow':({
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_PLASTIC,6,),),
@@ -4649,8 +4690,8 @@ RECIPES={
         [ (cmp.Tool_Furnace, 1,), ],
         ),
     'byproducts': (),
-    },
-'wooden bow':{
+    }),
+'wooden bow':({
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_BOWYER,10,), (SKL_WOOD,5,),),
@@ -4664,8 +4705,8 @@ RECIPES={
         [ (cmp.Tool_Chop, 2,), ],
         ),
     'byproducts': (),
-    },
-'wooden longbow':{
+    }),
+'wooden longbow':({
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_BOWYER,20,), (SKL_WOOD,15,),),
@@ -4679,8 +4720,8 @@ RECIPES={
         [ (cmp.Tool_Chop, 2,), ],
         ),
     'byproducts': (),
-    },
-'unfinished composite bow':{ # note: must dry to finish (takes a long time).
+    }),
+'unfinished composite bow':({ # note: must dry to finish (takes a long time).
     #Note: must wax (or grease?) bow to give it resistance to water
     'quantity'  : 1,
     'table'     : CRT_RANGED,
@@ -4699,10 +4740,10 @@ RECIPES={
         [ (cmp.Tool_Chop, 2,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
     # caplock guns
-'caplock pistol':{
+'caplock pistol':({
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_GUNSMITH,10,),),
@@ -4721,8 +4762,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 1,), (cmp.Tool_Screwdriver, 1,), ],
         ),
     'byproducts': (),
-    },
-'caplock musketoon':{ # short musket. Regular sized barrel. Fat barreled musketoons existed, too, and should maybe be another item.
+    }),
+'caplock musketoon':({ # short musket. Regular sized barrel. Fat barreled musketoons existed, too, and should maybe be another item.
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_GUNSMITH,8,),),
@@ -4741,8 +4782,8 @@ RECIPES={
         [ (cmp.Tool_Pliers, 1,), (cmp.Tool_Screwdriver, 1,), ],
         ),
     'byproducts': (),
-    },
-'caplock musket':{
+    }),
+'caplock musket':({
     'quantity'  : 1,
     'table'     : CRT_RANGED,
     'skills'    : ((SKL_GUNSMITH,6,),),
@@ -4761,7 +4802,7 @@ RECIPES={
         [ (cmp.Tool_Pliers, 1,), (cmp.Tool_Screwdriver, 1,), ],
         ),
     'byproducts': (),
-    },
+    }),
 
 }
 # end RECIPES
@@ -4773,7 +4814,7 @@ RECIPES={
 # other recipes that might should be handled differently or just not used
 
 
-##'pipe gun':{ # shoots larger shots than musketoon/pistol/musket. 
+##'pipe gun':({ # shoots larger shots than musketoon/pistol/musket. 
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RANGED,
 ##    'category'  : CRC_GUNSMITH,
@@ -4792,7 +4833,7 @@ RECIPES={
 ##        [ (cmp.Tool_Pliers, 1,), (cmp.Tool_Screwdriver, 1,), ],
 ##        ),
 ##    'byproducts': (),
-##    },
+##    }),
 
 
 
@@ -4809,7 +4850,7 @@ RECIPES={
 ##
 ##
 ##
-##'parcel of plastic':{
+##'parcel of plastic':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_BREAKINGDOWN,
@@ -4823,9 +4864,9 @@ RECIPES={
 ##        ),
 ##    'byproducts': (),
 ##    'recycling' : (),
-##    },
+##    }),
 ##
-##'piece of plastic':{
+##'piece of plastic':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_BREAKINGDOWN,
@@ -4839,9 +4880,9 @@ RECIPES={
 ##        ),
 ##    'byproducts': (),
 ##    'recycling' : (),
-##    },
+##    }),
 ##
-##'parcel of wood':{
+##'parcel of wood':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_BREAKINGDOWN,
@@ -4855,9 +4896,9 @@ RECIPES={
 ##        ),
 ##    'byproducts': (),
 ##    'recycling' : (),
-##    },
+##    }),
 ##
-##'piece of wood':{
+##'piece of wood':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_BREAKINGDOWN,
@@ -4871,9 +4912,9 @@ RECIPES={
 ##        ),
 ##    'byproducts': ( ('wooden splinters', 1,), ),
 ##    'recycling' : (),
-##    },
+##    }),
 ##
-##'chunk of wood':{
+##'chunk of wood':({
 ##    'quantity'  : 1,
 ##    'table'     : CRT_RAWMATS,
 ##    'category'  : CRC_BREAKINGDOWN,
@@ -4887,5 +4928,5 @@ RECIPES={
 ##        ),
 ##    'byproducts': ( ('parcel of wood', 3,), ),
 ##    'recycling' : (),
-##    },
+##    }),
 ##

@@ -769,8 +769,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}
 {p1}                   satiation:{tab}{satstr}
 {p1}                   hydration:{tab}{hydstr}
-{p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}
-{p1}      (stamina / max.)----SP{predelim}{sp:>5} / {spmax:<5}
+{p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}{tab}{hppc}%
+{p1}      (stamina / max.)----SP{predelim}{sp:>5} / {spmax:<5}{tab}{sppc}%
 {p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc}%{encmods}
 {p1}        
 {p1}                        {subdelim} attribute {subdelim}
@@ -916,6 +916,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         vis=_get('sight'),aud=_get('hearing'),
         enc=_get('enc'),encmax=_get('encmax'),
         encpc=int(_get('enc') / _get('encmax') * 100),
+        hppc=int(_get('hp') / _get('hpmax') * 100),
+        sppc=int(_get('mp') / _get('mpmax') * 100),
         # base stats
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),

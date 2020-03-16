@@ -1,0 +1,12 @@
+
+skill levels & identifier names (milestones?)
+0 to 100
+0		neophyte
+1-19	beginner
+20-39	journeyman
+40-59	intermediate
+60-79	advanced
+80-99	master
+100		grandmaster
+
+each could be a milestone, progressing through which you gain a new ability (?) or gain a larger increase in stats than usual for a skill level-up
