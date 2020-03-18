@@ -689,8 +689,8 @@ def spendAP(ent, amt):
     actor=Rogue.world.component_for_entity(ent, cmp.Actor)
     actor.ap = actor.ap - amt
 def getmomentum(ent):
-    if world.has_component(ent, cmp.Momentum):
-        return world.component_for_entity(ent, cmp.Momentum)
+    if Rogue.world.has_component(ent, cmp.Momentum):
+        return Rogue.world.component_for_entity(ent, cmp.Momentum)
     else:
         return None
 
@@ -1676,67 +1676,68 @@ def damagebp(bptarget, dmgtype, hitpp):
 
 # component getters / finders
 def _get_eq_compo(ent, equipType): # equipType Const -> component
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
     
         # cores #
     # torso core
     if equipType==EQ_CORE:
-        return Rogue.world.component_for_entity(ent, cmp.Body).core.core
+        return body.core.core
     # torso front chest
     elif equipType==EQ_FRONT:
-        return Rogue.world.component_for_entity(ent, cmp.Body).core.front
+        return body.core.front
     # torso back
     elif equipType==EQ_BACK:
-        return Rogue.world.component_for_entity(ent, cmp.Body).core.back
+        return body.core.back
     # torso hips
     elif equipType==EQ_HIPS:
-        return Rogue.world.component_for_entity(ent, cmp.Body).core.hips
+        return body.core.hips
     
         # peripherals #
     # arms
     for i in range(MAXARMS):
         # hands
         if (equipType==(i + EQ_MAINHAND) or equipType==(i + EQ_MAINHANDW)):
-            arm = body.parts[ent,cmp.BPC_Arms].arms[i]
+            arm = body.parts[cmp.BPC_Arms].arms[i]
             return arm.hand if arm else None
         # arms
         if equipType==(i + EQ_MAINARM):
-            arm = body.parts[ent,cmp.BPC_Arms].arms[i]
+            arm = body.parts[cmp.BPC_Arms].arms[i]
             return arm.arm if arm else None
     # legs
     for i in range(MAXLEGS):
         # feet
         if equipType==(i + EQ_MAINFOOT):
-            leg = body.parts[ent,cmp.BPC_Legs].legs[i]
+            leg = body.parts[cmp.BPC_Legs].legs[i]
             return leg.foot if leg else None
         # legs
         if equipType==(i + EQ_MAINLEG):
-            leg = body.parts[ent,cmp.BPC_Legs].legs[i]
+            leg = body.parts[cmp.BPC_Legs].legs[i]
             return leg.leg if leg else None
     # heads
     for i in range(MAXHEADS):
         # heads
         if equipType==(i + EQ_MAINHEAD):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.head if head else None
         # faces
         if equipType==(i + EQ_MAINFACE):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.face if head else None
         # necks
         if equipType==(i + EQ_MAINNECK):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.neck if head else None
         # eyes
         if equipType==(i + EQ_MAINEYES):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.eyes if head else None
         # ears
         if equipType==(i + EQ_MAINEARS):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.ears if head else None
         # mouths
         if equipType==(i + EQ_MAINMOUTH):
-            head = body.parts[ent,cmp.BPC_Heads].heads[i]
+            head = body.parts[cmp.BPC_Heads].heads[i]
             return head.mouth if head else None
     return None
 #end def
@@ -2117,9 +2118,24 @@ def get_encumberance_breakpoint(enc, encmax):
         encbp = 7
     return encbp
 
-def _update_from_equip(modded, equip):
-    ''' apply addMods from equipment item, modify stats based on
-        any attribute insufficiencies'''
+def _update_from_limbweapon(modded, wp_id):
+    ''' add stats from LIMBWEAPONS dict '''
+    data = entities.LIMBWEAPONS.get(wp_id, {})
+    if not data: return
+    modded.atk += entities.get_limbweapon_atk(data)
+    modded.dmg += entities.get_limbweapon_dmg(data)
+    modded.pen += entities.get_limbweapon_pen(data)
+    modded.gra += entities.get_limbweapon_gra(data)
+    modded.dfn += entities.get_limbweapon_dfn(data)
+    modded.arm += entities.get_limbweapon_arm(data)
+    modded.pro += entities.get_limbweapon_pro(data)
+    modded.asp += entities.get_limbweapon_asp(data)
+# end def
+def _update_from_wield(modded, equip):
+    ''' apply addMods from weapon item, modify stats based on
+        any attribute insufficiencies. Wielded equipment only.
+        equip: entities.__EQ instance
+    '''
     for k,v in equip.addMods.items():
         modded.__dict__[k] = v + modded.__dict__[k]
     # Strength Requirement and penalties | insufficient strength penalty
@@ -2128,46 +2144,61 @@ def _update_from_equip(modded, equip):
         # Multiply gear's enc. by ratio based on missing STR
         modded.enc += equip.enc * strd * 0.1
         modded.dfn -= strd*INSUFF_STR_DFN_PENALTY*MULT_STATS
-        # for held items only, reduce offensive stats
-        if (equip.bptype in cmp.BP_BPS_HOLD):
-            modded.dmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
-            modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
-            modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
-            modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
-            modded.asp -= strd*INSUFF_STR_ASP_PENALTY
-            modded.tatk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
-            modded.tpen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
-            modded.tdmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
-            modded.trng = (1 - strd*INSUFF_STR_RNG_PENALTY)*modded.trng
+        modded.arm -= strd*INSUFF_STR_ARM_PENALTY*MULT_STATS
+        modded.pro -= strd*INSUFF_STR_PRO_PENALTY*MULT_STATS
+        # weapon-specific stats
+        modded.dmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
+        modded.atk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+        modded.pen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
+        modded.gra -= strd*INSUFF_STR_GRA_PENALTY*MULT_STATS
+        modded.asp -= strd*INSUFF_STR_ASP_PENALTY
+        modded.tatk -= strd*INSUFF_STR_ATK_PENALTY*MULT_STATS
+        modded.tpen -= strd*INSUFF_STR_PEN_PENALTY*MULT_STATS
+        modded.tdmg -= strd*INSUFF_STR_DMG_PENALTY*MULT_STATS
+        modded.trng = (1 - strd*INSUFF_STR_RNG_PENALTY)*modded.trng
     # Dexterity Requirement and penalties | insufficient dexterity penalty
     dexd = equip.dexReq - modded.dex//MULT_STATS
     if dexd > 0:
         modded.dfn -= dexd*INSUFF_DEX_DFN_PENALTY*MULT_STATS
-        # for held items only, reduce offensive stats
-        if (equip.bptype in cmp.BP_BPS_HOLD):
-            modded.dmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
-            modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
-            modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
-            modded.gra -= dexd*INSUFF_DEX_GRA_PENALTY*MULT_STATS
-            modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
-            modded.tatk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
-            modded.tpen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
-            modded.tdmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
-            modded.trng = (1 - dexd*INSUFF_DEX_RNG_PENALTY)*modded.trng
+        # weapon-specific stats
+        modded.dmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
+        modded.atk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+        modded.pen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+        modded.gra -= dexd*INSUFF_DEX_GRA_PENALTY*MULT_STATS
+        modded.asp -= dexd*INSUFF_DEX_ASP_PENALTY
+        modded.tatk -= dexd*INSUFF_DEX_ATK_PENALTY*MULT_STATS
+        modded.tpen -= dexd*INSUFF_DEX_PEN_PENALTY*MULT_STATS
+        modded.tdmg -= dexd*INSUFF_DEX_DMG_PENALTY*MULT_STATS
+        modded.trng = (1 - dexd*INSUFF_DEX_RNG_PENALTY)*modded.trng
+# end def
+def _update_from_armor(modded, equip):
+    ''' apply addMods from non-weapon equipment item, modify stats
+        based on strength insufficiency. (Dex doesn't affect worn armor.)
+        equip: entities.__EQ instance
+    '''
+    for k,v in equip.addMods.items():
+        modded.__dict__[k] = v + modded.__dict__[k]
+    # Strength Requirement and penalties | insufficient strength penalty
+    strd = equip.strReq - modded.str//MULT_STATS
+    if strd > 0:
+        # Multiply gear's enc. by ratio based on missing STR
+        modded.enc += equip.enc * strd * 0.1
+        modded.dfn -= strd*INSUFF_STR_DFN_PENALTY*MULT_STATS
+        modded.arm -= strd*INSUFF_STR_ARM_PENALTY*MULT_STATS
+        modded.pro -= strd*INSUFF_STR_PRO_PENALTY*MULT_STATS
 # end def
 
 def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
-    '''
-        calculate modified stats
-            building up from scratch (base stats)
+    ''' calculate modified stats (ModdedStats component)
+            building up from scratch (base stats from Stats component)
             add any modifiers from equipment, status effects, etc.
-        return the Modified Stats component
-        after this is called, you can access the Modified Stats component
+        return the ModdedStats component
+        after this is called, you can access the ModdedStats component
             and it will contain the right value, until something significant
             updates which would change the calculation, at which point the
             DIRTY_STATS flag for that entity must be set to True.
-        NOTE: should not call this directly nor access modified stats
-            component directly. Use the public interface "getms"
+        NOTE: this and ModdedStats component are private.
+            Use the public interface "getms" to access modified stats.
     '''
     # NOTE: apply all penalties (w/ limits, if applicable) AFTER bonuses.
         # this is to ensure you don't end up with MORE during a
@@ -2504,8 +2535,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for k,v in bps.addMods.items():
             modded.__dict__[k] = v + modded.__dict__[k]
         # equipment
-        if bps.equip:
-            _update_from_equip(modded, bps.equip)
+        if bps.armor: # worn
+            _update_from_armor(modded, bps.armor)
+        if bps.wield: # held/weapon # TEST!
+            _update_from_wield(modded, bps.wield)
+        elif bps.limbweapon: # pseudo-weapon from BP # TEST!
+            _update_from_limbweapon(modded, bps.limbweapon)
             #
     # end for
     
@@ -2755,8 +2790,12 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         for k,v in bps.multMods.items():
             if modded.__dict__[k] > 0:
                 modded.__dict__[k] = v * modded.__dict__[k]
-        if bps.equip:
-            for k,v in bps.equip.multMods.items():
+        if bps.armor:
+            for k,v in bps.armor.multMods.items():
+                if modded.__dict__[k] > 0:
+                    modded.__dict__[k] = v * modded.__dict__[k]
+        if bps.wield:
+            for k,v in bps.wield.multMods.items():
                 if modded.__dict__[k] > 0:
                     modded.__dict__[k] = v * modded.__dict__[k]
     

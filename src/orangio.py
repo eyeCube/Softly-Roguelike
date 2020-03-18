@@ -306,6 +306,11 @@ Tab
 NONE
 NONE
 
+// equipment menu
+e
+NONE
+NONE
+
 // change body position or stance (crouch, stand, lie prone, etc.)
 p
 NONE
@@ -490,6 +495,7 @@ COMMANDS = {        # translate commands into actions
     'close-prompt'  : {'close-prompt': True},
     'open-prompt'   : {'open-prompt': True},
     'inventory'     : {'inventory': True},
+    'equipment'     : {'equipment': True},
     'abilities'     : {'abilities': True},
     'change-pos'    : {'change-pos': True},
     'change-msp'    : {'change-msp': True},
@@ -978,7 +984,7 @@ def init_keyBindings():
     try:
         _init_keyBindings()
     except FileNotFoundError:
-        print("'key_bindings.txt' File Not Found. Creating new file from defaults...")
+        print("'key_bindings.txt' file not found. Creating new file from defaults...")
         _keyBindings_writeFromDefault()
         _init_keyBindings()
 
@@ -1065,7 +1071,7 @@ def _keyBindings_writeFromDefault():
     try:
         with open(file_keyBindings,"w+") as file:
             file.write(KEYBINDINGS_TEXT_DEFAULT)
-            print("'key_bindings.txt' Created.")
+            print("'key_bindings.txt' created.")
     except:
         print("FATAL ERROR! Failed to create key_bindings.txt")
 

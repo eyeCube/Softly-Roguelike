@@ -678,12 +678,14 @@ class BP_Face:
         self.features=BPP_FacialFeatures()
         self.skin=BPP_Skin()
         self.covered=False
-class BP_Mouth: #TODO: mouth holding items
-    __slots__=['bone','muscle','teeth','gustatorySystem']
+class BP_Mouth:
+    __slots__=['held','bone','muscle','teeth','gustatorySystem','weapon']
     def __init__(self, taste=20): # quality of taste system
+        self.held=Slot() # grabbed slot (weapon equip, etc.) (TODO: mouth holding / equipping items/weapons)
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.teeth=BPP_Teeth()
+        self.weapon=LIMBWPN_TEETH
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
 class BP_Eyes:
     __slots__=['slot','visualSystem','covered','open']
@@ -715,7 +717,7 @@ class BP_Arm: # upper / middle arm and shoulder
         self.covered=False
 class BP_Hand: # hand and lower forearm
     __slots__=['slot','held','bone','artery','muscle','skin',
-               'covered','holding','grip']
+               'covered','holding','grip','weapon']
     def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
@@ -723,6 +725,7 @@ class BP_Hand: # hand and lower forearm
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.weapon=LIMBWPN_HAND # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.grip=grip # grip your bare hand has
         self.covered=False
         self.holding=False # holding something?
@@ -771,11 +774,12 @@ class BP_InsectHead:
         self.visualSystem=BPP_VisualSystem()
         self.covered=False
 class BP_Mandible:
-    __slots__=['held','exoskeleton','muscle','holding']
+    __slots__=['held','exoskeleton','muscle','holding','weapon']
     def __init__(self):
         self.held=Slot()
         self.exoskeleton=BPP_Exoskeleton()
         self.muscle=BPP_Muscle()
+        self.weapon=LIMBWPN_PINCER # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.holding=False
 class BP_InsectLeg:
     __slots__=['slot','exoskeleton','muscle','covered']
@@ -786,20 +790,22 @@ class BP_InsectLeg:
         self.covered=False
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
     __slots__=['slot','held','artery','muscle','skin','stickies',
-               'covered','holding']
+               'covered','holding','weapon']
     def __init__(self, stickies=0):
         self.slot=Slot()
         self.held=Slot()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
+        self.weapon=LIMBWPN_TENTACLE # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
         self.covered=False
         self.holding=False
 class BP_Pseudopod:
-    __slots__=['slot','covered']
+    __slots__=['slot','covered','weapon']
     def __init__(self):
         self.slot=Slot()
+        self.weapon=LIMBWPN_PSEUDOPOD # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.covered=False
 class BP_Ameboid:
     __slots__=['slot','nucleus','covered']

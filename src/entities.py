@@ -281,6 +281,17 @@ def get_ranged_force(name):     return RANGEDWEAPONS[name][7][12]
 def get_ranged_skill(name):     return RANGEDWEAPONS[name][8]
 def get_ranged_script(name):    return RANGEDWEAPONS[name][9]
 def get_ranged_idtype(name):    return RANGEDWEAPONS[name][10]
+    # limb-weapons
+def get_limbweapon_name(data):          return data[0]
+def get_limbweapon_atk(data):           return data[1][0]
+def get_limbweapon_dmg(data):           return data[1][1]
+def get_limbweapon_pen(data):           return data[1][2]
+def get_limbweapon_gra(data):           return data[1][3]
+def get_limbweapon_dfn(data):           return data[1][4]
+def get_limbweapon_arm(data):           return data[1][5]
+def get_limbweapon_pro(data):           return data[1][6]
+def get_limbweapon_asp(data):           return data[1][7]
+def get_limbweapon_staminacost(data):   return data[1][8]
 
 # JOBS #
 def getJobs():
@@ -2781,21 +2792,17 @@ def _apply_grease(item):
 # TODO: ADD NEW ELEMENTAL TYPE FUNCTIONS!
 
 #   TEMP METER
-def burn(ent, amt, maxTemp):
+def burn(ent, amt, maxTemp): # heat damage
     assert(amt > 0)
     res = max(-99, rog.getms(ent, 'resfire'))
-    # TODO: wet resistance to fire. Put this logic in _update_stats
     # TODO: heat while wet reduces wetness, may create steam
-##    if rog.on(obj, WET):    
-##        rog.clear_status(obj,WET)    #wet things get dried
-##        #steam=stuff.create("steam", obj.x, obj.y)
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.temp < MAX_TEMP:
         meters.temp = min(MAX_TEMP, meters.temp + dmg)
         rog.make(ent, DIRTY_STATS)
-    return dmg
-def cool(ent, amt, minTemp):
+    return dmg # TODO: burns when returned dmg exceeds certain amount
+def cool(ent, amt, minTemp): # cold damage
     assert(amt > 0)
     res = max(-99, rog.getms(ent, 'rescold'))
     # TODO: wet resistance to cold. Put this logic in _update_stats
@@ -3312,7 +3319,10 @@ def _apply_skillBonus_unarmored(dadd, skillLv, coverage_modf):
 def getcov(bp_type):
     return COVERAGE.get(bp_type, 0)
 class __EQ:
-    def __init__(self, enc, strReq, dexReq, addMods, multMods, bptype=None):
+    __slots__=['enc','strReq','dexReq',
+               'addMods','multMods','bptype','twoh']
+    def __init__(self, enc, strReq, dexReq, addMods, multMods,
+                 bptype=None, twoh=False):
         self.enc=enc
         self.strReq=strReq
         self.dexReq=dexReq
@@ -3320,10 +3330,14 @@ class __EQ:
         self.multMods=multMods
         self.bptype=bptype
 class __BPS: # Body Part Stats
-    def __init__(self, addMods, multMods, equip=None):
-        self.addMods=addMods
-        self.multMods=multMods
-        self.equip=equip
+    __slots__=['addMods','multMods','armor','wield','limbweapon']
+    def __init__(self, addMods, multMods,
+                 armor=None, wield=None, limbweapon=None):
+        self.addMods=addMods        # dict
+        self.multMods=multMods      # dict
+        self.armor=armor            # __EQ object
+        self.wield=wield            # __EQ object
+        self.limbweapon=limbweapon  # LIMBWPN_ const
     
 # BPC
 
@@ -3582,13 +3596,13 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
             wreLv = wreLv * 0.5 # penalty for offhand
         _apply_skillBonus_weapon(eqdadd, wreLv, SKL_WRESTLING, enc=False)
         
-        equip=__EQ(
+        wield=__EQ(
             eqdadd['enc'], strReq, equipable.dexReq,
             eqdadd, eqdmul,
-            BP_HAND, twohands,
+            BP_HAND, twoh=rog.on(item, 'TWOHANDS'),
             )
     else: # unarmed combat
-        equip=None
+        wield=None
         if ismainhand:
             # unarmed combat (hand-to-hand combat)
             boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
@@ -3611,7 +3625,7 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
         _add(dadd, ADDMODS_BPP_HAND_MUSCLESTATUS.get(hand.muscle.status, {}))
     if hand.skin.status:
         _add(dadd, ADDMODS_BPP_HAND_SKINSTATUS.get(hand.skin.status, {}))
-    return __BPS(dadd,dmul, equip)
+    return __BPS(dadd,dmul, equip, wield=wield, limbweapon=hand.weapon)
 # end def
 
 # leg
@@ -3918,6 +3932,9 @@ def _update_from_bp_mouth(ent, mouth, armorSkill, unarmored):
     dmul={}
     eqdadd={}
     eqdmul={}
+    
+    # TODO: holding things in the mouth
+    
     # examine body part
     if mouth.bone.status:
         _add(dadd, ADDMODS_BPP_FACE_BONESTATUS.get(mouth.bone.status, {}))
@@ -4380,6 +4397,7 @@ def create_headwear(name,x,y,condition=1) -> int:
     reslight = get_gear_reslight(gData)
     ressound = get_gear_ressound(gData)
     per = get_gear_sight(gData)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     neck = get_headwear_neck(gData)
     eyes = get_headwear_eyes(gData)
     ears = get_headwear_ears(gData)
@@ -4443,6 +4461,7 @@ def create_facewear(name,x,y,condition=1) -> int:
     reslight = get_gear_reslight(gData)
     ressound = get_gear_ressound(gData)
     sight = get_gear_sight(gData)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     eyes = get_facewear_eyes(gData)
     script = get_facewear_script(gData)
     idtype = get_facewear_idtype(gData)
@@ -4499,6 +4518,7 @@ def create_handwear(name,x,y,condition=1) -> int:
     resphys = get_gear_resphys(gData)
     resbleed = get_gear_resbleed(gData)
     grip = get_gloves_grip(gData)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     reslight = ressound = 0
     sight = 1
     script = get_gear_script(gData)
@@ -4555,6 +4575,7 @@ def create_armwear(name,x,y,condition=1) -> int:
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
     resbleed = get_gear_resbleed(gData)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     reslight = ressound = 0
     sight = 1
     script = get_gear_script(gData)
@@ -4611,6 +4632,7 @@ def create_legwear(name,x,y,condition=1) -> int:
     reselec = get_gear_reselec(gData)
     resphys = get_gear_resphys(gData)
     resbleed = get_gear_resbleed(gData)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     reslight = ressound = 0
     sight = 1
     coversBoth = get_legwear_coversBoth(gData)
@@ -4663,6 +4685,7 @@ def create_footwear(name,x,y,condition=1) -> int:
     dfn = rog.around(get_gear_dv(gData)*MULT_STATS)
     arm = rog.around(get_gear_av(gData)*MULT_STATS)
     pro = rog.around(get_gear_pro(gData)*MULT_STATS)
+    bal = rog.around(get_gear_bal(gData)*MULT_STATS)
     enc = get_gear_enc(gData)
     resbio = get_gear_resbio(gData)
     resfire = get_gear_resfire(gData)
@@ -5801,18 +5824,24 @@ Material tiers
             Grind maximum is higher for swords than clubs, for example.
 '''
 
-
-LIMBWEAPONS={
-# name          :(At,Dm,Pe,Gr,DV,AV,Pr,Asp,Sta)
-"flesh hand"    :(0, 0, 0, 0, 0, 0, 0, 0,  24,),
-"keratin claw"  :(2, 2, 4, -4,0, 0, 0, 12, 24,),
-"bone claw"     :(2, 2, 6, -4,0, 0, 0, 12, 24,),
-"cyborg hand"   :(4, 2, 2, 0, 1, 0, 1, 12, 20,),
-"tentacle"      :(4, 0, 0, 4, 0, 0, 1, -30,28,),
-"pseudopod"     :(-2,0, 0, 4, 0, 0, 0, -60,12,),
+LIMBWEAPONS={ # pseudo-weapons that are used when no weapon is equipped
+    # how should we apply these stats? On-the-fly like when you attack?
+    # or should they be "equipped" like regular weapons are?
+    # Gr==Grappling (grip is a variable of the BP_ component --
+    #    independent of limb weapon)
+# ID                :(Name,             (At,Dm,Pe,Gr,DV,AV,Pr,Asp,Sta),),
+LIMBWPN_HAND        :("flesh hand",     (0, 0, 0, 0, 0, 0, 0, 0,  24,),),
+LIMBWPN_KERATINCLAW :("keratin claw",   (2, 2, 4, -4,0, 0, 0, 12, 24,),),
+LIMBWPN_BONECLAW    :("bone claw",      (2, 2, 6, -4,0, 0, 0, 12, 24,),),
+LIMBWPN_METALHAND   :("metal hand",     (4, 2, 2, 0, 1, 0, 1, 12, 20,),),
+LIMBWPN_TENTACLE    :("tentacle",       (4, 0, 0, 4, 0, 0, 1, -15,28,),),
+LIMBWPN_PSEUDOPOD   :("pseudopod",      (-4,0, 0, 4, 0, 0, 0, -33,12,),),
+LIMBWPN_PINCER      :("pincer",         (0, 0, 0, 2, 0, 1, 1, -15,24,),),
+LIMBWPN_TEETH       :("teeth",          (-8,2, 6, 0, 0, 0, 0, -33,24,),),
+LIMBWPN_SHARPTEETH  :("sharp teeth",    (-8,4, 8, 0, 0, 0, 0, -24,20,),),
     }
 
-WEAPONS={ #melee weapons, 1H, 2H and 1/2H
+WEAPONS={ #melee weapons
     # $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
     # cost, mass, maxHP, material, strength required, dexterity requied, 
     # (Enc = Encumberance, Sta = Stamina cost to attack with, Rea = Reach;..., Force, Grip, Bal,),

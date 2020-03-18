@@ -232,16 +232,16 @@ STATS_TO_MULT={
 
 # titles
 i=0;
-TITLE_NONE          = i;i+=1;
-TITLE_THE           = i;i+=1;
-TITLE_MR            = i;i+=1;
-TITLE_MRS           = i;i+=1;
-TITLE_MS            = i;i+=1;
-TITLE_SIR           = i;i+=1;
-TITLE_THEHONORABLE  = i;i+=1;
-TITLE_LORD          = i;i+=1;
-TITLE_LADY          = i;i+=1;
-TITLE_DR            = i;i+=1;
+TITLE_NONE          =i;i+=1;
+TITLE_THE           =i;i+=1;
+TITLE_MR            =i;i+=1;
+TITLE_MRS           =i;i+=1;
+TITLE_MS            =i;i+=1;
+TITLE_SIR           =i;i+=1;
+TITLE_THEHONORABLE  =i;i+=1;
+TITLE_LORD          =i;i+=1;
+TITLE_LADY          =i;i+=1;
+TITLE_DR            =i;i+=1;
 TITLES={
 TITLE_NONE          : "",
 TITLE_THE           : "the ",
@@ -258,14 +258,14 @@ TITLE_DR            : "Dr. ",
 
 # death types (sent to DeathFunction component to tell it how the thing died)
 i=1;
-DEATH_SHATTERED     = i;i+=1;
-DEATH_STABBED       = i;i+=1;
-DEATH_CUT           = i;i+=1;
-DEATH_CRUSHED       = i;i+=1;
-DEATH_MELTED        = i;i+=1;
-DEATH_BURNED        = i;i+=1;
-DEATH_RUSTED        = i;i+=1;
-DEATH_ELECTROCUTED  = i;i+=1;
+DEATH_SHATTERED     =i;i+=1;
+DEATH_STABBED       =i;i+=1;
+DEATH_CUT           =i;i+=1;
+DEATH_CRUSHED       =i;i+=1;
+DEATH_MELTED        =i;i+=1;
+DEATH_BURNED        =i;i+=1;
+DEATH_RUSTED        =i;i+=1;
+DEATH_ELECTROCUTED  =i;i+=1;
 
 
 
@@ -275,13 +275,13 @@ DEATH_ELECTROCUTED  = i;i+=1;
     #----------------#
 
 i=1;
-CRAFTJOB_HACK       = i;i+=1;
-CRAFTJOB_QUICK      = i;i+=1;
-CRAFTJOB_NORMAL     = i;i+=1;
-CRAFTJOB_DETAILED   = i;i+=1;
-CRAFTJOB_FINE       = i;i+=1;
-CRAFTJOB_METICULOUS = i;i+=1;
-CRAFTJOB_THESIS     = i;i+=1;
+CRAFTJOB_HACK       =i;i+=1;
+CRAFTJOB_QUICK      =i;i+=1;
+CRAFTJOB_NORMAL     =i;i+=1;
+CRAFTJOB_DETAILED   =i;i+=1;
+CRAFTJOB_FINE       =i;i+=1;
+CRAFTJOB_METICULOUS =i;i+=1;
+CRAFTJOB_THESIS     =i;i+=1;
 
 CRAFTJOBS={
 # ID : (name (+" job"), fail, crude, quality, masterpiece,),
@@ -297,27 +297,27 @@ CRAFTJOB_THESIS     : ("thesis",    _1_256,_1_256,50,    25,),
 
 # Crafting Recipe Categories
 i=1;
-CRC_PLASTIC         = i;i+=1; # plasticraft (whittling, chiseling)
-CRC_WOOD            = i;i+=1; # woodcraft (whittling, chiseling)
-CRC_BONE            = i;i+=1; # bonecraft (whittling, chiseling)
-CRC_STONE           = i;i+=1; # stonecraft (chiseling)
-CRC_METAL           = i;i+=1; # metalcraft (forging)
-CRC_GLASS           = i;i+=1; # glasscraft (chiseling)
-CRC_GLASSBLOWING    = i;i+=1; # glass blowing, separate skill from glass chiseling
-CRC_CLAY            = i;i+=1; # potter
-CRC_LEATHER         = i;i+=1; # tanner
-CRC_BOILEDLEATHER   = i;i+=1; # boiled leathercraft
-CRC_RUBBER          = i;i+=1; # Joergcraft
-CRC_CLOTH           = i;i+=1; # tailor
-CRC_FLESH           = i;i+=1; # fleshcraft
-CRC_ARMOR           = i;i+=1; # armor making
-CRC_ASSEMBLY        = i;i+=1; # basic putting stuff together skills
-CRC_SURVIVAL        = i;i+=1; # living off the land
-CRC_SWORDS          = i;i+=1; # swordsmithing (parents: metalcraft)
-CRC_GUNS            = i;i+=1; # gunsmithing (parents: wood, metalcraft)
-CRC_BOWS            = i;i+=1; # 
-CRC_ARROWS          = i;i+=1; # 
-CRC_CARTRIDGES      = i;i+=1; # 
+CRC_PLASTIC         =i;i+=1; # plasticraft (whittling, chiseling)
+CRC_WOOD            =i;i+=1; # woodcraft (whittling, chiseling)
+CRC_BONE            =i;i+=1; # bonecraft (whittling, chiseling)
+CRC_STONE           =i;i+=1; # stonecraft (chiseling)
+CRC_METAL           =i;i+=1; # metalcraft (forging)
+CRC_GLASS           =i;i+=1; # glasscraft (chiseling)
+CRC_GLASSBLOWING    =i;i+=1; # glass blowing, separate skill from glass chiseling
+CRC_CLAY            =i;i+=1; # potter
+CRC_LEATHER         =i;i+=1; # tanner
+CRC_BOILEDLEATHER   =i;i+=1; # boiled leathercraft
+CRC_RUBBER          =i;i+=1; # Joergcraft
+CRC_CLOTH           =i;i+=1; # tailor
+CRC_FLESH           =i;i+=1; # fleshcraft
+CRC_ARMOR           =i;i+=1; # armor making
+CRC_ASSEMBLY        =i;i+=1; # basic putting stuff together skills
+CRC_SURVIVAL        =i;i+=1; # living off the land
+CRC_SWORDS          =i;i+=1; # swordsmithing (parents: metalcraft)
+CRC_GUNS            =i;i+=1; # gunsmithing (parents: wood, metalcraft)
+CRC_BOWS            =i;i+=1; # 
+CRC_ARROWS          =i;i+=1; # 
+CRC_CARTRIDGES      =i;i+=1; # 
 
 
 
@@ -325,11 +325,11 @@ CRC_CARTRIDGES      = i;i+=1; #
 # Crafting Recipe Types (which table to access)
 #
 i=1;
-CRT_WEAPONS         = i;i+=1;
-CRT_ARMOR           = i;i+=1;
-CRT_TOOLS           = i;i+=1;
-CRT_STUFF           = i;i+=1;
-CRT_RAWMATS         = i;i+=1;
+CRT_WEAPONS         =i;i+=1;
+CRT_ARMOR           =i;i+=1;
+CRT_TOOLS           =i;i+=1;
+CRT_STUFF           =i;i+=1;
+CRT_RAWMATS         =i;i+=1;
 
 
 
@@ -340,32 +340,32 @@ CRT_RAWMATS         = i;i+=1;
 # Monster and item flags
 
 i = 1
-RAVAGED     = i;i+=1;  # Creature is starved: strong desire for food
-THIEF       = i;i+=1;  # Creature desires gold / treasure and will steal it
-MEAN        = i;i+=1;  # Creature is always hostile to rogues
-DEAD        = i;i+=1;  # Is dead
-FLYING      = i;i+=1;  # Is currently flying
-NVISION     = i;i+=1;  # Has Night vision
-INVIS       = i;i+=1;  # Is invisible
-SEEINV      = i;i+=1;  # Can see invisible things
-SEEXRAY     = i;i+=1;  # LOS not blocked by walls
-TWOHANDS    = i;i+=1;  # 2-handed only (when wielded in hands)
-ISSOLID     = i;i+=1;  # Is solid (cannot walk through it)
-CANCOUNTER  = i;i+=1;  # Is able to counter-attack this turn
-IMMUNEBIO   = i;i+=1;  # Immune to bio / chems / radiation damage
-IMMUNERUST  = i;i+=1;  # Immune to rusting
-IMMUNEROT   = i;i+=1;  # Immune to rotting
-IMMUNEWATER = i;i+=1;  # Immune to getting wet
-IMMUNEBLEED = i;i+=1;  # Immune to bleeding
-IMMUNEPAIN  = i;i+=1;  # Immune to pain
-DIRTY_STATS = i;i+=1;  # private -- indicates entity's stats (may) have changed
+RAVAGED     =i;i+=1;  # Creature is starved: strong desire for food
+THIEF       =i;i+=1;  # Creature desires gold / treasure and will steal it
+MEAN        =i;i+=1;  # Creature is always hostile to rogues
+DEAD        =i;i+=1;  # Is dead
+FLYING      =i;i+=1;  # Is currently flying
+NVISION     =i;i+=1;  # Has Night vision
+INVIS       =i;i+=1;  # Is invisible
+SEEINV      =i;i+=1;  # Can see invisible things
+SEEXRAY     =i;i+=1;  # LOS not blocked by walls
+TWOHANDS    =i;i+=1;  # 2-handed only (when wielded in hands)
+ISSOLID     =i;i+=1;  # Is solid (cannot walk through it)
+CANCOUNTER  =i;i+=1;  # Is able to counter-attack this turn
+IMMUNEBIO   =i;i+=1;  # Immune to bio / chems / radiation damage
+IMMUNERUST  =i;i+=1;  # Immune to rusting
+IMMUNEROT   =i;i+=1;  # Immune to rotting
+IMMUNEWATER =i;i+=1;  # Immune to getting wet
+IMMUNEBLEED =i;i+=1;  # Immune to bleeding
+IMMUNEPAIN  =i;i+=1;  # Immune to pain
+DIRTY_STATS =i;i+=1;  # private -- indicates entity's stats (may) have changed
 
 
 #
 # FOV maps | FOVmaps
 #
 i=1;
-FOVMAP_NORMAL       = i;i+=1;
+FOVMAP_NORMAL       =i;i+=1;
 
 
 # $$ values of things not given values elsewhere
@@ -454,6 +454,8 @@ INSUFF_STR_PEN_PENALTY  = 1 # each is a penalty PER Str point missing
 INSUFF_STR_DMG_PENALTY  = 1
 INSUFF_STR_ATK_PENALTY  = 3
 INSUFF_STR_DFN_PENALTY  = 1.5
+INSUFF_STR_PRO_PENALTY  = 1
+INSUFF_STR_ARM_PENALTY  = 0.5
 INSUFF_STR_GRA_PENALTY  = 2
 INSUFF_STR_ASP_PENALTY  = 18
 INSUFF_STR_RNG_PENALTY  = 0.1 # ratio penalty for throwing range
@@ -671,16 +673,17 @@ In addition, it enhances identify and persuasion.''',
 
 
 # body augmentations #
-PAUG_LIMITBREAKER_STR   = i;i+=1;
-PAUG_KERATINIZEDSKIN    = i;i+=1; # exoskeleton made of keratin
-PAUG_GILLS              = i;i+=1; # can breathe underwater
-PAUG_CLAWS              = i;i+=1; # hands use claw limb-weapon
-PAUG_              = i;i+=1;
+PAUG_LIMITBREAKER_STR   =i;i+=1;
+PAUG_KERATINIZEDSKIN    =i;i+=1; # exoskeleton made of keratin
+PAUG_GILLS              =i;i+=1; # can breathe underwater
+PAUG_CLAWS              =i;i+=1; # hands use claw limb-weapon
+PAUG_              =i;i+=1;
 
 AUGS_PHYS = {
-PAUG_LIMITBREAKER_STR   : {"str":5,},
-PAUG_KERATINIZEDSKIN    : {"arm":2,},
+PAUG_LIMITBREAKER_STR   : {'str':5,},
+PAUG_KERATINIZEDSKIN    : {'arm':2,'pro':2,'bea':-16,},
 PAUG_GILLS              : {},
+PAUG_CLAWS              : {'dex':-4,}, # keratin claws
     }
 
 #    -------------   Information on Body augs:   ----------------   #
@@ -814,23 +817,23 @@ ENCUMBERANCE_MODIFIERS = {
 # persuasion types
 i=1;
     # persuasion to yield services
-TALK_ASKQUESTION    = i;i+=1;
-TALK_INTERROGATE    = i;i+=1; # use intimiation to question
-TALK_TORTURE        = i;i+=1; # use pain to interrogate
-TALK_ASKFAVOR       = i;i+=1;
-TALK_BEG            = i;i+=1; # ask favor by appeal to sympathy
-TALK_BARTER         = i;i+=1; # trade -- buy/sell
+TALK_ASKQUESTION    =i;i+=1;
+TALK_INTERROGATE    =i;i+=1; # use intimiation to question
+TALK_TORTURE        =i;i+=1; # use pain to interrogate
+TALK_ASKFAVOR       =i;i+=1;
+TALK_BEG            =i;i+=1; # ask favor by appeal to sympathy
+TALK_BARTER         =i;i+=1; # trade -- buy/sell
     # persuasion to temporarily improve disposition
     # all of these types of persuasion induce the Charmed status effect
-TALK_CHARM          = i;i+=1; 
-TALK_BOAST          = i;i+=1; 
+TALK_CHARM          =i;i+=1; 
+TALK_BOAST          =i;i+=1; 
     # persuasion to permanently improve disposition
-TALK_SMALLTALK      = i;i+=1;
-TALK_BRIBERY        = i;i+=1;
-TALK_INTIMIDATION   = i;i+=1;
-TALK_FLATTERY       = i;i+=1;
-TALK_FLIRTATION     = i;i+=1;
-TALK_DEBATE         = i;i+=1;
+TALK_SMALLTALK      =i;i+=1;
+TALK_BRIBERY        =i;i+=1;
+TALK_INTIMIDATION   =i;i+=1;
+TALK_FLATTERY       =i;i+=1;
+TALK_FLIRTATION     =i;i+=1;
+TALK_DEBATE         =i;i+=1;
 
 PERSUASION={
 TALK_ASKQUESTION    : "question",
@@ -851,22 +854,22 @@ TALK_DEBATE         : "debate",
 
 # personality types
 i=1;
-PERSON_PROUD                = i;i+=1;
-PERSON_LOWSELFESTEEM        = i;i+=1;
-PERSON_ARGUMENTATIVE        = i;i+=1;
-PERSON_NONCONFRONTATIONAL   = i;i+=1;
-PERSON_OUTGOING             = i;i+=1;
-PERSON_SHY                  = i;i+=1;
-PERSON_INDEPENDENT          = i;i+=1;
-PERSON_CODEPENDENT          = i;i+=1;
-PERSON_BUBBLY               = i;i+=1;
-PERSON_LOWENERGY            = i;i+=1;
-PERSON_MOTIVATED            = i;i+=1;
-PERSON_UNMOTIVATED          = i;i+=1;
-PERSON_RELAXED              = i;i+=1;
-PERSON_UPTIGHT              = i;i+=1;
-PERSON_PROACTIVE            = i;i+=1;
-PERSON_APATHETIC            = i;i+=1;
+PERSON_PROUD                =i;i+=1;
+PERSON_LOWSELFESTEEM        =i;i+=1;
+PERSON_ARGUMENTATIVE        =i;i+=1;
+PERSON_NONCONFRONTATIONAL   =i;i+=1;
+PERSON_OUTGOING             =i;i+=1;
+PERSON_SHY                  =i;i+=1;
+PERSON_INDEPENDENT          =i;i+=1;
+PERSON_CODEPENDENT          =i;i+=1;
+PERSON_BUBBLY               =i;i+=1;
+PERSON_LOWENERGY            =i;i+=1;
+PERSON_MOTIVATED            =i;i+=1;
+PERSON_UNMOTIVATED          =i;i+=1;
+PERSON_RELAXED              =i;i+=1;
+PERSON_UPTIGHT              =i;i+=1;
+PERSON_PROACTIVE            =i;i+=1;
+PERSON_APATHETIC            =i;i+=1;
 
 PERSONALITIES={
 # personality : ( name, likes, dislikes,)
@@ -926,13 +929,13 @@ DISPOSITION_LEVELS={
     # #paces  #
     #---------#
 i=0;
-PACE_STOPPED    = i;i+=1;
-PACE_SNAILPACE  = i;i+=1;
-PACE_SLOWWALK   = i;i+=1;
-PACE_POWERWALK  = i;i+=1;
-PACE_JOG        = i;i+=1;
-PACE_RUN        = i;i+=1;
-PACE_SPRINT     = i;i+=1;
+PACE_STOPPED    =i;i+=1;
+PACE_SNAILPACE  =i;i+=1;
+PACE_SLOWWALK   =i;i+=1;
+PACE_POWERWALK  =i;i+=1;
+PACE_JOG        =i;i+=1;
+PACE_RUN        =i;i+=1;
+PACE_SPRINT     =i;i+=1;
 
 
 
@@ -957,6 +960,17 @@ FOOD_MORSEL_NRG     = 150*AVG_SPD
 # crafting
 CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
 
+# limb weapons
+i=1;
+LIMBWPN_HAND        =i;i+=1;
+LIMBWPN_KERATINCLAW =i;i+=1;
+LIMBWPN_BONECLAW    =i;i+=1;
+LIMBWPN_METALHAND   =i;i+=1; # cyborg / android hand
+LIMBWPN_TENTACLE    =i;i+=1;
+LIMBWPN_PSEUDOPOD   =i;i+=1;
+LIMBWPN_PINCER      =i;i+=1; # mandible / pincer-claw
+LIMBWPN_TEETH       =i;i+=1; # herbivore / omnivore's teeth
+LIMBWPN_SHARPTEETH  =i;i+=1; # carnivore's teeth
 
 
 
@@ -983,12 +997,12 @@ DEFAULT_BODYFAT_HUMAN   = 0.1       # ratio of total mass
 # body plans:
 #   body part coverage, for targeting specific body parts
 i=1;
-BODYPLAN_HUMANOID   = i;i+=1; 
-BODYPLAN_INSECTOID  = i;i+=1; # 6-legged
-BODYPLAN_ARACHNID   = i;i+=1; # 8-legged arthropod
-BODYPLAN_4LEGGED    = i;i+=1; # canine, feline, equestrian, 
-BODYPLAN_8ARMS      = i;i+=1; # octopus
-BODYPLAN_CUSTOM     = i;i+=1; # for special cases, body plan built up manually
+BODYPLAN_HUMANOID   =i;i+=1; 
+BODYPLAN_INSECTOID  =i;i+=1; # 6-legged
+BODYPLAN_ARACHNID   =i;i+=1; # 8-legged arthropod
+BODYPLAN_4LEGGED    =i;i+=1; # canine, feline, equestrian, 
+BODYPLAN_8ARMS      =i;i+=1; # octopus
+BODYPLAN_CUSTOM     =i;i+=1; # for special cases, body plan built up manually
 #
 
 # body plan data #
@@ -1032,14 +1046,14 @@ BODYPLAN_INSECTOID  : 50000,
 
 # body positions
 i=1;
-BODYPOS_UPRIGHT     = i;i+=1;
-BODYPOS_CROUCHED    = i;i+=1;
-BODYPOS_SEATED      = i;i+=1;
-BODYPOS_SUPINE      = i;i+=1;
-BODYPOS_PRONE       = i;i+=1;
-BODYPOS_OFFENSIVE   = i;i+=1;
-BODYPOS_DEFENSIVE   = i;i+=1;
-BODYPOS_CQB         = i;i+=1;
+BODYPOS_UPRIGHT     =i;i+=1;
+BODYPOS_CROUCHED    =i;i+=1;
+BODYPOS_SEATED      =i;i+=1;
+BODYPOS_SUPINE      =i;i+=1;
+BODYPOS_PRONE       =i;i+=1;
+BODYPOS_OFFENSIVE   =i;i+=1;
+BODYPOS_DEFENSIVE   =i;i+=1;
+BODYPOS_CQB         =i;i+=1;
 
 BODYPOSITIONS={
 BODYPOS_UPRIGHT     : "upright",
@@ -1120,29 +1134,29 @@ CQB_SPLASHMOD       = 0.25
 # body parts
 
 i=1;
-BP_LIMB         = i;i+=1;
-BP_HEAD         = i;i+=1;
-BP_NECK         = i;i+=1;
-BP_FACE         = i;i+=1;
-BP_TORSO        = i;i+=1;
-BP_HAND         = i;i+=1;
-BP_FOOT         = i;i+=1;
-BP_EYES         = i;i+=1;
-BP_EARS         = i;i+=1;
-BP_WING         = i;i+=1;
-BP_TAIL         = i;i+=1;
-BP_MOUTH        = i;i+=1;
-BP_BEAK         = i;i+=1;
-BP_GENITALS     = i;i+=1;
-BP_APPENDAGE    = i;i+=1;
-BP_TENTACLE     = i;i+=1;
-BP_PSEUDOPOD    = i;i+=1;
-BP_AMEBOID      = i;i+=1;
-BP_MANDIBLE     = i;i+=1;
-BP_INSECTHEAD   = i;i+=1;
-BP_INSECTLEG    = i;i+=1;
-BP_INSECTTHORAX = i;i+=1;
-BP_INSECTABDOMEN= i;i+=1;
+BP_LIMB         =i;i+=1;
+BP_HEAD         =i;i+=1;
+BP_NECK         =i;i+=1;
+BP_FACE         =i;i+=1;
+BP_TORSO        =i;i+=1;
+BP_HAND         =i;i+=1;
+BP_FOOT         =i;i+=1;
+BP_EYES         =i;i+=1;
+BP_EARS         =i;i+=1;
+BP_WING         =i;i+=1;
+BP_TAIL         =i;i+=1;
+BP_MOUTH        =i;i+=1;
+BP_BEAK         =i;i+=1;
+BP_GENITALS     =i;i+=1;
+BP_APPENDAGE    =i;i+=1;
+BP_TENTACLE     =i;i+=1;
+BP_PSEUDOPOD    =i;i+=1;
+BP_AMEBOID      =i;i+=1;
+BP_MANDIBLE     =i;i+=1;
+BP_INSECTHEAD   =i;i+=1;
+BP_INSECTLEG    =i;i+=1;
+BP_INSECTTHORAX =i;i+=1;
+BP_INSECTABDOMEN=i;i+=1;
 # coverage of specific body parts, for armor skill bonuses
 COVERAGE={
 'hand'  : 0.05,
@@ -1158,21 +1172,21 @@ COVERAGE={
 # body parts pieces
 
 i=1;
-BPP_MUSCLE      = i;i+=1;
-BPP_SKIN        = i;i+=1;
-BPP_BONE        = i;i+=1;
-BPP_HEART       = i;i+=1;
-BPP_LUNG        = i;i+=1;
-BPP_GUTS        = i;i+=1;
-BPP_BRAIN       = i;i+=1;
-BPP_TEETH       = i;i+=1;
-BPP_VISUAL      = i;i+=1;
-BPP_AUDITORY    = i;i+=1;
-BPP_GUSTATORY   = i;i+=1;
-BPP_OLFACTORY   = i;i+=1;
-BPP_ARTERY      = i;i+=1;
-BPP_FACE        = i;i+=1;
-BPP_HAIR        = i;i+=1;
+BPP_MUSCLE      =i;i+=1;
+BPP_SKIN        =i;i+=1;
+BPP_BONE        =i;i+=1;
+BPP_HEART       =i;i+=1;
+BPP_LUNG        =i;i+=1;
+BPP_GUTS        =i;i+=1;
+BPP_BRAIN       =i;i+=1;
+BPP_TEETH       =i;i+=1;
+BPP_VISUAL      =i;i+=1;
+BPP_AUDITORY    =i;i+=1;
+BPP_GUSTATORY   =i;i+=1;
+BPP_OLFACTORY   =i;i+=1;
+BPP_ARTERY      =i;i+=1;
+BPP_FACE        =i;i+=1;
+BPP_HAIR        =i;i+=1;
 
 # body part statuses
 
@@ -1180,110 +1194,110 @@ BPP_HAIR        = i;i+=1;
 #   when deciding whether to overwrite a status with another
 
 i=0;
-BONESTATUS_NORMAL       = i;i+=1;
-BONESTATUS_DAMAGED      = i;i+=1; # bone is damaged, susceptible to fracture or breakage
-BONESTATUS_FRACTURED    = i;i+=1; # hairline fracture
-BONESTATUS_CRACKED      = i;i+=1; # badly cracked
-BONESTATUS_BROKEN       = i;i+=1; # fully broken in two
-BONESTATUS_MULTIBREAKS  = i;i+=1; # fully broken in multiple places
-BONESTATUS_SHATTERED    = i;i+=1; # shattered; broken into several pieces
-BONESTATUS_MANGLED      = i;i+=1; # mullered; bone is in utter ruin
+BONESTATUS_NORMAL       =i;i+=1;
+BONESTATUS_DAMAGED      =i;i+=1; # bone is damaged, susceptible to fracture or breakage
+BONESTATUS_FRACTURED    =i;i+=1; # hairline fracture
+BONESTATUS_CRACKED      =i;i+=1; # badly cracked
+BONESTATUS_BROKEN       =i;i+=1; # fully broken in two
+BONESTATUS_MULTIBREAKS  =i;i+=1; # fully broken in multiple places
+BONESTATUS_SHATTERED    =i;i+=1; # shattered; broken into several pieces
+BONESTATUS_MANGLED      =i;i+=1; # mullered; bone is in utter ruin
 NBONESTATUSES           = i - 1; # don't count the normal status
 BONEFLAG_DISLOCATED = 1 # bone is out of socket
 
 i=0;
-MUSCLESTATUS_NORMAL     = i;i+=1;
-MUSCLESTATUS_SORE       = i;i+=1; # muscle is sore from a workout or from massaging out knots
-MUSCLESTATUS_KNOTTED    = i;i+=1; # muscle has knots that need massage
-MUSCLESTATUS_CONTUSION  = i;i+=1; # bruised
-MUSCLESTATUS_STRAINED   = i;i+=1; # muscle mildly torn
-MUSCLESTATUS_TORN       = i;i+=1; # muscle badly torn
-MUSCLESTATUS_BURNED     = i;i+=1; # surface muscle burn
-MUSCLESTATUS_RIPPED     = i;i+=1; # muscle is mostly ripped in half
-MUSCLESTATUS_DEEPBURNED = i;i+=1; # deep / widespread muscle burn
-MUSCLESTATUS_RUPTURED   = i;i+=1; # ruptured tendon or fully ripped in half muscle belly
-MUSCLESTATUS_MANGLED    = i;i+=1; # muscle is in utter ruin
+MUSCLESTATUS_NORMAL     =i;i+=1;
+MUSCLESTATUS_SORE       =i;i+=1; # muscle is sore from a workout or from massaging out knots
+MUSCLESTATUS_KNOTTED    =i;i+=1; # muscle has knots that need massage
+MUSCLESTATUS_CONTUSION  =i;i+=1; # bruised
+MUSCLESTATUS_STRAINED   =i;i+=1; # muscle mildly torn
+MUSCLESTATUS_TORN       =i;i+=1; # muscle badly torn
+MUSCLESTATUS_BURNED     =i;i+=1; # surface muscle burn
+MUSCLESTATUS_RIPPED     =i;i+=1; # muscle is mostly ripped in half
+MUSCLESTATUS_DEEPBURNED =i;i+=1; # deep / widespread muscle burn
+MUSCLESTATUS_RUPTURED   =i;i+=1; # ruptured tendon or fully ripped in half muscle belly
+MUSCLESTATUS_MANGLED    =i;i+=1; # muscle is in utter ruin
 NMUSCLESTATUSES         = i - 1; # don't count the normal status
 MUSCLEFLAG_DAMAGED = 1 # muscle is damaged, prone to injury
 MUSCLEFLAG_SCARRED = 2 # scarred from damage
 
 i=0;
-ARTERYSTATUS_NORMAL     = i;i+=1;
-ARTERYSTATUS_CLOGGED    = i;i+=1; # clogged, not working at full capacity
-ARTERYSTATUS_OPEN       = i;i+=1; # artery opened, causing massive bleeding
-ARTERYSTATUS_CUT        = i;i+=1; # fully cut, requiring urgent surgery
-ARTERYSTATUS_MANGLED    = i;i+=1; # fully ruined
+ARTERYSTATUS_NORMAL     =i;i+=1;
+ARTERYSTATUS_CLOGGED    =i;i+=1; # clogged, not working at full capacity
+ARTERYSTATUS_OPEN       =i;i+=1; # artery opened, causing massive bleeding
+ARTERYSTATUS_CUT        =i;i+=1; # fully cut, requiring urgent surgery
+ARTERYSTATUS_MANGLED    =i;i+=1; # fully ruined
 NARTERYSTATUSES         = i - 1; # don't count the normal status
 
 i=0;
-SKINSTATUS_NORMAL       = i;i+=1;
-SKINSTATUS_RASH         = i;i+=1; # irritation / inflammation
-SKINSTATUS_BLISTER      = i;i+=1; # severe inflammation / sore or pus/fluid sac
-SKINSTATUS_SCRAPED      = i;i+=1; # very mild abrasion (a boo-boo)
-SKINSTATUS_MINORABRASION= i;i+=1; # mild abrasion
-SKINSTATUS_CUT          = i;i+=1; # cut open
-SKINSTATUS_MAJORABRASION= i;i+=1; # serious deep and/or wide-ranging scrape
-SKINSTATUS_BURNED       = i;i+=1; # skin is burned at the surface level (overwrite cuts and abrasions)
-SKINSTATUS_DEEPCUT      = i;i+=1; # deeply cut to the muscle
-SKINSTATUS_MULTIDEEPCUTS= i;i+=1; # deeply cut to the muscle in several places
-SKINSTATUS_SKINNED      = i;i+=1; # skin is partially removed
-SKINSTATUS_DEEPBURNED   = i;i+=1; # skin is burned at a deep level (overwrite all of the above)
-SKINSTATUS_FULLYSKINNED = i;i+=1; # skin is fully / almost fully removed
-SKINSTATUS_MANGLED      = i;i+=1; # skin is fully ruined
+SKINSTATUS_NORMAL       =i;i+=1;
+SKINSTATUS_RASH         =i;i+=1; # irritation / inflammation
+SKINSTATUS_BLISTER      =i;i+=1; # severe inflammation / sore or pus/fluid sac
+SKINSTATUS_SCRAPED      =i;i+=1; # very mild abrasion (a boo-boo)
+SKINSTATUS_MINORABRASION=i;i+=1; # mild abrasion
+SKINSTATUS_CUT          =i;i+=1; # cut open
+SKINSTATUS_MAJORABRASION=i;i+=1; # serious deep and/or wide-ranging scrape
+SKINSTATUS_BURNED       =i;i+=1; # skin is burned at the surface level (overwrite cuts and abrasions)
+SKINSTATUS_DEEPCUT      =i;i+=1; # deeply cut to the muscle
+SKINSTATUS_MULTIDEEPCUTS=i;i+=1; # deeply cut to the muscle in several places
+SKINSTATUS_SKINNED      =i;i+=1; # skin is partially removed
+SKINSTATUS_DEEPBURNED   =i;i+=1; # skin is burned at a deep level (overwrite all of the above)
+SKINSTATUS_FULLYSKINNED =i;i+=1; # skin is fully / almost fully removed
+SKINSTATUS_MANGLED      =i;i+=1; # skin is fully ruined
 NSKINSTATUSES           = i - 1; # don't count the normal status
 SKINFLAG_CALLOUSES = 1 # toughened up from work
 SKINFLAG_THICC_CALLOUSES = 2 # GREATLY toughened up from work (having both 1&2 indicates leather-like skin)
 SKINFLAG_SCARRED = 4 # scarred from damage
 
 i=0;
-BRAINSTATUS_NORMAL      = i;i+=1; # swelling brain is a status effect, not a brain status
-BRAINSTATUS_CONTUSION   = i;i+=1; # brain bruise - mild injury
-BRAINSTATUS_CONCUSSION  = i;i+=1; # concussion - altered mental state maybe unconciousness
-BRAINSTATUS_DAMAGE      = i;i+=1; # temporary brain damage
-BRAINSTATUS_PERMDAMAGE  = i;i+=1; # permanent brain damage
-BRAINSTATUS_MAJORDAMAGE = i;i+=1; # MAJOR permanent brain damage
-BRAINSTATUS_DEAD        = i;i+=1; # braindead
-BRAINSTATUS_MANGLED     = i;i+=1; # ruined
+BRAINSTATUS_NORMAL      =i;i+=1; # swelling brain is a status effect, not a brain status
+BRAINSTATUS_CONTUSION   =i;i+=1; # brain bruise - mild injury
+BRAINSTATUS_CONCUSSION  =i;i+=1; # concussion - altered mental state maybe unconciousness
+BRAINSTATUS_DAMAGE      =i;i+=1; # temporary brain damage
+BRAINSTATUS_PERMDAMAGE  =i;i+=1; # permanent brain damage
+BRAINSTATUS_MAJORDAMAGE =i;i+=1; # MAJOR permanent brain damage
+BRAINSTATUS_DEAD        =i;i+=1; # braindead
+BRAINSTATUS_MANGLED     =i;i+=1; # ruined
 NBRAINSTATUSES          = i - 1; # don't count the normal status
 
 i=0;
-HAIRSTATUS_NORMAL       = i;i+=1;
-HAIRSTATUS_SINGED       = i;i+=1; # minor burn
-HAIRSTATUS_BURNED       = i;i+=1; # badly burned
-HAIRSTATUS_DAMAGE       = i;i+=1; # minor damage to hair
-HAIRSTATUS_PERMDAMAGE   = i;i+=1; # permanent follicle damage
-HAIRSTATUS_MANGLED      = i;i+=1; # ruined
+HAIRSTATUS_NORMAL       =i;i+=1;
+HAIRSTATUS_SINGED       =i;i+=1; # minor burn
+HAIRSTATUS_BURNED       =i;i+=1; # badly burned
+HAIRSTATUS_DAMAGE       =i;i+=1; # minor damage to hair
+HAIRSTATUS_PERMDAMAGE   =i;i+=1; # permanent follicle damage
+HAIRSTATUS_MANGLED      =i;i+=1; # ruined
 # removed hair == no hair (status==NORMAL and length==0)
 NHAIRSTATUSES           = i - 1; # don't count the normal status
 
 i=0;
-HEARTSTATUS_NORMAL      = i;i+=1;
-HEARTSTATUS_SCARRED     = i;i+=1;
-HEARTSTATUS_DAMAGE      = i;i+=1; # temporary damage
-HEARTSTATUS_PERMDAMAGE  = i;i+=1; # permanent damage
-HEARTSTATUS_MAJORDAMAGE = i;i+=1; # major permanent damage
-HEARTSTATUS_MANGLED     = i;i+=1; # ruined
+HEARTSTATUS_NORMAL      =i;i+=1;
+HEARTSTATUS_SCARRED     =i;i+=1;
+HEARTSTATUS_DAMAGE      =i;i+=1; # temporary damage
+HEARTSTATUS_PERMDAMAGE  =i;i+=1; # permanent damage
+HEARTSTATUS_MAJORDAMAGE =i;i+=1; # major permanent damage
+HEARTSTATUS_MANGLED     =i;i+=1; # ruined
 NHEARTSTATUSES          = i - 1; # don't count the normal status
 
 i=0;
-LUNGSTATUS_NORMAL       = i;i+=1;
-LUNGSTATUS_IRRITATED    = i;i+=1; # lung inflamed
-LUNGSTATUS_CLOGGED      = i;i+=1; # can't breathe; lung clogged up with something
-LUNGSTATUS_DAMAGE       = i;i+=1; # temporary damage
-LUNGSTATUS_PERMDAMAGE   = i;i+=1; # permanent damage
-LUNGSTATUS_MAJORDAMAGE  = i;i+=1; # major permanent damage
-LUNGSTATUS_MANGLED      = i;i+=1; # ruined
+LUNGSTATUS_NORMAL       =i;i+=1;
+LUNGSTATUS_IRRITATED    =i;i+=1; # lung inflamed
+LUNGSTATUS_CLOGGED      =i;i+=1; # can't breathe; lung clogged up with something
+LUNGSTATUS_DAMAGE       =i;i+=1; # temporary damage
+LUNGSTATUS_PERMDAMAGE   =i;i+=1; # permanent damage
+LUNGSTATUS_MAJORDAMAGE  =i;i+=1; # major permanent damage
+LUNGSTATUS_MANGLED      =i;i+=1; # ruined
 NLUNGSTATUSES           = i - 1; # don't count the normal status
 
 i=0;
-GUTSSTATUS_NORMAL       = i;i+=1;
-GUTSSTATUS_UPSET        = i;i+=1; # might cause vomiting / diarrhea
-GUTSSTATUS_SICK         = i;i+=1; # likely to cause vomiting / diarrhea
-GUTSSTATUS_ILL          = i;i+=1; # guaranteed to cause vomiting / diarrhea
-GUTSSTATUS_DAMAGE       = i;i+=1; # temporary damage
-GUTSSTATUS_PERMDAMAGE   = i;i+=1; # permanent damage
-GUTSSTATUS_MAJORDAMAGE  = i;i+=1; # major permanent damage
-GUTSSTATUS_MANGLED      = i;i+=1; # ruined
+GUTSSTATUS_NORMAL       =i;i+=1;
+GUTSSTATUS_UPSET        =i;i+=1; # might cause vomiting / diarrhea
+GUTSSTATUS_SICK         =i;i+=1; # likely to cause vomiting / diarrhea
+GUTSSTATUS_ILL          =i;i+=1; # guaranteed to cause vomiting / diarrhea
+GUTSSTATUS_DAMAGE       =i;i+=1; # temporary damage
+GUTSSTATUS_PERMDAMAGE   =i;i+=1; # permanent damage
+GUTSSTATUS_MAJORDAMAGE  =i;i+=1; # major permanent damage
+GUTSSTATUS_MANGLED      =i;i+=1; # ruined
 NGUTSSTATUSES           = i - 1; # don't count the normal status
 
 # string names for body part statuses
@@ -2191,11 +2205,11 @@ ALERT_CANTUSE           = "You can't use that!"
 # Tastes
 #
 i=1;
-TASTE_NASTY = i;i+=1;
-TASTE_BITTER = i;i+=1;
-TASTE_SWEET = i;i+=1;
-TASTE_SALTY = i;i+=1;
-TASTE_SAVORY = i;i+=1;
+TASTE_NASTY =i;i+=1;
+TASTE_BITTER =i;i+=1;
+TASTE_SWEET =i;i+=1;
+TASTE_SALTY =i;i+=1;
+TASTE_SAVORY =i;i+=1;
 
 TASTES = {
     TASTE_NASTY : "yuck, disgusting!",
@@ -2214,11 +2228,11 @@ TASTES = {
 #
 
 i=0;
-BREATHE_NORMAL      = i;i+=1;
-BREATHE_INHALING    = i;i+=1;
-BREATHE_EXHALING    = i;i+=1;
-BREATHE_HOLDING     = i;i+=1; # holding breath
-BREATHE_HYPER       = i;i+=1; # hyperventilating
+BREATHE_NORMAL      =i;i+=1;
+BREATHE_INHALING    =i;i+=1;
+BREATHE_EXHALING    =i;i+=1;
+BREATHE_HOLDING     =i;i+=1; # holding breath
+BREATHE_HYPER       =i;i+=1; # hyperventilating
 
 
 
@@ -2271,38 +2285,38 @@ TOOL_DECAY_RATES={
 # Materials
 #
 i=1;
-MAT_FLESH       = i;i+=1;
-MAT_BONE        = i;i+=1;
-MAT_METAL       = i;i+=1;
-MAT_CARBON      = i;i+=1;
-MAT_PLASTIC     = i;i+=1;
-MAT_TARP        = i;i+=1;
-MAT_STONE       = i;i+=1;
-MAT_DUST        = i;i+=1;
-MAT_WOOD        = i;i+=1;
-MAT_PAPER       = i;i+=1;
-MAT_LEATHER     = i;i+=1;
-MAT_BLEATHER    = i;i+=1; # boiled leather
-MAT_CLOTH       = i;i+=1;
-MAT_ROPE        = i;i+=1;
-MAT_GLASS       = i;i+=1;
-MAT_RUST        = i;i+=1;
-MAT_CLAY        = i;i+=1; 
-MAT_CERAMIC     = i;i+=1;
-MAT_QUARTZ      = i;i+=1;#silica, sand
-MAT_RUBBER      = i;i+=1;
-MAT_CHITIN      = i;i+=1; # fungi, arthropods, crustaceans, insects, molluscs, cephalopod beaks, fish/amphibian scales
-MAT_KERATIN     = i;i+=1; # vertebrates (reptiles, birds, amphibians, mammals, spider silk)
-MAT_OIL         = i;i+=1;
-MAT_COPPER      = i;i+=1;
-MAT_ALUMINUM    = i;i+=1;
-MAT_STEEL       = i;i+=1;
-MAT_DIAMOND     = i;i+=1;
+MAT_FLESH       =i;i+=1;
+MAT_BONE        =i;i+=1;
+MAT_METAL       =i;i+=1;
+MAT_CARBON      =i;i+=1;
+MAT_PLASTIC     =i;i+=1;
+MAT_TARP        =i;i+=1;
+MAT_STONE       =i;i+=1;
+MAT_DUST        =i;i+=1;
+MAT_WOOD        =i;i+=1;
+MAT_PAPER       =i;i+=1;
+MAT_LEATHER     =i;i+=1;
+MAT_BLEATHER    =i;i+=1; # boiled leather
+MAT_CLOTH       =i;i+=1;
+MAT_ROPE        =i;i+=1;
+MAT_GLASS       =i;i+=1;
+MAT_RUST        =i;i+=1;
+MAT_CLAY        =i;i+=1; 
+MAT_CERAMIC     =i;i+=1;
+MAT_QUARTZ      =i;i+=1;#silica, sand
+MAT_RUBBER      =i;i+=1;
+MAT_CHITIN      =i;i+=1; # fungi, arthropods, crustaceans, insects, molluscs, cephalopod beaks, fish/amphibian scales
+MAT_KERATIN     =i;i+=1; # vertebrates (reptiles, birds, amphibians, mammals, spider silk)
+MAT_OIL         =i;i+=1;
+MAT_COPPER      =i;i+=1;
+MAT_ALUMINUM    =i;i+=1;
+MAT_STEEL       =i;i+=1;
+MAT_DIAMOND     =i;i+=1;
 
-##MAT_FUNGUS      = i;i+=1; #use flesh
-##MAT_VEGGIE      = i;i+=1; #use wood
-##MAT_SAWDUST     = i;i+=1; # just use DUST
-##MAT_GUNPOWDER   = i;i+=1; # just use DUST
+##MAT_FUNGUS      =i;i+=1; #use flesh
+##MAT_VEGGIE      =i;i+=1; #use wood
+##MAT_SAWDUST     =i;i+=1; # just use DUST
+##MAT_GUNPOWDER   =i;i+=1; # just use DUST
 #
 # FLUIDS are mats, too.
 #
@@ -2453,21 +2467,21 @@ PHASE_FLUID     =i; i+=1;   # liquid and gas
 # Elements (types of damage)
 #
 i=1;
-ELEM_PHYS   = i;i+=1;
-ELEM_BIO    = i;i+=1;
-ELEM_RADS   = i;i+=1;
-ELEM_CHEM   = i;i+=1;
-ELEM_IRIT   = i;i+=1;  # irritation
-ELEM_FIRE   = i;i+=1;
-ELEM_COLD   = i;i+=1;
-ELEM_ELEC   = i;i+=1;
-ELEM_PAIN   = i;i+=1;
-ELEM_BLEED  = i;i+=1;
-ELEM_RUST   = i;i+=1;
-ELEM_ROT    = i;i+=1;
-ELEM_WET    = i;i+=1;  # water damage
-ELEM_LIGHT  = i;i+=1;
-ELEM_SOUND  = i;i+=1;
+ELEM_PHYS   =i;i+=1;
+ELEM_BIO    =i;i+=1;
+ELEM_RADS   =i;i+=1;
+ELEM_CHEM   =i;i+=1;
+ELEM_IRIT   =i;i+=1;  # irritation
+ELEM_FIRE   =i;i+=1;
+ELEM_COLD   =i;i+=1;
+ELEM_ELEC   =i;i+=1;
+ELEM_PAIN   =i;i+=1;
+ELEM_BLEED  =i;i+=1;
+ELEM_RUST   =i;i+=1;
+ELEM_ROT    =i;i+=1;
+ELEM_WET    =i;i+=1;  # water damage
+ELEM_LIGHT  =i;i+=1;
+ELEM_SOUND  =i;i+=1;
 
 ELEMENTS={
 ELEM_PHYS   : ('PHS','physical',),
@@ -2591,18 +2605,18 @@ for k,v in ROTTEDNESS.items():
 # Modular parts / item mods / weapon mods / gun mods / gunmods
 #
 i=1;
-IMOD_PISTOLSCOPE    = i;i+=1;
-IMOD_RIFLESCOPE     = i;i+=1;
-IMOD_SHOTGUNSCOPE   = i;i+=1;
-IMOD_STRAP          = i;i+=1;
-IMOD_STOCK          = i;i+=1;
-IMOD_LASER          = i;i+=1;
-IMOD_BAYONET        = i;i+=1;
-IMOD_BIPOD          = i;i+=1;
-IMOD_MAGAZINE       = i;i+=1;
-IMOD_FLASHLIGHT     = i;i+=1;
-IMOD_SUPPRESSOR     = i;i+=1;
-IMOD_GRENADELAUNCHER= i;i+=1;
+IMOD_PISTOLSCOPE    =i;i+=1;
+IMOD_RIFLESCOPE     =i;i+=1;
+IMOD_SHOTGUNSCOPE   =i;i+=1;
+IMOD_STRAP          =i;i+=1;
+IMOD_STOCK          =i;i+=1;
+IMOD_LASER          =i;i+=1;
+IMOD_BAYONET        =i;i+=1;
+IMOD_BIPOD          =i;i+=1;
+IMOD_MAGAZINE       =i;i+=1;
+IMOD_FLASHLIGHT     =i;i+=1;
+IMOD_SUPPRESSOR     =i;i+=1;
+IMOD_GRENADELAUNCHER=i;i+=1;
 
 
 
@@ -2610,48 +2624,48 @@ IMOD_GRENADELAUNCHER= i;i+=1;
 # Ammo types
 #
 i=1;
-AMMO_BULLETS        = i;i+=1;  # bullets for muskets, etc.
-AMMO_CANNONBALLS    = i;i+=1;  # large bullets for cannons, hand cannons, arquebuses
-AMMO_SLING          = i;i+=1;  # slings/slingshots - pellets, bullets, stones
-AMMO_WARARROWS      = i;i+=1;  # large heavy arrows
-AMMO_ARROWS         = i;i+=1;
-AMMO_BOLTS          = i;i+=1;  # crossbow bolts
-AMMO_DARTS          = i;i+=1;  # blow darts
-AMMO_SPEARS         = i;i+=1;
-AMMO_AIRGUN         = i;i+=1;  # darts, hollowed arrows, bullets
-AMMO_PERCUSSIONCAPS = i;i+=1;
-AMMO_PAPERCARTRIDGES= i;i+=1;
-AMMO_22LR           = i;i+=1;
-AMMO_9MM            = i;i+=1;  # AKA .38 Spl
-AMMO_357            = i;i+=1;  # 9mm magnum
-AMMO_10MM           = i;i+=1;
-AMMO_45ACP          = i;i+=1;
-AMMO_44SPL          = i;i+=1;  # .44 is a larger caliber than 10mm (~11mm)
-AMMO_44MAG          = i;i+=1;  # .44 magnum is more common than .44 Spl
-AMMO_556            = i;i+=1;
-AMMO_30CARBINE      = i;i+=1;  # 7.62x33mm
-AMMO_762            = i;i+=1;  # 7.62x39mm
-AMMO_308            = i;i+=1;  # 7.62x51mm
-AMMO_3006           = i;i+=1;  # 7.62x63mm
-AMMO_300            = i;i+=1;  # 7.62x67mm (winchester .300 magnum)
-AMMO_50BMG          = i;i+=1;
-AMMO_12GA           = i;i+=1;
-AMMO_10GA           = i;i+=1;
-AMMO_8GA            = i;i+=1;
-AMMO_6GA            = i;i+=1;
-AMMO_4GA            = i;i+=1;
-AMMO_3GA            = i;i+=1;
-AMMO_2GA            = i;i+=1;
-AMMO_ELEC           = i;i+=1;  # electricity
-AMMO_OIL            = i;i+=1;
-AMMO_HAZMATS        = i;i+=1;
-AMMO_ACID           = i;i+=1;
-AMMO_CHEMS          = i;i+=1;
-AMMO_ROCKETS        = i;i+=1;
-AMMO_GRENADES       = i;i+=1;
-AMMO_FLUIDS         = i;i+=1;  # any fluids
-AMMO_FLAMMABLE      = i;i+=1;  # any flammable fluid
-AMMO_ANYTHING       = i;i+=1;  # literally anything
+AMMO_BULLETS        =i;i+=1;  # bullets for muskets, etc.
+AMMO_CANNONBALLS    =i;i+=1;  # large bullets for cannons, hand cannons, arquebuses
+AMMO_SLING          =i;i+=1;  # slings/slingshots - pellets, bullets, stones
+AMMO_WARARROWS      =i;i+=1;  # large heavy arrows
+AMMO_ARROWS         =i;i+=1;
+AMMO_BOLTS          =i;i+=1;  # crossbow bolts
+AMMO_DARTS          =i;i+=1;  # blow darts
+AMMO_SPEARS         =i;i+=1;
+AMMO_AIRGUN         =i;i+=1;  # darts, hollowed arrows, bullets
+AMMO_PERCUSSIONCAPS =i;i+=1;
+AMMO_PAPERCARTRIDGES=i;i+=1;
+AMMO_22LR           =i;i+=1;
+AMMO_9MM            =i;i+=1;  # AKA .38 Spl
+AMMO_357            =i;i+=1;  # 9mm magnum
+AMMO_10MM           =i;i+=1;
+AMMO_45ACP          =i;i+=1;
+AMMO_44SPL          =i;i+=1;  # .44 is a larger caliber than 10mm (~11mm)
+AMMO_44MAG          =i;i+=1;  # .44 magnum is more common than .44 Spl
+AMMO_556            =i;i+=1;
+AMMO_30CARBINE      =i;i+=1;  # 7.62x33mm
+AMMO_762            =i;i+=1;  # 7.62x39mm
+AMMO_308            =i;i+=1;  # 7.62x51mm
+AMMO_3006           =i;i+=1;  # 7.62x63mm
+AMMO_300            =i;i+=1;  # 7.62x67mm (winchester .300 magnum)
+AMMO_50BMG          =i;i+=1;
+AMMO_12GA           =i;i+=1;
+AMMO_10GA           =i;i+=1;
+AMMO_8GA            =i;i+=1;
+AMMO_6GA            =i;i+=1;
+AMMO_4GA            =i;i+=1;
+AMMO_3GA            =i;i+=1;
+AMMO_2GA            =i;i+=1;
+AMMO_ELEC           =i;i+=1;  # electricity
+AMMO_OIL            =i;i+=1;
+AMMO_HAZMATS        =i;i+=1;
+AMMO_ACID           =i;i+=1;
+AMMO_CHEMS          =i;i+=1;
+AMMO_ROCKETS        =i;i+=1;
+AMMO_GRENADES       =i;i+=1;
+AMMO_FLUIDS         =i;i+=1;  # any fluids
+AMMO_FLAMMABLE      =i;i+=1;  # any flammable fluid
+AMMO_ANYTHING       =i;i+=1;  # literally anything
 
 
 
@@ -2672,114 +2686,114 @@ EXP_INT_BONUS       = 0.008333   # % bonus EXP for skills per INT point
 
 i=1;
 # Melee
-SKL_ARMOR       = i;i+=1; #combat skill: armor wearing
-SKL_UNARMORED   = i;i+=1; #combat skill: wearing no armor / light armor
-SKL_SHIELDS     = i;i+=1; #combat skill: shields
-SKL_BOXING      = i;i+=1; #combat skill: fisticuffs
-SKL_WRESTLING   = i;i+=1; #combat skill: fight on ground, grappling: knocking down foes, binds, locks, mounting foes, throwing foes, and resisting grappling
-SKL_BLUDGEONS   = i;i+=1; #combat skill: bludgeons (clubs, maces, batons, cudgels, spiked clubs, whips)
-SKL_JAVELINS    = i;i+=1; #combat skill: 1-h spears (javelins/shortspears)
-SKL_SPEARS      = i;i+=1; #combat skill: 2-h spears
-SKL_POLEARMS    = i;i+=1; #combat skill: pole weapons other than spears
-SKL_KNIVES      = i;i+=1; #combat skill: knives, daggers
-SKL_SWORDS      = i;i+=1; #combat skill: swords, machetes
-SKL_LONGSWORDS  = i;i+=1; #combat skill: 2-h swords
-SKL_GREATSWORDS = i;i+=1; #combat skill: 2-h swords with reach
-SKL_AXES        = i;i+=1; #combat skill: 1-h axes
-SKL_GREATAXES   = i;i+=1; #combat skill: 2-h axes
-SKL_HAMMERS     = i;i+=1; #combat skill: 1-h hammers
-SKL_MALLETS     = i;i+=1; #combat skill: 2-h hammers
-SKL_STAVES      = i;i+=1; #combat skill: 2-h staves
-SKL_BULLWHIPS   = i;i+=1; #combat skill: bullwhips
-SKL_PUSHDAGGERS = i;i+=1; #combat skill: push daggers
+SKL_ARMOR       =i;i+=1; #combat skill: armor wearing
+SKL_UNARMORED   =i;i+=1; #combat skill: wearing no armor / light armor
+SKL_SHIELDS     =i;i+=1; #combat skill: shields
+SKL_BOXING      =i;i+=1; #combat skill: fisticuffs
+SKL_WRESTLING   =i;i+=1; #combat skill: fight on ground, grappling: knocking down foes, binds, locks, mounting foes, throwing foes, and resisting grappling
+SKL_BLUDGEONS   =i;i+=1; #combat skill: bludgeons (clubs, maces, batons, cudgels, spiked clubs, whips)
+SKL_JAVELINS    =i;i+=1; #combat skill: 1-h spears (javelins/shortspears)
+SKL_SPEARS      =i;i+=1; #combat skill: 2-h spears
+SKL_POLEARMS    =i;i+=1; #combat skill: pole weapons other than spears
+SKL_KNIVES      =i;i+=1; #combat skill: knives, daggers
+SKL_SWORDS      =i;i+=1; #combat skill: swords, machetes
+SKL_LONGSWORDS  =i;i+=1; #combat skill: 2-h swords
+SKL_GREATSWORDS =i;i+=1; #combat skill: 2-h swords with reach
+SKL_AXES        =i;i+=1; #combat skill: 1-h axes
+SKL_GREATAXES   =i;i+=1; #combat skill: 2-h axes
+SKL_HAMMERS     =i;i+=1; #combat skill: 1-h hammers
+SKL_MALLETS     =i;i+=1; #combat skill: 2-h hammers
+SKL_STAVES      =i;i+=1; #combat skill: 2-h staves
+SKL_BULLWHIPS   =i;i+=1; #combat skill: bullwhips
+SKL_PUSHDAGGERS =i;i+=1; #combat skill: push daggers
 # throwing
-SKL_THROWING    = i;i+=1; #throwing skill (throwing small things not foes)
-##SKL_PITCHING    = i;i+=1; #throwing skill: tumbling throws (rocks, balls, grenades, etc.)
-##SKL_ENDOVEREND  = i;i+=1; #throwing skill: end-over-end (axes, knives)
-##SKL_SPINNING    = i;i+=1; #throwing skill: spinning (boomerangs, frisbees, shurikens, cards)
-##SKL_TIPFIRST    = i;i+=1; #throwing skill: tip-first (javelins, spears, darts, swords)
+SKL_THROWING    =i;i+=1; #throwing skill (throwing small things not foes)
+##SKL_PITCHING    =i;i+=1; #throwing skill: tumbling throws (rocks, balls, grenades, etc.)
+##SKL_ENDOVEREND  =i;i+=1; #throwing skill: end-over-end (axes, knives)
+##SKL_SPINNING    =i;i+=1; #throwing skill: spinning (boomerangs, frisbees, shurikens, cards)
+##SKL_TIPFIRST    =i;i+=1; #throwing skill: tip-first (javelins, spears, darts, swords)
 # Explosives
-SKL_IEDS        = i;i+=1; #explosives skill: IEDs
-##SKL_EMPS        = i;i+=1; #explosives skill: EMPs
-##SKL_MINES       = i;i+=1; #explosives skill: Mines
+SKL_IEDS        =i;i+=1; #explosives skill: IEDs
+##SKL_EMPS        =i;i+=1; #explosives skill: EMPs
+##SKL_MINES       =i;i+=1; #explosives skill: Mines
 # Archery
-SKL_SLINGS      = i;i+=1; #archery skill: slings and slingshots(?)
-SKL_BOWS        = i;i+=1; #archery skill: bows
-SKL_CROSSBOWS   = i;i+=1; #archery skill: crossbows
+SKL_SLINGS      =i;i+=1; #archery skill: slings and slingshots(?)
+SKL_BOWS        =i;i+=1; #archery skill: bows
+SKL_CROSSBOWS   =i;i+=1; #archery skill: crossbows
 # Guns
-SKL_CANNONS     = i;i+=1; #guns skill: cannons, hand-cannons, caplock guns
-SKL_PISTOLS     = i;i+=1; #guns skill: pistols
-SKL_RIFLES      = i;i+=1; #guns skill: rifles and carbines (semi-auto, burst-fire)
-SKL_SHOTGUNS    = i;i+=1; #guns skill: shotguns
-SKL_SMGS        = i;i+=1; #guns skill: SMGs
-SKL_MACHINEGUNS = i;i+=1; #guns skill: machine guns (automatic rifles, etc.)
-SKL_HEAVY       = i;i+=1; #guns skill: missiles, chem/bio/flame weapons, launchers
-SKL_ENERGY      = i;i+=1; #guns skill: lasers, masers, sonic
+SKL_CANNONS     =i;i+=1; #guns skill: cannons, hand-cannons, caplock guns
+SKL_PISTOLS     =i;i+=1; #guns skill: pistols
+SKL_RIFLES      =i;i+=1; #guns skill: rifles and carbines (semi-auto, burst-fire)
+SKL_SHOTGUNS    =i;i+=1; #guns skill: shotguns
+SKL_SMGS        =i;i+=1; #guns skill: SMGs
+SKL_MACHINEGUNS =i;i+=1; #guns skill: machine guns (automatic rifles, etc.)
+SKL_HEAVY       =i;i+=1; #guns skill: missiles, chem/bio/flame weapons, launchers
+SKL_ENERGY      =i;i+=1; #guns skill: lasers, masers, sonic
 # Physical / Technical
-SKL_ATHLETE     = i;i+=1; #enables sprinting, jumping, climbing, Msp+ while crouched, prone, supine, on tough terrain (penalty to Msp is reduced, you don't actually GAIN Msp)
-SKL_STEALTH     = i;i+=1; #enables sneaking (Msp cut to 50%, make less sound when you move)
-SKL_COMPUTERS   = i;i+=1; #technology skill (hacking, programming, etc.)
-SKL_PILOT       = i;i+=1; #operating vehicles
-SKL_PERSUASION  = i;i+=1; #speech skill, manipulating people
-SKL_CHEMISTRY   = i;i+=1; #chemistry
-SKL_SURVIVAL    = i;i+=1; #harvesting animals, plants, fungi, rocks, etc.
-SKL_LOCKPICK    = i;i+=1; #
-SKL_MEDICINE    = i;i+=1; #healing using herbs, bandages, potions, etc. (healing the skin and minor damages)
-SKL_SURGERY     = i;i+=1; #stiching, organ/limb removal/transplanting, repairing organs (healing major damages)
-SKL_MASSAGE     = i;i+=1; #healing muscle/connective tissue using manual working of the tissue
-##SKL_PERCEPTION  = i;i+=1; #hear exactly what happens, hearing range ++
+SKL_ATHLETE     =i;i+=1; #enables sprinting, jumping, climbing, Msp+ while crouched, prone, supine, on tough terrain (penalty to Msp is reduced, you don't actually GAIN Msp)
+SKL_STEALTH     =i;i+=1; #enables sneaking (Msp cut to 50%, make less sound when you move)
+SKL_COMPUTERS   =i;i+=1; #technology skill (hacking, programming, etc.)
+SKL_PILOT       =i;i+=1; #operating vehicles
+SKL_PERSUASION  =i;i+=1; #speech skill, manipulating people
+SKL_CHEMISTRY   =i;i+=1; #chemistry
+SKL_SURVIVAL    =i;i+=1; #harvesting animals, plants, fungi, rocks, etc.
+SKL_LOCKPICK    =i;i+=1; #
+SKL_MEDICINE    =i;i+=1; #healing using herbs, bandages, potions, etc. (healing the skin and minor damages)
+SKL_SURGERY     =i;i+=1; #stiching, organ/limb removal/transplanting, repairing organs (healing major damages)
+SKL_MASSAGE     =i;i+=1; #healing muscle/connective tissue using manual working of the tissue
+##SKL_PERCEPTION  =i;i+=1; #hear exactly what happens, hearing range ++
 # Crafting
-SKL_ASSEMBLY    = i;i+=1; #crafting base skill (should it include firestarting??)
-SKL_COOKING     = i;i+=1; #food prep
-SKL_WOOD        = i;i+=1; #woodcraft and repairing wooden things
-SKL_BONE        = i;i+=1; #bonecraft and repairing bone things
-SKL_PLASTIC     = i;i+=1; #plasticraft and repairing plastic things
-SKL_STONE       = i;i+=1; #stonecraft and repairing stone things
-SKL_GLASS       = i;i+=1; #glasscraft
-SKL_METAL       = i;i+=1; #metalcraft and repairing metal things
-SKL_CERAMIC     = i;i+=1; #ceramicraft
-SKL_LEATHER     = i;i+=1; #leatherworking
-SKL_BOWYER      = i;i+=1; #
-SKL_FLETCHER    = i;i+=1; #
-SKL_BLADESMITH  = i;i+=1; #making and repairing knives
-SKL_GUNSMITH    = i;i+=1; #making and repairing guns (child of: metal, wood)
-SKL_HARDWARE    = i;i+=1; #computer building and repair
-SKL_MECHANIC    = i;i+=1; #machine building and repair
-SKL_ARMORSMITH  = i;i+=1; #making and repairing armor
-SKL_WELDING     = i;i+=1; #
-SKL_TESTER1     = i;i+=1; #
-SKL_TESTER2     = i;i+=1; #
-SKL_TESTER3     = i;i+=1; #
-##SKL_SWORDSMITH  = i;i+=1; #making and repairing swords (bladesmithing skill -- incorporated)
+SKL_ASSEMBLY    =i;i+=1; #crafting base skill (should it include firestarting??)
+SKL_COOKING     =i;i+=1; #food prep
+SKL_WOOD        =i;i+=1; #woodcraft and repairing wooden things
+SKL_BONE        =i;i+=1; #bonecraft and repairing bone things
+SKL_PLASTIC     =i;i+=1; #plasticraft and repairing plastic things
+SKL_STONE       =i;i+=1; #stonecraft and repairing stone things
+SKL_GLASS       =i;i+=1; #glasscraft
+SKL_METAL       =i;i+=1; #metalcraft and repairing metal things
+SKL_CERAMIC     =i;i+=1; #ceramicraft
+SKL_LEATHER     =i;i+=1; #leatherworking
+SKL_BOWYER      =i;i+=1; #
+SKL_FLETCHER    =i;i+=1; #
+SKL_BLADESMITH  =i;i+=1; #making and repairing knives
+SKL_GUNSMITH    =i;i+=1; #making and repairing guns (child of: metal, wood)
+SKL_HARDWARE    =i;i+=1; #computer building and repair
+SKL_MECHANIC    =i;i+=1; #machine building and repair
+SKL_ARMORSMITH  =i;i+=1; #making and repairing armor
+SKL_WELDING     =i;i+=1; #
+SKL_TESTER1     =i;i+=1; #
+SKL_TESTER2     =i;i+=1; #
+SKL_TESTER3     =i;i+=1; #
+##SKL_SWORDSMITH  =i;i+=1; #making and repairing swords (bladesmithing skill -- incorporated)
 # Languages
-##SKL_CHINESE     = i;i+=1; #related to: cantonese, tibetan, burmese
-##SKL_JAPANESE    = i;i+=1; #
-##SKL_HINDUSTANI  = i;i+=1; #related to: bengali, punjabi, marathi, kashmiri, nepali
-##SKL_BENGALI     = i;i+=1; #related to: hindustani, punjabi, marathi, kashmiri, nepali
-##SKL_ARABIC      = i;i+=1; #related to: Hebrew, Amharic, Aramaic
-##SKL_MALAY       = i;i+=1; #related to: Javanese, Tagalog
-##SKL_RUSSIAN     = i;i+=1; #related to: Ukrainian, Belarusian
-##SKL_ENGLISH     = i;i+=1; #related to: german, dutch, frisian
-##SKL_GERMAN      = i;i+=1; #related to: english
-##SKL_FRENCH      = i;i+=1; #related to: portuguese, spanish, italian, romanian
-##SKL_SPANISH     = i;i+=1; #related to: french, portuguese, italian, romanian
-##SKL_PORTUGUESE  = i;i+=1; #related to: french, spanish, italian, romanian
+##SKL_CHINESE     =i;i+=1; #related to: cantonese, tibetan, burmese
+##SKL_JAPANESE    =i;i+=1; #
+##SKL_HINDUSTANI  =i;i+=1; #related to: bengali, punjabi, marathi, kashmiri, nepali
+##SKL_BENGALI     =i;i+=1; #related to: hindustani, punjabi, marathi, kashmiri, nepali
+##SKL_ARABIC      =i;i+=1; #related to: Hebrew, Amharic, Aramaic
+##SKL_MALAY       =i;i+=1; #related to: Javanese, Tagalog
+##SKL_RUSSIAN     =i;i+=1; #related to: Ukrainian, Belarusian
+##SKL_ENGLISH     =i;i+=1; #related to: german, dutch, frisian
+##SKL_GERMAN      =i;i+=1; #related to: english
+##SKL_FRENCH      =i;i+=1; #related to: portuguese, spanish, italian, romanian
+##SKL_SPANISH     =i;i+=1; #related to: french, portuguese, italian, romanian
+##SKL_PORTUGUESE  =i;i+=1; #related to: french, spanish, italian, romanian
 
-##SKL_STRENGTH    = i;i+=1; #Dmg+2, can overpower similar-sized foes without strength
-##SKL_PHYSIQUE    = i;i+=1; #Msp penalty for equipping gear cut in half
-##SKL_POISE       = i;i+=1; #Not easily knocked down or moved
-##SKL_MOBILITY    = i;i+=1; #Msp+50
-##SKL_AGILITY     = i;i+=1; #DV+4, Msp+10, Asp+25
-##SKL_DEXTERITY   = i;i+=1; #Atk+4, DV+2, Asp+25
-##SKL_DEFENSE     = i;i+=1; #DV+2, AV+2, Pro+2
-##SKL_ENDURANCE   = i;i+=1; #Lo+20
-##SKL_WILLPOWER   = i;i+=1; #Hi+20
+##SKL_STRENGTH    =i;i+=1; #Dmg+2, can overpower similar-sized foes without strength
+##SKL_PHYSIQUE    =i;i+=1; #Msp penalty for equipping gear cut in half
+##SKL_POISE       =i;i+=1; #Not easily knocked down or moved
+##SKL_MOBILITY    =i;i+=1; #Msp+50
+##SKL_AGILITY     =i;i+=1; #DV+4, Msp+10, Asp+25
+##SKL_DEXTERITY   =i;i+=1; #Atk+4, DV+2, Asp+25
+##SKL_DEFENSE     =i;i+=1; #DV+2, AV+2, Pro+2
+##SKL_ENDURANCE   =i;i+=1; #Lo+20
+##SKL_WILLPOWER   =i;i+=1; #Hi+20
 
-##SKL_MELEE       = i;i+=1; #melee combat root skill
-##SKL_THROWING    = i;i+=1; #throwing weapons root skill
-##SKL_EXPLOSIVES  = i;i+=1; #explosives root skill
-##SKL_ARCHERY     = i;i+=1; #archery root skill - ranged weapons other than guns
-##SKL_GUNS        = i;i+=1; #guns umbrella skill
+##SKL_MELEE       =i;i+=1; #melee combat root skill
+##SKL_THROWING    =i;i+=1; #throwing weapons root skill
+##SKL_EXPLOSIVES  =i;i+=1; #explosives root skill
+##SKL_ARCHERY     =i;i+=1; #archery root skill - ranged weapons other than guns
+##SKL_GUNS        =i;i+=1; #guns umbrella skill
 
 
 # Combat Skills
@@ -3341,25 +3355,25 @@ SKL_ENERGY      : DMGTYPE_BLUNT,
 #
 # includes all jobs, even non-playable jobs
 i=1;
-CLS_ENGINEER    = i;i+=1;
-CLS_TECHNICIAN  = i;i+=1;
-CLS_SECURITY    = i;i+=1;
-CLS_ATHLETE     = i;i+=1;
-CLS_PILOT       = i;i+=1;
-CLS_SMUGGLER    = i;i+=1;
-CLS_CHEMIST     = i;i+=1;
-CLS_POLITICIAN  = i;i+=1;
-CLS_RIOTPOLICE  = i;i+=1;
-CLS_JANITOR     = i;i+=1;
-CLS_DEPRIVED    = i;i+=1;
-CLS_SOLDIER     = i;i+=1;
-CLS_THIEF       = i;i+=1;
-CLS_ACROBAT     = i;i+=1;
-CLS_WRESTLER    = i;i+=1;
-CLS_DOCTOR      = i;i+=1;
-CLS_PROGRAMMER  = i;i+=1;
-CLS_MONK        = i;i+=1;
-CLS_BOUNTYHUNTER= i;i+=1;
+CLS_ENGINEER    =i;i+=1;
+CLS_TECHNICIAN  =i;i+=1;
+CLS_SECURITY    =i;i+=1;
+CLS_ATHLETE     =i;i+=1;
+CLS_PILOT       =i;i+=1;
+CLS_SMUGGLER    =i;i+=1;
+CLS_CHEMIST     =i;i+=1;
+CLS_POLITICIAN  =i;i+=1;
+CLS_RIOTPOLICE  =i;i+=1;
+CLS_JANITOR     =i;i+=1;
+CLS_DEPRIVED    =i;i+=1;
+CLS_SOLDIER     =i;i+=1;
+CLS_THIEF       =i;i+=1;
+CLS_ACROBAT     =i;i+=1;
+CLS_WRESTLER    =i;i+=1;
+CLS_DOCTOR      =i;i+=1;
+CLS_PROGRAMMER  =i;i+=1;
+CLS_MONK        =i;i+=1;
+CLS_BOUNTYHUNTER=i;i+=1;
 
 
 
@@ -3481,13 +3495,13 @@ FASTLEARNER_EXPMOD=1.1
 # Species
 #
 i=1;
-SPECIE_HUMAN    = i;i+=1;
-SPECIE_MUTANT   = i;i+=1;
-SPECIE_CHIMERA  = i;i+=1;
-SPECIE_DOG      = i;i+=1;
-SPECIE_CAT      = i;i+=1;
-SPECIE_HORSE    = i;i+=1;
-SPECIE_MANTIS   = i;i+=1;
+SPECIE_HUMAN    =i;i+=1;
+SPECIE_MUTANT   =i;i+=1;
+SPECIE_CHIMERA  =i;i+=1;
+SPECIE_DOG      =i;i+=1;
+SPECIE_CAT      =i;i+=1;
+SPECIE_HORSE    =i;i+=1;
+SPECIE_MANTIS   =i;i+=1;
 
 SPECIES={
 SPECIE_HUMAN    :"human",
@@ -3505,13 +3519,13 @@ SPECIE_MANTIS   :"mantis",
 # flags used for diplomacy
 #
 i=1;
-FACT_ROGUE      = i;i+=1;
-FACT_CITIZENS   = i;i+=1;
-FACT_DEPRIVED   = i;i+=1;
-FACT_ELITE      = i;i+=1;
-FACT_WATCH      = i;i+=1;
-FACT_MONSTERS   = i;i+=1;
-#FACT_      = i;i+=1;
+FACT_ROGUE      =i;i+=1;
+FACT_CITIZENS   =i;i+=1;
+FACT_DEPRIVED   =i;i+=1;
+FACT_ELITE      =i;i+=1;
+FACT_WATCH      =i;i+=1;
+FACT_MONSTERS   =i;i+=1;
+#FACT_      =i;i+=1;
 
 FACTIONS={
 FACT_ROGUE      : "rogue",
@@ -3581,38 +3595,38 @@ BLINDING_LIGHT = 20 # " permanent blindness
 
 # shapes, the lowest level of identification on an entity you can achieve
 i=1;
-SHAPE_FIGURE        = i;i+=1;
-SHAPE_CREATURE      = i;i+=1;
-SHAPE_BEAST         = i;i+=1;
-SHAPE_MACHINE       = i;i+=1;
-SHAPE_ORGANIC       = i;i+=1;
-SHAPE_DEVICE        = i;i+=1;
-SHAPE_TOOL          = i;i+=1;
-SHAPE_GUN           = i;i+=1;
-SHAPE_SPHERE        = i;i+=1;
-SHAPE_ROCK          = i;i+=1;
-SHAPE_BLOCK         = i;i+=1;
-SHAPE_CYLINDER      = i;i+=1;
-SHAPE_PYRAMID       = i;i+=1;
-SHAPE_CONE          = i;i+=1;
-SHAPE_RING          = i;i+=1;
-SHAPE_CROSS         = i;i+=1;
-SHAPE_CLUB          = i;i+=1;
-SHAPE_DISC          = i;i+=1;
-SHAPE_SLAB          = i;i+=1;
-SHAPE_TUBE          = i;i+=1;
-SHAPE_STICK         = i;i+=1;
-SHAPE_SQUARE        = i;i+=1;
-SHAPE_SHARP         = i;i+=1;
-SHAPE_LINE          = i;i+=1;
-SHAPE_RECTANGLE     = i;i+=1;
-SHAPE_Y             = i;i+=1;
-SHAPE_CURVED        = i;i+=1;
-SHAPE_JAGGED        = i;i+=1;
-SHAPE_RIGHTANGLES   = i;i+=1;
-SHAPE_SILKY         = i;i+=1; # cloth
-SHAPE_INDISTINCT    = i;i+=1;
-SHAPE_AMORPHOUS     = i;i+=1;
+SHAPE_FIGURE        =i;i+=1;
+SHAPE_CREATURE      =i;i+=1;
+SHAPE_BEAST         =i;i+=1;
+SHAPE_MACHINE       =i;i+=1;
+SHAPE_ORGANIC       =i;i+=1;
+SHAPE_DEVICE        =i;i+=1;
+SHAPE_TOOL          =i;i+=1;
+SHAPE_GUN           =i;i+=1;
+SHAPE_SPHERE        =i;i+=1;
+SHAPE_ROCK          =i;i+=1;
+SHAPE_BLOCK         =i;i+=1;
+SHAPE_CYLINDER      =i;i+=1;
+SHAPE_PYRAMID       =i;i+=1;
+SHAPE_CONE          =i;i+=1;
+SHAPE_RING          =i;i+=1;
+SHAPE_CROSS         =i;i+=1;
+SHAPE_CLUB          =i;i+=1;
+SHAPE_DISC          =i;i+=1;
+SHAPE_SLAB          =i;i+=1;
+SHAPE_TUBE          =i;i+=1;
+SHAPE_STICK         =i;i+=1;
+SHAPE_SQUARE        =i;i+=1;
+SHAPE_SHARP         =i;i+=1;
+SHAPE_LINE          =i;i+=1;
+SHAPE_RECTANGLE     =i;i+=1;
+SHAPE_Y             =i;i+=1;
+SHAPE_CURVED        =i;i+=1;
+SHAPE_JAGGED        =i;i+=1;
+SHAPE_RIGHTANGLES   =i;i+=1;
+SHAPE_SILKY         =i;i+=1; # cloth
+SHAPE_INDISTINCT    =i;i+=1;
+SHAPE_AMORPHOUS     =i;i+=1;
 # names of shapes, for identification purposes
 SHAPES={
 SHAPE_INDISTINCT    : "indistinct object",
@@ -3648,155 +3662,155 @@ SHAPE_ORGANIC       : "organic-shaped object",
 i=1;
 
 # creatures
-ID_HUMANOID         = i;i+=1;
-ID_INSECTOID        = i;i+=1;
-ID_4LEGBEAST        = i;i+=1;
-ID_2LEGBEAST        = i;i+=1;
-ID_8ARMS            = i;i+=1;
-ID_ANDROID          = i;i+=1;
-ID_ROBOT            = i;i+=1;
+ID_HUMANOID         =i;i+=1;
+ID_INSECTOID        =i;i+=1;
+ID_4LEGBEAST        =i;i+=1;
+ID_2LEGBEAST        =i;i+=1;
+ID_8ARMS            =i;i+=1;
+ID_ANDROID          =i;i+=1;
+ID_ROBOT            =i;i+=1;
 
 # weapon-type items
-ID_CLUB             = i;i+=1;
-ID_MACE             = i;i+=1;
-ID_HAMMER           = i;i+=1;
-ID_AXE              = i;i+=1;
-ID_KNIFE            = i;i+=1;
-ID_DAGGER           = i;i+=1;
-ID_SWORD            = i;i+=1;
-ID_LONGSWORD        = i;i+=1;
-ID_STAFF            = i;i+=1;
-ID_JAVELIN          = i;i+=1;
-ID_SHIELD           = i;i+=1;
-ID_LONGSTAFF        = i;i+=1;
-ID_SPEAR            = i;i+=1;
-ID_POLEARM          = i;i+=1;
-ID_GREATSWORD       = i;i+=1;
-ID_GREATAXE         = i;i+=1;
-ID_GREATHAMMER      = i;i+=1;
-ID_GREATCLUB        = i;i+=1;
-ID_PUSHDAGGER       = i;i+=1;
-ID_BATON            = i;i+=1;
-ID_WHIP             = i;i+=1;
-ID_KNUCKLES         = i;i+=1;
-ID_BOOMERANG        = i;i+=1;
-ID_MACHETE          = i;i+=1;
-ID_PISTOL           = i;i+=1;
-ID_MUSKET           = i;i+=1;
-ID_SHOTGUN          = i;i+=1;
-ID_SMG              = i;i+=1;
-ID_RIFLE            = i;i+=1;
-ID_AUTORIFLE        = i;i+=1;
-ID_MACHINEGUN       = i;i+=1;
-ID_SLINGSHOT        = i;i+=1;
-ID_BOW              = i;i+=1;
-ID_CROSSBOW         = i;i+=1;
-ID_CANNON           = i;i+=1;
-ID_ENERGYWEAPON     = i;i+=1;
-ID_BLOWGUN          = i;i+=1;
+ID_CLUB             =i;i+=1;
+ID_MACE             =i;i+=1;
+ID_HAMMER           =i;i+=1;
+ID_AXE              =i;i+=1;
+ID_KNIFE            =i;i+=1;
+ID_DAGGER           =i;i+=1;
+ID_SWORD            =i;i+=1;
+ID_LONGSWORD        =i;i+=1;
+ID_STAFF            =i;i+=1;
+ID_JAVELIN          =i;i+=1;
+ID_SHIELD           =i;i+=1;
+ID_LONGSTAFF        =i;i+=1;
+ID_SPEAR            =i;i+=1;
+ID_POLEARM          =i;i+=1;
+ID_GREATSWORD       =i;i+=1;
+ID_GREATAXE         =i;i+=1;
+ID_GREATHAMMER      =i;i+=1;
+ID_GREATCLUB        =i;i+=1;
+ID_PUSHDAGGER       =i;i+=1;
+ID_BATON            =i;i+=1;
+ID_WHIP             =i;i+=1;
+ID_KNUCKLES         =i;i+=1;
+ID_BOOMERANG        =i;i+=1;
+ID_MACHETE          =i;i+=1;
+ID_PISTOL           =i;i+=1;
+ID_MUSKET           =i;i+=1;
+ID_SHOTGUN          =i;i+=1;
+ID_SMG              =i;i+=1;
+ID_RIFLE            =i;i+=1;
+ID_AUTORIFLE        =i;i+=1;
+ID_MACHINEGUN       =i;i+=1;
+ID_SLINGSHOT        =i;i+=1;
+ID_BOW              =i;i+=1;
+ID_CROSSBOW         =i;i+=1;
+ID_CANNON           =i;i+=1;
+ID_ENERGYWEAPON     =i;i+=1;
+ID_BLOWGUN          =i;i+=1;
 
 # clothing / armor
-ID_VEST             = i;i+=1; # torso clothes
-ID_SHIRT            = i;i+=1;
-ID_LONGSHIRT        = i;i+=1; # long == long-sleeved
-ID_HOODY            = i;i+=1;
-ID_JACKET           = i;i+=1;
-ID_ARMOR            = i;i+=1; # armor
-ID_GEAR             = i;i+=1;
-ID_CUIRASS          = i;i+=1;
-ID_SUIT             = i;i+=1;
-ID_FURSUIT          = i;i+=1;
-ID_MAILSHIRT        = i;i+=1;
-ID_MAILLONGSHIRT    = i;i+=1;
-ID_PADDEDSHIRT      = i;i+=1;
-ID_PADDEDLONGSHIRT  = i;i+=1;
-ID_HAZARDSUIT       = i;i+=1;
-ID_PPE              = i;i+=1;
-ID_BULLETPROOFVEST  = i;i+=1;
-ID_VAMBRACE         = i;i+=1; # arm
-ID_PADDEDLEGGING    = i;i+=1; # leg
-ID_MAILLEGGING      = i;i+=1;
-ID_GREAVE           = i;i+=1;
-ID_PANTS            = i;i+=1;
-ID_PJS              = i;i+=1;
-ID_BOOT             = i;i+=1; # feet
-ID_SHOE             = i;i+=1;
-ID_SANDAL           = i;i+=1;
-ID_SAFETYGOGGLES    = i;i+=1; # eyewear
-ID_SUNGLASSES       = i;i+=1;
-ID_GLASSES          = i;i+=1;
-ID_MASK             = i;i+=1; # facewear
-ID_RESPIRATOR       = i;i+=1;
-ID_GASMASK          = i;i+=1;
-ID_PLAGUEMASK       = i;i+=1;
-ID_WELDINGMASK      = i;i+=1;
-ID_MOTORCYCLEHELM   = i;i+=1; # headwear
-ID_BIOHELM          = i;i+=1;
-ID_PADDEDCOIF       = i;i+=1;
-ID_MAILCOIF         = i;i+=1;
-ID_HELMET           = i;i+=1; # skull cap to half helm
-ID_HELM             = i;i+=1; # half to full helm
-ID_GLOVE            = i;i+=1; # hand armor
-ID_GAUNTLET         = i;i+=1;
-ID_CLOAK            = i;i+=1; # about
+ID_VEST             =i;i+=1; # torso clothes
+ID_SHIRT            =i;i+=1;
+ID_LONGSHIRT        =i;i+=1; # long == long-sleeved
+ID_HOODY            =i;i+=1;
+ID_JACKET           =i;i+=1;
+ID_ARMOR            =i;i+=1; # armor
+ID_GEAR             =i;i+=1;
+ID_CUIRASS          =i;i+=1;
+ID_SUIT             =i;i+=1;
+ID_FURSUIT          =i;i+=1;
+ID_MAILSHIRT        =i;i+=1;
+ID_MAILLONGSHIRT    =i;i+=1;
+ID_PADDEDSHIRT      =i;i+=1;
+ID_PADDEDLONGSHIRT  =i;i+=1;
+ID_HAZARDSUIT       =i;i+=1;
+ID_PPE              =i;i+=1;
+ID_BULLETPROOFVEST  =i;i+=1;
+ID_VAMBRACE         =i;i+=1; # arm
+ID_PADDEDLEGGING    =i;i+=1; # leg
+ID_MAILLEGGING      =i;i+=1;
+ID_GREAVE           =i;i+=1;
+ID_PANTS            =i;i+=1;
+ID_PJS              =i;i+=1;
+ID_BOOT             =i;i+=1; # feet
+ID_SHOE             =i;i+=1;
+ID_SANDAL           =i;i+=1;
+ID_SAFETYGOGGLES    =i;i+=1; # eyewear
+ID_SUNGLASSES       =i;i+=1;
+ID_GLASSES          =i;i+=1;
+ID_MASK             =i;i+=1; # facewear
+ID_RESPIRATOR       =i;i+=1;
+ID_GASMASK          =i;i+=1;
+ID_PLAGUEMASK       =i;i+=1;
+ID_WELDINGMASK      =i;i+=1;
+ID_MOTORCYCLEHELM   =i;i+=1; # headwear
+ID_BIOHELM          =i;i+=1;
+ID_PADDEDCOIF       =i;i+=1;
+ID_MAILCOIF         =i;i+=1;
+ID_HELMET           =i;i+=1; # skull cap to half helm
+ID_HELM             =i;i+=1; # half to full helm
+ID_GLOVE            =i;i+=1; # hand armor
+ID_GAUNTLET         =i;i+=1;
+ID_CLOAK            =i;i+=1; # about
 
 # misc. items
-ID_RAG              = i;i+=1;
-ID_RAGS             = i;i+=1; # big rag / cloth
-ID_BANDAGE          = i;i+=1;
-ID_RUBBERBAND       = i;i+=1;
+ID_RAG              =i;i+=1;
+ID_RAGS             =i;i+=1; # big rag / cloth
+ID_BANDAGE          =i;i+=1;
+ID_RUBBERBAND       =i;i+=1;
 
 # tools
-ID_SCALPEL          = i;i+=1;
-ID_SCISSORS         = i;i+=1;
-ID_PLIERS           = i;i+=1;
-ID_SCREWDRIVER      = i;i+=1;
-ID_WHETSTONE        = i;i+=1;
-ID_SHOVEL           = i;i+=1;
-ID_PICKAXE          = i;i+=1;
+ID_SCALPEL          =i;i+=1;
+ID_SCISSORS         =i;i+=1;
+ID_PLIERS           =i;i+=1;
+ID_SCREWDRIVER      =i;i+=1;
+ID_WHETSTONE        =i;i+=1;
+ID_SHOVEL           =i;i+=1;
+ID_PICKAXE          =i;i+=1;
 
 # raw mats
-ID_STRING           = i;i+=1;
-ID_PARTICLES        = i;i+=1;
-ID_POWDER           = i;i+=1;
-ID_CLAY             = i;i+=1;
-ID_WOOD             = i;i+=1;
-ID_MEAT             = i;i+=1;
-ID_SCRAP            = i;i+=1;
-ID_SCRAPELECTRONICS = i;i+=1;
-ID_ROCK             = i;i+=1;
-ID_TARP             = i;i+=1;
-ID_CLOTH            = i;i+=1;
-ID_BONE             = i;i+=1;
-ID_GLASS            = i;i+=1;
-ID_CHUNK            = i;i+=1;
-ID_SLAB             = i;i+=1;
-ID_CUBOID           = i;i+=1;
-ID_CUBE             = i;i+=1;
-ID_SHARD            = i;i+=1;
-ID_STICK            = i;i+=1;
-ID_POLE             = i;i+=1;
-ID_RING             = i;i+=1;
-ID_CONTAINER        = i;i+=1;
-ID_OIL              = i;i+=1;
-ID_GOOP             = i;i+=1;
-ID_ROLL             = i;i+=1;
-ID_BATTERY          = i;i+=1;
-ID_SPOOL            = i;i+=1;
-ID_TUBE             = i;i+=1;
-ID_PIPE             = i;i+=1;
-ID_BAR              = i;i+=1;
-ID_INGOT            = i;i+=1;
-ID_CUP              = i;i+=1;
-ID_BOTTLE           = i;i+=1;
-ID_WIRE             = i;i+=1;
-ID_PLANK            = i;i+=1;
-ID_LEAF             = i;i+=1;
-ID_PLANT            = i;i+=1;
-ID_LENS             = i;i+=1;
-ID_SPRING           = i;i+=1;
-ID_CHAIN            = i;i+=1;
-ID_ROPE             = i;i+=1;
+ID_STRING           =i;i+=1;
+ID_PARTICLES        =i;i+=1;
+ID_POWDER           =i;i+=1;
+ID_CLAY             =i;i+=1;
+ID_WOOD             =i;i+=1;
+ID_MEAT             =i;i+=1;
+ID_SCRAP            =i;i+=1;
+ID_SCRAPELECTRONICS =i;i+=1;
+ID_ROCK             =i;i+=1;
+ID_TARP             =i;i+=1;
+ID_CLOTH            =i;i+=1;
+ID_BONE             =i;i+=1;
+ID_GLASS            =i;i+=1;
+ID_CHUNK            =i;i+=1;
+ID_SLAB             =i;i+=1;
+ID_CUBOID           =i;i+=1;
+ID_CUBE             =i;i+=1;
+ID_SHARD            =i;i+=1;
+ID_STICK            =i;i+=1;
+ID_POLE             =i;i+=1;
+ID_RING             =i;i+=1;
+ID_CONTAINER        =i;i+=1;
+ID_OIL              =i;i+=1;
+ID_GOOP             =i;i+=1;
+ID_ROLL             =i;i+=1;
+ID_BATTERY          =i;i+=1;
+ID_SPOOL            =i;i+=1;
+ID_TUBE             =i;i+=1;
+ID_PIPE             =i;i+=1;
+ID_BAR              =i;i+=1;
+ID_INGOT            =i;i+=1;
+ID_CUP              =i;i+=1;
+ID_BOTTLE           =i;i+=1;
+ID_WIRE             =i;i+=1;
+ID_PLANK            =i;i+=1;
+ID_LEAF             =i;i+=1;
+ID_PLANT            =i;i+=1;
+ID_LENS             =i;i+=1;
+ID_SPRING           =i;i+=1;
+ID_CHAIN            =i;i+=1;
+ID_ROPE             =i;i+=1;
 NUMIDS = i - 1
 
 IDENTIFICATION={
@@ -3978,48 +3992,48 @@ for x in range(NUMIDS+1):
 
 ##class THG:#(Flag)
 ##    i=1;
-##    GORE                = i;i+=1;
-##    GUNPOWDER           = i;i+=1;
-##    PEBBLE              = i;i+=1;
-##    SAND                = i;i+=1;
-##    JUG                 = i;i+=1;
-##    CORPSE_SHROOM       = i;i+=1;
-##    TREE                = i;i+=1;
-##    LOG                 = i;i+=1;
-##    WOOD                = i;i+=1;
-##    SAWDUST             = i;i+=1;
-##    DUST                = i;i+=1;
-##    GRAVE               = i;i+=1;
-##    SAFE                = i;i+=1;
-##    BOX                 = i;i+=1;
-##    POT                 = i;i+=1;
-##    CASTIRONPAN         = i;i+=1;
-##    STILL               = i;i+=1;
-##    DOSIMETER           = i;i+=1;
-##    TOWEL               = i;i+=1;
-##    TOOTHBRUSH          = i;i+=1;
-##    FACEFLANNEL         = i;i+=1;
-##    SOAP                = i;i+=1;
-##    TINOFBISCUITS       = i;i+=1;
-##    FLASK               = i;i+=1;
-##    COMPASS             = i;i+=1;
-##    MAP                 = i;i+=1;
-##    BALLOFSTRING        = i;i+=1;
-##    GNATSPRAY           = i;i+=1;
-##    TORCH               = i;i+=1;
-##    BARREL              = i;i+=1;
-##    METALDRUM           = i;i+=1;
-##    TABLE               = i;i+=1;
-##    TERMINAL            = i;i+=1;
-##    COPPERTUBING        = i;i+=1;
-##    COPPERWIRE          = i;i+=1;
-##    SCRAPMETAL          = i;i+=1;
-##    SCRAPELECTRONICS    = i;i+=1;
-##    SPRING              = i;i+=1;
-##    CHAINGUN            = i;i+=1;
-##    LIGHTER             = i;i+=1;
-##    CLAYPOT             = i;i+=1;
-##    EXTINGUISHER        = i;i+=1;
+##    GORE                =i;i+=1;
+##    GUNPOWDER           =i;i+=1;
+##    PEBBLE              =i;i+=1;
+##    SAND                =i;i+=1;
+##    JUG                 =i;i+=1;
+##    CORPSE_SHROOM       =i;i+=1;
+##    TREE                =i;i+=1;
+##    LOG                 =i;i+=1;
+##    WOOD                =i;i+=1;
+##    SAWDUST             =i;i+=1;
+##    DUST                =i;i+=1;
+##    GRAVE               =i;i+=1;
+##    SAFE                =i;i+=1;
+##    BOX                 =i;i+=1;
+##    POT                 =i;i+=1;
+##    CASTIRONPAN         =i;i+=1;
+##    STILL               =i;i+=1;
+##    DOSIMETER           =i;i+=1;
+##    TOWEL               =i;i+=1;
+##    TOOTHBRUSH          =i;i+=1;
+##    FACEFLANNEL         =i;i+=1;
+##    SOAP                =i;i+=1;
+##    TINOFBISCUITS       =i;i+=1;
+##    FLASK               =i;i+=1;
+##    COMPASS             =i;i+=1;
+##    MAP                 =i;i+=1;
+##    BALLOFSTRING        =i;i+=1;
+##    GNATSPRAY           =i;i+=1;
+##    TORCH               =i;i+=1;
+##    BARREL              =i;i+=1;
+##    METALDRUM           =i;i+=1;
+##    TABLE               =i;i+=1;
+##    TERMINAL            =i;i+=1;
+##    COPPERTUBING        =i;i+=1;
+##    COPPERWIRE          =i;i+=1;
+##    SCRAPMETAL          =i;i+=1;
+##    SCRAPELECTRONICS    =i;i+=1;
+##    SPRING              =i;i+=1;
+##    CHAINGUN            =i;i+=1;
+##    LIGHTER             =i;i+=1;
+##    CLAYPOT             =i;i+=1;
+##    EXTINGUISHER        =i;i+=1;
 ##
 
 

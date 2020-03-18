@@ -874,7 +874,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         immbio  =">>IMMUNE TO BIO" if rog.on(pc, IMMUNEBIO) else "",
         immrust =">>CANNOT RUST" if rog.on(pc, IMMUNERUST) else "",
         immrot  =">>CANNOT ROT" if rog.on(pc, IMMUNEROT) else "",
-        immwater=">>HYDROPHOBIC" if rog.on(pc, IMMUNEWATER) else "",
+        immwater=">>WATERPROOF" if rog.on(pc, IMMUNEWATER) else "",
         immbleed=">>CANNOT BLEED" if rog.on(pc, IMMUNEBLEED) else "",
         immpain =">>CANNOT FEEL PAIN" if rog.on(pc, IMMUNEPAIN) else "",
         # component data
@@ -916,8 +916,6 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         vis=_get('sight'),aud=_get('hearing'),
         enc=_get('enc'),encmax=_get('encmax'),
         encpc=int(_get('enc') / _get('encmax') * 100),
-        hppc=int(_get('hp') / _get('hpmax') * 100),
-        sppc=int(_get('mp') / _get('mpmax') * 100),
         # base stats
         bdv=_getbs('dfn'),bav=_getbs('arm'),bpro=_getbs('pro'),
         bctr=_getbs('ctr'),bgra=_getbs('gra'),bbal=_getbs('bal'),

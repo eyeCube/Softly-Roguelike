@@ -74,6 +74,12 @@ def commands_pages(pc, pcAct):
         if act == "inventory" :
             action.inventory_pc(pc)
             return
+        if act == "equipment" :
+            action.equipment_pc(pc)
+            return
+        if act == "abilities" :
+            action.abilities_pc(pc)
+            return
 
 #
 #   commands
