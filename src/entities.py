@@ -4159,6 +4159,8 @@ def _update_from_bp_appendage(ent, appendage, armorSkill, unarmored):
     Body functions
 '''
 
+def resting_metabolic_rate(kg):
+    return kg * 0.000333334 # per second
 def metabolism(ent, hunger: int, thirst=0) -> bool:
     '''
         burn calories

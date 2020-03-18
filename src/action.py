@@ -39,45 +39,57 @@ class Menu:
     pass
 
 def _get_eq_data(equipType):
-    if equipType == EQ_MAINHANDW:
-        return (wield_main, "wield", "hand",)
-    elif equipType == EQ_OFFHANDW:
-        return (wield_off, "wield", "hand",)
-    elif equipType == EQ_MAINHAND:
-        return (wield_main, "wear", "hand",)
-    elif equipType == EQ_OFFHAND:
-        return (wield_off, "wear", "hand",)
-    elif equipType == EQ_MAINARM:
-        return (wear_arm_main, "wear", "arm",)
-    elif equipType == EQ_OFFARM:
-        return (wear_arm_off, "wear", "arm",)
-    elif equipType == EQ_MAINFOOT:
-        return (wear_foot_main, "wear", "foot",)
-    elif equipType == EQ_OFFFOOT:
-        return (wear_foot_off, "wear", "foot",)
-    elif equipType == EQ_MAINLEG:
-        return (wear_leg_main, "wear", "leg",)
-    elif equipType == EQ_OFFLEG:
-        return (wear_leg_off, "wear", "leg",)
-    elif equipType == EQ_CORE:
-        return (wear_core, "wear", "core",)
-    elif equipType == EQ_FRONT:
-        return (wear_front, "wear", "front",)
-    elif equipType == EQ_BACK:
-        return (wear_back, "wear", "back",)
-    elif equipType == EQ_HIPS:
-        return (wear_hips, "wear", "hips",)
-    elif equipType == EQ_MAINHEAD:
-        return (wear_head, "wear", "head",)
-    elif equipType == EQ_MAINNECK:
-        return (wear_neck, "wear", "neck",)
-    elif equipType == EQ_MAINFACE:
-        return (wear_face, "wear", "face",)
-    elif equipType == EQ_MAINEYES:
-        return (wear_eyes, "wear", "eyes",)
-    elif equipType == EQ_MAINEARS:
-        return (wear_ears, "wear", "ears",)
+    return _EQ_DATA.get(equipType, {})
     
+# wrappers #
+    # specific equip functions
+def wield_hand_main(ent, item): return _equip(ent, item, EQ_MAINHANDW)
+def wield_hand_off(ent, item):  return _equip(ent, item, EQ_OFFHANDW)
+def wear_hand_main(ent, item):  return _equip(ent, item, EQ_MAINHAND)
+def wear_hand_off(ent, item):   return _equip(ent, item, EQ_OFFHAND)
+def wear_arm_main(ent, item):   return _equip(ent, item, EQ_MAINARM)
+def wear_arm_off(ent, item):    return _equip(ent, item, EQ_OFFARM)
+def wear_leg_main(ent, item):   return _equip(ent, item, EQ_MAINLEG)
+def wear_leg_off(ent, item):    return _equip(ent, item, EQ_OFFLEG)
+def wear_foot_main(ent, item):  return _equip(ent, item, EQ_MAINFOOT)
+def wear_foot_off(ent, item):   return _equip(ent, item, EQ_OFFFOOT)
+def wear_front(ent, item):      return _equip(ent, item, EQ_FRONT)
+def wear_back(ent, item):       return _equip(ent, item, EQ_BACK)
+def wear_hips(ent, item):       return _equip(ent, item, EQ_HIPS)
+def wear_core(ent, item):       return _equip(ent, item, EQ_CORE)
+def wear_head_main(ent, item):  return _equip(ent, item, EQ_MAINHEAD)
+def wear_face_main(ent, item):  return _equip(ent, item, EQ_MAINFACE)
+def wear_neck_main(ent, item):  return _equip(ent, item, EQ_MAINNECK)
+def wear_eyes_main(ent, item):  return _equip(ent, item, EQ_MAINEYES)
+def wear_ears_main(ent, item):  return _equip(ent, item, EQ_MAINEARS)
+def wear_mouth_main(ent, item): return _equip(ent, item, EQ_MAINMOUTH)
+#
+
+# private constant dicts
+_EQ_DATA={
+EQ_MAINHANDW    : (wield_hand_main, "wield", "hand",),
+EQ_OFFHANDW     : (wield_hand_off, "wield", "hand",),
+EQ_MAINHAND     : (wear_hand_main, "wear", "hand",),
+EQ_OFFHAND      : (wear_hand_off, "wear", "hand",),
+EQ_MAINARM      : (wear_arm_main, "wear", "arm",),
+EQ_OFFARM       : (wear_arm_off, "wear", "arm",),
+EQ_MAINFOOT     : (wear_foot_main, "wear", "foot",),
+EQ_OFFFOOT      : (wear_foot_off, "wear", "foot",),
+EQ_MAINLEG      : (wear_leg_main, "wear", "leg",),
+EQ_OFFLEG       : (wear_leg_off, "wear", "leg",),
+EQ_CORE         : (wear_core, "wear", "core",),
+EQ_FRONT        : (wear_front, "wear", "front",),
+EQ_BACK         : (wear_back, "wear", "back",),
+EQ_HIPS         : (wear_hips, "wear", "hips",),
+EQ_MAINHEAD     : (wear_head_main, "wear", "head",),
+EQ_MAINNECK     : (wear_neck_main, "wear", "neck",),
+EQ_MAINFACE     : (wear_face_main, "wear", "face",),
+EQ_MAINEYES     : (wear_eyes_main, "wear", "eyes",),
+EQ_MAINEARS     : (wear_ears_main, "wear", "ears",),
+EQ_MAINMOUTH    : (wear_mouth_main, "wear", "mouth",),
+    }
+
+
 
     # PC-specific actions first #
 
@@ -291,24 +303,24 @@ def _item_equip_submenu(pc, item):
     opt=rog.menu("{}{}".format(name.title,name.name), x,y, menu.keys())
     _process_selected_item_option(pc, selected, item)
 # end def
-def _process_selected_item_option(pc, selected, item)
+def _process_selected_item_option(pc, selected, item, rmgcost=False):
     rmg=False
     if opt=='return':
         return
     elif selected == "remove":
         rmg=True
-##        eq_type=...
+        eq_type=rog.world().component_for_entity(item,cmp.Equipped).equipType
         deequip_pc(pc, eq_type)
     elif selected == "drop":
         rmg=True
         drop_pc(pc, item)
     elif selected == "wear":
         rmg=True
-##        eq_type=...
+        eq_type=rog.get_wear_type(item) # TODO: make this func
         equip_pc(pc, item, eq_type)
     elif selected == "wield":
         rmg=True
-##        eq_type=...
+        eq_type=rog.get_wield_type(item) # TODO: make this func
         equip_pc(pc, item, eq_type)
     elif selected == "throw":
         rmg=True
@@ -326,7 +338,7 @@ def _process_selected_item_option(pc, selected, item)
         rmg=True
         examine_pc(pc, item)
     # 
-    if rmg:
+    if (rmgcost and rmg):
         rog.spendAP(pc, NRG_RUMMAGE)
 # end def
 
@@ -491,44 +503,30 @@ def inventory_pc(pc):
         #print(opt)
         if opt == -1: return
         selected=opt.lower()
-        _process_selected_item_option(pc, selected, item)
+        _process_selected_item_option(pc, selected, item, rmgcost=True)
 # end def
 
 def _getMenuItems_item(item):
     ''' get a menu dict for an item -- using, throwing, dropping, etc. '''
     keysItems={}
     #   get available actions for this item...
-        if world.has_component(item, cmp.Edible):
-            keysItems.update({"e":"eat"})
-        if world.has_component(item, cmp.Quaffable):
-            keysItems.update({"q":"quaff"})
-        if world.has_component(item, cmp.EquipableInHoldSlot):
-            keysItems.update({"w":"wield"})
-            # throwables - subset of equipables
-            if world.has_component(item, cmp.Throwable):
-                keysItems.update({"t":"throw"})
-        if (world.has_component(item, cmp.EquipableInHandSlot)
-            or world.has_component(item, cmp.EquipableInArmSlot)
-            or world.has_component(item, cmp.EquipableInFootSlot)
-            or world.has_component(item, cmp.EquipableInLegSlot)
-            or world.has_component(item, cmp.EquipableInFrontSlot)
-            or world.has_component(item, cmp.EquipableInCoreSlot)
-            or world.has_component(item, cmp.EquipableInBackSlot)
-            or world.has_component(item, cmp.EquipableInHipsSlot)
-            or world.has_component(item, cmp.EquipableInAboutSlot)
-            or world.has_component(item, cmp.EquipableInHeadSlot)
-            or world.has_component(item, cmp.EquipableInFaceSlot)
-            or world.has_component(item, cmp.EquipableInEyesSlot)
-            or world.has_component(item, cmp.EquipableInEarsSlot)
-            or world.has_component(item, cmp.EquipableInNeckSlot)
-            ):
-            keysItems.update({"W":"wear"})
-        if world.has_component(item, cmp.Usable):
-            keysItems.update({"u":"use"})
-        if world.has_component(item, cmp.Openable):
-            keysItems.update({"o":"open"})
-        keysItems.update({"x":"examine"})
-        keysItems.update({"d":"drop"})
+    if world.has_component(item, cmp.Edible):
+        keysItems.update({"e":"eat"})
+    if world.has_component(item, cmp.Quaffable):
+        keysItems.update({"q":"quaff"})
+    if world.has_component(item, cmp.EquipableInHoldSlot):
+        keysItems.update({"w":"wield"})
+        # throwables - subset of equipables
+        if world.has_component(item, cmp.Throwable):
+            keysItems.update({"t":"throw"})
+    if rog.has_wearable_component(item):
+        keysItems.update({"W":"wear"})
+    if world.has_component(item, cmp.Usable):
+        keysItems.update({"u":"use"})
+    if world.has_component(item, cmp.Openable):
+        keysItems.update({"o":"open"})
+    keysItems.update({"x":"examine"})
+    keysItems.update({"d":"drop"})
     return keysItems
 
 def drop_pc(pc,item):
@@ -567,11 +565,9 @@ def sprint_pc(pc):
     else:
         rog.alert("You're too tired to sprint.")
 
-def target_pc(pc):
+def target_pc_generic(pc):
     ''' generic target function; target entity, then choose what to do '''
-    world=rog.world()
-    pos = world.component_for_entity(pc, cmp.Position)
-    def targetfunc(ent):
+    def targetfunc(world, pc, ent):
         tpos = world.component_for_entity(ent, cmp.Position)
         char = rog.getidchar(ent)
         menu={
@@ -614,12 +610,15 @@ def target_pc(pc):
         elif choice=='x':
             examine_pc(pc, ent)
     # end def
-    rog.aim_find_target(pos.x, pos.y, targetfunc)
+    target_pc(pc, targetfunc)
+def target_pc(pc, func, *args, **kwargs):
+    # target something then call func on it passsing in args,kwargs
+    pos = rog.world().component_for_entity(pc, cmp.Position)
+    rog.aim_find_target(pos.x, pos.y, func, *args, **kwargs)
 # end def
 
 def throw_pc(pc, item):
-    xdest,ydest = target_throw_pc(pc) #TODO: make this func
-    return throw(pc, xdest,ydest)
+    target_pc(pc, throw_item_at, item=item)
     
 ##def process_target(targeted):
 ##    
@@ -646,10 +645,11 @@ def equip_pc(pc, item, equipType):
     if result == 1:
         pass
     else:
+        prep = "in" if str1=="wield" else "on" # preposition
         if result == -100:
-            rog.alert("You can't {} that there.".format(str1))
+            rog.alert("You can't {} that {} the {}.".format(str1,prep,str2))
         elif result == -101:
-            rog.alert("You can't {} that there.".format(str1))
+            rog.alert("You can't {} that {} the {}.".format(str1,prep,str2))
         elif result == -102:
             rog.alert("You are already {w}ing something in that {bp} slot.".format(w=str1, bp=str2))
 # end def
@@ -761,28 +761,6 @@ def _equip(ent, item, equipType):
         
     return result
 # end def
-
-# specific equip functions (wrappers)
-def wield_main(ent, item):      return _equip(ent, item, EQ_MAINHANDW)
-def wield_off(ent, item):       return _equip(ent, item, EQ_OFFHANDW)
-def wear_main(ent, item):       return _equip(ent, item, EQ_MAINHAND)
-def wear_off(ent, item):        return _equip(ent, item, EQ_OFFHAND)
-def wear_arm_main(ent, item):   return _equip(ent, item, EQ_MAINARM)
-def wear_arm_off(ent, item):    return _equip(ent, item, EQ_OFFARM)
-def wear_leg_main(ent, item):   return _equip(ent, item, EQ_MAINLEG)
-def wear_leg_off(ent, item):    return _equip(ent, item, EQ_OFFLEG)
-def wear_foot_main(ent, item):  return _equip(ent, item, EQ_MAINFOOT)
-def wear_foot_off(ent, item):   return _equip(ent, item, EQ_OFFFOOT)
-def wear_front(ent, item):      return _equip(ent, item, EQ_FRONT)
-def wear_back(ent, item):       return _equip(ent, item, EQ_BACK)
-def wear_hips(ent, item):       return _equip(ent, item, EQ_HIPS)
-def wear_core(ent, item):       return _equip(ent, item, EQ_CORE)
-def wear_head(ent, item):       return _equip(ent, item, EQ_MAINHEAD)
-def wear_face(ent, item):       return _equip(ent, item, EQ_MAINFACE)
-def wear_neck(ent, item):       return _equip(ent, item, EQ_MAINNECK)
-def wear_eyes(ent, item):       return _equip(ent, item, EQ_MAINEYES)
-def wear_ears(ent, item):       return _equip(ent, item, EQ_MAINEARS)
-#
 
 def pocketThing(ent, item): #entity puts item in its inventory
     world = rog.world()
@@ -1019,7 +997,8 @@ def sprint(ent):
     #   COMBAT   #
     #------------#
 
-def _calcPens(pen, prot, arm): # calculate number of penetrations
+def _calcPens(pen, prot, arm):
+    ''' calculate number of penetrations and the armor value '''
     pens=0
     while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
         pens += 1   # number of penetrations ++
@@ -1540,29 +1519,37 @@ def fight(attkr,dfndr,adv=0,power=0):
 ###
 #
 
-def throw(ent, xdest,ydest, power=0):
+def throw_item_at(ent, target, item=0):
+    pos=rog.world().component_for_entity(target,cmp.Position)
+    throw(ent, pos.x,pos.y, item=item)
+def throw(ent, xdest,ydest, power=0, item=0):
     world = rog.world()
     arm=rog.dominant_arm(ent)
     if not arm:
         return False
-    weap = arm.hand.held.item
-    if not weap:
-        return False
+    if not item:
+        weap = arm.hand.held.item
+        if not weap:
+            return False
+    else:
+        weap = item
+    
+    # get components
+    aname=world.component_for_entity(ent, cmp.Name)
+    iname=world.component_for_entity(weap, cmp.Name)
     
     # get thrower's stats
     equipable = world.component_for_entity(weap, cmp.EquipableInHoldSlot)
     weapforce = equipable.force
     apos = world.component_for_entity(ent, cmp.Position)
     rng = rog.getms(ent, 'trng')
-    atk = rog.getms(ent, 'tatk') + rog.getms(ent, 'atk')
-    pen = rog.getms(ent, 'tpen') + rog.getms(ent, 'pen')
-    dmg = rog.getms(ent, 'tdmg') + rog.getms(ent, 'dmg')
-    _str = rog.getms(ent, 'str')
-    #
+    atk = (rog.getms(ent, 'tatk') + rog.getms(ent, 'atk'))//MULT_STATS
+    pen = (rog.getms(ent, 'tpen') + rog.getms(ent, 'pen'))//MULT_STATS
+    dmg = (rog.getms(ent, 'tdmg') + rog.getms(ent, 'dmg'))//MULT_STATS
+    _str = rog.getms(ent, 'str')//MULT_STATS
     
     # get the entity we're (trying to) target
     dfndr = rog.monat(xdest,ydest)
-    #
     
     # calculate which tile to aim towards
     dist = rog.dist(apos.x,apos.y,xdest,ydest)
@@ -1572,17 +1559,17 @@ def throw(ent, xdest,ydest, power=0):
         d1 = 2  # deviation of missile (temporary -- TODO: deviation increases based on distance)
         d2 = 3
         tile = (xdest+dice.roll(d2)-d1, ydest+dice.roll(d2)-d1,)
-    #
     
     # init -- prepare to throw
-    rog.deequip(ent, EQ_MAINHANDW)
+    rog.dewield(ent, EQ_MAINHANDW)
     prevx=apos.x
     prevy=apos.y
-    land=None
-    _break=None
     strmult = rog.att_str_mult_force(_str)
     force = (power+1) * strmult * weapforce * rog.getms(weap, 'mass')/MULT_MASS
-    hitDie=0
+    hitDie=pens=roll=0
+    land=None
+    _break=None
+    hit=False
     
     # throw the item at tile tile
     for (xx,yy,) in rog.line(apos.x,apos.y, tile[0],tile[1]):
@@ -1593,10 +1580,11 @@ def throw(ent, xdest,ydest, power=0):
         mon=rog.monat(xx,yy)
         if (mon and mon != rog.pc()):
             # get defender's stats
+            dname=world.component_for_entity(mon, cmp.Name)
             monpos = world.component_for_entity(mon, cmp.Position)
-            mdfn = rog.getms(dfndr, 'dfn')
-            marm = rog.getms(dfndr, 'arm')
-            mpro = rog.getms(dfndr, 'pro')
+            mdfn = rog.getms(dfndr, 'dfn')//MULT_STATS
+            marm = rog.getms(dfndr, 'arm')//MULT_STATS
+            mpro = rog.getms(dfndr, 'pro')//MULT_STATS
             #
             
             # by default, item lands at feet of monster.
@@ -1613,8 +1601,10 @@ def throw(ent, xdest,ydest, power=0):
                 atk -= int(RNG_ATK_PENALTY*excessd)
             
             # roll to hit
-            hitDie = dice.roll(20) + atk - mdfn
+            roll=dice.roll(20)
+            hitDie = roll + atk - mdfn
             if hitDie > 0:
+                hit=True
                 pens, armor = _calcPens(pen, mpro, marm)
                 _dmg = dmg - armor
                 if _dmg > 0:
@@ -1627,8 +1617,7 @@ def throw(ent, xdest,ydest, power=0):
         elif rog.wallat(xx,yy):
             # TODO: ricochet
             land=(prevx,prevy,)
-            # TODO: MAKE ENT_WALL global entity that represents an invincible solid wall object
-            collide(weap, 1, rog.ENT_WALL, 0, force)
+            collide(weap, 1, rog.ent_wall(), 0, force)
         
         # range limit (add a tiny random deviation)
         elif rog.dist(apos.x,apos.y, xx,yy) > rng + dice.roll(3):
@@ -1649,9 +1638,18 @@ def throw(ent, xdest,ydest, power=0):
     else: # remove the item from the game world
         rog.kill(weap)
     
-    # message (TODO)
-    
-    return True
+    # message
+    if hit:
+        result = " (-{dm}|d{ro}|x{pn})".format(dm=_dmg,ro=roll,pn=pens)
+    else:
+        result = ", missing"
+    rog.msg("{ta}{na} throws {ti}{ni} at {td}{nd}{result}".format(
+        ta=TITLES[aname.title],na=aname.name,
+        ti=TITLES[iname.title],ni=iname.name,
+        td=TITLES[dname.title],nd=dname.name,
+        result=result))
+    #
+    return True # return success
 # end def
 
 def collide(ent1, dmg1, ent2, dmg2, force):

@@ -247,7 +247,7 @@ def commands(pc, pcAct):
             _Update()
             return
         if act == "target-prompt": #target entity + fire / throw / attack
-            action.target_pc(pc)
+            action.target_pc_generic(pc)
             _Update()
             return
         if act == "get-prompt":

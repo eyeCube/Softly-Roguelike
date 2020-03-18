@@ -42,6 +42,11 @@ _1_1024 = 0.0009765625
 # public
 
 
+    # entities
+i=1;
+ENT_STONE_WALL      =i;i+=1;
+
+
 
     #--------------#
     # #Exceptions  #
@@ -233,6 +238,8 @@ STATS_TO_MULT={
 # titles
 i=0;
 TITLE_NONE          =i;i+=1;
+TITLE_A             =i;i+=1;
+TITLE_AN            =i;i+=1;
 TITLE_THE           =i;i+=1;
 TITLE_MR            =i;i+=1;
 TITLE_MRS           =i;i+=1;
@@ -244,6 +251,8 @@ TITLE_LADY          =i;i+=1;
 TITLE_DR            =i;i+=1;
 TITLES={
 TITLE_NONE          : "",
+TITLE_A             : "a ",
+TITLE_AN            : "an ",
 TITLE_THE           : "the ",
 TITLE_MR            : "Mr. ",
 TITLE_MRS           : "Mrs. ",
@@ -3595,6 +3604,7 @@ BLINDING_LIGHT = 20 # " permanent blindness
 
 # shapes, the lowest level of identification on an entity you can achieve
 i=1;
+SHAPE_WALL          =i;i+=1;
 SHAPE_FIGURE        =i;i+=1;
 SHAPE_CREATURE      =i;i+=1;
 SHAPE_BEAST         =i;i+=1;
@@ -3629,8 +3639,15 @@ SHAPE_INDISTINCT    =i;i+=1;
 SHAPE_AMORPHOUS     =i;i+=1;
 # names of shapes, for identification purposes
 SHAPES={
-SHAPE_INDISTINCT    : "indistinct object",
-SHAPE_AMORPHOUS     : "amorphous blob",
+SHAPE_WALL          : "wall",
+SHAPE_FIGURE        : "figure",
+SHAPE_CREATURE      : "creature",
+SHAPE_BEAST         : "beast",
+SHAPE_MACHINE       : "machine",
+SHAPE_ORGANIC       : "organic-looking object",
+SHAPE_DEVICE        : "device",
+SHAPE_TOOL          : "tool",
+SHAPE_GUN           : "gun",
 SHAPE_SPHERE        : "spherical object",
 SHAPE_ROCK          : "rock-like object",
 SHAPE_BLOCK         : "cubical object",
@@ -3642,15 +3659,19 @@ SHAPE_CROSS         : "cross-shaped object",
 SHAPE_CLUB          : "club-shaped object",
 SHAPE_DISC          : "disc-shaped object",
 SHAPE_SLAB          : "slab-shaped object",
-SHAPE_DEVICE        : "device",
-SHAPE_TOOL          : "tool",
 SHAPE_TUBE          : "tube-shaped object",
 SHAPE_STICK         : "stick",
 SHAPE_SQUARE        : "square-shaped object",
 SHAPE_SHARP         : "pointy object",
 SHAPE_LINE          : "linear object",
 SHAPE_RECTANGLE     : "rectangular object",
-SHAPE_ORGANIC       : "organic-shaped object",
+SHAPE_Y             : "Y-shaped object",
+SHAPE_CURVED        : "curved object",
+SHAPE_JAGGED        : "jagged object",
+SHAPE_RIGHTANGLES   : "right-angled object",
+SHAPE_SILKY         : "silky object",
+SHAPE_INDISTINCT    : "indistinct object",
+SHAPE_AMORPHOUS     : "amorphous blob",
     }
     
 

@@ -66,6 +66,7 @@ def main():
     rog.Rogue.create_processors()
     rog.Rogue.create_perturn_managers()
     rog.Rogue.create_const_managers()
+    rog.Rogue.create_const_entities()
     
     rog.init_keyBindings()
         

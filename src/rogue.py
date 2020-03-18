@@ -75,6 +75,7 @@ class Rogue:
     et_managers={} #end of turn managers
     bt_managers={} #beginning of turn managers
     c_managers={} #const managers
+    c_entities={} #const entities
     manager = None # current active game state manager
     manager_listeners = [] #
     fov_maps = []
@@ -164,19 +165,27 @@ class Rogue:
         cls.c_managers.update({'lights' : managers.Manager_Lights()})
         cls.c_managers.update({'fov' : managers.Manager_FOV()})
 
-
-    # EXPIRED: Environment class
+    @classmethod
+    def create_const_entities(cls):
+        # stone wall
+        _ent_stone_wall = cls.world.create_entity(
+            cmp.Name("stone wall"),
+            cmp.Form(mat=MAT_STONE, shape=SHAPE_WALL),
+            cmp.Stats(hp=1000, arm=20, pro=24),
+            )
+        cls.c_entities.update({ENT_STONE_WALL : _ent_stone_wall})
+    # end def
+    
 #/Rogue
 
-# global return values. Functions can modify this as an additional
-#  "return" value list.
-class Return:
-    values=None
-def globalreturn(*args): Return.values = args
-def fetchglobalreturn():
-    ret=Return.values
-    Return.values=None
-    return ret
+
+    #----------------#
+    #   Functions    #
+    #----------------#
+
+    # Rogue
+def const_ent(ent): return Rogue.c_entities[ent]
+def _ent_stone_wall(): return const_ent(ENT_STONE_WALL)
 
 # global warning flags
 def allow_warning_msp():
@@ -185,28 +194,6 @@ def reset_warning_msp():
     Rogue.allow_warning_msp = True
 def expire_warning_msp():
     Rogue.allow_warning_msp = False
-
-    #----------------#
-    #   Functions    #
-    #----------------#
-
-# BITWISE OPERATORS ON BYTES OBJECT / BYTEARRAY
-
-def AND(abytes, bbytes):
-    return bytes([a & b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
-def NAND(abytes, bbytes):
-    return NOT(AND(abytes, bbytes)) # OR(NOT, NOT)
-def OR(abytes, bbytes):
-    return bytes([a | b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
-def NOR(abytes, bbytes):
-    return NOT(OR(abytes, bbytes))
-def XOR(abytes, bbytes):
-    return bytes([a ^ b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
-def NOT(abytes): # just XOR w/ mask full of 1's
-    return XOR(abytes, bytes([255 for _ in range(len(abytes))]))
-def GETBYTES(abytes):
-    for byte in abytes:
-        yield byte
     
 
 # global objects
@@ -356,7 +343,40 @@ def msgs_h():           return Rogue.window.msgs.h
 def set_hud_left():     Rogue.window.set_hud_left()
 def set_hud_right():    Rogue.window.set_hud_right()
 
+
+    # global return values. Functions can modify this as an additional
+        #  "return" value list.
+class Return:
+    values=None
+def globalreturn(*args): Return.values = args
+def fetchglobalreturn():
+    ret=Return.values
+    Return.values=None
+    return ret
+
+
+# BITWISE OPERATORS ON BYTES OBJECT / BYTEARRAY
+
+def AND(abytes, bbytes):
+    return bytes([a & b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NAND(abytes, bbytes):
+    return NOT(AND(abytes, bbytes)) # OR(NOT, NOT)
+def OR(abytes, bbytes):
+    return bytes([a | b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NOR(abytes, bbytes):
+    return NOT(OR(abytes, bbytes))
+def XOR(abytes, bbytes):
+    return bytes([a ^ b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
+def NOT(abytes): # just XOR w/ mask full of 1's
+    return XOR(abytes, bytes([255 for _ in range(len(abytes))]))
+def GETBYTES(abytes):
+    for byte in abytes:
+        yield byte
+
+
+    #------------------------#
     # functions from modules #
+    #------------------------#
 
 # orangio
 
@@ -1675,10 +1695,24 @@ def damagebp(bptarget, dmgtype, hitpp):
 # end def
 
 # component getters / finders
-def _get_eq_compo(ent, equipType): # equipType Const -> component
+def has_wearable_component(ent):
+    ''' does entity have any "wearable" equipable components? '''
+    for compo in cmp.WEARABLE_COMPONENTS:
+        if world().has_component(ent, compo):
+            return True
+    return False
+def get_wearable_components(ent):
+    ''' which "wearable" equipable components does the entity have? '''
+    lis=set()
+    for compo in cmp.WEARABLE_COMPONENTS.keys():
+        if world().has_component(ent, compo):
+            lis.add(compo)
+    return lis
+def _get_eq_compo(ent, equipType):
+    ''' from EQ_ const equipType, get entity's respective BP_ component '''
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     
-        # cores #
+    #~~~# cores #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # torso core
     if equipType==EQ_CORE:
         return body.core.core
@@ -1692,7 +1726,7 @@ def _get_eq_compo(ent, equipType): # equipType Const -> component
     elif equipType==EQ_HIPS:
         return body.core.hips
     
-        # peripherals #
+    #~~~# peripherals #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # arms
     for i in range(MAXARMS):
         # hands
@@ -3064,13 +3098,19 @@ def queue_action(ent, act):
 class Manager_Listener: # listens for a result from a game state Manager.
     def alert(self, result): # after we get a result, purpose is finished.
         manager_listeners_remove(self) # delete the reference to self.
-class Aim_Manager_Listener(Manager_Listener): # TODO: create instance of this class and add it using manager_listeners_add() when you press the Aim command.
-    def __init__(self, shootfunc):
-        self.shootfunc=shootfunc # function that runs when you select ...
-                                 # ... to fire at a viable target.
+class Aim_Manager_Listener(Manager_Listener):
+    def __init__(self, world, caller, shootfunc, *args, **kwargs):
+        self.world=world
+        self.caller=caller      # entity who is calling the shootfunc
+        self.shootfunc=shootfunc # function that runs when you select viable target
+        self.arglist=args     # arguments for the shootfunc function
+        self.kwarglist=kwargs # keyword arguments "
     def alert(self, result):
-        if type(result) is int:
-            self.shootfunc(result)
+        if type(result) is int: # we have an entity target
+            self.shootfunc(
+                self.world, self.caller, result,
+                *self.arglist, **self.kwarglist
+                )
         super(Aim_Manager_Listener, self).alert(result)
 
 def manager_listeners_alert(result):
@@ -3124,7 +3164,7 @@ def routine_move_view():
         "Direction? (<hjklyubn>; <select> to center; <Esc> to save position)")
     Rogue.view.fixed_mode_disable()
     
-def aim_find_target(xs, ys, selectfunc):
+def aim_find_target(xs, ys, selectfunc, *args, **kwargs):
     # selectfunc: the function that is ran when you select a valid target
     clear_active_manager()
     game_set_state("manager") #move view
@@ -3132,7 +3172,8 @@ def aim_find_target(xs, ys, selectfunc):
         xs, ys, Rogue.view, Rogue.map.get_map_state())
     Rogue.view.fixed_mode_disable()
     # listener -- handles the shooting
-    listener = Aim_Manager_Listener(selectfunc)
+    listener = Aim_Manager_Listener(
+        world(), pc(), selectfunc, *args, **kwargs)
     manager_listeners_add(listener)
 
 # Manager_PrintScroll
@@ -3254,7 +3295,14 @@ def menu(name, x,y, keysItems, autoItemize=True):
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
     
-
+def get_wear_type(ent): #TEST!
+    _menu={}
+    for compo in get_wearable_components(ent):
+        name = cmp.WEARABLE_COMPONENTS[compo]
+        _menu[name] = compo
+    opt=menu("wear it where?", 0,0,_menu.keys())
+    result=_menu[opt]
+    return result
 
 
 

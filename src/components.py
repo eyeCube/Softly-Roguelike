@@ -2130,6 +2130,27 @@ BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
 EQ_BPS_HOLD=(EQ_MAINHANDW, EQ_OFFHANDW,)
 BP_BPS_HOLD=(BP_HAND,BP_TENTACLE,)
 
+WEARABLE_COMPONENTS={
+    EquipableInHandSlot     : 'hand',
+    EquipableInArmSlot      : 'arm',
+    EquipableInFootSlot     : 'foot',
+    EquipableInLegSlot      : 'leg',
+    EquipableInFrontSlot    : 'torso (front)',
+    EquipableInCoreSlot     : 'torso (core)',
+    EquipableInBackSlot     : 'torso (back)',
+    EquipableInHipsSlot     : 'torso (hips)',
+    EquipableInAboutSlot    : 'about person',
+    EquipableInHeadSlot     : 'head',
+    EquipableInFaceSlot     : 'face',
+    EquipableInEyesSlot     : 'eyes',
+    EquipableInEarsSlot     : 'ears',
+    EquipableInNeckSlot     : 'neck',
+    }
+WIELDABLE_BPS={
+    BP_Hand         : 'hand (wield)',
+    BP_Tentacle     : 'tentacle (wield)',
+    BP_Mandible     : 'mandible (wield)',
+    }
 
 
 
