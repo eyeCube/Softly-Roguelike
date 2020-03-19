@@ -924,8 +924,9 @@ def move(ent,dx,dy, pace=-1, mx=1):  # actor locomotion
     if terrainCost == 0:
         return False        # 0 means we can't move there
     msp=rog.getms(ent,'msp')
+    kg=rog.getms(ent,'mass')/MULT_MASS
     actor = world.component_for_entity(ent, cmp.Actor)
-    if pace==-1:
+    if pace==-1: # current pace
         momentum = rog.getmomentum(ent)
         if momentum:
             pace = momentum.pace
@@ -937,24 +938,29 @@ def move(ent,dx,dy, pace=-1, mx=1):  # actor locomotion
         # change momentum; change our pace based on previous momentum
         # for instance if we turn around rapidly while running,
         #   our pace halts to a walk
-        # StatusRunning could indicate intention to maintain running pace
-        # Hm.... how should we do this???
+        # StatusRunning (or StatusMotile?)
+        #   could indicate intention to maintain running pace
+        #   Hm.... how should we do this???
         # Mass should affect momentum; harder to change direction w/ more mass
     #
+##    momentum.pace = ...
+##    momentum.direction = ...
+    
+    # cost multipliers
+    mult = 1.414 if (dx + dy) % 2 == 0 else 1 # diagonal extra cost
+    _c_sta,_c_cal,_c_fat = PACE_TO_ACTIVITY[pace] # pace affects stamina/calorie/fatigue cost
+    fatiguemult = kg/AVG_MASS # mass influences stamina/fatigue cost for moving
     
     # AP cost
-    mult = 1.414 if (dx + dy) % 2 == 0 else 1  # diagonal extra cost
-    ap_cost = max(1, rog.around(
+    actor.ap -= max(1, math.ceil(
         mx * NRG_MOVE * mult * terrainCost / max(MIN_MSP, msp) ))
-    actor.ap -= ap_cost
     
-    # Stamina cost (TODO FOR ALL ACTIONS!)
-    sta_cost = int(mx * STA_MOVE * mult)
-    rog.sap(ent, sta_cost)
+    # Stamina cost
+    rog.sap(ent, math.ceil(mx * _c_sta * fatiguemult * mult))
     
-    # Satiation, hydration, fatigue (TODO FOR ALL ACTIONS!)
-    cal_cost = int(mx * CALCOST_LIGHTACTIVITY * mult)
-    rog.metabolism(ent, cal_cost)
+    # Satiation, hydration, fatigue
+    rog.metabolism(ent, int(mx * _c_cal * fatiguemult * mult))
+    rog.fatigue(ent, int(mx * _c_fat * fatiguemult * mult))
     
     # perform action
     rog.port(ent, xto, yto)
@@ -997,7 +1003,11 @@ def sprint(ent):
     #   COMBAT   #
     #------------#
 
-def _calcPens(pen, prot, arm):
+def _calc_bpdmg(pens,bonus,dmg,hpmax):
+    bpdmg = dice.roll(6) - 6 + pens + bonus + (8*dmg//hpmax)
+    return max(0, min( BODY_DMG_PEN_BPS, bpdmg )) # constraints
+
+def _calc_pens(pen, prot, arm):
     ''' calculate number of penetrations and the armor value '''
     pens=0
     while (pen-prot-(CMB_ROLL_PEN*pens) >= dice.roll(CMB_ROLL_PEN)):
@@ -1153,7 +1163,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # penetration (calculate armor effectiveness)
         if not grazed: # can't penetrate if you only grazed them
-            pens, armor = _calcPens(pen, prot, arm)
+            pens, armor = _calc_pens(pen, prot, arm)
         else:
             armor = arm
         # end if
@@ -1217,34 +1227,12 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # body damage #
         # calculate damage dealt to body parts
-        bpdmg=dice.roll(6) - 6 + pens + (hitDie//10) + (8*trueDmg//dhpmax)
-        bpdmg=max(0, min( BODY_DMG_PEN_BPS, bpdmg )) # constraints
-        _boolDamageBodyPart = (bpdmg!=0)
+        bpdmg=_calc_bpdmg(pens,(hitDie//10),trueDmg,dhpmax)
+
         #
         # damage body part (inflict status)
-        if _boolDamageBodyPart:
-            hitpp = bpdmg - 1   # status index
-            # get damage type
-            if (aweap and world.has_component(aweap, cmp.DamageTypeMelee)): # custom?
-                compo=world.component_for_entity(aweap, cmp.DamageTypeMelee)
-                dmgtype = compo.type
-            else: # damage type based on skill of the weapon by default
-                if skill:
-                    dmgtype = DMGTYPES[skill]
-                else:
-                    # no skill, use body damage type
-                    if world.has_component(attkr, cmp.DamageTypeMelee):
-                        compo=world.component_for_entity(attkr, cmp.DamageTypeMelee)
-                        dmgtype = compo.type
-                    else: # default to blunt damage
-                        dmgtype = DMGTYPE_BLUNT
-            # deal body damage
-            print("hitpp is ",hitpp)
-            rog.damagebp(bptarget, dmgtype, hitpp)
-            
-            # organ damage (TODO) # how should this be done..?
-            # criticals only?
-        # end if
+        if (bpdmg > 0):
+            rog.attackbp(attkr, bptarget, aweap, bpdmg-1, skill)
         
         # gear damage #
         gearitem = bptarget.slot.item
@@ -1585,6 +1573,7 @@ def throw(ent, xdest,ydest, power=0, item=0):
             mdfn = rog.getms(dfndr, 'dfn')//MULT_STATS
             marm = rog.getms(dfndr, 'arm')//MULT_STATS
             mpro = rog.getms(dfndr, 'pro')//MULT_STATS
+            mhpmax = rog.getms(dfndr, 'hpmax')
             #
             
             # by default, item lands at feet of monster.
@@ -1605,10 +1594,21 @@ def throw(ent, xdest,ydest, power=0, item=0):
             hitDie = roll + atk - mdfn
             if hitDie > 0:
                 hit=True
-                pens, armor = _calcPens(pen, mpro, marm)
+                pens, armor = _calc_pens(pen, mpro, marm)
                 _dmg = dmg - armor
                 if _dmg > 0:
-                    collide(ent, 1, mon, _dmg, force)
+                    rog.collide(weap, 1, mon, _dmg, force)
+                    # bp damage
+                    if world.has_component(mon, cmp.Body):
+                        body = world.component_for_entity(mon, cmp.Body)
+                        bptarget = rog.randombp(body)
+                        skill_type = world.component_for_entity(
+                            weap, cmp.WeaponSkill).skill
+                        bpdmg = _calc_bpdmg(pens, 0, _dmg, mhpmax)
+                        dmgtype = rog.get_dmgtype(0, weap, skill_type)
+                        bpdmg += compo.types[dmgtype]
+                        if bpdmg > 0:
+                            rog.damagebp(bptarget, dmgtype, bpdmg-1)
                 # stick into target (TODO)
                 break
         # end if
@@ -1617,7 +1617,7 @@ def throw(ent, xdest,ydest, power=0, item=0):
         elif rog.wallat(xx,yy):
             # TODO: ricochet
             land=(prevx,prevy,)
-            collide(weap, 1, rog.ent_wall(), 0, force)
+            rog.collide(weap, 1, rog.ent_wall(), 0, force)
         
         # range limit (add a tiny random deviation)
         elif rog.dist(apos.x,apos.y, xx,yy) > rng + dice.roll(3):
@@ -1652,13 +1652,6 @@ def throw(ent, xdest,ydest, power=0, item=0):
     return True # return success
 # end def
 
-def collide(ent1, dmg1, ent2, dmg2, force):
-    ''' collide two entities together with force force
-        deal damage dmg1,dmg2 to ent1,ent2, respectively
-    '''
-    rog.contact(ent1, ent2, force=force)
-    rog.damage(ent1, dmg1)
-    rog.damage(ent2, dmg2)
     
 
 #######################################################################

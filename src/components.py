@@ -489,7 +489,7 @@ class Body:
         'blood','bloodMax','bodyfat',
         'hydration','hydrationMax',
         'satiation','satiationMax',
-        'sleep','sleepMax'
+        'fatigue','fatigueMax'
         ]
     def __init__(self, plan, core, parts={}, height=175, blood=0, fat=0, hydration=0, satiation=0, sleep=0):
         self.plan=plan      # int constant
@@ -503,8 +503,8 @@ class Body:
         self.satiationMax=satiation  
         self.hydration=hydration        # mass of water in the body != satisfaction of hydration
         self.hydrationMax=hydration  
-        self.sleep=sleep                # moments (seconds?) of wakefulness left before madness (or sleep)
-        self.sleepMax=sleep
+        self.fatigue=0                  # accrued fatigue (how tired/sleepy you are)
+        self.fatigueMax=sleep           # amount of fatigue that results in falling asleep uncontrollably
         self.height=height              # int = height in centimeters
         self.position=0     # body pos.: standing, crouched, prone, etc.
     # end def
@@ -1212,10 +1212,11 @@ class WeaponSkill: #equipping as weapon benefits from having skill in this weapo
         self.skill=skill    # skill ID constant
         self.bonus=bonus    # skill Level modifier while it's equipped
 
-class DamageTypeMelee:
-    __slots__=['type']
-    def __init__(self, t):
-        self.type=t         # DMGTYPE_ contant
+class DamageTypeMelee: # custom damage type(s)
+    __slots__=['types','default']
+    def __init__(self, types: dict, default: int):
+        self.types=types    # {DMGTYPE_ contant : int BP damage adder} 
+        self.default=default # default damage type
 
 class Encumberance: # how encumbering it is. Multiplied by kg.
     # TODO: use this for inventory carrying.

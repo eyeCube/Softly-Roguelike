@@ -527,10 +527,12 @@ def _amputate(item, value):
     if value > 0:
         rog.world().add_component(item, cmp.HacksOffLimbs(value))
 
-def _spikes(item):
-    rog.world().add_component(item, cmp.DamageTypeMelee(DMGTYPE_SPIKES))
-def _spuds(item):
-    rog.world().add_component(item, cmp.DamageTypeMelee(DMGTYPE_SPUDS))
+def _spikes(item, q=0):
+    rog.world().add_component( item, cmp.DamageTypeMelee(
+        {DMGTYPE_SPIKES:q}, DMGTYPE_SPIKES) )
+def _spuds(item, q=0):
+    rog.world().add_component( item, cmp.DamageTypeMelee(
+        {DMGTYPE_SPUDS:q}, DMGTYPE_SPUDS) )
 
     # /
 
@@ -1313,21 +1315,22 @@ def _magnifyingGlass(item):
 ##def _hammer(item, acc=0, rng=10, hammer=3):
 ##    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
 ##    _canThrow(item, acc=acc, rng=rng)
-def _hammer(item, hammer, acc=0, rng=10, cm=20):
+def _hammer(item, hammer, acc=0, rng=10, cm=20, toArmor=1):
+    _bonusToArmor(item, toArmor)
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
     rog.world().add_component(item, cmp.WeaponSkill(SKL_HAMMERS))
     _length(item, cm)
 def _1hammer(item):
-    _hammer(item, 1, acc=-1, rng=12)
+    _hammer(item, 1, acc=-1, rng=12, toArmor=1)
 def _2hammer(item):
-    _hammer(item, 2, acc=-1, rng=13)
+    _hammer(item, 2, acc=-1, rng=13, toArmor=2)
 def _3hammer(item):
-    _hammer(item, 3, acc=-1, rng=15)
+    _hammer(item, 3, acc=-1, rng=15, toArmor=3)
 def _4hammer(item):
-    _hammer(item, 4, acc=-1, rng=13)
+    _hammer(item, 4, acc=-1, rng=13, toArmor=4)
 def _5hammer(item):
-    _hammer(item, 5, acc=-2, rng=10)
+    _hammer(item, 5, acc=-2, rng=10, toArmor=5)
 def _axe(item, chop=2, chisel=1, hammer=2, rng=10, cm=30):
     rog.world().add_component(item, cmp.Tool_Chop(chop))
     rog.world().add_component(item, cmp.Tool_Chisel(chisel))
@@ -1403,13 +1406,13 @@ def _pClub(item):
 def _wClub(item):
     _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
 def _sClub(item):
-    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+    _club(item, toArmor=3, hammer=1, acc=-2, rng=8)
 def _bClub(item):
-    _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
+    _club(item, toArmor=3, hammer=1, acc=-2, rng=8)
 def _gClub(item):
     _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
 def _mClub(item):
-    _club(item, toArmor=3, hammer=1, acc=-2, rng=8)
+    _club(item, toArmor=4, hammer=1, acc=-2, rng=8)
 def _cClub(item):
     _club(item, toArmor=2, hammer=1, acc=-2, rng=8)
     # spiked clubs
@@ -3344,7 +3347,7 @@ class __BPS: # Body Part Stats
 def _update_from_body_class(body, modded):
     bodymass=0
     bodymass += body.blood
-    bodymass += body.hydration//MULT_HYD
+    bodymass += body.hydration / MULT_HYD
     bodymass += body.bodyfat
     modded.mass += bodymass
     modded.height += body.height
@@ -3438,7 +3441,7 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('arm')
+    cov = getcov(BP_ARM)
     
     # equipment
     if arm.slot.item:
@@ -3456,7 +3459,7 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_LIMB
+            BP_ARM
             )
     else: # unarmored combat
         equip=None
@@ -3485,7 +3488,7 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('hand')
+    cov = getcov(BP_HAND)
     
     skillsCompo=world.component_for_entity(ent, cmp.Skills)
     
@@ -3636,7 +3639,7 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('leg')
+    cov = getcov(BP_LEG)
     
     # equipment
     if leg.slot.item:
@@ -3654,7 +3657,7 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_LIMB
+            BP_LEG
             )
                                 
     else: # unarmored combat
@@ -3718,7 +3721,7 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('head')
+    cov = getcov(BP_HEAD)
     
     # equipment
     if head.slot.item:
@@ -3951,7 +3954,7 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('core')
+    cov = getcov(BP_TORSO)
     
     # equipment
     if core.slot.item:
@@ -3994,7 +3997,7 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('front')
+    cov = getcov(BP_FRONT)
     cov += 0.1 * len(front.slot.covers)
     
     # equipment
@@ -4039,7 +4042,7 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('back')
+    cov = getcov(BP_BACK)
     
     # equipment
     if back.slot.item:
@@ -4083,7 +4086,7 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov('hips')
+    cov = getcov(BP_HIPS)
     
     # equipment
     if hips.slot.item:
@@ -4917,14 +4920,14 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
     
     female=False #temporary
     if bodyplan==BODYPLAN_HUMANOID:
-        body, basekg = create_body_humanoid(kg, cm, female)
-
+        body, basemass = create_body_humanoid(kg, cm, female)
+    
     # set body sight and hearing to the correct values
     # (TODO)
     
     
     stats=cmp.Stats(
-        mass=basekg,
+        mass=basemass,
         encmax=BASE_ENCMAX+stats.get('encmax',0),
         hp=BASE_HP+stats.get('hp',0),
         mp=BASE_MP+stats.get('mp',0),
@@ -5071,22 +5074,23 @@ def create_steel_weapon(itemName, x, y) -> int:
 
 # bodies #
 
-def create_body_humanoid(mass=75, height=175, female=False, bodyfat=0.1):
+def create_body_humanoid(kg=75, cm=175, female=False, bodyfat=0.1):
     '''
         create a generic humanoid body with everything a basic body needs
             *does not add any values to components -- inits default vals
         
         Parameters:
-            int mass    : intended total body mass in KG
-            int height  : height in centimeters
+            int kg      : intended total body mass in KG
+            int cm      : height in centimeters
             bool female : is the creature female?
+            float bodyfat : what ratio of the body is fat? 0 to 1
             
         Returns: tuple of (body_component_object, base_mass,)
             where base_mass is the mass of the body except for
               the blood, fat, and water (the mass of which is added
               on the fly to calculate the total mass of the body).
     '''
-    mass = int(mass * MULT_MASS)
+    mass = int(kg * MULT_MASS)
     fat = mass*bodyfat
     body = cmp.Body(
         BODYPLAN_HUMANOID,
@@ -5096,7 +5100,7 @@ def create_body_humanoid(mass=75, height=175, female=False, bodyfat=0.1):
             cmp.BPC_Arms  : cmp.BPC_Arms(cmp.BPM_Arm(), cmp.BPM_Arm()),
             cmp.BPC_Legs  : cmp.BPC_Legs(cmp.BPM_Leg(), cmp.BPM_Leg()),
             },
-        height=int(height),
+        height=int(cm),
         blood=int(mass*0.07), # 7% of body mass is blood
         fat=fat, # total fat mass in the body (floating point -- precision doesn't matter)
         hydration=int(MULT_HYD*mass*0.6), # TOTAL BODY MASS OF WATER != how close you are to dehydrating. At 90% this capacity you die of dehydration.

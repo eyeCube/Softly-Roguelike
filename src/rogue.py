@@ -555,6 +555,10 @@ def around(f): # round with an added constant to nudge values ~0.5 up to 1 (atte
     return round(f + 0.00001)
 def about(f1, f2): # return True if the two floating point values are very close to the same value
     return (abs(f1-f2) < 0.00001)
+def slt(f1, f2): # significantly less than (buffer against floating point errors)
+    return (f1 + 0.00001 < f2)
+def sgt(f1, f2): # significantly greater than (buffer against floating point errors)
+    return (f1 - 0.00001 > f2)
 def sign(n):
     if n>0: return 1
     if n<0: return -1
@@ -971,6 +975,13 @@ def hydrate(ent, pts):
     compo = Rogue.world.component_for_entity(ent, cmp.Body)
     compo.hydration = min(compo.hydration + pts, compo.hydrationMax)
 
+def collide(ent1, dmg1, ent2, dmg2, force):
+    ''' collide two entities together with force force
+        deal damage dmg1,dmg2 to ent1,ent2, respectively
+    '''
+    contact(ent1, ent2, force=force)
+    damage(ent1, dmg1)
+    damage(ent2, dmg2)
 def contact(ent1,ent2,force=0): # touch two entities together
     world=Rogue.world
     mat1=world.component_for_entity(ent1, cmp.Form).material
@@ -1436,6 +1447,75 @@ def init_fluidContainer(ent, size):
     #  #Body  #
     #---------#
 
+def getcoretype(plan): return CORETYPES.get(plan, CORETYPE_TORSO)
+# randombp
+class __randombp_G: # global storage
+    total=0 # records total coverage
+    #wrapper function to add to total coverage
+def __randombp_cov( # add part to parts, add coverage to total
+    parts:dict, biases:dict, metacov:int, bp_const:int, part
+    ):
+    amount = around(bpdata[bp_const]/100*metacov + biases.get(part, 0))
+    if amount<=0: return
+    parts[part] = amount
+    __G.total += amount
+# end def
+def randombp(body, biases=None):
+    ''' get a random body part from body body
+        biases of form {BP_ instance : bonus_to_hit}
+    '''
+    __cov=__randombp_cov
+    __G=__randombp_G
+    __G.total=0
+    parts={}
+    bpdata=BPM_COVERAGE[body.plan]
+    data=BODY_COVERAGE[body.plan]
+    if not biases: biases={}
+    
+    # cores
+    coretype=getcoretype(body.plan)
+    if coretype==CORETYPE_TORSO:
+        metacov = data[BPM_TORSO]
+        parts.update({body.core.core:__cov(BP_CORE,metacov)})
+        parts.update({body.core.hips:__cov(BP_HIPS,metacov)})
+        parts.update({body.core.front:__cov(BP_FRONT,metacov)})
+        parts.update({body.core.back:__cov(BP_BACK,metacov)})
+    # end if
+    
+    # parts
+    for cls,bpc in body.parts.items():
+        if cls==cmp.BPC_Arms:
+            for arm in bpc.arms:
+                metacov=data[BPM_ARM]
+                __cov(parts,biases,metacov, BP_HAND, arm.hand)
+                __cov(parts,biases,metacov, BP_ARM, arm.arm)
+        elif cls==cmp.BPC_Legs:
+            for leg in bpc.legs:
+                metacov=data[BPM_LEG]
+                __cov(parts,biases,metacov, BP_FOOT, leg.foot)
+                __cov(parts,biases,metacov, BP_LEG, leg.leg)
+        elif cls==cmp.BPC_Heads:
+            for head in bpc.heads:
+                metacov=data[BPM_HEAD]
+                __cov(parts,biases,metacov, BP_HEAD, head.head)
+                __cov(parts,biases,metacov, BP_FACE, head.face)
+                __cov(parts,biases,metacov, BP_EYES, head.eyes)
+                __cov(parts,biases,metacov, BP_EARS, head.ears)
+                __cov(parts,biases,metacov, BP_MOUTH, head.mouth)
+                __cov(parts,biases,metacov, BP_NECK, head.neck)
+    # end for
+    
+    # roll and select a part
+    r = dice.roll(__G.total)
+    last=0
+    chosenpart=None
+    while not chosenpart:
+        for part,(chance,cls) in parts.items():
+            if (r > last and r <= chance+last):
+                return (part, cls,)
+            last += chance
+    raise Exception("randombp: failed to pick a body part")
+# end def
 # fit
 def get_fit(ent, eq_type):
     ''' get the fit of a body part; assumes body part exists '''
@@ -1694,6 +1774,35 @@ def damagebp(bptarget, dmgtype, hitpp):
                 bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
 # end def
 
+def attackbp(
+    attkr:int,bptarget:int,weap:int,dmgIndex:int,skill_type:int,dmgtype=-1
+    ):
+    ''' entity attkr attacks bp bptarget with weapon weap '''
+    world=Rogue.world
+    if dmgtype!=-1: # force a damage type
+        if dmgtype not in compo.types:
+            return False
+        dmgIndex += compo.types[dmgtype]
+    else: # get damage type
+        dmgtype = get_dmgtype(attkr,weap,skill_type)
+        dmgIndex += compo.types[dmgtype]
+    # end get damage type
+    
+    #  TESTING
+    print("dmgIndex is ",dmgIndex)
+    #
+    
+    if dmgIndex < 0:
+        return False
+    
+    # deal body damage
+    damagebp(bptarget, dmgtype, dmgIndex)
+    
+    # organ damage (TODO) # how should this be done..?
+    # criticals only?
+    return True
+# end if
+
 # component getters / finders
 def has_wearable_component(ent):
     ''' does entity have any "wearable" equipable components? '''
@@ -1779,8 +1888,6 @@ def _get_eq_compo(ent, equipType):
 # get body parts getbodyparts getbps findbodyparts find body parts
 def findbps(ent, cls): # ent + cls -> list of BP component objects
     body = Rogue.world.component_for_entity(ent, cmp.Body)
-    # TODO: body plans other than humanoid
-##    if body.plan==BODYPLAN_HUMANOID:
     if cls is cmp.BP_TorsoCore:
         return (body.core.core,)
     if cls is cmp.BP_TorsoFront:
@@ -1790,31 +1897,49 @@ def findbps(ent, cls): # ent + cls -> list of BP component objects
     if cls is cmp.BP_Hips:
         return (body.core.hips,)
     if cls is cmp.BP_Head:
-        return (body.parts[cmp.BPC_Heads].heads[0].head,)
+        return tuple([(head.head if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Face:
-        return (body.parts[cmp.BPC_Heads].heads[0].face,)
+        return tuple([(head.face if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Neck:
-        return (body.parts[cmp.BPC_Heads].heads[0].neck,)
+        return tuple([(head.neck if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Eyes:
-        return (body.parts[cmp.BPC_Heads].heads[0].eyes,)
+        return tuple([(head.eyes if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Ears:
-        return (body.parts[cmp.BPC_Heads].heads[0].ears,)
+        return tuple([(head.ears if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Nose:
-        return (body.parts[cmp.BPC_Heads].heads[0].nose,)
+        return tuple([(head.nose if head else None) for head in body.parts[cmp.BPC_Heads].heads])
+    if cls is cmp.BP_Mouth:
+        return tuple([(head.mouth if head else None) for head in body.parts[cmp.BPC_Heads].heads])
     if cls is cmp.BP_Arm:
-        return (body.parts[cmp.BPC_Arms].arms[0].arm,
-                body.parts[cmp.BPC_Arms].arms[1].arm,)
+        return tuple([(arm.arm if arm else None) for arm in body.parts[cmp.BPC_Arms].arms])
     if cls is cmp.BP_Hand:
-        return (body.parts[cmp.BPC_Arms].arms[0].hand,
-                body.parts[cmp.BPC_Arms].arms[1].hand,)
+        return tuple([(arm.hand if arm else None) for arm in body.parts[cmp.BPC_Arms].arms])
     if cls is cmp.BP_Leg:
-        return (body.parts[cmp.BPC_Legs].legs[0].leg,
-                body.parts[cmp.BPC_Legs].legs[1].leg,)
+        return tuple([(leg.leg if leg else None) for leg in body.parts[cmp.BPC_Legs].legs])
     if cls is cmp.BP_Foot:
-        return (body.parts[cmp.BPC_Legs].legs[0].foot,
-                body.parts[cmp.BPC_Legs].legs[1].foot,)
+        return tuple([(leg.foot if leg else None) for leg in body.parts[cmp.BPC_Legs].legs])
 # end def
 
+def get_dmgtype(attkr=0, weap=0, skill_type=0):
+    ''' get damage type for given attacker/weapon combo where skill_type
+        is the skill class of the weapon being used if applicable.
+        Leave attkr==0 if no creature attacker is relevant,
+        or leave weap==0 if no weapon is being used.
+    '''
+    world=Rogue.world
+    if (weap and world.has_component(weap, cmp.DamageTypeMelee)): # custom?
+        compo=world.component_for_entity(weap, cmp.DamageTypeMelee)
+        return compo.default
+    else: # damage type based on skill of the weapon by default
+        if skill_type:
+            return DMGTYPES[skill_type]
+        else: # no skill involved, use body damage type
+            if (attkr and world.has_component(attkr, cmp.DamageTypeMelee)):
+                compo=world.component_for_entity(attkr, cmp.DamageTypeMelee)
+                return compo.default
+            else: # default to blunt damage
+                return DMGTYPE_BLUNT
+# end def
 
     #-----------------#
     #    Equipment    #
@@ -2088,13 +2213,13 @@ def create_earwear(name,x,y):
     _initThing(ent)
     return ent
 
-def create_body_humanoid(mass=70, height=175, female=False, bodyfat=None):
+def create_body_humanoid(kg=70, cm=175, female=False, bodyfat=None):
     if bodyfat:
         return entities.create_body_humanoid(
-            mass=mass, height=height, female=female, bodyfat=bodyfat)
+            kg=kg, cm=cm, female=female, bodyfat=bodyfat)
     else:
         return entities.create_body_humanoid(
-            mass=mass, height=height, female=female)
+            kg=kg, cm=cm, female=female)
 
 def dominant_arm(ent): # get a BPM object (assumes you have the necessary components / parts)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
@@ -2266,7 +2391,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     modded.ratk=modded.rdmg=modded.rpen=modded.rasp=modded.minrng=modded.maxrng=0
     
     # useful stats to keep track of
-    basemass = base.mass / MULT_MASS
+    basekg = base.mass / MULT_MASS
 # /init #--------------------------------------------------------------#
 
 
@@ -2276,17 +2401,15 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         #-------------------------#
     
     if world.has_component(ent, cmp.Body):
-        body=world.component_for_entity(ent, cmp.Body)
-    else:
-        body=None
-    if body:
-        keys = body.parts.keys()
-        
         # body component top level vars
+        body = world.component_for_entity(ent, cmp.Body)
+        keys = body.parts.keys()
+        # get stats from body component
         bodymass = entities._update_from_body_class(body, modded)
-        basemass = (base.mass + bodymass) / MULT_MASS
-        # encumerance from your own body weight
-        modded.enc += modded.mass//MULT_MASS
+            # (modded mass now represents true body mass)
+        basekg = modded.mass / MULT_MASS
+        # add encumerance from your own body mass
+        modded.enc += basekg
         
         # core
         if body.plan==BODYPLAN_HUMANOID:
@@ -2349,7 +2472,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         #------------#
 
     # add encumberance from all items in inventory
-    if world.has_component(ent, cmp.Inventory): # TODO: test this
+    if world.has_component(ent, cmp.Inventory):
         inv=world.component_for_entity(ent, cmp.Inventory).data
         for item in inv:
             enc=world.component_for_entity(item, cmp.Encumberance).value
@@ -2382,7 +2505,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         
         # bleed
         if not on(ent, IMMUNEBLEED):
-            q = meters.bleed // (0.5*basemass)
+            q = meters.bleed // (0.5*basekg)
             overwrite_status(ent, cmp.StatusBleed, q=q)
         
         # dirty
@@ -2759,16 +2882,19 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.gra = modded.gra + PRONE_GRA*MULT_STATS
     
     
-#~~~~~~~#--------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-        # encumberance - stat mods #
-        #--------------------------#
-
+#~~~~~~~#--------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # encumberance #
+        #--------------#
+    
+    #~
     # Things should avoid affecting attributes as much as possible.
     # Encumberance should not affect agility or any other attribute
     # because encumberance max is dependent on attributes.
+    #~
+    
     # Ratio of encumberance
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
-    # SP Regen acts differently -- smooth linear scaling
+    # SP Regen acts differently -- smooth linear scaling relative to encumberance
     modded.mpregen = max(0,modded.mpregen) * (SPREGEN_MIN + SPREGEN_D*encpc)
     # Breakpoint stats -- gotten from ENCUMBERANCE_MODIFIERS dict
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)

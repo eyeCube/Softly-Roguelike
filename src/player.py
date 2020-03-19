@@ -619,8 +619,8 @@ def chargen(sx, sy):
             #
         
         # create body
-        body, basekg = rog.create_body_humanoid(
-            mass=kg, height=cm, female=Chargen.female,
+        body, basemass = rog.create_body_humanoid(
+            kg=kg, cm=cm, female=Chargen.female,
             bodyfat=fatratio)
         body.hydration = body.hydrationMax * 0.98
         body.satiation = body.satiationMax * 0.85
@@ -665,7 +665,7 @@ def chargen(sx, sy):
 
         # apply any stat changes from Chargen that haven't been applied
 
-        Chargen.statsCompo.mass += basekg
+        Chargen.statsCompo.mass += basemass
         Chargen.statsCompo.reach = round(reachMult*Chargen.statsCompo.reach)
         Chargen.statsCompo.msp = round(mspMult*Chargen.statsCompo.msp)
         if Chargen.fastLearner:

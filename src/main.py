@@ -17,7 +17,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
-#testing...
 
 import tcod as libtcod
 ##import cProfile

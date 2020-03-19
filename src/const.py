@@ -733,58 +733,9 @@ MIN_MSP     = 1
 ##SUPER_HEARING       = 500
 AVG_HEARING         = 100
 AVG_SPD             = 100
-AVG_HUMAN_HEIGHT    = 175
-
-# MP (stamina) cost to perform actions
-STA_SLOWWALK        = 2 # slow movement
-STA_MOVE            = 4 # standard movement option
-STA_JOG             = 8
-STA_RUN             = 16
-STA_SPRINT          = 32
-STA_ATTACK          = 8 # multiplied by STA cost of weapons?
-STA_PUNCH           = 24
-STA_GRAB            = 4
-STA_PICKUP          = 1 # times KG?
-STA_POCKET          = 1
-STA_RUMMAGE         = 2
-STA_OPEN            = 2
-STA_CLOSE           = 1
-STA_EXAMINE         = 0
-STA_QUAFF           = 0
-STA_EAT             = 1
-STA_READ            = 0
-STA_WIELDSMALL      = 1
-STA_WIELDLARGE      = 2
-STA_WIELDXLARGE     = 4
-STA_USE             = 1 # default use item cost
-
-#energy (action potential or AP) cost to perform actions
-NRG_MOVE            = 100   # on default terrain (flat ground) 
-NRG_ATTACK          = 200
-NRG_BOMB            = 200   
-NRG_PICKUP          = 50    # grab thing and wield it (requires empty hand)
-NRG_POCKET          = 100   # picking up and putting in your inventory
-NRG_RUMMAGE         = 50    # Cost to look at the contents of a container
-NRG_OPEN            = 80    # Cost to open a door
-NRG_CLOSE           = 40    # Cost to close a door or simple container
-NRG_TAKE            = 100   # Cost of picking an item from a container
-NRG_EXAMINE         = 200
-NRG_QUAFF           = 100
-NRG_EAT             = 300   # default AP cost per unit of consumption to eat
-NRG_EAT_MIN         = 50    # minimum AP cost to eat any amount of food
-NRG_READ            = 50    # cost to read a simple thing (phrase/sentence)
-NRG_READPARAGRAPH   = 250   # cost to read an idea (paragraph/complex sentence)
-NRG_READPAGE        = 2500  # cost to read a page of a book (several ideas forming one meta-idea that requires you to read it all to understand)
-NRG_USE             = 100   # generic use function
-NRG_WIELDSMALL      = 25    # default AP it takes to brandish a weapon (small or easy to brandish, like handguns, knives, swords, etc.)
-NRG_WIELD           = 75    # default AP it takes to brandish a weapon (medium sized 1-h, like a club). Notice "default" keyword. It can be more or less depending on context/skill of user, etc.
-NRG_WIELDLARGE      = 150   # default AP it takes to brandish a weapon (large / 2-h)
-NRG_WIELDXLARGE     = 300   # default AP it takes to brandish a weapon (largest 2-h weapons)
-NRG_WIELDCUMBERSOME = 600   # default AP it takes to brandish a cumbersome item as a weapon
-NRG_RELOAD          = 200
-# multipliers
-NRGM_QUICKATTACK    = 0.6
-STAM_QUICKATTACK    = 1.5
+AVG_HUMAN_HEIGHT    = 175 #CM
+AVG_MASS            = 75  #KG
+##AVG_HUMAN_MASS      = 75
 
 
 
@@ -938,13 +889,6 @@ DISPOSITION_LEVELS={
     # #paces  #
     #---------#
 i=0;
-PACE_STOPPED    =i;i+=1;
-PACE_SNAILPACE  =i;i+=1;
-PACE_SLOWWALK   =i;i+=1;
-PACE_POWERWALK  =i;i+=1;
-PACE_JOG        =i;i+=1;
-PACE_RUN        =i;i+=1;
-PACE_SPRINT     =i;i+=1;
 
 
 
@@ -952,19 +896,6 @@ PACE_SPRINT     =i;i+=1;
     #---------#
     # #items  #
     #---------#
-
-# food
-SATIETY_PER_MORSEL  = 25    # Calories per morsel of food
-FOOD_BIGMEAL        = 108   # caloric content (multiplier)
-FOOD_MEAL           = 36
-FOOD_RATION         = 12
-FOOD_SERVING        = 4
-FOOD_MORSEL         = 1
-FOOD_BIGMEAL_NRG    = 12000*AVG_SPD   # AP cost for eating
-FOOD_MEAL_NRG       = 3000*AVG_SPD
-FOOD_RATION_NRG     = 2000*AVG_SPD
-FOOD_SERVING_NRG    = 600*AVG_SPD
-FOOD_MORSEL_NRG     = 150*AVG_SPD
 
 # crafting
 CRAFT_NRG_MULT      = 5     # multiplier for crafting AP cost (all recipes)
@@ -989,22 +920,108 @@ LIMBWPN_SHARPTEETH  =i;i+=1; # carnivore's teeth
     #      #body        #
     #-------------------#
 
+# food
+SATIETY_PER_MORSEL  = 25    # Calories per morsel of food
+SATIETY_MULT_RAPID  = 0.25  # caloric value multiplier when you eat fast
+FOOD_BIGMEAL        = 108   # caloric content (multiplier)
+FOOD_MEAL           = 36
+FOOD_RATION         = 12
+FOOD_SERVING        = 4
+FOOD_MORSEL         = 1
+FOOD_BIGMEAL_NRG    = 12000*AVG_SPD   # AP cost for eating
+FOOD_MEAL_NRG       = 3000*AVG_SPD
+FOOD_RATION_NRG     = 2000*AVG_SPD
+FOOD_SERVING_NRG    = 600*AVG_SPD
+FOOD_MORSEL_NRG     = 150*AVG_SPD
+
 # calorie costs for 75kg human per turn of actions (1 Calorie == 1000 calories. Typically we refer to "calories" meaning KiloCalories, but I mean actual calories here, not KiloCalories.)
 CALCOST_SLEEP           = 25        # metabolism while asleep
 CALCOST_REST            = 40        # metabolism at rest (awake, alert)
 CALCOST_LIGHTACTIVITY   = 100       # walking, doing any small motor task
 CALCOST_MEDIUMACTIVITY  = 200       # jogging, big motor muscle task
-CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, combat
-CALCOST_INTENSEACTIVITY = 600       # intermediate btn. heavy and max intensity
-CALCOST_MAXINTENSITY    = 1200      # sprinting, wrestling/intense combat
+CALCOST_HEAVYACTIVITY   = 300       # running, climbing, jumping, swimming, light combat
+CALCOST_INTENSEACTIVITY = 600       # wrestling, combat
+CALCOST_MAXINTENSITY    = 1200      # sprinting, intense combat
+# metabolism
 METABOLISM_HEAT         = 0.00001   # heat generated from metabolism
 METABOLISM_THIRST       = 0.05      # metabolising food takes some amount of water
 FAT_RESCOLD             = 2         # per kg of fat
 FAT_RESHEAT             = -1        # per kg of fat
 DEFAULT_BODYFAT_HUMAN   = 0.1       # ratio of total mass
+# sleepiness
+FATIGUE_SLEEP           = -1        # fatigue regeneration while asleep
+FATIGUE_REST            = 1         # fatigue regen. at rest (awake, alert)
+FATIGUE_LIGHTACTIVITY   = 10        # walking, doing any small motor task
+FATIGUE_MEDIUMACTIVITY  = 25        # jogging, big motor muscle task
+FATIGUE_HEAVYACTIVITY   = 50        # running, climbing, jumping, swimming, light combat
+FATIGUE_INTENSEACTIVITY = 100       # wrestling, combat
+FATIGUE_MAXINTENSITY    = 200       # sprinting, intense combat
 
-# body plans:
-#   body part coverage, for targeting specific body parts
+# MP (stamina) cost to perform actions
+STA_SLOWWALK        = 2 # slow movement
+STA_MOVE            = 4 # standard movement option
+STA_JOG             = 8
+STA_RUN             = 16
+STA_SPRINT          = 32
+STA_ATTACK          = 8 # multiplied by STA cost of weapons?
+STA_PUNCH           = 24
+STA_GRAB            = 4
+STA_PICKUP          = 1 # times KG?
+STA_POCKET          = 1
+STA_RUMMAGE         = 2
+STA_OPEN            = 2
+STA_CLOSE           = 1
+STA_EXAMINE         = 0
+STA_QUAFF           = 0
+STA_EAT             = 1
+STA_READ            = 0
+STA_WIELDSMALL      = 1
+STA_WIELDLARGE      = 2
+STA_WIELDXLARGE     = 4
+STA_USE             = 1 # default use item cost
+
+#energy (action potential or AP) cost to perform actions
+NRG_MOVE            = 100   # on default terrain (flat ground) 
+NRG_ATTACK          = 200
+NRG_BOMB            = 200   
+NRG_PICKUP          = 50    # grab thing and wield it (requires empty hand)
+NRG_POCKET          = 100   # picking up and putting in your inventory
+NRG_RUMMAGE         = 50    # Cost to look at the contents of a container
+NRG_OPEN            = 80    # Cost to open a door
+NRG_CLOSE           = 40    # Cost to close a door or simple container
+NRG_TAKE            = 100   # Cost of picking an item from a container
+NRG_IDENTIFY        = 100   # observing something to identify it better
+NRG_QUAFF           = 100   # AP cost to swallow something smooth
+NRG_EAT             = 300   # default AP cost per unit of consumption to eat
+NRG_EAT_FAST        = 150   # rapid consumption AP cost
+NRG_EAT_MIN         = 50    # minimum AP cost to eat any amount of food
+NRG_READ            = 50    # cost to read a simple thing (phrase/sentence)
+NRG_READPARAGRAPH   = 250   # cost to read an idea (paragraph/complex sentence)
+NRG_READPAGE        = 2500  # cost to read a page of a book (several ideas forming one meta-idea that requires you to read it all to understand)
+NRG_USE             = 100   # generic use function
+NRG_WIELDSMALL      = 25    # default AP it takes to brandish a weapon (small or easy to brandish, like handguns, knives, swords, etc.)
+NRG_WIELD           = 75    # default AP it takes to brandish a weapon (medium sized 1-h, like a club). Notice "default" keyword. It can be more or less depending on context/skill of user, etc.
+NRG_WIELDLARGE      = 150   # default AP it takes to brandish a weapon (large / 2-h)
+NRG_WIELDXLARGE     = 300   # default AP it takes to brandish a weapon (largest 2-h weapons)
+NRG_WIELDCUMBERSOME = 600   # default AP it takes to brandish a cumbersome item as a weapon
+NRG_RELOAD          = 200
+# multipliers
+NRGM_QUICKATTACK    = 0.6
+STAM_QUICKATTACK    = 1.5
+
+# getting activity levels
+PACE_TO_ACTIVITY={ # from movement pace
+PACE_STOPPED    : (0,CALCOST_REST,FATIGUE_REST,),
+PACE_SNAILPACE  : (STA_SLOWWALK,CALCOST_LIGHTACTIVITY,FATIGUE_LIGHTACTIVITY,),
+PACE_SLOWWALK   : (STA_SLOWWALK,CALCOST_LIGHTACTIVITY,FATIGUE_LIGHTACTIVITY,),
+PACE_POWERWALK  : (STA_MOVE,CALCOST_LIGHTACTIVITY,FATIGUE_LIGHTACTIVITY,),
+PACE_JOG        : (STA_JOG,CALCOST_MEDIUMACTIVITY,FATIGUE_MEDIUMACTIVITY,),
+PACE_RUN        : (STA_RUN,CALCOST_HEAVYACTIVITY,FATIGUE_HEAVYACTIVITY,),
+PACE_SPRINT     : (STA_SPRINT,CALCOST_MAXINTENSITY,FATIGUE_MAXINTENSITY,),
+    }
+
+
+# body plans #
 i=1;
 BODYPLAN_HUMANOID   =i;i+=1; 
 BODYPLAN_INSECTOID  =i;i+=1; # 6-legged
@@ -1014,20 +1031,8 @@ BODYPLAN_8ARMS      =i;i+=1; # octopus
 BODYPLAN_CUSTOM     =i;i+=1; # for special cases, body plan built up manually
 #
 
-# body plan data #
-
-#formerly: BODYPLANS
-BODY_COVERAGE={
-    # % body coverage of various parts
-    # for targeting body parts (as with ranged weapons)
-BODYPLAN_HUMANOID   : {"core":45, "head":5, "legs":30, "arms":20,},
-BODYPLAN_INSECTOID  : {"core":60, "head":15, "legs":25,},
-BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
-BODYPLAN_8ARMS      : {"core":10, "head":25, "arms":65,},
-BODYPLAN_CUSTOM     : {"core":100,},
-    }
-
-BODY_TEMP = {
+BODY_TEMP = { #temperature
+# plan  : (avg_temp, +hyperthermia, +hypothermia)
 BODYPLAN_HUMANOID   : (37, 3, -9,),
 BODYPLAN_4LEGGED    : (39, 6, -9,),
 BODYPLAN_INSECTOID  : (30, 8, -8,),
@@ -1140,21 +1145,34 @@ CQB_PEN             = 6
 CQB_PRO             = 1
 CQB_SPLASHMOD       = 0.25
 
+# body cores
+i=1;
+CORETYPE_TORSO  =i;i+=1;
+CORETYPE_  =i;i+=1;
+
+CORETYPES={
+BODYPLAN_HUMANOID : CORETYPE_TORSO,
+    }
+
 # body parts
 
 i=1;
-BP_LIMB         =i;i+=1;
 BP_HEAD         =i;i+=1;
 BP_NECK         =i;i+=1;
 BP_FACE         =i;i+=1;
-BP_TORSO        =i;i+=1;
-BP_HAND         =i;i+=1;
-BP_FOOT         =i;i+=1;
 BP_EYES         =i;i+=1;
 BP_EARS         =i;i+=1;
+BP_MOUTH        =i;i+=1;
+BP_FRONT        =i;i+=1;
+BP_BACK         =i;i+=1;
+BP_HIPS         =i;i+=1;
+BP_CORE         =i;i+=1;
+BP_ARM          =i;i+=1;
+BP_LEG          =i;i+=1;
+BP_HAND         =i;i+=1;
+BP_FOOT         =i;i+=1;
 BP_WING         =i;i+=1;
 BP_TAIL         =i;i+=1;
-BP_MOUTH        =i;i+=1;
 BP_BEAK         =i;i+=1;
 BP_GENITALS     =i;i+=1;
 BP_APPENDAGE    =i;i+=1;
@@ -1168,14 +1186,14 @@ BP_INSECTTHORAX =i;i+=1;
 BP_INSECTABDOMEN=i;i+=1;
 # coverage of specific body parts, for armor skill bonuses
 COVERAGE={
-'hand'  : 0.05,
-'arm'   : 0.1,
-'leg'   : 0.1,
-'head'  : 0.1,
-'core'  : 0.1,
-'front' : 0.1,
-'back'  : 0.1,
-'hips'  : 0.1,
+    BP_HAND  : 0.05,
+    BP_ARM   : 0.1,
+    BP_LEG   : 0.1,
+    BP_HEAD  : 0.1,
+    BP_CORE  : 0.1,
+    BP_FRONT : 0.1,
+    BP_BACK  : 0.1,
+    BP_HIPS  : 0.1,
     }
 
 # body parts pieces
@@ -1196,6 +1214,39 @@ BPP_OLFACTORY   =i;i+=1;
 BPP_ARTERY      =i;i+=1;
 BPP_FACE        =i;i+=1;
 BPP_HAIR        =i;i+=1;
+
+# body parts meta
+
+i=1;
+BPM_TORSO        =i;i+=1;
+BPM_HEAD         =i;i+=1;
+BPM_ARM          =i;i+=1;
+BPM_LEG          =i;i+=1;
+
+# body plan data #
+
+BPM_COVERAGE={ # for ranged battle
+    # plan : {BPM_const : {BP_ const : coverage (adds up to 100),},},
+    BODYPLAN_HUMANOID:{
+BPM_TORSO   : {BP_CORE:30,BP_HIPS:30,BP_FRONT:20,BP_BACK:20,},
+BPM_HEAD    : {BP_FACE:35,BP_HEAD:50,BP_MOUTH:10,BP_EYES:1,BP_EARS:4,},
+BPM_ARM     : {BP_ARM:80,BP_HAND:20,},
+BPM_LEG     : {BP_LEG:80,BP_FOOT:20,},
+    },
+}
+
+BODY_COVERAGE={ # for ranged battle
+    #   body part coverage, for targeting a specific body part
+    # {plan : {BPM_ const : body coverage per part},},
+    # coverage must add up to 100 (*with the healthy # of limbs)
+#(example: human: (2 legs==2*15==30) + (2 arms==2*10==20) + 45 + 5 == 100)
+BODYPLAN_HUMANOID   : {BPM_TORSO:45, BPM_HEAD:5, BPM_LEG:15, BPM_ARM:10,},
+#TODO:update all these to same format as above!
+BODYPLAN_INSECTOID  : {"core":60, "head":15, "legs":25,}, 
+BODYPLAN_4LEGGED    : {"core":45, "head":5, "legs":50,},
+BODYPLAN_8ARMS      : {"core":10, "head":25, "arms":65,},
+BODYPLAN_CUSTOM     : {"core":100,},
+    }
 
 # body part statuses
 
