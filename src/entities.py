@@ -517,12 +517,12 @@ def _melee_bleed(item, amt):
 def _melee_pain(item, amt):
     if not amt: return
     _elementalMelee(item, ELEM_PAIN, amt)
-def _bonusToFlesh(item, bonus):
+def _bonusToSoft(item, bonus):
     if bonus > 0:
-        rog.world().add_component(item, cmp.BonusToFlesh(bonus))
-def _bonusToArmor(item, bonus):
+        rog.world().add_component(item, cmp.bonusToSoft(bonus))
+def _bonusToHard(item, bonus):
     if bonus > 0:
-        rog.world().add_component(item, cmp.BonusToArmor(bonus))
+        rog.world().add_component(item, cmp.bonusToHard(bonus))
 def _amputate(item, value):
     if value > 0:
         rog.world().add_component(item, cmp.HacksOffLimbs(value))
@@ -1316,7 +1316,7 @@ def _magnifyingGlass(item):
 ##    rog.world().add_component(item, cmp.Tool_Hammer(hammer))
 ##    _canThrow(item, acc=acc, rng=rng)
 def _hammer(item, hammer, acc=0, rng=10, cm=20, toArmor=1):
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
     rog.world().add_component(item, cmp.WeaponSkill(SKL_HAMMERS))
@@ -1364,7 +1364,7 @@ def _gAxe(item): # no glass tools can be used as chisels.
     # machetes
 def _machete(item, machete, cut=1, acc=-2, rng=5, amputate=5, toFlesh=2, cm=50):
     _amputate(item, amputate)
-    _bonusToFlesh(item, toFlesh)
+    _bonusToSoft(item, toFlesh)
     rog.world().add_component(item, cmp.Tool_Cut(cut))
     rog.world().add_component(item, cmp.Tool_Machete(machete))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_TIPFIRST)
@@ -1397,7 +1397,7 @@ def _4chisel(item):
 
     # clubs
 def _club(item, toArmor=3, hammer=1, acc=-3, rng=8, cm=40):
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
     _length(item, cm)
@@ -1419,7 +1419,7 @@ def _cClub(item):
 def _spikedClub(item, toArmor=2, bleed=10, pain=10, rng=8, cm=40):
     _melee_pain(item, pain)
     _melee_bleed(item, bleed)
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     _canThrow(item, acc=-2, rng=rng, skill=SKL_ENDOVEREND)
     _length(item, cm)
 def _pSpikedClub(item):
@@ -1428,7 +1428,7 @@ def _wSpikedClub(item):
     _spikedClub(item, toArmor=3, bleed=20, pain=30, rng=8)
     # cudgels
 def _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=6, cm=40):
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
     _length(item, cm)
@@ -1448,7 +1448,7 @@ def _cCudgel(item):
     _cudgel(item, toArmor=2, hammer=2, acc=-3, rng=8)
     # warhammers
 def _warhammer(item, acc=-2,rng=8, hammer=3, toArmor=4, cm=30):
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     rog.world().add_component(item, cmp.Tool_Hammer(hammer))
     _canThrow(item, acc=acc, rng=rng, skill=SKL_ENDOVEREND)
     _length(item, cm)
@@ -1473,7 +1473,7 @@ def _mMorningStar(item):
 def _mace(item, toArmor=10, cm=40):
     _melee_pain(item, 10)
     _melee_bleed(item, 5)
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     _canThrow(item, acc=-2, rng=8, skill=SKL_ENDOVEREND)
     _length(item, cm)
     _studs(item)
@@ -1939,7 +1939,7 @@ def _baton(item):
     _canThrow(item, acc=0, rng=10, pen=-3, skill=SKL_ENDOVEREND)
     _length(item, 25)
 def _butcherKnife(item):
-    _bonusToFlesh(item, 6)
+    _bonusToSoft(item, 6)
     _amputate(item, 3)
     _melee_bleed(item, 2*BLEED_STEEL)
     rog.world().add_component(item, cmp.Tool_Cut(6))
@@ -1947,7 +1947,7 @@ def _butcherKnife(item):
     _canThrow(item, acc=-4, rng=12, pen=-5, skill=SKL_ENDOVEREND)
     _length(item, 15)
 def _kukri(item):
-    _bonusToFlesh(item, 6)
+    _bonusToSoft(item, 6)
     _melee_bleed(item, 1.25*BLEED_STEEL)
     _addRes(item, resrust=50)
     rog.world().add_component(item, cmp.Tool_Cut(7))
@@ -1958,7 +1958,7 @@ def _kukri(item):
     _canThrow(item, acc=-2, rng=14, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 20)
 def _messer(item):
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _melee_bleed(item, 1.25*BLEED_STEEL)
     _amputate(item, 10)
     _addRes(item, resrust=10)
@@ -1968,7 +1968,7 @@ def _messer(item):
     _canThrow(item, acc=-4, rng=12, pen=-5, skill=SKL_ENDOVEREND)
     _length(item, 65)
 def _broadsword(item):
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _melee_bleed(item, 1.25*BLEED_STEEL)
     _amputate(item, 15)
     _addRes(item, resrust=20)
@@ -1978,7 +1978,7 @@ def _broadsword(item):
     _canThrow(item, acc=-2, rng=12, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 60)
 def _falchion(item):
-    _bonusToFlesh(item, 8)
+    _bonusToSoft(item, 8)
     _melee_bleed(item, 2*BLEED_STEEL)
     _amputate(item, 33)
     _addRes(item, resrust=25)
@@ -1988,7 +1988,7 @@ def _falchion(item):
     _canThrow(item, acc=-2, rng=12, pen=-5, skill=SKL_ENDOVEREND)
     _length(item, 55)
 def _armingSword(item):
-    _bonusToFlesh(item, 2)
+    _bonusToSoft(item, 2)
     _melee_bleed(item, 0.75*BLEED_STEEL)
     _amputate(item, 5)
     _addRes(item, resrust=50)
@@ -1999,7 +1999,7 @@ def _armingSword(item):
     _canThrow(item, acc=-2, rng=15, pen=-4, skill=SKL_TIPFIRST)
     _length(item, 90)
 def _sabre(item):
-    _bonusToFlesh(item, 6)
+    _bonusToSoft(item, 6)
     _melee_bleed(item, BLEED_STEEL)
     _amputate(item, 10)
     _addRes(item, resrust=20)
@@ -2009,7 +2009,7 @@ def _sabre(item):
     _canThrow(item, acc=-5, rng=10, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 70)
 def _hanger(item):
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _melee_bleed(item, BLEED_STEEL)
     _addRes(item, resrust=20)
     rog.world().add_component(item, cmp.Tool_Cut(5))
@@ -2025,7 +2025,7 @@ def _leafSword(item):
     _canThrow(item, acc=-4, rng=10, skill=SKL_TIPFIRST)
     _length(item, 35)
 def _cutlass(item):
-    _bonusToFlesh(item, 6)
+    _bonusToSoft(item, 6)
     _melee_bleed(item, 1.25*BLEED_STEEL)
     _amputate(item, 15)
     _addRes(item, resrust=20)
@@ -2035,7 +2035,7 @@ def _cutlass(item):
     _canThrow(item, acc=-5, rng=8, pen=-4, skill=SKL_TIPFIRST)
     _length(item, 50)
 def _curvedSword(item):
-    _bonusToFlesh(item, 7)
+    _bonusToSoft(item, 7)
     _melee_bleed(item, 1.5*BLEED_STEEL)
     _amputate(item, 10)
     _addRes(item, resrust=20)
@@ -2044,7 +2044,7 @@ def _curvedSword(item):
     _canThrow(item, acc=-5, rng=8, pen=-4, skill=SKL_TIPFIRST)
     _length(item, 40)
 def _rapier(item):
-    _bonusToFlesh(item, 5)
+    _bonusToSoft(item, 5)
     _melee_bleed(item, BLEED_STEEL)
     _addRes(item, resrust=50)
     rog.world().add_component(item, cmp.Tool_Cut(5))
@@ -2053,7 +2053,7 @@ def _rapier(item):
     _canThrow(item, acc=-5, rng=12, pen=-5, skill=SKL_TIPFIRST)
     _length(item, 95)
 def _basketHiltedSword(item):
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _melee_bleed(item, BLEED_STEEL)
     _amputate(item, 5)
     _addRes(item, resrust=50)
@@ -2063,7 +2063,7 @@ def _basketHiltedSword(item):
     _canThrow(item, acc=-5, rng=12, pen=-5, skill=SKL_TIPFIRST)
     _length(item, 80)
 def _smallSword(item):
-    _bonusToFlesh(item, 3)
+    _bonusToSoft(item, 3)
     _melee_bleed(item, 0.5*BLEED_STEEL)
     _addRes(item, resrust=50)
     rog.world().add_component(item, cmp.Tool_Cut(3))
@@ -2104,7 +2104,7 @@ def _boxingWraps(item):
     # longswords
 def _longSword(item):
     _melee_bleed(item, 1.25*BLEED_STEEL)
-    _bonusToFlesh(item, 2)
+    _bonusToSoft(item, 2)
     _amputate(item, 10)
     _addRes(item, resrust=50)
     rog.make(item, TWOHANDS)
@@ -2114,7 +2114,7 @@ def _longSword(item):
     _length(item, 110)
 def _katana(item):
     _melee_bleed(item, 2.5*BLEED_STEEL)
-    _bonusToFlesh(item, 6)
+    _bonusToSoft(item, 6)
     _amputate(item, 33)
     _addRes(item, resrust=50)
     rog.make(item, TWOHANDS)
@@ -2139,8 +2139,8 @@ def _bastardSword(item): # one or two handed longsword
     _length(item, 90)
 def _kriegsmesser(item):
     _melee_bleed(item, 2*BLEED_STEEL)
-    _bonusToFlesh(item, 5)
-    _amputate(item, 50)
+    _bonusToSoft(item, 6)
+    _amputate(item, 60)
     _addRes(item, resrust=50)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Cut(2))
@@ -2151,7 +2151,7 @@ def _kriegsmesser(item):
     # greatswords
 def _greatSword(item):
     _melee_bleed(item, 1.5*BLEED_STEEL)
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _amputate(item, 50)
     _addRes(item, resrust=50)
     rog.make(item, TWOHANDS)
@@ -2161,7 +2161,7 @@ def _greatSword(item):
     _length(item, 210)
 def _flamberge(item):
     _melee_bleed(item, 2.5*BLEED_STEEL)
-    _bonusToFlesh(item, 8)
+    _bonusToSoft(item, 8)
     _amputate(item, 66)
     _addRes(item, resrust=33)
     rog.make(item, TWOHANDS)
@@ -2173,7 +2173,7 @@ def _flamberge(item):
 def _executionerSword(item):
     _melee_bleed(item, 3*BLEED_METAL)
     _amputate(item, 100)
-    _bonusToFlesh(item, 16)
+    _bonusToSoft(item, 16)
     _addRes(item, resrust=33)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Striker(1))
@@ -2221,12 +2221,12 @@ def _mPartizan(item):
 def _mNaginata(item):
     _spear(item, cut=6, acc=-2, rng=14, bleed=2*BLEED_METAL)
     rog.world().add_component(item, cmp.Tool_Chop(1))
-    _bonusToFlesh(item, 12)
+    _bonusToSoft(item, 12)
     _amputate(item, 66)
     _length(item, 250)
     # polehammers
 def _poleHammer(item, toArmor=10, striker=1, bleed=3, cm=110):
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     _melee_bleed(item, bleed)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2248,7 +2248,7 @@ def _mPoleHammer(item):
 def _poleAxe(item, bleed=20, toArmor=0, amputate=10, chop=1, cm=140):
     if chop: rog.world().add_component(item, cmp.Tool_Chop(chop))
     _melee_bleed(item, bleed)
-    _bonusToArmor(item, toArmor)
+    _bonusToHard(item, toArmor)
     _amputate(item, amputate)
     rog.make(item, TWOHANDS)
     _canThrow(item, acc=-10, rng=4, pen=-12, skill=SKL_TIPFIRST)
@@ -2259,7 +2259,7 @@ def _mPoleAxe(item):
     # bills
 def _bill(item, bleed=20, rng=12, pen=-2, toFlesh=2, cm=200):
     _melee_bleed(item, bleed)
-    _bonusToFlesh(item, toFlesh)
+    _bonusToSoft(item, toFlesh)
     rog.make(item, TWOHANDS)
     _canThrow(item, acc=-5, rng=rng, pen=pen, skill=SKL_TIPFIRST)
     _length(item, cm)
@@ -2326,7 +2326,7 @@ def _mBattleaxe(item):
     _addRes(item, resrust=0)
     # mallets
 def _mallet(item, striker):
-    _bonusToArmor(item, 4)
+    _bonusToHard(item, 4)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Striker(striker))
     rog.world().add_component(item, cmp.Tool_Hammer(1))
@@ -2338,7 +2338,7 @@ def _2mallet(item):
     _mallet(item, 2)
     # great clubs
 def _heavyClub(item):
-    _bonusToArmor(item, 2)
+    _bonusToHard(item, 2)
     rog.make(item, TWOHANDS)
     _canThrow(item, acc=-5, rng=5, dmg=-2, pen=-4, skill=SKL_ENDOVEREND)
     _length(item, 80)
@@ -2359,7 +2359,7 @@ def _daneAxe(item): # light-weight battleaxe
 def _scalpel(item):
     rog.world().add_component(item, cmp.Tool_Cut(6))
     rog.world().add_component(item, cmp.Tool_Scalpel(3))
-    _bonusToFlesh(item, 4)
+    _bonusToSoft(item, 4)
     _bleed(item, BLEED_GLASS)
     _length(item, 10)
 # scissors
@@ -2400,7 +2400,7 @@ def _mShovel(item):
     _shovel(item, dig=4, cut=1, hammer=1)
 # pickaxes
 def _pickaxe(item, pickaxe=1, hammer=1):
-    _bonusToArmor(item, 4)
+    _bonusToHard(item, 4)
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Pickaxe(pickaxe))
     if hammer: rog.world().add_component(item, cmp.Tool_Hammer(hammer))

@@ -1460,12 +1460,13 @@ def __randombp_cov( # add part to parts, add coverage to total
     parts[part] = amount
     __G.total += amount
 # end def
-def randombp(body, biases=None):
+def randombp(body, biases=None) -> tuple:
     ''' get a random body part from body body
         biases of form {BP_ instance : bonus_to_hit}
+        Returns tuple: (part_instance, instance_class,)
     '''
-    __cov=__randombp_cov
-    __G=__randombp_G
+    __cov = __randombp_cov
+    __G = __randombp_G
     __G.total=0
     parts={}
     bpdata=BPM_COVERAGE[body.plan]

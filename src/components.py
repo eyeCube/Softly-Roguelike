@@ -121,12 +121,16 @@ class Targetable:
     __slots__=['kind']
     def __init__(self, kind=0):
         self.kind = kind
-        
+
+class Speaks: # can speak/talk/hold conversation/be persuaded/barter/etc.
+    __slots__=[]        # If an entity has Speaks component,
+    def __init__(self): # it is expected to also have following components:
+        pass            #   Disposition, Personality
 class Disposition: # feelings towards the PC
     __slots__=['disposition']
     def __init__(self, default=250):
         self.disposition=int(default)
-class Personality:
+class Personality: # TODO: give personality to all creatures
     __slots__=['personality']
     def __init__(self, personality=1):
         self.personality=int(personality)
@@ -134,6 +138,13 @@ class Sympathy: # feels sympathy for other creatures
     __slots__=['sympathy']
     def __init__(self, sympathy=1):
         self.sympathy=int(sympathy)
+class ConversationMemory:
+    __slots__=['memories','max_len']
+    def __init__(self, max_len=10, *args):
+        self.memories=[]
+        self.max_len=max_len
+        for arg in args:
+            self.memories.append(arg)
 
 # traits
 class Talented:
@@ -1213,9 +1224,14 @@ class WeaponSkill: #equipping as weapon benefits from having skill in this weapo
         self.bonus=bonus    # skill Level modifier while it's equipped
 
 class DamageTypeMelee: # custom damage type(s)
+    # idea: select e.g. "bludgeon" attack on target;
+    # function checks if weapon's damage type is blugeoning,
+    # if not, then looks for this component; if bludgeon is in types,
+    # use the modifier to determine effectiveness of the attack.
+    # The modifier affects: Atk,Dmg,Reach,Bal,Pen, elemental damage, and BP damage.
     __slots__=['types','default']
     def __init__(self, types: dict, default: int):
-        self.types=types    # {DMGTYPE_ contant : int BP damage adder} 
+        self.types=types    # {DMGTYPE_ contant : int modifier} 
         self.default=default # default damage type
 
 class Encumberance: # how encumbering it is. Multiplied by kg.
@@ -1257,6 +1273,17 @@ class Throwable: # stats for thrown attack go in EquipableInHoldSlot mods
     def __init__(self, func=None):
         self.func=func  # script that runs when the item is thrown
 
+class CrossbowReloader:
+    __slots__=['quality','kind']
+    def __init__(self, quality: int, kind: int):
+        self.quality=quality
+        self.kind=kind
+class MagazineReloader:
+    __slots__=['quality','kind']
+    def __init__(self, quality: int, kind: int):
+        self.quality=quality
+        self.kind=kind
+        
 class ElementalDamageMelee: # Melee and Thrown
     __slots__=['elements']
     def __init__(self, elements):
@@ -1266,19 +1293,19 @@ class ElementalDamageRanged: # for ranged attacks using the Shootable component
     def __init__(self, elements):
         self.elements=elements  # {ELEM_CONST : damage}
 
-class BonusToArmor: # bonus offensive power vs. heavy-armor / hard targets (melee attacks)
+class BonusToHard: # bonus offensive power vs. heavy-armor / hard targets (melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class BonusToFlesh: # bonus offensive power vs. flesh / light-armor / soft targets (melee attacks)
+class BonusToSoft: # bonus offensive power vs. soft targets (w/ melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class BonusToArmorRanged: # for ranged attacks using the Shootable component
+class BonusToHardRanged: # for ranged attacks using the Shootable component
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class BonusToFleshRanged: # for ranged attacks using the Shootable component
+class BonusToSoftRanged: # for ranged attacks using the Shootable component
     __slots__=['value']
     def __init__(self, val):
         self.value=val
@@ -1286,13 +1313,7 @@ class HacksOffLimbs: # can amputate opponent's limbs in combat (melee attacks)
     __slots__=['value']
     def __init__(self, val):
         self.value=val
-class Bludgeon: # can be used as a bludgeon to smash bone, stone, glass, etc. (melee attacks)
-    __slots__=['pen','atk','dmg']
-    def __init__(self, pen=0, atk=0, dmg=1):
-        self.atk=atk # attack accuracy when used as a bludgeon
-        self.dmg=dmg # damage when used as a bludgeon
-        self.pen=pen # penetration when used as a bludgeon
-       
+
 class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, or some other method to handle objects turning into raw mats based on their material or some shit??
     __slots__=['energy','mats','tools']
     def __init__(self, energy: int, mats: dict, tools: dict):
@@ -1302,6 +1323,7 @@ class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, 
         self.mats=mats # raw materials that are harvested, and the amount
         self.tools=tools # tools needed, and the quality needed to harvest
     
+        
     #-----------------------#
     #       Tools           #
     #-----------------------#
@@ -1323,7 +1345,7 @@ class Tool_Saw: # sawing removes material out of the way, good for big cutting j
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Scalpel: # for surgery / superfine cutting jobs
+class Tool_Scalpel: # for surgery incisions / superfine cutting jobs
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1407,6 +1429,10 @@ class Tool_Crush: # crushing, pressure welding
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
+class Tool_Level: # leveling (straightening guide) tool
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
 class Tool_LockPick:
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1415,11 +1441,6 @@ class Tool_Screwdriver:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_CrossbowReloader:
-    __slots__=['quality','kind']
-    def __init__(self, quality: int, kind: int):
-        self.quality=quality
-        self.kind=kind
 class Tool_Brush: # all kinds of brushes; quality distinguishes types. e.g. quality of 1==toothbrush, 2==hair brush, 3==coarse brush, 4==paint brush, 5==cleaning brush, 6==rough brush for industrial cleaning, cleaning tool files, etc.
     __slots__=['quality'] # if quality is too high for intended use, cannot be used for that purpose. This way we don't need several different brush tool types
     def __init__(self, quality: int):
@@ -1472,19 +1493,19 @@ class Tool_Clamp:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Flask:
+class Tool_Flask: # chemistry container
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Beaker:
+class Tool_Pouring: # pours liquid better than regular cup-shaped container
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_GraduatedContainer:
+class Tool_GraduatedContainer: # measures contained quantity
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Thermometer:
+class Tool_Thermometer: # measures temperature
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1496,7 +1517,7 @@ class Tool_Syringe:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Post: # chemistry set stand; just a stick poking up
+class Tool_Stand: # chemistry set stand; just a stick poking up
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -2094,20 +2115,30 @@ Tool_Pickaxe            : 'pickaxe',
 Tool_Crush              : 'press',
 Tool_LockPick           : 'lockpick',
 Tool_Screwdriver        : 'screwdriver',
-Tool_CrossbowReloader   : 'crossbow reloader',
+Tool_Level              : 'level',
 Tool_Brush              : 'brush',
 Tool_Mandril            : 'mandril',
 Tool_Swage              : 'swage',
 Tool_Fuller             : 'fuller',
 Tool_Lens               : 'lens',
 Tool_Identify           : 'identifier',
-Tool_Drillbit_a         : 'drillbit type a',
-Tool_Drillbit_b         : 'drillbit type b',
-Tool_Drillbit_c         : 'drillbit type c',
-Tool_Drillbit_d         : 'drillbit type d',
-Tool_Drillbit_e         : 'drillbit type e',
-Tool_Drillbit_f         : 'drillbit type f',
-    }
+Tool_Drillbit_a         : 'drillbit style a',
+Tool_Drillbit_b         : 'drillbit style b',
+Tool_Drillbit_c         : 'drillbit style c',
+Tool_Drillbit_d         : 'drillbit style d',
+Tool_Drillbit_e         : 'drillbit style e',
+Tool_Drillbit_f         : 'drillbit style f',
+Tool_Clamp              : 'clamp',
+Tool_ChemistryClamp     : 'chemistry clamp',
+Tool_Flask              : 'flask',
+Tool_Pouring            : 'pouring',
+Tool_GraduatedContainer : 'graduated container',
+Tool_Thermometer        : 'thermometer',
+Tool_Syringe            : 'syringe',
+Tool_Stand              : 'stand',
+Tool_Cork               : 'cork',
+Tool_Stopper            : 'stopper',
+Tool_HeatResistantGloves: 'heat-resistant gloves', #/mittens
 
 # BP -> list of BPPs
 BP_BPPS={ # TODO: add all BP_ classes to this dict

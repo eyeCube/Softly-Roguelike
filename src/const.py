@@ -774,8 +774,43 @@ ENCUMBERANCE_MODIFIERS = {
     #  #conversation /#dialogue /#persuasion /#personality  #
     #-------------------------------------------------------#
 
-# persuasion types
+# constants
+MAX_NPC_CONVO_MEMORIES = 10 # how many conversation memories each NPC can store
+PERSONALITY_DISPOSITION_INFLUENCE = 1.5
+MAX_DISPOSITION = 1000
+
+# response types
+i=0;
+RESPONSE_NONE       =i;i+=1; # no response
+RESPONSE_REJECTION  =i;i+=1; # denial of conversation
+RESPONSE_EXCUSE     =i;i+=1; # denial of conversation (less rude)
+RESPONSE_BUSY       =i;i+=1; # denial of conversation (appearing busy)
+RESPONSE_ACCEPT     =i;i+=1; # neutral reaction -- move forward with no change in disposition
+RESPONSE_MINUS1     =i;i+=1; # 1 -- mild reaction
+RESPONSE_MINUS2     =i;i+=1; # 2 -- moderate reaction
+RESPONSE_MINUS3     =i;i+=1; # 3 -- intense reaction
+RESPONSE_MINUS4     =i;i+=1; # 4 -- reserved for extreme reactions only
+RESPONSE_PLUS1      =i;i+=1;
+RESPONSE_PLUS2      =i;i+=1;
+RESPONSE_PLUS3      =i;i+=1;
+RESPONSE_PLUS4      =i;i+=1;
+
+# conversation styles
+i=0;
+CONVO_DRY           =i;i+=1; # emotionless or monotone style
+CONVO_JOKING        =i;i+=1; # rely on humor and lightheartedness
+CONVO_POLITE        =i;i+=1; # generically respectful attitude
+CONVO_RUDE          =i;i+=1; # generically rude attitude
+CONVO_RESPECTFUL    =i;i+=1; # specifically respectful attitude
+CONVO_DISRESPECTFUL =i;i+=1; # specifically rude attitude
+CONVO_HAUGHTY       =i;i+=1; # generically self-righteous attitude
+CONVO_REVERENT      =i;i+=1; # specifically worshipful attitude
+CONVO_FRIENDLY      =i;i+=1; # act like their friend
+CONVO_COMBATIVE     =i;i+=1; # act like their enemy
+
+# persuasion / dialogue types
 i=1;
+TALK_GREETING       =i;i+=1; # introduction/initialization to conversation
     # persuasion to yield services
 TALK_ASKQUESTION    =i;i+=1;
 TALK_INTERROGATE    =i;i+=1; # use intimiation to question
@@ -794,6 +829,7 @@ TALK_INTIMIDATION   =i;i+=1;
 TALK_FLATTERY       =i;i+=1;
 TALK_FLIRTATION     =i;i+=1;
 TALK_DEBATE         =i;i+=1;
+TALK_         =i;i+=1;
 
 PERSUASION={
 TALK_ASKQUESTION    : "question",
@@ -813,7 +849,8 @@ TALK_DEBATE         : "debate",
     }
 
 # personality types
-i=1;
+i=0;
+PERSON_NONE                 =i;i+=1; # no personality
 PERSON_PROUD                =i;i+=1;
 PERSON_LOWSELFESTEEM        =i;i+=1;
 PERSON_ARGUMENTATIVE        =i;i+=1;
@@ -830,44 +867,91 @@ PERSON_RELAXED              =i;i+=1;
 PERSON_UPTIGHT              =i;i+=1;
 PERSON_PROACTIVE            =i;i+=1;
 PERSON_APATHETIC            =i;i+=1;
+PERSON_            =i;i+=1;
 
 PERSONALITIES={
 # personality : ( name, likes, dislikes,)
 PERSON_PROUD                : (
-    "proud", TALK_FLATTERY, TALK_INTIMIDATION,),
+    "proud",
+    (TALK_FLATTERY,CONVO_RESPECTFUL,),
+    (TALK_INTIMIDATION,CONVO_DISRESPECTFUL,),
+    ),
 PERSON_LOWSELFESTEEM        : (
-    "low self-esteem", TALK_FLATTERY, TALK_FLIRTATION,),
+    "low self-esteem",
+    (TALK_FLATTERY,CONVO_DISRESPECTFUL,),
+    (TALK_FLIRTATION,CONVO_RESPECTFUL,),
+    ),
 PERSON_ARGUMENTATIVE        : (
-    "argumentative", TALK_DEBATE, TALK_BRIBERY,),
+    "argumentative",
+    (TALK_DEBATE,CONVO_COMBATIVE,),
+    (TALK_BRIBERY,CONVO_FRIENDLY,),
+    ),
 PERSON_NONCONFRONTATIONAL   : (
-    "non-confrontational", TALK_BRIBERY, TALK_DEBATE,),
+    "non-confrontational",
+    (TALK_BRIBERY,CONVO_FRIENDLY,),
+    (TALK_DEBATE,CONVO_COMBATIVE,),
+    ),
 PERSON_OUTGOING             : (
-    "outgoing", TALK_FLIRTATION, TALK_INTIMIDATION,),
+    "outgoing",
+    (TALK_FLIRTATION,CONVO_HAUGHTY,),
+    (TALK_INTIMIDATION,CONVO_RUDE,),
+    ),
 PERSON_SHY                  : (
-    "shy", TALK_FLATTERY, TALK_SMALLTALK,),
+    "shy",
+    (TALK_FLATTERY,CONVO_DRY,),
+    (TALK_SMALLTALK,CONVO_JOKING,),
+    ),
 PERSON_INDEPENDENT          : (
-    "independent", TALK_SMALLTALK, TALK_BRIBERY,),
+    "independent",
+    (TALK_SMALLTALK,CONVO_POLITE,),
+    (TALK_BRIBERY,CONVO_HAUGHTY,),
+    ),
 PERSON_CODEPENDENT          : (
-    "codependent", TALK_INTIMIDATION, TALK_BRIBERY,),
+    "codependent",
+    (TALK_INTIMIDATION,CONVO_HAUGHTY,),
+    (TALK_BRIBERY,CONVO_RESPECTFUL,),
+    ),
 PERSON_BUBBLY               : (
-    "bubble", TALK_FLIRTATION, TALK_FLATTERY,),
+    "bubble",
+    (TALK_FLIRTATION,CONVO_JOKING,),
+    (TALK_FLATTERY,CONVO_DRY,),
+    ),
 PERSON_LOWENERGY            : (
-    "low energy", TALK_SMALLTALK, TALK_FLIRTATION,),
+    "low energy",
+    (TALK_SMALLTALK,CONVO_DRY,),
+    (TALK_FLIRTATION,CONVO_COMBATIVE,),
+    ),
 PERSON_MOTIVATED            : (
-    "motivated", TALK_BRIBERY, TALK_INTIMIDATION,),
+    "motivated",
+    (TALK_BRIBERY,CONVO_POLITE,),
+    (TALK_INTIMIDATION,CONVO_JOKING,),
+    ),
 PERSON_UNMOTIVATED          : (
-    "unmotivated", TALK_INTIMIDATION, TALK_DEBATE,),
+    "unmotivated",
+    (TALK_INTIMIDATION,CONVO_DRY,),
+    (TALK_DEBATE,CONVO_POLITE,),
+    ),
 PERSON_RELAXED              : (
-    "relaxed", TALK_SMALLTALK, TALK_DEBATE,),
+    "relaxed",
+    (TALK_SMALLTALK,CONVO_FRIENDLY,),
+    (TALK_DEBATE,CONVO_HAUGHTY,),
+    ),
 PERSON_UPTIGHT              : (
-    "uptight", TALK_DEBATE, TALK_SMALLTALK,),
+    "uptight",
+    (TALK_DEBATE,CONVO_POLITE,),
+    (TALK_SMALLTALK,CONVO_RUDE,),),
 PERSON_PROACTIVE            : (
-    "proactive", TALK_DEBATE, TALK_INTIMIDATION,),
+    "proactive",
+    (TALK_DEBATE,CONVO_COMBATIVE,),
+    (TALK_SMALLTALK,CONVO_DISRESPECTFUL,),),
 PERSON_APATHETIC            : (
-    "apathetic", 0, 0,),
-    }
+    "apathetic", (0,0,), (0,0,),
+    ),
+PERSON_NONE                 : (
+    "emotionless", (0,0,), (0,0,),
+    ),
+}
 
-DISPOSITION_MAX = 1000
 DISPOSITION_LEVELS={
 #>= : string,
 0   : 'loathes',
@@ -1008,6 +1092,16 @@ NRG_RELOAD          = 200
 # multipliers
 NRGM_QUICKATTACK    = 0.6
 STAM_QUICKATTACK    = 1.5
+
+# paces
+i=0;
+PACE_STOPPED    =i;i+=1;
+PACE_SNAILPACE  =i;i+=1;
+PACE_SLOWWALK   =i;i+=1;
+PACE_POWERWALK  =i;i+=1;
+PACE_JOG        =i;i+=1;
+PACE_RUN        =i;i+=1;
+PACE_SPRINT     =i;i+=1;
 
 # getting activity levels
 PACE_TO_ACTIVITY={ # from movement pace
