@@ -30,39 +30,98 @@ def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
 def _get_reaction(
     ent:int, persuasion_type:int, personality:int, disposition:int,
-    style=0, mx=1
+    style=0, mx=1, value=0
     ):
     ''' get reaction from an entity based on conversational parameters
+        style: CONVO_ const
+        mx: multiplier for intensity
+        value: value of transaction, if it's a barter or bribe
         Returns >0 values for positive reactions, <0 for negative
             the greater the value, the higher the intensity
     '''
+    world=rog.world()
+    pc=rog.pc()
     DMAX = MAX_DISPOSITION
     reaction -= 20  # default to a negative reaction
-    speech_bonus = rog.getskill(rog.pc(), SKL_PERSUASION)
+
+    # get stats for player
+    speech_bonus = rog.getskill(pc, SKL_PERSUASION)
     speech_penalty = max(0, MAX_SKILL - speech_bonus)
+    pc_idn = rog.getms(pc, 'idn')
+    pc_bea = rog.getms(pc, 'bea')
+
+    # get stats for conversational partner
+    ent_sight = rog.getms(ent,'sight')
+    ent_cansee = rog.can_see(ent, pc_pos.x,pc_pos.y, ent_sight)
+    
+    # (perceived) value of the transaction
+    value_modf = max(1, (value//MULT_VALUE)*0.1)
+    if world.has_component(ent, cmp.NeverAcceptsBribes):
+        value_modf = 1
+        
+    # intensity of the conversation based on conversational style
+    intensity += CONVO_STYLE_INTENSITY[style]
+    # " based on type of conversation / persuasion
+    intensity = value_modf
+    intensity = max(intensity, intensity * pc_idn * 0.05)
+    if persuasion_type==TALK_TORTURE:
+        intensity = 10 * intensity
+    elif persuasion_type==TALK_INTIMIDATION:
+        intensity = 5 * intensity
+    elif persuasion_type==TALK_INTERROGATE:
+        intensity = 3 * intensity
+    elif persuasion_type==TALK_DEBATE:
+        intensity = 2 * intensity
+    elif persuasion_type==TALK_FLIRTATION:
+        intensity = 2 * intensity
+    elif persuasion_type==TALK_BEG:
+        intensity = 2 * intensity
+    elif persuasion_type==TALK_BARTER:
+        intensity = intensity + 0.1 * (value//MULT_VALUE)
+    elif persuasion_type==TALK_BRIBERY:
+        intensity = intensity + 0.05 * (value//MULT_VALUE)
     
     # generic reaction to your appearance and skill
     reaction += dice.roll(20)       # add element of random chance
     reaction += speech_bonus * 0.1  # add speech modifier
-    
-    # TODO: factor beauty, intimidation
-    #...
+        # attraction
+    attraction = 0
+    pc_isfemale = rog.get_gender(pc)=="female"
+    pc_ismale = rog.get_gender(pc)=="male"
+    if (ent_cansee and pc_isfemale
+        and world.has_component(ent, cmp.AttractedToWomen)
+        ):
+        intensity += 1
+        attraction += 1 + pc_bea//10
+    elif (ent_cansee and pc_ismale
+        and world.has_component(ent, cmp.AttractedToMen)
+        ):
+        intensity += 1
+        attraction += -1 + pc_idn//10 - (0.001 * pc_idn**2) + pc_bea//20
+    reaction += attraction
     
     # likes and dislikes
     likes=_get_likes(personality)
     dislikes=_get_dislikes(personality)
             # persuasion types
     if persuasion_type == likes[0]:
-        reaction += ( 0.01*DMAX + speech_bonus * 1 * mx )
+        reaction += ( 0.01*DMAX + speech_bonus * 1 * mx ) * intensity
     elif persuasion_type == dislikes[0]:
-        reaction -= ( 0.02*DMAX + speech_penalty * 0.1 * mx )
+        reaction -= ( 0.02*DMAX + speech_penalty * 0.1 * mx ) * intensity
             # styles of conversation
     if style == likes[1]:
-        reaction += ( 0.001*DMAX + speech_bonus * 1 * mx )
+        reaction += ( 0.001*DMAX + speech_bonus * 1 * mx ) * intensity
     elif style == dislikes[1]:
-        reaction -= ( 0.002*DMAX + speech_penalty * 0.1 * mx )
+        reaction -= ( 0.002*DMAX + speech_penalty * 0.1 * mx ) * intensity
     
     # special cases
+    if (world.has_component(ent, cmp.NeverAcceptsBribes)
+        and persuasion_type==TALK_BRIBERY):
+        reaction = -0.05 * DMAX * mx
+    if personality==PERSON_NONCONFRONTATIONAL:
+        reaction -= (intensity - 2)
+    if persuasion_type==TALK_TORTURE:
+        reaction -= 0.1 * DMAX * mx
     if (persuasion_type==TALK_BEG and personality==PERSON_PROUD):
         reaction -= 0.05 * DMAX * mx
     elif (persuasion_type==TALK_INTERROGATE and personality==PERSON_RELAXED):
@@ -110,6 +169,7 @@ def dialogue(ent:int, style=0):
 
 def greet(ent:int, style=0) -> int:
     ''' introduce self / attempt to init conversation '''
+    pc=rog.pc()
     personality=world.component_for_entity(ent,cmp.Personality).personality
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     # new disposition after dialogue concludes
@@ -123,7 +183,7 @@ def greet(ent:int, style=0) -> int:
     fdisp = ed / DISPOSITION_MAX
     
     # roll for speech success
-    speech_bonus = rog.getskill(rog.pc(), SKL_PERSUASION)
+    speech_bonus = rog.getskill(pc, SKL_PERSUASION)
     roll=dice.roll(100) + speech_bonus
     if fdisp < 0.4:
         roll -= 8/fdisp

@@ -134,6 +134,7 @@ HUMAN   = BODYPLAN_HUMANOID
 INSECT  = BODYPLAN_INSECTOID
 FLEGS   = BODYPLAN_4LEGGED
 EARMS   = BODYPLAN_8ARMS
+SNAKE   = BODYPLAN_SNAKE
 CUSTOM  = BODYPLAN_CUSTOM
 
 # colors of materials
@@ -5299,22 +5300,51 @@ BESTIARY={
 'h':('human',           70, 175, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {}, ),
 'a':('abomination',     140,140, MAT_FLESH, FLEGS, (), None, ID_4LEGBEAST,
-    {'str':4,'end':-8,'dex':-12,'int':-8,'con':4,'agi':-8,'msp':20,'resbio':50,'sight':0.25,'hearing':0,},),
-'d':('dog',             60, 60,  MAT_FLESH, FLEGS, (MEAN,), None, ID_4LEGBEAST, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
-    {'str':2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,'msp':40,'sight':1,'hearing':2,}, ),
-'L':('raving lunatic',  70, 165, MAT_FLESH, HUMAN, (MEAN,), None, ID_HUMANOID,
-    {'str':6,'end':6,'int':-6,'dex':-6,'sight':-60,'resbio':40,'reselec':60,}, ),
-'r':('ravaged',         35, 150, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
-    {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,'sight':0.34,'hearing':0,}, ),
+    {'str':24,'end':-8,'dex':-10,'int':-8,'con':8,'agi':-12,
+     'msp':20,'idn':72,'cou':32,'bea':-256,
+     'resbio':50,'sight':0.25,'hearing':0,},),
+'d':('dog',             45, 60,  MAT_FLESH, FLEGS, (), None, ID_4LEGBEAST, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
+    {'str':-2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,
+     'msp':40,'sight':1,'hearing':2,'smelling':1024,}, ),
+'L':('raving lunatic',  70, 165, MAT_FLESH, HUMAN, (MEAN,), None, ID_HOMINID,
+    {'str':6,'end':6,'int':-6,'dex':-6,
+     'idn':32,'cou':64,'bea':-32,'sight':-60,'resbio':40,'reselec':60,}, ),
+'m':('monkey',          15, 70,  MAT_FLESH, HUMAN, (), None, ID_HOMINID,
+    {'str':12,'end':-4,'dex':-2,'int':-2,'con':-6,'agi':24,
+     'bea':-16,'cou':-32,'gra':8,}, ),
+'o':('orangutan',       55, 120, MAT_FLESH, HUMAN, (), None, ID_HOMINID,
+    {'str':48,'end':-4,'dex':-2,'int':-2,'con':-2,'agi':12,
+     'idn':16,'cou':-16,'bea':-16,'gra':8,}, ),
+'r':('ravaged',         35, 150, MAT_FLESH, HUMAN, (), None, ID_HOMINID,
+    {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,
+     'idn':16,'cou':-64,'bea':-48,'sight':0.34,'hearing':0,}, ),
 'R':('orctepus',        100,140, MAT_FLESH, EARMS, (IMMUNEWATER,), None, ID_8ARMS,
-    {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,'sight':0.75,'hearing':0,'pen':6,'msp':-40,'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
-'U':('obese scrupula',  190,190, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
-    {'str':4,'end':-10,'dex':-6,'int':-4,'con':12,'agi':-10,'sight':0.5,'hearing':0,}, ),
-'W':('whipmaster',      85, 220, MAT_FLESH, HUMAN, (), _whipmaster, ID_HUMANOID,
-    {'str':2,'end':-4,'dex':2,'int':-10,'con':6,'agi':4,'sight':1,'hearing':1,}, ),
-'z':('zomb',            50, 160, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
-    {'str':4,'end':-8,'dex':-4,'int':-10,'con':-8,'agi':-10,'sight':1,'hearing':0,}, ),
+    {'str':6,'end':-6,'dex':-4,'int':-2,'con':4,'agi':-2,
+     'sight':0.75,'hearing':0,'pen':6,'msp':-40,'idn':40,'bea':-32,
+     'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
+'s':('snake',           5,  5,   MAT_FLESH, SNAKE, (MEAN,), None, ID_HOMINID,
+    {'str':-10,'end':-8,'dex':-12,'int':-12,'con':-8,'agi':6,
+     'gra':-10,'cou':-32,'idn':16,'sight':0.5,'hearing':0,}, ),
+'S':('obese scrupula',  190,190, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
+    {'str':4,'end':-10,'dex':-6,'int':-4,'con':24,'agi':-10,
+     'idn':48,'cou':64,'bea':-128,'sight':0.5,'hearing':0,}, ),
+'W':('whipmaster',      85, 220, MAT_FLESH, HUMAN, (MEAN,), _whipmaster, ID_HUMANOID,
+    {'str':12,'end':-4,'dex':4,'int':-10,'con':12,'agi':4,
+     'bal':4,'idn':64,'cou':96,'bea':-64,'sight':2,'hearing':1,}, ),
+'z':('zomb',            50, 160, MAT_FLESH, HUMAN, (MEAN,), None, ID_HOMINID,
+    {'str':4,'end':-8,'dex':-4,'int':-12,'con':-8,'agi':-10,
+     'idn':32,'cou':256,'bea':-256,'sight':1,'hearing':0,}, ),
 }
+# IDEA: variations on enemies by changing color and stats/name
+    # e.g. "zombie dog," "zombie orangutan", "starved orctepus",
+    # "mutant monkey", "rabid dog", etc.
+    # Color indicates the type: zombies are dark green, starved are grey,
+    # mutants are bright green, rapid animals are yellow, etc. Normal
+    # creatures are white in color.
+    # Background color could indicate health or status of the creature
+    #   (of course it also indicates terrain or other items present in the
+    #   same tile.)
+    #
 
 corpse_recurrence_percent={
     '@' : 100,

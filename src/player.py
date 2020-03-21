@@ -345,6 +345,7 @@ def __init__Chargen():
     # pre-big menu data
     Chargen._name=""
     Chargen._genderName=""
+    Chargen._gender=0
     Chargen._pronouns=()
     Chargen._cm=0
     Chargen._cmMult=0
@@ -698,8 +699,7 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.SenseHearing())
         world.add_component(pc, cmp.Mutable())
         world.add_component(pc, cmp.Inventory())
-        world.add_component(pc, cmp.Gender(
-            Chargen._genderName,Chargen._pronouns))
+        world.add_component(pc, cmp.Gender(Chargen._gender))
     # end if
     
     # init PC entity
@@ -725,24 +725,6 @@ def _select_gender():
     rog.dbox(Chargen.x1,Chargen.y1+Chargen.iy,Chargen.ww,3,text="what is your gender?",
         wrap=True,border=None,con=rog.con_final(),disp='mono')
     rog.refresh()
-##    #get added genders
-##    _genderList = {}
-##    genderFileDir=os.path.join(
-##        os.path.curdir,os.path.pardir,"settings","genders.txt")
-##    try:
-##        with open(genderFileDir, "r") as file:
-##            for line in file:
-##                if "//" in line: continue
-##                data = line.split(':')
-##                if len(data) < 2: continue
-##                gname = data[0]
-##                data = data[1].split(',')
-##                gpronouns = data
-##                _genderList.update({gname:gpronouns})
-##    except FileNotFoundError:
-##        print("ALERT: file '{}' not found. Creating new file...".format(genderFileDir))
-##        with open(genderFileDir, "w+") as file:
-##            file.write("\n")
     
     _gender=''
     while (_gender == ''):
@@ -753,33 +735,21 @@ def _select_gender():
             _gender = 'random'
         if _gender == 'nonbinary':
             _genderName = "nonbinary" # temporary...
-##                #select gender from list of added genders
-##                _menuNonbin=[]
-##                for jj in _genderList.keys():
-##                    _menuNonbin.append(jj)
-##                _menuNonbin.append('add new gender')
-##                choice=rog.menu("Nonbinary Genders",Chargen.xx,Chargen.yy,_menuNonbin)
-##                #add gender
-##                if choice == 'add new gender':
-##                    _genderName,_pronouns = _add_gender()
-##                else:
-##                    _genderName = choice
-##                    _pronouns = _genderList[_genderName]
-##                if _genderName=='': #failed to select or add new gender
-##                    _gender='' #prompt user again for gender
+            _genderID = GENDER_OTHER
         else: #random, male and female
             if _gender == 'random':
                 _gender = random.choice(("male","female",))
             if _gender == 'male':
                 _genderName = "male"
-                _pronouns = ('he','him','his',)
+                _genderID = GENDER_MALE
             elif _gender == 'female':
                 _genderName = "female"
-                _pronouns = ('she','her','hers',)
+                _genderID = GENDER_FEMALE
     # end while
     
     # save selected data
-    Chargen._pronouns = _pronouns
+    Chargen._pronouns = rog._get_pronouns(_genderID)
+    Chargen._gender = _genderID
     Chargen._genderName = _genderName
     Chargen.female=(Chargen._genderName=="female")
     # print char data so far
@@ -881,7 +851,7 @@ def _select_attribute(_stat):
 
 def _get_attribute_cost(_stat):
     # increasing cost for higher attribute levels
-    for k,v in CHARGEN_ATTRIBUTES.items():
+    for k,v in CHARGEN_ATTRIBUTES[_stat].items():
         if Chargen.statsCompo.__dict__[_stat]//MULT_STATS >= k:
             cost = v
         else:
@@ -894,7 +864,8 @@ def _chargen_stats():
         sp_d=CHARGEN_STATS['mpmax']
         enc_d=CHARGEN_STATS['encmax']
         msp_d=CHARGEN_STATS['msp']
-        gra_d=CHARGEN_STATS['gra']//MULT_STATS
+        asp_d=CHARGEN_STATS['asp']
+##        gra_d=CHARGEN_STATS['gra']//MULT_STATS
         bal_d=CHARGEN_STATS['bal']//MULT_STATS
         ctr_d=CHARGEN_STATS['ctr']//MULT_STATS
         cou_d=CHARGEN_STATS['cou']
@@ -907,8 +878,9 @@ def _chargen_stats():
         _hp=stats.hpmax
         _sp=stats.mpmax
         _enc=stats.encmax
+        _asp=stats.asp
         _msp=stats.msp
-        _gra=stats.gra//MULT_STATS
+##        _gra=stats.gra//MULT_STATS
         _bal=stats.bal//MULT_STATS
         _ctr=stats.ctr//MULT_STATS
         _cou=stats.cou
@@ -923,8 +895,8 @@ def _chargen_stats():
 "... HPMAX: Life       {s:<4}(+{d})".format(d=hp_d,s=_hp) : "hpmax",
 "... SPMAX: Stamina    {s:<4}(+{d})".format(d=sp_d,s=_sp) : "mpmax",
 "... ENCMAX: Carry     {s:<4}(+{d})".format(d=enc_d,s=_enc) : "encmax",
+"... ASP: Attack Speed {s:<4}(+{d})".format(d=asp_d,s=_asp) : "asp",
 "... MSP: Move Speed   {s:<4}(+{d})".format(d=msp_d,s=_msp) : "msp",
-"... GRA: Grappling    {s:<4}(+{d})".format(d=gra_d,s=_gra) : "gra",
 "... BAL: Balance      {s:<4}(+{d})".format(d=bal_d,s=_bal) : "bal",
 "... CTR: Counter      {s:<4}(+{d})".format(d=ctr_d,s=_ctr) : "ctr",
 "... COU: Courage      {s:<4}(+{d})".format(d=cou_d,s=_cou) : "cou",
@@ -1056,6 +1028,12 @@ def _select_trait(_trait):
                 # meta traits
         if k=="skillPts":
             Chargen.skillPts += v
+            success = True
+        elif k=="statPts":
+            Chargen.statPts += v
+            success = True
+        elif k=="attPts":
+            Chargen.attPts += v
             success = True
                 # component flags
         elif k=="astigmatism": # TODO: make these apply components in chargen
@@ -1361,7 +1339,39 @@ def loadFromSaveFile(save):
 
 
 
+##    #get added genders
+##    _genderList = {}
+##    genderFileDir=os.path.join(
+##        os.path.curdir,os.path.pardir,"settings","genders.txt")
+##    try:
+##        with open(genderFileDir, "r") as file:
+##            for line in file:
+##                if "//" in line: continue
+##                data = line.split(':')
+##                if len(data) < 2: continue
+##                gname = data[0]
+##                data = data[1].split(',')
+##                gpronouns = data
+##                _genderList.update({gname:gpronouns})
+##    except FileNotFoundError:
+##        print("ALERT: file '{}' not found. Creating new file...".format(genderFileDir))
+##        with open(genderFileDir, "w+") as file:
+##            file.write("\n")
 
+##                #select gender from list of added genders
+##                _menuNonbin=[]
+##                for jj in _genderList.keys():
+##                    _menuNonbin.append(jj)
+##                _menuNonbin.append('add new gender')
+##                choice=rog.menu("Nonbinary Genders",Chargen.xx,Chargen.yy,_menuNonbin)
+##                #add gender
+##                if choice == 'add new gender':
+##                    _genderName,_pronouns = _add_gender()
+##                else:
+##                    _genderName = choice
+##                    _pronouns = _genderList[_genderName]
+##                if _genderName=='': #failed to select or add new gender
+##                    _gender='' #prompt user again for gender
                     
                     
     

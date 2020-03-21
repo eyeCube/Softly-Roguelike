@@ -530,7 +530,7 @@ MAXGRIND_METAL      = 5
 
     # base stats for typical creature
 BASE_HP         = 2
-BASE_MP         = 20
+BASE_MP         = 40
 BASE_MPREGEN    = 1
 BASE_ENCMAX     = 100
 BASE_REACH      = 2
@@ -572,7 +572,7 @@ BASE_RESWET     = 20
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
 # player bonuses
-PLAYER_COURAGE  = 32    # a hero must be courageous
+PLAYER_COURAGE  = 64    # a hero must be exceptionally courageous
 
 # Female / male gender stat differences
 # IDEA: instead of this, allow stat buffs during chargen
@@ -807,6 +807,19 @@ CONVO_HAUGHTY       =i;i+=1; # generically self-righteous attitude
 CONVO_REVERENT      =i;i+=1; # specifically worshipful attitude
 CONVO_FRIENDLY      =i;i+=1; # act like their friend
 CONVO_COMBATIVE     =i;i+=1; # act like their enemy
+
+CONVO_STYLE_INTENSITY={
+CONVO_DRY           : 0,
+CONVO_JOKING        : 0.5,
+CONVO_POLITE        : 0,
+CONVO_RUDE          : 0.1,
+CONVO_RESPECTFUL    : 0.1,
+CONVO_DISRESPECTFUL : 0.25,
+CONVO_HAUGHTY       : 0.1,
+CONVO_REVERENT      : 0.25,
+CONVO_FRIENDLY      : 0,
+CONVO_COMBATIVE     : 1,
+    }
 
 # persuasion / dialogue types
 i=1;
@@ -1117,11 +1130,12 @@ PACE_SPRINT     : (STA_SPRINT,CALCOST_MAXINTENSITY,FATIGUE_MAXINTENSITY,),
 
 # body plans #
 i=1;
-BODYPLAN_HUMANOID   =i;i+=1; 
+BODYPLAN_HUMANOID   =i;i+=1;
 BODYPLAN_INSECTOID  =i;i+=1; # 6-legged
 BODYPLAN_ARACHNID   =i;i+=1; # 8-legged arthropod
 BODYPLAN_4LEGGED    =i;i+=1; # canine, feline, equestrian, 
 BODYPLAN_8ARMS      =i;i+=1; # octopus
+BODYPLAN_SNAKE      =i;i+=1; # no legs; head and long body (and tail?)
 BODYPLAN_CUSTOM     =i;i+=1; # for special cases, body plan built up manually
 #
 
@@ -2256,68 +2270,68 @@ MAXILEGS=8
 MAXHEADS=2
 MAXIHEADS=1
 i=1;
-EQ_ABOUT    =i; i+=1; # about the body (e.g. a cloak)
-EQ_MAINHANDW=i; i+=1; # W == WIELDED
-EQ_OFFHANDW =i; i+=1;
-EQ_3HANDW   =i; i+=1;
-EQ_4HANDW   =i; i+=1;
-EQ_5HANDW   =i; i+=1;
-EQ_6HANDW   =i; i+=1;
-EQ_7HANDW   =i; i+=1;
-EQ_8HANDW   =i; i+=1; # 8 arms is the limit
-EQ_MAINHAND =i; i+=1; # hand - worn
-EQ_OFFHAND  =i; i+=1;
-EQ_3HAND    =i; i+=1;
-EQ_4HAND    =i; i+=1;
-EQ_5HAND    =i; i+=1;
-EQ_6HAND    =i; i+=1;
-EQ_7HAND    =i; i+=1;
-EQ_8HAND    =i; i+=1; # 8 arms is the limit
-EQ_MAINARM  =i; i+=1; # arm worn slots
-EQ_OFFARM   =i; i+=1;
-EQ_3ARM     =i; i+=1;
-EQ_4ARM     =i; i+=1;
-EQ_5ARM     =i; i+=1;
-EQ_6ARM     =i; i+=1;
-EQ_7ARM     =i; i+=1;
-EQ_8ARM     =i; i+=1; # 8 arms is the limit
-EQ_MAINFOOT =i; i+=1; # feet
-EQ_OFFFOOT  =i; i+=1;
-EQ_3FOOT    =i; i+=1;
-EQ_4FOOT    =i; i+=1;
-EQ_MAINLEG  =i; i+=1; # legs
-EQ_OFFLEG   =i; i+=1;
-EQ_3LEG     =i; i+=1;
-EQ_4LEG     =i; i+=1;
-EQ_FRONT    =i; i+=1; # core
-EQ_BACK     =i; i+=1;
-EQ_HIPS     =i; i+=1;
-EQ_CORE     =i; i+=1;
-EQ_ABDOMEN  =i; i+=1;
-EQ_MAINHEAD =i; i+=1; # head
-EQ_OFFHEAD  =i; i+=1;
-EQ_MAINFACE =i; i+=1;
-EQ_OFFFACE  =i; i+=1;
-EQ_MAINNECK =i; i+=1;
-EQ_OFFNECK  =i; i+=1;
-EQ_MAINEYES =i; i+=1;
-EQ_OFFEYES  =i; i+=1;
-EQ_MAINEARS =i; i+=1;
-EQ_OFFEARS  =i; i+=1;
-EQ_MAINMOUTH=i; i+=1;
-EQ_OFFMOUTH =i; i+=1;
-EQ_AMMO     =i; i+=1;
-EQ_IHEAD    =i; i+=1; # insect parts (beginning w/ "I")
-EQ_ITHORAX  =i; i+=1;
-EQ_IABDOMEN =i; i+=1;
-EQ_IMAINLEG =i; i+=1;
-EQ_IOFFLEG  =i; i+=1;
-EQ_I3LEG    =i; i+=1;
-EQ_I4LEG    =i; i+=1;
-EQ_I5LEG    =i; i+=1;
-EQ_I6LEG    =i; i+=1;
-EQ_I7LEG    =i; i+=1;
-EQ_I8LEG    =i; i+=1;
+EQ_ABOUT    =i;i+=1; # about the body (e.g. a cloak)
+EQ_MAINHANDW=i;i+=1; # W == WIELDED
+EQ_OFFHANDW =i;i+=1;
+EQ_3HANDW   =i;i+=1;
+EQ_4HANDW   =i;i+=1;
+EQ_5HANDW   =i;i+=1;
+EQ_6HANDW   =i;i+=1;
+EQ_7HANDW   =i;i+=1;
+EQ_8HANDW   =i;i+=1; # 8 arms is the limit
+EQ_MAINHAND =i;i+=1; # hand - worn
+EQ_OFFHAND  =i;i+=1;
+EQ_3HAND    =i;i+=1;
+EQ_4HAND    =i;i+=1;
+EQ_5HAND    =i;i+=1;
+EQ_6HAND    =i;i+=1;
+EQ_7HAND    =i;i+=1;
+EQ_8HAND    =i;i+=1; # 8 arms is the limit
+EQ_MAINARM  =i;i+=1; # arm worn slots
+EQ_OFFARM   =i;i+=1;
+EQ_3ARM     =i;i+=1;
+EQ_4ARM     =i;i+=1;
+EQ_5ARM     =i;i+=1;
+EQ_6ARM     =i;i+=1;
+EQ_7ARM     =i;i+=1;
+EQ_8ARM     =i;i+=1; # 8 arms is the limit
+EQ_MAINFOOT =i;i+=1; # feet
+EQ_OFFFOOT  =i;i+=1;
+EQ_3FOOT    =i;i+=1;
+EQ_4FOOT    =i;i+=1;
+EQ_MAINLEG  =i;i+=1; # legs
+EQ_OFFLEG   =i;i+=1;
+EQ_3LEG     =i;i+=1;
+EQ_4LEG     =i;i+=1;
+EQ_FRONT    =i;i+=1; # core
+EQ_BACK     =i;i+=1;
+EQ_HIPS     =i;i+=1;
+EQ_CORE     =i;i+=1;
+EQ_ABDOMEN  =i;i+=1;
+EQ_MAINHEAD =i;i+=1; # head
+EQ_OFFHEAD  =i;i+=1;
+EQ_MAINFACE =i;i+=1;
+EQ_OFFFACE  =i;i+=1;
+EQ_MAINNECK =i;i+=1;
+EQ_OFFNECK  =i;i+=1;
+EQ_MAINEYES =i;i+=1;
+EQ_OFFEYES  =i;i+=1;
+EQ_MAINEARS =i;i+=1;
+EQ_OFFEARS  =i;i+=1;
+EQ_MAINMOUTH=i;i+=1;
+EQ_OFFMOUTH =i;i+=1;
+EQ_AMMO     =i;i+=1;
+EQ_IHEAD    =i;i+=1; # insect parts (beginning w/ "I")
+EQ_ITHORAX  =i;i+=1;
+EQ_IABDOMEN =i;i+=1;
+EQ_IMAINLEG =i;i+=1;
+EQ_IOFFLEG  =i;i+=1;
+EQ_I3LEG    =i;i+=1;
+EQ_I4LEG    =i;i+=1;
+EQ_I5LEG    =i;i+=1;
+EQ_I6LEG    =i;i+=1;
+EQ_I7LEG    =i;i+=1;
+EQ_I8LEG    =i;i+=1;
 
 # names of limbs based on index (ordering of EQ_ consts)
 #   [MAINARM is first, then OFFARM, then 3ARM, etc.]
@@ -2338,9 +2352,20 @@ BPINDEX={
 #
 # genders
 #
-GENDER_MALE     = 11
-GENDER_FEMALE   = 12
-GENDER_OTHER    = 255
+i=0;
+GENDER_NONE     =i;i+=1; # for inanimate objects and genderless creatures
+GENDER_MALE     =i;i+=1;
+GENDER_FEMALE   =i;i+=1;
+GENDER_OTHER    =i;i+=1; # nonbinary
+GENDER_NEW      =i; # index for creating a new gender
+
+GENDERS={
+# gender        : (string,      pronouns)
+GENDER_NONE     : ("genderless",('it',  'it',  'its',  'its',),),
+GENDER_MALE     : ("male",      ('he',  'him', 'his',  'his',),),
+GENDER_FEMALE   : ("female",    ('she', 'her', 'her',  'hers',),),
+GENDER_OTHER    : ("nonbinary", ('they','them','their','theirs',),),
+    }
 
 
 
@@ -2467,6 +2492,7 @@ MAT_ALUMINUM    =i;i+=1;
 MAT_STEEL       =i;i+=1;
 MAT_DIAMOND     =i;i+=1;
 
+
 ##MAT_FUNGUS      =i;i+=1; #use flesh
 ##MAT_VEGGIE      =i;i+=1; #use wood
 ##MAT_SAWDUST     =i;i+=1; # just use DUST
@@ -2475,16 +2501,16 @@ MAT_DIAMOND     =i;i+=1;
 # FLUIDS are mats, too.
 #
 ##i=1;
-FL_WATER        =i; i+=1;
-FL_OIL          =i; i+=1;
-FL_BLOOD        =i; i+=1;
-FL_ACID         =i; i+=1;
-FL_STRONGACID   =i; i+=1;
-FL_SMOKE        =i; i+=1;
-FL_ALCOHOL      =i; i+=1;
-FL_NAPALM       =i; i+=1;
-FL_GASOLINE     =i; i+=1;
-FL_HAZMATS      =i; i+=1;
+FL_WATER        =i;i+=1;
+FL_OIL          =i;i+=1;
+FL_BLOOD        =i;i+=1;
+FL_ACID         =i;i+=1;
+FL_STRONGACID   =i;i+=1;
+FL_SMOKE        =i;i+=1;
+FL_ALCOHOL      =i;i+=1;
+FL_NAPALM       =i;i+=1;
+FL_GASOLINE     =i;i+=1;
+FL_HAZMATS      =i;i+=1;
 
 # material names
 MATERIALS={
@@ -2609,10 +2635,47 @@ MAT_RUBBER      : (70,  9999,300,),
 # phases of matter
 #
 i=1;
-PHASE_SOLID     =i; i+=1;
-PHASE_FLUID     =i; i+=1;   # liquid and gas
+PHASE_SOLID     =i;i+=1;
+PHASE_FLUID     =i;i+=1;   # liquid and gas
 
 
+
+
+#
+# Armor #
+#
+ARMOR_SOFT = 1
+ARMOR_HARD = 2
+
+ARMOR={ # default armor types from material
+MAT_FLESH       : ARMOR_SOFT,
+MAT_BONE        : ARMOR_HARD,
+MAT_METAL       : ARMOR_HARD,
+MAT_CARBON      : ARMOR_HARD,
+MAT_PLASTIC     : ARMOR_HARD,
+MAT_TARP        : ARMOR_SOFT,
+MAT_STONE       : ARMOR_HARD,
+MAT_DUST        : ARMOR_SOFT,
+MAT_WOOD        : ARMOR_HARD,
+MAT_PAPER       : ARMOR_SOFT,
+MAT_LEATHER     : ARMOR_SOFT,
+MAT_BLEATHER    : ARMOR_SOFT,
+MAT_CLOTH       : ARMOR_SOFT,
+MAT_ROPE        : ARMOR_SOFT,
+MAT_GLASS       : ARMOR_HARD,
+MAT_RUST        : ARMOR_SOFT,
+MAT_CLAY        : ARMOR_SOFT,
+MAT_CERAMIC     : ARMOR_HARD,
+MAT_QUARTZ      : ARMOR_HARD,
+MAT_RUBBER      : ARMOR_SOFT,
+MAT_CHITIN      : ARMOR_HARD,
+MAT_KERATIN     : ARMOR_HARD,
+MAT_OIL         : ARMOR_SOFT,
+MAT_COPPER      : ARMOR_HARD,
+MAT_ALUMINUM    : ARMOR_HARD,
+MAT_STEEL       : ARMOR_HARD,
+MAT_DIAMOND     : ARMOR_HARD,
+    }
 
 
 
@@ -3537,6 +3600,10 @@ CLS_BOUNTYHUNTER=i;i+=1;
 # Chargen
 #
 
+# constants
+TALENTED_EXPMOD=1.25
+FASTLEARNER_EXPMOD=1.1
+
 # Characteristics / traits / "perks"
 CHARACTERISTICS={
     # CP: character points, how many points are gained/lost by
@@ -3556,7 +3623,9 @@ CHARACTERISTICS={
 "strong immune system"  : (-2,{'resbio':50,},),
 "big stomach"           : (-2,{'mgut':3},), # stomach capacity
 "wealthy upbringing"    : (-8,{'money':5000,},),
-"apprentice"            : (-8,{"skillPts":16,},),
+"apprentice"            : (-8,{"skillPts":SKILLPOINTS,},),
+"natural physique"      : (-8,{"statPts":STATPOINTS,},),
+"genetically engineered": (-8,{"attPts":ATTRIBUTEPOINTS,},),
 "educated"              : (-4,{'identify':20,},),
 "rapid metabolism"      : (-2,{'rapidMetabolism':True,},),
 "iron gut"              : (-2,{'ironGut':True,},),
@@ -3590,7 +3659,12 @@ CHARACTERISTICS_DESCRIPT={ # TODO: apply these when selecting traits in chargen.
 "strong immune system"  : '''increased resistance to bio-hazards''',
 "big stomach"           : '''larger stomach capacity''',
 "wealthy upbringing"    : '''start with extra money''',
-"apprentice"            : '''gain extra skill points''',
+"apprentice"            : '''gain {} extra skill points'''.format(
+    CHARACTERISTICS["apprentice"][1]['skillPts']),
+"natural physique"      : '''gain {} extra stat points'''.format(
+    CHARACTERISTICS["natural physique"][1]['statPts']),
+"genetically engineered": '''gain {} extra attribute points'''.format(
+    CHARACTERISTICS["genetically engineered"][1]['attPts']),
 "educated"              : '''increased identify stat''',
 "rapid metabolism"      : '''gain energy/water from consumed food and fluids more rapidly; gain overall less energy/water''',
 "iron gut"              : '''increased resistance to ingested poisons''',
@@ -3617,13 +3691,13 @@ CHAR_SCARRED=( # where are you scarred?
 'chest','back','leg','arm','head','face',
     )
 
-CHARGEN_STATS={
+CHARGEN_STATS={ # chargen stats changes when choosing stats in chargen
 # stat  : add,
 "hpmax"     : 1,
 "mpmax"     : 10,
 "encmax"    : 3,
+"asp"       : 2,
 "msp"       : 1,
-"gra"       : 1*MULT_STATS,
 "bal"       : 1*MULT_STATS,
 "ctr"       : 1*MULT_STATS,
 "cou"       : 4,
@@ -3635,14 +3709,46 @@ CHARGEN_STATS={
 
 CHARGEN_ATTRIBUTES={
 # if x >= current value : cost to upgrade +1
-0 : 1,
-15 : 2,
-18 : 3,
-21 : 4,
-24 : 5,
-    }
-TALENTED_EXPMOD=1.25
-FASTLEARNER_EXPMOD=1.1
+"str":{
+    0 : 1,
+    20 : 2,
+    30 : 3,
+    40 : 4,
+    },
+"end":{
+    0 : 1,
+    20 : 2,
+    30 : 3,
+    40 : 4,
+    },
+"dex":{
+    0 : 1,
+    20 : 2,
+    30 : 3,
+    40 : 4,
+    },
+"agi":{
+    0 : 1,
+    15 : 2,
+    20 : 3,
+    25 : 4,
+    30 : 5,
+    },
+"int":{
+    0 : 1,
+    16 : 2,
+    20 : 3,
+    24 : 4,
+    28 : 5,
+    },
+"con":{
+    0 : 1,
+    16 : 2,
+    20 : 3,
+    24 : 4,
+    28 : 5,
+    },
+}
 
 
 #
@@ -3829,12 +3935,14 @@ i=1;
 
 # creatures
 ID_HUMANOID         =i;i+=1;
+ID_HOMINID          =i;i+=1;
 ID_INSECTOID        =i;i+=1;
 ID_4LEGBEAST        =i;i+=1;
 ID_2LEGBEAST        =i;i+=1;
 ID_8ARMS            =i;i+=1;
 ID_ANDROID          =i;i+=1;
 ID_ROBOT            =i;i+=1;
+ID_MACHINE          =i;i+=1;
 
 # weapon-type items
 ID_CLUB             =i;i+=1;
@@ -3983,12 +4091,14 @@ IDENTIFICATION={
     
 # creatures
 ID_HUMANOID         : ("humanoid",SHAPE_FIGURE,),
+ID_HOMINID          : ("hominid",SHAPE_FIGURE,),
 ID_INSECTOID        : ("insectoid",SHAPE_CREATURE,),
 ID_4LEGBEAST        : ("beast",SHAPE_BEAST,),
 ID_2LEGBEAST        : ("2-legged beast",SHAPE_FIGURE,),
 ID_8ARMS            : ("octopodal creature",SHAPE_ORGANIC,),
 ID_ANDROID          : ("android",SHAPE_FIGURE,),
 ID_ROBOT            : ("robot",SHAPE_MACHINE,),
+ID_MACHINE          : ("machine",SHAPE_MACHINE,),
 
 # weapons
 ID_CLUB             : ("club",SHAPE_CLUB,),
@@ -4210,11 +4320,11 @@ for x in range(NUMIDS+1):
 # gear qualities
 #
 i=1;
-QU_LOW          =i; i+=1;
-QU_MEDLOW       =i; i+=1;
-QU_MED          =i; i+=1;
-QU_MEDHIGH      =i; i+=1;
-QU_HIGH         =i; i+=1;
+QU_LOW          =i;i+=1;
+QU_MEDLOW       =i;i+=1;
+QU_MED          =i;i+=1;
+QU_MEDHIGH      =i;i+=1;
+QU_HIGH         =i;i+=1;
 
 QUALITIES={
     # %%    stats modifier (multiplier)

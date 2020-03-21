@@ -126,6 +126,10 @@ class Speaks: # can speak/talk/hold conversation/be persuaded/barter/etc.
     __slots__=[]        # If an entity has Speaks component,
     def __init__(self): # it is expected to also have following components:
         pass            #   Disposition, Personality
+class NeverAcceptsBribes:
+    __slots__=[]
+    def __init__(self):
+        pass
 class Disposition: # feelings towards the PC
     __slots__=['disposition']
     def __init__(self, default=250):
@@ -209,7 +213,7 @@ class Stats: #base stats
     # the actual in-game displayed value / value used for calculations
     # is equal to the stat divided by a multiplier (MULT_STATS) for most
     # stats, but not resistances, life, mass, etc.
-    def __init__(self, hp=1,mp=1, mpregen=1, mass=1,height=0,
+    def __init__(self, hp=1,mp=1,mpregen=1,hpregen=0, mass=1,height=0,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
                  resphys=100,resrust=100,resrot=100,reswet=100,
@@ -220,7 +224,7 @@ class Stats: #base stats
                  courage=0,scary=0,beauty=0,
                  camo=0,stealth=0
                  ):
-        # attributes
+        # attributes (MULT_ATT or MULT_STATS)
         self.str=int(_str)           
         self.con=int(_con)
         self.int=int(_int)
@@ -247,22 +251,23 @@ class Stats: #base stats
         self.hp=self.hpmax
         self.mpmax=int(mp)          # stamina
         self.mp=self.mpmax
-        self.mpregen=mpregen        # regeneration rate, MULT_STATS
+        self.hpregen=hpregen        # HP regeneration rate (MULT_STATS)
+        self.mpregen=mpregen        # SP regeneration rate (MULT_STATS)
         self.encmax=int(encmax)     # encumberance maximum
         self.enc=0                  # encumberance
         self.spd=int(spd)    # Speed -- AP gained per turn
         self.asp=int(asp)    # Attack Speed (affects AP cost of attacking)
         self.msp=int(msp)    # Move Speed (affects AP cost of moving)
-        self.atk=int(atk)    # Attack -- accuracy
-        self.dmg=int(dmg)    # Damage, physical (melee)
-        self.pen=int(pen)    # Penetration
-        self.reach=int(reach)# Reach -- melee range
-        self.dfn=int(dfn)    # Defense -- DV (dodge value)
-        self.arm=int(arm)    # Armor -- AV (armor value)
-        self.pro=int(pro)    # Protection
-        self.gra=int(gra)    # Grappling (wrestling)
-        self.ctr=int(ctr)    # Counter-attack chance
-        self.bal=int(bal)    # Balance
+        self.atk=int(atk)    # Attack -- accuracy (MULT_STATS)
+        self.dmg=int(dmg)    # Damage, physical (melee) (MULT_STATS)
+        self.pen=int(pen)    # Penetration (MULT_STATS)
+        self.reach=int(reach)# Reach -- melee range (MULT_STATS)
+        self.dfn=int(dfn)    # Defense -- DV (dodge value) (MULT_STATS)
+        self.arm=int(arm)    # Armor -- AV (armor value) (MULT_STATS)
+        self.pro=int(pro)    # Protection (MULT_STATS)
+        self.gra=int(gra)    # Grappling (wrestling) (MULT_STATS)
+        self.ctr=int(ctr)    # Counter-attack chance (MULT_STATS)
+        self.bal=int(bal)    # Balance (MULT_STATS)
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
         self.cou=int(courage)   # courage -- resistance to fear
@@ -298,10 +303,9 @@ class SenseHearing:
         self.events = []
 
 class Gender:
-    __slots__=['gender','pronouns']
-    def __init__(self, gender: str, pronouns: tuple): #("he", "him", "his",)
-        self.gender=gender
-        self.pronouns=pronouns
+    __slots__=['gender']
+    def __init__(self, gender: int):
+        self.gender=gender      # GENDER_ const
 
 class Mutable:
     __slots__=['mutations']
@@ -1857,6 +1861,11 @@ class StatusAdrenaline: # adrenaline boosts fight/flight capability
     def __init__(self, t=32, q=1):
         self.timer=t
         self.quality=q
+class StatusDemoralized: # temporary loss of courage
+    __slots__=['timer','quality']
+    def __init__(self, t=64, q=32):
+        self.timer=t
+        self.quality=q
 class StatusRecoil: # Atk - quality
     __slots__=['timer','quality']
     def __init__(self, t=1, q=1):
@@ -2139,6 +2148,7 @@ Tool_Stand              : 'stand',
 Tool_Cork               : 'cork',
 Tool_Stopper            : 'stopper',
 Tool_HeatResistantGloves: 'heat-resistant gloves', #/mittens
+}
 
 # BP -> list of BPPs
 BP_BPPS={ # TODO: add all BP_ classes to this dict

@@ -575,12 +575,13 @@ class FluidProcessor(esper.Processor):
 
 class UpkeepProcessor(esper.Processor): # TODO: test this
     def process(self):
+        # just query some components that match entities
+        # that will be needing stamina regen
         for ent, (stats, creat) in self.world.get_components(
             cmp.Stats, cmp.Creature ):
-            # just query some components that match entities
-            # that will be needing stamina regen
 ##            print("mp regen ", rog.getms(ent, 'mpregen'))
             rog.givemp(ent, rog.getms(ent, 'mpregen')//MULT_STATS)
+            rog.givehp(ent, rog.getms(ent, 'hpregen')//MULT_STATS)
 
 
 
@@ -644,8 +645,8 @@ class Status:
         elif component is cmp.StatusDrunk:
             status_str = " becomes inebriated"
         elif component is cmp.StatusHazy:
-            gender=rog.world().component_for_entity(ent, cmp.Gender)
-            status_str = " begins slurring {} speech".format(gender.pronouns[2])
+            pronoun=rog.get_pronoun_possessive(ent)
+            status_str = " begins slurring {} speech".format(pronoun)
         #if status_str:
             #"{}{}{}".format(TITLES[name.title], name.name, status_str)
 

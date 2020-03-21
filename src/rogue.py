@@ -3215,6 +3215,34 @@ def queue_action(ent, act):
 
 
 
+    #-----------#
+    # Character #
+    #-----------#
+
+# gender name and pronouns
+def get_gender(ent): # gender name
+    gender=rog.world().component_for_entity(ent, cmp.Gender).gender
+    return _get_gender_name(gender)
+def get_pronouns(ent): # gender pronouns
+    gender=rog.world().component_for_entity(ent, cmp.Gender).gender
+    return _get_pronouns(gender)
+def get_pronoun_subject(ent): # "he, she", etc.
+    return _get_pronoun_subject(get_pronouns(ent))
+def get_pronoun_object(ent): # "him, her", etc.
+    return _get_pronoun_object(get_pronouns(ent))
+def get_pronoun_possessive(ent): # "his, her", etc.
+    return _get_pronoun_possessive(get_pronouns(ent))
+def get_pronoun_possessive2(ent): # "his, "hers", etc.
+    return _get_pronoun_possessive2(get_pronouns(ent))
+def _get_pronoun_subject(pronouns): return pronouns[0]
+def _get_pronoun_object(pronouns): return pronouns[1]
+def _get_pronoun_possessive(pronouns): return pronouns[2]
+def _get_pronoun_possessive2(pronouns): return pronouns[3]
+def _get_pronouns(gender): return GENDERS[gender][1]
+def _get_gender_name(gender): return GENDERS[gender][0]
+
+
+
 
 
     #----------#
