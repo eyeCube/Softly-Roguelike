@@ -42,14 +42,14 @@ def _get_reaction(
     world=rog.world()
     pc=rog.pc()
     DMAX = MAX_DISPOSITION
-    reaction -= 20  # default to a negative reaction
-
+    reaction = -20  # default to a negative reaction
+    
     # get stats for player
     speech_bonus = rog.getskill(pc, SKL_PERSUASION)
     speech_penalty = max(0, MAX_SKILL - speech_bonus)
     pc_idn = rog.getms(pc, 'idn')
     pc_bea = rog.getms(pc, 'bea')
-
+    
     # get stats for conversational partner
     ent_sight = rog.getms(ent,'sight')
     ent_cansee = rog.can_see(ent, pc_pos.x,pc_pos.y, ent_sight)
@@ -58,7 +58,7 @@ def _get_reaction(
     value_modf = max(1, (value//MULT_VALUE)*0.1)
     if world.has_component(ent, cmp.NeverAcceptsBribes):
         value_modf = 1
-        
+    
     # intensity of the conversation based on conversational style
     intensity += CONVO_STYLE_INTENSITY[style]
     # " based on type of conversation / persuasion
@@ -237,7 +237,7 @@ def talk_barter(ent:int, speech:int, personality:int, disposition:int, style=0):
     pass
 
 def talk_question(ent:int, speech:int, personality:int, disposition:int, style=0):
-    
+    pass
 
 def talk_interrogate(ent:int, speech:int, personality:int, disposition:int, style=0):
     pass

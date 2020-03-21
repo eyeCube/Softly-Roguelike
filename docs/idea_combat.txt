@@ -1,6 +1,41 @@
 combat
 
 
+combat abilities
+
+
+melee combat
+	standard attack
+		regular attack action
+		(if unskilled, can cause temporary debuffs to DV,Pro,Bal)
+	thrust
+		force a piercing attack if the weapon permits it (has to have PierceAttack component)
+	slash
+		force a cutting attack if the weapon permits it (has to have CutAttack component)
+	bash
+		force a crushing attack
+	kick
+		like a punch - uses BOXING skill
+		kick the target, applying double the force
+		knocks you off balance far more than punching (amount depends on skill level)
+		AP cost 150%
+	tackle
+		use momentum, strength, mass to try to knock down and/or damage target
+		Intense or max intensity activity
+	push
+		use strength/mass to press against target, trying to move it away from you and/or knock it off balance
+		Resisted by target's strength/mass
+	shove
+		like push, but relies more on strength
+		requires more stamina/fatigue/calories
+		DV -8 for 1 turn
+		May be knocked off balance proportionate to target's mass
+	lunge
+		move one step and then attack, in one motion
+		AP cost 150%
+		The attack deals 120% damage
+		DV -8, Bal -8, Pro -6 for 1 turn
+	
 
 conditional stat modifiers
 	applied under specific conditions relative between the combatants, during combat

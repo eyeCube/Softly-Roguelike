@@ -105,9 +105,16 @@ class Tool_Tongs:
 class Tool_Torch: # fire tool, for burning/heating up small things. Once a tool reaches higher than level 3 torch, it just becomes either a furnace or a welding tool.
 		level	info
 		1: 		basic disposable lighter, can light tiny things
-		2: 		basic torch-sized flame
-		3: 		blow torch
+		2: 		basic torch-sized flame or torch lighter
+		3: 		blow torch (e.g. propane)
 					* a lot of level 3 torches might be welding tools too.
+		4: 		heavy-duty / welding torch
+class Tool_Level: # leveling tool for making things straight or level w/ earth
+		level 	info
+		1:		straightened string or similar thing
+		2:		straight object like a ruler
+		3:		bubble level
+		4:		laser level
 class Tool_FireStarter:
 		level	info
 		1: 		fails often

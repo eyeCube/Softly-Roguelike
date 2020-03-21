@@ -1,0 +1,13 @@
+
+examine:
+	give user info about something which the player character already knows.
+	
+identify:
+	actively attempt to identify something better by observing it closely
+	The better you can sense it, the better you can identify it
+	Vision -75% for 1 turn
+	
+passive identify:
+	every turn you passively roll to identify any unidentified entities within your field of view; the better you can sense them, the better you can identify them.
+	you passively identify things you are holding in your hand or touching.
+	

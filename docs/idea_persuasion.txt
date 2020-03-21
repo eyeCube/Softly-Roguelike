@@ -1,6 +1,8 @@
 
 dialogue and persuasion
 
+CONVO_DRY CONVO_JOKING CONVO_POLITE CONVO_RUDE CONVO_RESPECTFUL CONVO_DISRESPECTFUL CONVO_HAUGHTY CONVO_REVERENT CONVO_FRIENDLY CONVO_COMBATIVE
+
 each character has a specific personality which indicates what kinds of persuasion will work on them. For instance, a non-confrontational or shy personality will not be persuaded by arguing and may come to dislike you if you try to argue with them. Likewise, flirting with someone with the "low self-esteem" personality will cause them to think you are being disengenuous. Intimidation doesn't work on strong personality types, etc.
 All persuasion types are enhanced by having a higher speech skill.
 

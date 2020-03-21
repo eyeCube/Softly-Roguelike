@@ -1,0 +1,46 @@
+
+lockpicking
+
+locks have a lock level which indicates how tough it is to open.
+	range from level 1 to 200
+	doors:
+		standard door locks all have a low lock level around 10
+		special locked doors can have higher lock levels
+		vault door locks have high lock levels like 100
+		idea: lock level for doors is deterministic based on location e.g. (x*7 + y) % 200
+	chests/strongboxes/safes and other locking furniture:
+		can have anywhere from shite locks to level 200 locks.
+		
+idea: types of locks
+	class A - key lock
+	class B - combination lock
+	class AB - dual key/combo lock
+	class AA - high-security key lock
+	class BB - high-security combo lock
+	variations on the above?
+	(should there be varieties of locks and should there be different lockpicks for each different type? Probably NOT since we don't have varieties of different types of other tools.)
+	Could do it where all locks are dual key/combo locks
+		high-security locks could be indicated by some global tracker
+
+tools / methods for opening lock
+	key
+		multi-use or single-use; locks or unlocks a specific lock
+		key has lock-index(es) which is/are shared with the lock(s) it opens.
+		can make keys using keymaking sets in 2 ways: either by copying a pre-existing key, or by molding a key to fit a lock.
+		Keymaking requires crafting skills (to make the key) and lockpicking skills (to model the key)
+	lockpick
+		multi-use or single-use; can unlock any lock
+		ability to unlock depends on lockpick quality, and lockpicking skill - against a random roll and the lock level of the locked target.
+	torch
+		torch level 3 or higher required
+		destroys the lock
+		takes 3 minutes
+		only works on some locks - depends on quality and type of lock
+	damaging the lock
+		destroy the lock with a weapon
+		if you kill the lock by damaging it enough, it will break, which can result in a stuck lock (semi-permanently locked), or if you're lucky it'll remove the lock.
+	cutting tool
+		destroy the lock with a cutting implement
+		cutting level 9 or greater required
+		may take a long time and a lot of strength / stamina
+	

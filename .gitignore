@@ -1,1 +1,6 @@
+./src/test.py
 test.py
+./src/__pycache__/*
+__pycache__/*
+./src/restats
+restats

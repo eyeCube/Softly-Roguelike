@@ -1,14 +1,10 @@
 
 BAD BUGS: 
-	- sometimes: 
-		monster won't move
-			- AI of entities only running for 1 turn before it stops forever...?
-				but not if it attacks you...????
-				never happens when you are overencumbered and moving at 1 msp....
-			- AI may just be taking a very long time between movements (>100 turns)... but why?
-		doesn't equip weapon (can't replicate?????)
 
 glitches:
+	- enemy whipmaster moving VERY slowly
+	- throw no longer working
+	- randomness in the tilemap render function (needs to be handled elsewhere!!!)
 	- throw weapon -> player dies (while no weapon is equipped??) (may have been fixed)
 	
 
