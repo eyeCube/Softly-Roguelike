@@ -31,7 +31,7 @@ def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
 def _get_reaction(
     ent:int, persuasion_type:int, personality:int, disposition:int,
     style=0, mx=1, value=0
-    ):
+    ) -> int:
     ''' get reaction from an entity based on conversational parameters
         style: CONVO_ const
         mx: multiplier for intensity

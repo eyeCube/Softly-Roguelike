@@ -513,7 +513,20 @@ class GameData:
     '''
     def __init__(self):
         self._dlvl = 1
+        self._fame = 0 
+            # Increases chance of strangers already knowing who you are
+            #   and potentially already carrying an opinion of you.
+            #   High fame makes you more reliable for questing in the eyes
+            #   of quest-giving NPCs.
+            #   NPCs who already know you do not change their opinion of
+            #   you if you gain fame after they have met you.
+        self._infamy = 0
+            # Like fame, but carries a negative connotation.
     def dlvl(self):     return self._dlvl
+    def fame(self):     return self._fame
+    def infamy(self):   return self._infamy
+    def fame_inc(self,val=1):   self._fame += val
+    def infamy_inc(self,val=1): self._infamy += val
     def dlvl_update(self, value): #returns whether change was successful
         if value < 0: return False
         if value >= MAXLEVEL: return False

@@ -783,8 +783,6 @@ MAX_DISPOSITION = 1000
 i=0;
 RESPONSE_NONE       =i;i+=1; # no response
 RESPONSE_REJECTION  =i;i+=1; # denial of conversation
-RESPONSE_EXCUSE     =i;i+=1; # denial of conversation (less rude)
-RESPONSE_BUSY       =i;i+=1; # denial of conversation (appearing busy)
 RESPONSE_ACCEPT     =i;i+=1; # neutral reaction -- move forward with no change in disposition
 RESPONSE_MINUS1     =i;i+=1; # 1 -- mild reaction
 RESPONSE_MINUS2     =i;i+=1; # 2 -- moderate reaction
@@ -827,6 +825,7 @@ TALK_GREETING       =i;i+=1; # introduction/initialization to conversation
     # persuasion to yield services
 TALK_ASKQUESTION    =i;i+=1;
 TALK_INTERROGATE    =i;i+=1; # use intimiation to question
+TALK_GOSSIP         =i;i+=1; # rumors / idle chit-chat
 TALK_TORTURE        =i;i+=1; # use pain to interrogate
 TALK_ASKFAVOR       =i;i+=1;
 TALK_BEG            =i;i+=1; # ask favor by appeal to sympathy
@@ -842,10 +841,13 @@ TALK_INTIMIDATION   =i;i+=1;
 TALK_FLATTERY       =i;i+=1;
 TALK_FLIRTATION     =i;i+=1;
 TALK_DEBATE         =i;i+=1;
+TALK_PESTER         =i;i+=1; # annoy / bother / try to make them mad
+TALK_TAUNT          =i;i+=1; # try to make them mad directly
 TALK_         =i;i+=1;
 
 PERSUASION={
 TALK_ASKQUESTION    : "question",
+TALK_GOSSIP         : "gossip",
 TALK_INTERROGATE    : "interrogate",
 TALK_ASKFAVOR       : "favor",
 TALK_BEG            : "beg",
@@ -859,6 +861,8 @@ TALK_INTIMIDATION   : "intimidate",
 TALK_FLATTERY       : "flatter",
 TALK_FLIRTATION     : "flirt",
 TALK_DEBATE         : "debate",
+TALK_PESTER         : "pester",
+TALK_TAUNT          : "taunt",
     }
 
 # personality types
@@ -881,6 +885,47 @@ PERSON_UPTIGHT              =i;i+=1;
 PERSON_PROACTIVE            =i;i+=1;
 PERSON_APATHETIC            =i;i+=1;
 PERSON_            =i;i+=1;
+
+# personality compatibility | personality compatibilities
+i=1;
+E=i;i+=1;
+D=i;i+=1;
+C=i;i+=1;
+B=i;i+=1;
+A=i;i+=1;
+PERSONALITY_COMPATIBILITIES={
+# personality               :       (compatibility)
+#                             P L A N O S I C B L M U R U P A 
+#                             R O R O U H N O U O O N E P R P 
+#                             O W G N T Y D D B W T M L T O A 
+#                             U   U - G   E E B   I O A I A T 
+#                             D E M C O   P P L E V T X G C H 
+#                               S E O I   E E Y N A I E H T E 
+#                               T N N N   N N   E T V D T I T 
+#                               E T F G   D D   R E A     V I 
+#                               E A R     E E   G D T     E C 
+#                               M T O     N N   Y   E         
+#                                 I N     T T       D         
+#                                 V T                         
+#                                 E .                         
+#                                                             
+PERSON_PROUD                :(B,D,D,C,A,C,B,D,C,D,A,E,B,D,C,D,),
+PERSON_LOWSELFESTEEM        :(C,B,D,B,E,B,D,B,C,B,D,C,B,E,B,C,),
+PERSON_ARGUMENTATIVE        :(C,C,A,E,B,D,A,C,B,D,B,D,D,D,B,D,),
+PERSON_NONCONFRONTATIONAL   :(D,C,E,B,D,A,B,D,C,B,C,C,A,E,D,B,),
+PERSON_OUTGOING             :(B,E,C,C,A,C,C,C,A,E,B,D,C,C,C,C,),
+PERSON_SHY                  :(C,B,E,A,D,B,D,B,D,B,D,B,B,C,C,B,),
+PERSON_INDEPENDENT          :(C,E,D,C,C,C,C,D,C,C,B,E,B,B,C,E,),
+PERSON_CODEPENDENT          :(B,B,B,D,C,B,A,A,C,D,B,C,C,C,B,C,),
+PERSON_BUBBLY               :(C,D,B,C,B,C,C,C,A,E,B,D,C,C,B,D,),
+PERSON_LOWENERGY            :(E,B,E,A,D,C,B,D,E,B,D,B,A,E,D,B,),
+PERSON_MOTIVATED            :(B,C,B,D,B,E,B,D,C,D,B,E,D,B,C,E,),
+PERSON_UNMOTIVATED          :(E,B,D,B,C,B,D,B,C,B,C,A,B,E,E,B,),
+PERSON_RELAXED              :(D,C,D,B,C,B,B,D,D,B,C,B,A,E,D,C,),
+PERSON_UPTIGHT              :(B,D,E,C,D,D,A,E,C,D,B,E,D,B,E,E,),
+PERSON_PROACTIVE            :(D,D,B,E,B,D,B,C,C,D,B,D,D,C,A,E,),
+PERSON_APATHETIC            :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+    }
 
 PERSONALITIES={
 # personality : ( name, likes, dislikes,)
@@ -2361,10 +2406,15 @@ GENDER_NEW      =i; # index for creating a new gender
 
 GENDERS={
 # gender        : (string,      pronouns)
-GENDER_NONE     : ("genderless",('it',  'it',  'its',  'its',),),
-GENDER_MALE     : ("male",      ('he',  'him', 'his',  'his',),),
-GENDER_FEMALE   : ("female",    ('she', 'her', 'her',  'hers',),),
-GENDER_OTHER    : ("nonbinary", ('they','them','their','theirs',),),
+GENDER_NONE     : ("genderless",('it',  'it',  'its',  'its',   "thing",),),
+GENDER_MALE     : ("male",      ('he',  'him', 'his',  'his',   "man",),),
+GENDER_FEMALE   : ("female",    ('she', 'her', 'her',  'hers',  "woman",),),
+GENDER_OTHER    : ("nonbinary", ('they','them','their','theirs',"person",),),
+    }
+
+GENDER_POLITE_PRONOUNS={
+GENDER_MALE   : "sir",
+GENDER_FEMALE : "madam",
     }
 
 

@@ -3234,10 +3234,13 @@ def get_pronoun_possessive(ent): # "his, her", etc.
     return _get_pronoun_possessive(get_pronouns(ent))
 def get_pronoun_possessive2(ent): # "his, "hers", etc.
     return _get_pronoun_possessive2(get_pronouns(ent))
+def get_pronoun_generic(ent): # "man, woman", etc.
+    return _get_pronoun_generic(get_pronouns(ent))
 def _get_pronoun_subject(pronouns): return pronouns[0]
 def _get_pronoun_object(pronouns): return pronouns[1]
 def _get_pronoun_possessive(pronouns): return pronouns[2]
 def _get_pronoun_possessive2(pronouns): return pronouns[3]
+def _get_pronoun_generic(pronouns): return pronouns[4]
 def _get_pronouns(gender): return GENDERS[gender][1]
 def _get_gender_name(gender): return GENDERS[gender][0]
 
