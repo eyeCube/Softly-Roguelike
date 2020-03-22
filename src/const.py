@@ -821,7 +821,7 @@ CONVO_COMBATIVE     : 1,
 
 # persuasion / dialogue types
 i=1;
-TALK_GREETING       =i;i+=1; # introduction/initialization to conversation
+TALK_INTRODUCTION   =i;i+=1; # introduction; first time meeting someone
     # persuasion to yield services
 TALK_ASKQUESTION    =i;i+=1;
 TALK_INTERROGATE    =i;i+=1; # use intimiation to question
@@ -846,6 +846,7 @@ TALK_TAUNT          =i;i+=1; # try to make them mad directly
 TALK_         =i;i+=1;
 
 PERSUASION={
+TALK_INTRODUCTION   : "introduce",
 TALK_ASKQUESTION    : "question",
 TALK_GOSSIP         : "gossip",
 TALK_INTERROGATE    : "interrogate",

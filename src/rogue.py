@@ -235,6 +235,8 @@ def msg_clear():
 
 # game data
 def dlvl():             return Rogue.data.dlvl() #current dungeon level of player
+def fame():             return Rogue.data.fame()
+def infamy():           return Rogue.data.infamy()
 def level_up():         Rogue.data.dlvl_update(Rogue.data.dlvl() + 1)
 def level_down():       Rogue.data.dlvl_update(Rogue.data.dlvl() - 1)
 def level_set(lv):
