@@ -25,6 +25,7 @@
     pcc     PC class
     pcgg    PC gender - generic ("man", "woman")
     pcgp    PC gender - polite ("sir", "madam")
+    pcgs    PC gender - subject ("he", "she")
     pcgo    PC gender - object ("him", "her")
     npct    NPC title
     npcn    NPC name
@@ -34,6 +35,7 @@
     ncs     name calling plural
     slur    curse
     slurs   slur plural
+    aslur   a(n) + slur
     flirt   flirt word ("baby", "cutie", "hot stuff", "",)
     tod     time of day
     tof     term of friendship
@@ -160,11 +162,11 @@ REJECTION={ # conversation rejection
     0.9:("As much as it pains me to say it, dear {pcn}, I'm too busy to talk at the moment.",),
     },
 "motivated" : {
-    0  :("I don't have time for you. Now or ever.",
+    0  :("I do not have time for you. Now or ever.",
          "No, no time. Not for you.",),
-    0.1:("Nope.",),
+    0.1:("No, {pcgp}.",),
     0.2:("Excuse me, I'm busy; please let me finish my work.",),
-    0.3:("I'm sorry, {pcgg}{pcc}, I'm very busy at the moment, but come back shortly.",),
+    0.3:("I'm sorry, {pcgp}{pcc}, I'm very busy at the moment, but come back shortly.",),
     },
 "outgoing" : {
     100 : ("Forgive me. I must be going.",),
@@ -207,7 +209,7 @@ GREETING={ # conversation acceptance
          "Hello again {pcn}, I pray you're doing well. What's on your mind?",),
     0.7:("Great to see you again.",
          "It's always good to see you, {pcn}.",
-         "Hello again, {toe}."),
+         "Hello again, {toe}.",),
     0.8:("Hello, love.",
          "Hello, darling, what can I do you for?",
          "Is there something I can do to help? Anything at all, just ask.",
@@ -221,7 +223,7 @@ GREETING={ # conversation acceptance
          "I've missed you -- you should come around more often.",
          "I've really missed you a lot.",),
     },
-"proud" : {
+"proud" : { # happy, high opinion of self, family man/woman, helpful, not dependable
     0  :("What is it, person who is inferior to me in every way?",
          "Just walk away, you miserable dog.",
          "Piss off, you wretched creature.",),
@@ -251,7 +253,7 @@ GREETING={ # conversation acceptance
          "Oh, it's good to see you're all right. Us upperclassmen have got to stick together.",),
     1.0:("Oh, {pcn}, how I've missed you! It's so good to see you're still in one piece.",),
     },
-"low-self-esteem" : {
+"low-self-esteem" : { # sad, low opinion of self, a downer, hates all weather, always having a "shitty" day, flaky, unreliable, but kind
     0  :("Great, just what I deserved. It's you.",
          "Just when things were starting to look slightly less shitty. You show up.",),
     0.1:("Not you again. Just my luck.",
@@ -276,7 +278,7 @@ GREETING={ # conversation acceptance
     0.9:("I've been looking forward to you coming to visit, {pcn}.",),
     1.0:("You're so wonderful... I don't deserve you.",),
     },
-"argumentative" : {
+"argumentative" : { # opinionated, slurs a lot, loves arguing/fighting, helpful, dependable, friendly, rude, insulting
     0  :("Hey, {slur}.",
          "Yea, I know your mother gives free handies, and like I told you before, I'm straight.",
          "Go fall in a hole and die.",
@@ -296,15 +298,14 @@ GREETING={ # conversation acceptance
          "Wow, I still can't believe he said that. *laughs*",),
     0.5:("What do you think of the illuminati?",
          "I'm telling you, mountain stew is, bar-none, the best MRE in the history of mankind.",),
-    0.6:("Where do you think we go when we die?",
-         "UFOs are real. I've seen one with my own eyes. They're real. Aliens are real.",),
+    0.6:("Where do you think we go when we die?",),
     0.7:("Hello my friend. Looking for a right beating in a good ol' game of fless?",
          "Oh no, not you again. *chuckles* Good to see you, you son of a bitch. How've you been?",),
     0.8:("Hey, I need you to break a tie. No matter which way you shake it, The Shobbit films are just *so* vastly much better produced than the Lord of the Kings. Right?",),
     0.9:("There's no-one I'd rather see. What's new?",),
     1.0:("There's my {pcn}. No-one could ever beat you in a fight!",),
     },
-"non-confrontational" : {
+"non-confrontational" : { # agreeable, dry, shallow, boring
     0  :("*no response*",
          "*exasperated expression*",),
     0.1:("I'd really rather you not.",
@@ -324,7 +325,7 @@ GREETING={ # conversation acceptance
     0.9:("Oh, hello, sweet {pcn}. How have you been?",),
     1.0:("Will I get to see you tomorrow, {pcn}?",),
     },
-"outgoing" : {
+"outgoing" : { # compliments a lot. Very intense. Uses goofy words/phrases.
     0  :("No!!! God. No! God, please, no. No! No! Noooo!!!!!",
          "What the hell do you want?",
          "What do you want, {slur}?",
@@ -361,7 +362,7 @@ GREETING={ # conversation acceptance
     1.0:("Oh, my dear {pcn}, how are you?",
          "Oh! {pcn}, what a surprise! I'm so happy to see you. How have you been?",),
     },
-"shy" : {
+"shy" : { # weeb. Likes video games. says um, uh, mm-hm a lot. Uses terse responses. Conservative in speech. Often hugs people they love the most.
     0  :("Um... so, I would appreciate it if you would leave.",),
     0.1:("Oh, hello...",),
     0.2:("Hi, {pcn}.",
@@ -389,7 +390,7 @@ GREETING={ # conversation acceptance
     1.0:("Hello, {toe}! I love you! *hugs*",
          "*smiles coyly*",),
     },
-"independent" : {
+"independent" : { # against "vendors", doesn't open up very much
     0  :("I don't want whatever you're selling.",
          "Just leave me and my family alone.",
          "Whatever you're after, leave me out of it.",),
@@ -411,7 +412,7 @@ GREETING={ # conversation acceptance
          "*cute smile*",
          "Dear {toe}, how have you been?",),
     },
-"codependent" : {
+"codependent" : { # Needy. Helpful. Dependable. Somewhat selfish.
     0  :("I don't want you. I don't need you. Just get out of my life.",
          "Go away, and don't ever come back.",),
     0.1:("You again? What is it this time?",),
@@ -419,7 +420,7 @@ GREETING={ # conversation acceptance
     0.3:("Hey, {pcn}. What's up?",),
     0.4:("Maybe we can help each other.",),
     0.5:("I'm looking forward to dealing more with you in the future.",
-         "Can I help?"),
+         "Can I help?",),
     0.6:("What do you need?",
          "Yes, dear {pcn}? What can I do for you?",),
     0.7:("Dear {pcn}, is there something I can do for you?",
@@ -436,7 +437,7 @@ GREETING={ # conversation acceptance
          "Hello best friend!",
          "How are you my {toe}?",),
     },
-"bubbly" : {
+"bubbly" : { # friendly, quirky, smily, does a lot of gesturing. Hugs a lot.
     0  :("Just get it over with, {slur}!",
          "Hey, {slur}! {Gcomp}.",
          "Oh, hi, {slur}. I always love when you come, because I get to look forward to you leaving.",
@@ -446,7 +447,7 @@ GREETING={ # conversation acceptance
          "Ew.",),
     0.2:("Hey, it's {pcn} again!",),
     0.3:("Hey again!",
-         "Hey, {gcomp}, {pcgg}."),
+         "Hey, {gcomp}, {pcgg}.",),
     0.4:("Hello again {pcn}! Good {tod}.",
          "Hey {pcn}, {gcomp}.",),
     0.5:("Hey there! *punches you in the arm*",
@@ -456,18 +457,21 @@ GREETING={ # conversation acceptance
          "Yo! *high-fives*",
          "Hi, {pcn}! I love that {icomp}!",),
     0.7:("Heya! *does a little dance*",
-         "Yao! {pcn}! Did I ever tell you {comp}?",),
-    0.8:("Squee! It's {pcn}...! *smiles*",
+         "Yao! {pcn}! Did I ever tell you {comp}?",
+         "Hi! *hugs*",),
+    0.8:("Squee! It's {pcn}...! *hugs*",
+         "*grins, hugs* Hey, {pcn}!",
          "Well if it isn't my {toe}, {pcn}. Don't hesitate to ask if there's anything I can do for you.",),
     0.9:("Hey!! Guess what? I love you!",
          "*freaks out in excited delight*",
+         "*hugs extremely tightly*",
          "Wow! That {icomp} looks so good on you! *hugs*",),
     1.0:("*big smile*",
          "Aw, {pcn}! How lucky can I be?",
          "It's {pcn}!! {Comp}. I can't get over it.",
          "Hey! *smiles, hugs*",),
     },
-"low-energy" : {
+"low-energy" : { # quick, to-the-point, lazy, speaks slowly, very loving to people with highest disposition. acts high.
     0  :("*long, exasperated sigh*",
          "Eat shit, {slur}.",),
     0.1:("They don't pay me enough to deal with {slur}s like you.",),
@@ -488,7 +492,7 @@ GREETING={ # conversation acceptance
     1.0:("Hey... How are you?",
          "*hugs*",),
     },
-"motivated" : {
+"motivated" : { # says "great {pcgp}" a lot, talks about stocks, their work, uses polite, old-fashioned speech. Hugs people they love the most
     0  :("What could possibly be worth my time, coming from a {slur} like you?",
          "Suck my dick, you fuckhead.",),
     0.1:("What do you want? I'm very busy.",
@@ -517,7 +521,7 @@ GREETING={ # conversation acceptance
     1.0:("I'm very glad to see you, {toe}. *hugs*",
          "{pcn}! I've missed you. *hugs*",),
     },
-"unmotivated" : {
+"unmotivated" : { # lazy, chill, cool, nice, terse.
     0  :("Oof. Not you again.",
          "*sighs*",),
     0.1:("Ooohh... *groans*",
@@ -543,7 +547,7 @@ GREETING={ # conversation acceptance
     1.0:("Hello, {toe}.",
          "{Toe}, hello again.",),
     },
-"relaxed" : {
+"relaxed" : { # chill, talks about UFOs, aliens, acts like tripping, hippy-ish. Hugs people they love.
     0  :("Listen, you need to leave me alone.",
          "Listen, {slur}. You're ruining my {tod}.",
          "You are scum.",
@@ -564,12 +568,13 @@ GREETING={ # conversation acceptance
     0.5:("Yo, {pcn}. {Gcomp}.",
          "Dude, you're never going to believe this, but I saw a UFO the other day.",),
     0.6:("Hey, {pcn}. Good to see you, {pcgg}. What have you been up to?",
-         "I promise you there are aliens out there, somewhere. It's just logical. I mean, think about it. Space is so vast, and there are so many planets with the necessary conditions for life.",),
+         "UFOs are real. I've seen one with my own eyes. They're real. Aliens are real.",),
     0.7:("Aw, yea. It's my friend, {pcn}.",
          "Yo, {pcgg}. You want a beer?",
          "What's up, {pcgg}? You feelin' cool?",),
     0.8:("'Eyyy, how've you been, {pcgg}?",
-         "Hey! So good to see you! *hugs*",),
+         "Hey! So good to see you! *hugs*",
+         "I promise you there are aliens out there, somewhere. It's just logical. I mean, think about it. Space is so vast, and there are so many planets with the necessary conditions for life.",),
     0.9:("{pcn}! Just the person I was hoping to see.",
          "Hello again, {toe}. *hugs*",
          "Hey, {pcn}. *smiles*",),
@@ -577,7 +582,7 @@ GREETING={ # conversation acceptance
          "Friend...! How nice you could come by. *hugs*",
          "*small but sincere smile*",),
     },
-"uptight" : {
+"uptight" : { # God-fearing, polite, kind, strict
     0  :("God will punish you.",
          "Jesus help you.",
          "Burn in hell, you wretched cur.",
@@ -613,7 +618,7 @@ GREETING={ # conversation acceptance
          "Oh, hi, sweet {toe}. What a lovely visit. You can stay as long as you like.",
          "Oh, please, stay a while. I do ever so love when you come to visit.",),
     },
-"proactive" : {
+"proactive" : { # environmental advocate, outspoken, stubborn, opinionated. Hugs people they love the most
     0  :("People like you are the reason this country has gone to shit.",
          "Go back to kissing the president's ass, ass-kisser.",
          "I don't have time for anything else from you.",
@@ -645,7 +650,7 @@ GREETING={ # conversation acceptance
     1.0:("Hi!! *hugs*",
          "It's so good to see you again, {pcn}! What have you been up to lately?",),
     },
-"apathetic" : {
+"apathetic" : { # doesn't give much of a fuck
     0  :("*scowls in digust*",
          "*gives you the finger*",
          "Eat dogshit!",
@@ -795,7 +800,9 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.8:("",),
     },
 "relaxed" : {
-    0.8:("",),
+    0.4:("Hey {pcn}, you believe in aliens, right?",),
+    0.6:("I wonder if that was a UFO I saw the other day...",),
+    0.8:("What do you think it's like to be an alien? Like, would they feel the same kinds of emotions we do?",),
     },
 "uptight" : {
     0.8:("",),
@@ -828,8 +835,7 @@ SMALLTALK_FAILURE={
     0  :("Who gives a shit?",),
     0.2:("No. Wrong.",),
     0.4:("No disrespect, but that's demonstrably false.",),
-    0.6:("That's... not quite right.",
-         "Aliens are definitely real, {pcgg}.",),
+    0.6:("That's... not quite right.",),
     0.8:("",),
     },
 "motivated" : {
@@ -840,7 +846,11 @@ SMALLTALK_FAILURE={
     },
 "proactive" : {
     0.2:("Well, it'd be much nicer of a day if our own government didn't poison our air with mind-control gas.",),
-    0.4:("",),
+    },
+"relaxed" : {
+    0.4:("Aliens are definitely real, {pcgg}.",
+         "Did you read your horoscope for the week?",),
+    0.6:("Have you ever felt anything... weird... in your... you know what, nevermind.",),
     },
 }
 
@@ -860,9 +870,17 @@ GOSSIP_SUCCESS={
          "Oh, no...",),
     1.0:("What? She did what?!",),
     },
+"shy" : {
+    0.4:("No, you're kidding!",),
+    0.6:("How awful!",),
+    0.8:("*laughs* That's so funny, {pcn}.",),
+    },
 "uptight" : {
     0.2:("What has this country come to?",),
     0.4:("Well, I can't say I'm surprised.",),
+    0.6:("What? Little Ms. Sally's girl? I knew their family would go downhill when they stopped going to Church on Sundays, but I never imagined it would come to this.",),
+    0.8:("How very sad. What has become of our once great nation?",
+         "My aunt Shirley has that same kind of thing. We visited her last summer, and she brought it out while everybody was eating at the dinner table. Uncle Morey would not stop laughing.",),
     },
 }
 
@@ -1071,17 +1089,61 @@ BEG_SUCCESS={
 
 BEG_FAILURE={
 "generic" : {
-    0  :("Absolutely not.",),
+    0  :("*firmly* No.",),
     0.1:("No.",),
     0.2:("Sorry, no.",),
     0.3:("Sorry.",),
     0.4:("I can't, sorry.",),
     0.5:("Sorry, {pcgg}.",),
     0.6:("I'm afraid I can't swing it.",),
-    0.7:("No, I can't do that, sorry, {pcn}. I pray you'll get through this.",),
-    0.8:("I have faith that you can get out of this yourself.",),
+    0.7:("I'm really sorry, I simply can't.",),
+    0.8:("I'm sorry, {pcn}. Not today.",),
     0.9:("I can't, {pcn}. I care about you, but I can't give you that.",),
-    1.0:("I'm really sorry.",),
+    1.0:("I'm truly sorry.",),
+    },
+"proud" : {
+    0  :("Pitiful. Just pitiful.",
+         "Why would I give that to you?",),
+    0.2:("How shameful.",
+         "Do you have no shame?",
+         "Only pathetic creatures beg in such an unsightly manor. Pathetic creatures are not fit to survive. They need to die out and make room for the strong.",),
+    0.4:("How sad, that you would stoop to begging.",
+         "What a sad little {pcc} you are.",),
+    0.6:("{pcn}, you're acting so shamefully! Get a hold of yourself!",
+         "Are you feeling all right, {pcn}? Perhaps you should see a doctor.",),
+    0.8:("Listen, {pcn}... I care about you, and I'm willing to help you. But not like this. Don't beg. It's so shameful.",),
+    },
+"low-self-esteem" : {
+    0  :("*pretends you don't exist*",),
+    0.2:("*becomes noticeably uncomfortable*",
+         "I don't have any to spare.",),
+    0.4:("Oh, no, I'm poor myself.",
+         "If you're like me, you probably deserve being so poor, anyway.",),
+    0.6:("I feel terrible, but I simply can't...",),
+    },
+"argumentative" : {
+    0  :("What's in it for me?",),
+    0.2:("I wish, {pcgg}. Damn president fucked our economy so hard, I'll be lucky if I'm not on the streets begging just like you within the year.",),
+    0.4:("No, {pcc}, sorry. There's not enough to go around these days.",),
+    0.6:("Huh. So even you've been fucked by this new system of so-called leadership.",),
+    },
+"non-confrontational" : {
+    0  :("*shuffles nervously away*",),
+    0.2:("Oh, no...",),
+    0.4:("Oh... I'm... I don't have any, sorry.",),
+    },
+"outgoing" : {
+    0  :("Don't have it.",),
+    0.2:("I can't. I wish I could.",),
+    0.4:("Nah. Sorry, {pcgg}.",),
+    },
+"shy" : {
+    0  :("*becomes extremely uncomfortable*",),
+    0.2:("*quietly* Sorry.",
+         "*quickly* No.",),
+    0.4:("Oh... no, sorry...",),
+    0.6:("I'm so sorry.",),
+    0.8:("So sorry.",),
     },
 "independent" : {
     0  :("Ugh, how very pathetic.",),
@@ -1089,16 +1151,63 @@ BEG_FAILURE={
          "Why? So you can buy another hit of morphine off the street?",),
     0.4:("I worked hard for this! I'm not just going to give it to you.",),
     },
-"proud" : {
-    0  :("Pitiful. Just pitiful.",),
-    0.2:("Poor cretin, what a terrible hand the world has dealt you.",),
-    0.4:("How sad, that you would stoop to begging.",),
+"codependent" : {
+    0.2:("I'd be glad to help, but I don't have enough for myself.",),
+    },
+"bubbly" : {
+    0.6:("Ahh, I'm sorry!",),
+    0.6:("Ahh, I'm sorry!",),
+    0.8:("I'm really sorry, {pcn}.",),
+    },
+"low-energy" : {
+    0  :("Aw man, I do not have the energy for this.",),
+    0.2:("*sighs* I knew I shouldn't have skipped breakfast.",),
+    0.4:("Yeah, and are you gonna work out these knots in my shoulders in exchange?",),
+    0.6:("Aw, nah. Nah, sorry.",
+         "Sorry, {pcn}. Really, sorry.",),
+    },
+"motivated" : {
+    0  :("So pitiful.",),
+    0.2:("Oh, no. Come on. Up you get.",
+         "You've got to work for things in life, {pcc}.",
+         "Would you steal food from my family's table?",),
+    0.4:("Great {pcgp}, you're embarrassing yourself.",
+         "Chin up, chap.",),
+    0.6:("I have faith that you can get out of this yourself.",),
+    0.8:("*sighs* The economy's taking a toll on everyone, {pcn}.",),
+    },
+"unmotivated" : {
+    0.8:("So sorry.",),
+    },
+"relaxed" : {
+    0  :("Take it easy, {tof}.",),
+    0.2:("Chill, {tof}.",),
+    0.4:("Relax, dude, everything's gonna be all right.",),
+    0.6:("*singing* Don't worry / about a thing / 'Cuz every little thing / is gonna be all right",),
+    0.8:("Aw, man. You're looking rough, {tof}.",),
     },
 "uptight" : {
-    0  :("Oh, how incredibly sad. Look at {pcgo}.",),
-    0.2:("I will pray for you.",),
-    0.4:("I pray your situation improves, {pcn}.",),
+    0  :("Oh, how incredibly sad. Look at {pcgo}.",
+         "Absolutely not.",),
+    0.2:("I will pray for you.",
+         "Poor cretin, what a terrible hand the world has dealt you.",),
+    0.4:("I pray your situation improves, {pcc}.",
+         "No, I can't do that, sorry, {pcc}. I pray you'll get through this.",),
     0.6:("It pains me to say it, but I have to decline.",),
+    },
+"proactive" : {
+    0.2:("I'm sorry the system has beaten you down so hard, {tof}.",),
+    0.4:("You didn't even do anything wrong. It's that damn government.",),
+    0.6:("Oh, poor {pcn}. The man just beats you down at every turn. If I were a politician, I'd make some changes in this country!",),
+    0.8:("Poor, pitiful {pcn}. It's so sad to see the best of {pcggs} succumb to this economy.",),
+    },
+"apathetic" : {
+    0  :("Uh-uh.",),
+    0.2:("Lazy {slur}.",),
+    0.4:("Why should I help you?",
+         "Who cares, {pcgg}?",),
+    0.6:("Ugh. What a drag...",),
+    0.8:("Man, what a pain.",),
     },
 }
 
@@ -1106,33 +1215,60 @@ BEG_FAILURE={
 
 BARTER_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("OK.",
+         "*silently accepts the deal*",
+         "*weak smile, nods*",),
+    0.2:("All right, then.",
+         "I suppose I can do that.",),
+    0.4:("Very well, {pcc}.",
+         "That will suffice, {pcc}.",
+         "Very well, {pcn}.",
+         "All right, then. Let's shake on it.",),
+    0.8:("*smiles* It's a deal.",
+         "Sounds like a deal to me.",),
+    1.0:("Thank you kindly, dear {pcn}.",),
     },
 }
 
-BARTER_FAILURE={
+BARTER_FAILURE={ # range: as long as disp >= value, can display msg (like taunt and smalltalk)
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*laughs* Do you take me for a fool?",
+         "*laughs uproariously*",
+         "*laughs* No.",
+         "*laughs* Absolutely not.",
+         "What an absurd offer.",
+         "Are you mad?",
+         "Would you have my family starve?",
+         "You insult me with such an offer.",
+         "How insulting!",
+         "No way!",
+         "Ridiculous.",
+         "My family will go hungry with trades like that!",),
+    0.4:("Not going to happen, {pcc}.",
+         "*exhales sharply* Good one. No.",),
+    0.6:("Are you all right in the head, {pcn}?",),
+    0.8:("No, {pcn}. I can do half that.",),
+    },
+"bubbly" : {
+    0.8:("No! No matter how much I like you, I can't do a deal like that.",),
+    },
+"argumentative" : {
+    0  :("Hell no!",
+         "Hell no.",
+         "Fuck no.",
+         "No way, absolutely not.",
+         "I guess I will kick your teeth in if you really want me to so badly. That's what you were thinking would make that transaction even, right?",),
+    0.2:("Outrageous!",),
+    },
+"outgoing" : {
+    0.4:("I'd never make a deal like that!",),
+    },
+"motivated" : {
+    0  :("You must be mad, {pcgg}.",
+         "You've lost your marbles!",
+         "Great {pcgp}, you will put my entire family out of business.",
+         "*laughs heartily* That is a funny joke, {pcgp}.",
+         "You would steal the bread right from my kid brother's tounge if given the chance!",),
     },
 }
 
@@ -1174,33 +1310,53 @@ CHARM_FAILURE={
 
 BOAST_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*listens intently*",),
+    0.1:("Hm.",),
+    0.2:("Cool.",),
+    0.3:("Oh, OK. Good for you.",),
+    0.4:("Hm, that is pretty cool.",),
+    0.5:("You've got good genes.",),
+    0.6:("That's impressive.",),
+    0.7:("Wow, seriously? Dang.",),
+    0.8:("Woah. You're amazing.",),
+    0.9:("Wow! I'm amazed.",),
+    1.0:("I'm seriously impressed. You're extremely talented.",),
+    },
+"outgoing" : {
+    0.4:("That's so great!",),
+    0.6:("What?? *high-fives* that's awesome, {pcgg}!",),
+    0.8:("I knew you could do it, {pcn}!",),
+    },
+"shy" : {
+    0.4:("How nice, {pcn}.",
+         "Keep going...",),
+    0.6:("I'm so happy for you, {pcn}!",
+         "That's awesome!",
+         "Sugoi!",),
+    0.8:("Amazing!",
+         "You're amazing!",
+         "Ah, sugoi...!",),
+    },
+"bubbly" : {
+    0.4:("Cool! I can't believe you did that.",),
+    0.6:("Wow, you're so cool!",),
+    0.8:("Oh, {pcn}, you're just the coolest!",),
     },
 }
 
 BOAST_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("Yeah, right. You?",),
+    0.1:("Don't make me laugh.",),
+    0.2:("You didn't do that.",),
+    0.3:("I don't believe you.",),
+    0.4:("I don't believe that for a minute.",),
+    0.5:("Hm, that's... pretty unbelievable. As in, I don't believe it.",),
+    0.6:("I don't think you could do that!",),
+    0.7:("No way, you liar.",),
+    0.8:("You're a liar! I know that isn't true.",),
+    0.9:("I know you well enough to know that's a lie.",),
+    1.0:("You're great, but not that great, I'm afraid.",),
     },
 }
 
@@ -1208,33 +1364,63 @@ BOAST_FAILURE={
 
 BRIBERY_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*quietly accepts the gift*",),
+    0.1:("That will do, {pcc}.",),
+    0.2:("Thank you, {pct}{pcc}.",),
+    0.3:("Thank you, {pcn}.",),
+    0.4:("Very well, {pcn}. I'll accept it.",
+         "Thank you very much.",),
+    0.5:("That's so nice. Thank you, {pcn}.",
+         "That's very kind of you, {pcn}.",),
+    0.6:("Wow, thanks, {pcn}. I owe you.",),
+    0.7:("Thank you so much, {pcn}. I'll pay you back.",),
+    0.8:("Thanks a bundle!",),
+    0.9:("Thank you very much, {pcn}.",),
+    1.0:("*grins* Thank you.",),
+    },
+"outgoing" : {
+    0  :("Maybe you're not as bad as I thought you were.",),
+    0.2:("You did me a solid. I owe you.",),
+    0.4:("I owe you one. Thanks.",),
+    },
+"shy" : {
+    0.2:("Well, I guess it wouldn't hurt just this once.",),
+    0.4:("Um... OK.",),
+    0.6:("Oh, um... Thanks, {pcn}...! *smiles nervously*",),
+    0.8:("Oh... Thanks! *smiles shyly*",),
+    },
+"motivated" : {
+    0.4:("Perhaps we can work something out after all.",),
+    0.6:("Thanks a million!",),
+    0.8:("Thank you kindly, great {pcgp}. I shall pay you back in earnest.",),
     },
 }
 
 BRIBERY_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("What kind of {npcgg} do you think I am?",),
+    0.1:("No way I'd accept that from you.",),
+    0.2:("No, thank you.",
+         "No. *puts hand up in a 'stop' sign*",),
+    0.3:("No, I don't want it.",),
+    0.4:("No. I don't need it.",),
+    0.5:("Sorry, I don't have need for that.",),
+    0.6:("No, {pcn}. I can't accept that.",),
+    0.7:("I'm sorry, but I can't take that.",),
+    0.8:("No, you keep that.",),
+    0.9:("Oh no. Keep your valuables, I can manage.",),
+    1.0:("No, no. It's too much to accept, {pcn}.",),
+    },
+"motivated" : {
+    0.2:("I am not a charity case!",),
+    0.4:("I do not need your pity.",),
+    },
+"uptight" : {
+    0.2:("No. I refuse.",),
+    0.4:("I refuse to accept that, {pct}{pcc}.",),
+    0.6:("No, {pcn}. It's very kind, but no.",),
+    0.8:("You've done more than enough for me already.",
+         "You're very kind, but I have to decline, and that's final.",),
     },
 }
 
@@ -1254,7 +1440,6 @@ INTIMIDATION_SUCCESS={
     0.7:("",),
     0.8:("",),
     0.9:("",),
-    1.0:("",),
     },
 }
 
@@ -1270,7 +1455,6 @@ INTIMIDATION_FAILURE={
     0.7:("",),
     0.8:("",),
     0.9:("",),
-    1.0:("",),
     },
 }
 
@@ -1278,71 +1462,223 @@ INTIMIDATION_FAILURE={
 
 DEBATE_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("You're not wrong. You're just {aslur}.",),
+    0.1:("Well, whatever.",),
+    0.2:("OK, I guess you're right.",),
+    0.3:("Oh. All right, then.",),
+    0.4:("Huh. You learn something new every day.",),
+    0.5:("Well, what do you know about that?",),
+    0.6:("That's funny. Well, I learned something new.",),
+    0.7:("Hmm... Is that right?",),
+    0.8:("Well, I stand corrected.",),
+    0.9:("You're right, {toe}.",),
+    },
+"outgoing" : {
+    0.1:("I agree that you're {aslur}.",),
     },
 }
 
 DEBATE_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("What a joke.",
+         "*laughs at you*",
+         "That's not true, {slur}.",
+         "Bullshit.",),
+    0.1:("Liar.",
+         "You're wrong.",),
+    0.2:("That's not true.",
+         "Nope.",
+         "That's not even an argument.",),
+    0.3:("You're just splitting hairs.",
+         "That's a boldface lie.",),
+    0.4:("That's a weak defense at best.",
+         "That doesn't sound right.",),
+    0.5:("I don't believe a word you're saying.",
+         "Uh... really? I don't think so.",),
+    0.6:("Yeah, right, {pcgg}!",
+         "*dubiously* Mm... Mm-mm.",),
+    0.7:("That's not what I heard.",
+         "*shakes head*",),
+    0.8:("We'll just have to agree to disagree.",
+         "*facepalm*",),
+    0.9:("Well, you might be right. But I'm not changing my mind.",
+         "Oh, come on!",),
     },
 }
 
-# pester -- annoy someone in an effort to make them mad or dislike you #
+# pester -- annoy someone in an effort to make them dislike you or lose temper. Always results in loss of disposition. #
 
-PESTER_SUCCESS={
+PESTER={ # range: >= (like taunt, smalltalk, etc.)
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*ignoring you*",),
+    0.2:("How bothersome.",
+         "Stop that.",
+         "Quit doing that.",),
+    0.4:("How annoying!",
+         "Stop.",
+         "Stop it.",
+         "Stop doing that.",),
+    0.6:("Man, you are annoying.",
+         "Why do you do the things that you do?",),
+    0.8:("Are you trying to make me hate you? Because it might be working.",),
+    },
+"proud" : {
+    0.2:("*simmering*",),
+    0.4:("*blood boiling*",),
+    0.6:("*visibly losing temper*",),
+    0.8:("Oh man, I'm so ashamed to know you right now.",
+         "*laughs* You're {aslur}.",),
+    },
+"low-self-esteem" : {
+    0  :("Yep. I deserve this.",
+         "I hate you.",),
+    0.2:("*tries to ignore you*",
+         "*frowns*",),
+    0.4:("Yeah it'd be about 20% cooler if you would stop. But you know, it's up to you.",),
+    0.6:("Please stop.",),
+    },
+"argumentative" : {
+    0  :("{Slur}!",
+         "{Slur}.",),
+    0.2:("You {slur}!",
+         "You fucking {slur}.",),
+    0.4:("Shut up, {slur}.",
+         "{Tof}, shut up, {pcn}, you god damn {nc}.",),
+    0.6:("Stop it, {tof}. Come on.",),
+    0.8:("Come on, man!",
+         "Really!?",),
+    },
+"non-confrontational" : {
+    0  :("*quietly* ...Quit...",
+         "*mumbling*",),
+    0.2:("...Please, don't.",),
+    0.4:("*mumbling* I wish you would... Not do that...",),
+    0.6:("Why?",),
+    0.8:("What do you gain from this?",),
+    },
+"outgoing" : {
+    0  :("Ugh!",
+         "Cut it out, seriously.",
+         "Cut it out, {pcgg}.",),
+    0.2:("Oof.",
+         "Please stop, {pcn}.",),
+    0.4:("Quit it, {tof}.",),
+    0.6:("{Tof}! Quit!",),
+    0.8:("Agh! I hate it when you do that!",),
+    },
+"shy" : {
+    0  :("...",
+         "Uh...",
+         "Please, go away...",),
+    0.2:("Um... Please, stop...",
+         "*trying hard to ignore you*",
+         "*frowns deeply*",),
+    0.4:("...Stop, {pcn}.",),
+    0.6:("Stop... You're bothering me.",),
+    0.8:("You're going to make me cry.",
+         "Quit it, {pcn}, you're gonna make me cry...",),
+    },
+"independent" : {
+    0  :("Buzz off.",
+         "Eat my shit.",),
+    0.2:("I don't need this.",
+         "OK. We get it. You're a {slur}.",),
+    0.4:("You can go now, {pcc}.",
+         "I'd appreciate if you would leave.",),
+    0.6:("I'd appreciate if you would leave, {pcn}.",),
+    0.8:("{pcn}. What are you doing.",),
+    },
+"codependent" : {
+    0  :("...God.",
+         "*smiles* Jesus Christ.",
+         "*laughs* Fucking hell.",),
+    0.2:("*laughs* You're such a fucking weirdo.",
+         "*laughs* Gross.",),
+    0.4:("Ew. You showed your true colors again. Put that away, {tof}.",),
+    },
+"bubbly" : {
+    0  :("*extremely drawn out sigh*",
+         "*exaggerated angry expression*",),
+    0.2:("Stop, {tof}.",
+         "No.",
+         "Ughhh.",),
+    0.4:("Nooo!!!",
+         "No!! Quit it!",
+         "*suicide gesture*",),
+    0.6:("{pcn}, I'm going to slap you silly if you don't stop doing that.",
+         "Cut it out, {tof}! I mean it!",),
+    },
+"low-energy" : {
+    0  :("Were you dropped on your head as a baby?",
+         "You {nc}.",
+         "{Insult}.",
+         "{Slur}.",
+         "Why are you the way that you are? I hate so much about the things that you choose to be.",),
+    0.2:("Dude, what is your problem?",
+         "What is wrong with you?",
+         "*exaggerated facepalm*",),
+    0.4:("What is your major malfunction, {tof}.",
+         "I already woke up with a headache this morning.",
+         "God have mercy.",),
+    0.6:("Ughhh. Not again.",),
+    0.8:("{pcn}, I really don't have the energy for this.",),
+    },
+"motivated" : {
+    0  :("Gentlemen, this is democracy manifest.",
+         "Get your hand off my penis!",
+         "What is the charge? Eating a meal? A succulent Chinese meal?",
+         "Oh, that's a nice headlock, {pcgp}!",
+         "Ahhh yes -- I see that you know your Judo well.",
+         "And you, {pcgp}? Are you waiting to receive my limp penis?",),
+    0.2:("Great {pcgp}, I implore you, desist.",
+         "What a great {nc} you are!",),
+    0.4:("Great {pcgp}. It appears you have been possessed by some imp.",
+         "Oh, do go on, great {pcgp}! I will ever so enjoy smashing your face in.",),
+    },
+"unmotivated" : {
+    0  :("I can't deal with this shit today.",),
+    0.2:("Ugh, man. What a drag.",),
+    0.4:("What a pain!",),
+    0.6:("Bother, bother.",),
+    },
+"relaxed" : {
+    0  :("Duuude.",
+         "What the fuck, {tof}?",
+         "Bruh.",),
+    0.2:("You can't make me lose my temper. I'm like a Shaolin monk.",
+         "See I can take the punches, man; I'll outlast you.",),
+    0.4:("I'm not falling for it, {tof}.",
+         "Bro, chill the fuck out.",),
+    0.6:("Nah, {tof}. Just nah.",),
+    },
+"uptight" : {
+    0  :("You're naught but a burden.",
+         "Buzz, buzz, bothersome fly.",),
+    0.2:("Bothersome creature."
+         "You pest!",
+         "What on God's green Earth are you doing, {pcgg}?",),
+    0.4:("Cut it out, {pcn}.",
+         "{Pcgg}, cut that shit out. It's a bad habit.",),
+    0.6:("What's gotten into you?",),
+    },
+"proactive" : {
+    0  :("Help, help! I'm being oppressed!",),
+    0.2:("I don't need this.",),
+    0.4:("Stop now.",),
+    0.6:("You can stop now.",),
+    0.8:("I'd really appreciate it if you didn't do that, {pcn}.",
+         "Please, stop.",),
+    },
+"apathetic" : {
+    0  :("*no reaction*",),
+    0.2:("*stares at you*",),
+    0.4:("{Slur}.",),
+    0.6:("*laughs* You {slur}.",),
+    0.8:("{Insult}.",),
     },
 }
 
-PESTER_FAILURE={
-"generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
-    },
-}
-
-# taunt -- try to make them really mad so they will fight you #
+# taunt -- try to make them lose temper so they will fight you. Success results in loss of disposition. Failure may also lose disposition. #
 
 TAUNT_SUCCESS={
 "generic" : {
@@ -1360,12 +1696,14 @@ TAUNT_SUCCESS={
     0.2:("That's it. I'm gonna knock your teeth in.",),
     },
 "low-self-esteem" : {
-    0.2:("",),
+    0  :("{Slur}! Fucking {slur}! Fuck you!",),
     },
 "argumentative" : {
-    0  :("I'll kill you!",),
-    0.2:("I'll teach you a lesson you won't forget, little kid.",),
-    0.4:("I'm going to kick your ass.",),
+    0  :("I'll kill you!",
+         "I am going to kick your ass.",),
+    0.2:("I'll teach you a lesson you won't forget, little kid.",
+         "{Slur}. You think you can beat me?",),
+    0.4:("You little {slur}, I'll kill you!",),
     },
 "non-confrontational" : {
     0.2:("I'm not going to enjoy kicking your ass.",),
@@ -1390,20 +1728,26 @@ TAUNT_SUCCESS={
     0.6:("I'm so going to hurt you!",),
     },
 "low-energy" : {
-    0.2:("",),
+    0  :("You're a {slur}.",),
+    0.4:("Meanie.",
+         "Jerk!",),
     },
 "motivated" : {
-    0  :("You've crossed the line, {pcgp}.",),
-    0.2:("I'll kick you in time to resume my studies!",),
-    0.4:("I'm always ready for a friendly tussle, my great {pcgp}. *unrolling sleeves gesture*",),
+    0  :("You have crossed the line, {pcgp}.",),
+    0.2:("I will kick you in time to resume my studies!",),
+    0.4:("I am always ready for a friendly tussle, my great {pcgp}. *unrolling sleeves gesture*",),
     },
 "unmotivated" : {
-    0.2:("",),
+    0  :("Oh, man. What a drag. Looks like I'm going to have to bust some ass.",),
+    0.4:("I'll slap you silly!",),
+    0.6:("You {nc}. {Insult}.",
     },
 "relaxed" : {
     0  :("*sighs, enters combat stance* All right, let's make this quick.",),
-    0.2:("That's the line, {pcgg}.",),
-    0.4:("",),
+    0.2:("That's the line, {pcgg}.",
+         "All right, {tof}. Let's do this.",),
+    0.4:("I'll make this quick.",
+         "Don't worry, this won't hurt a bit.",),
     },
 "uptight" : {
     0  :("All right then. Have at you, {slur}!",),
@@ -1412,14 +1756,18 @@ TAUNT_SUCCESS={
     0.6:("By jove, you've gone mad. I'll knock some sense into you.",),
     },
 "proactive" : {
-    0.2:("",),
+    0  :("So this is what it's come to.",),
+    0.2:("You {slur}! Do you think I'll let you get away with this?",),
+    0.4:("I'll never forgive you for this!",),
     },
 "apathetic" : {
-    0.2:("",),
+    0  :("Let's see what you're made of.",
+         "*sighs* I guess I have no choice.",
+         "*deadpan enters combat stance*",),
     },
 }
 
-TAUNT_FAILURE={
+TAUNT_FAILURE={ # taunt is different: as long as disposition >= ratio, then message can appear
 "generic" : {
     0  :("What a {slur}.",
          "*ignoring you*",),
@@ -1436,8 +1784,10 @@ TAUNT_FAILURE={
     },
 "proud" : {
     0  :("*laughs* Wow, you're such a {nc}.",
-         "*scoffs*",),
-    0.2:("*laughs* Look at you. {Nc}.",),
+         "*scoffs*",
+         "You're shit.",),
+    0.2:("*laughs* Look at you. {Nc}.",
+         "Guys, look at this fuckin' {nc}. {Pcgs} should be in a circus.",),
     0.4:("You're embarassing yourself.",),
     },
 "low-self-esteem" : {
@@ -1449,63 +1799,74 @@ TAUNT_FAILURE={
     },
 "argumentative" : {
     0  :("Are you running for the biggest {slur} of the year award? You've got my vote.",),
+    0.2:("If you continue I will be forced to use my power against you.",),
+    0.4:("You're going to regret this, {pcn}. Back out while you still can.",),
     },
 "non-confrontational" : {
     0  :("*ignoring you agressively*",),
     },
 "outgoing" : {
     0  :("Piss off.",),
-    0.2:("",),
+    0.2:("*stares in disbelief*",),
+    0.4:("Why are you this way?",),
     },
 "shy" : {
-    0.2:("",),
+    0.2:("*whimpers*",),
     },
 "independent" : {
-    0.2:("",),
+    0  :("Ha, what a {nc}. Look at this guy.",),
     },
 "codependent" : {
-    0.2:("",),
+    0  :("No! Stop that!",
+         "Quit!!!",
+         "...!!!",),
     },
 "bubbly" : {
-    0.2:("",),
+    0  :("Jerk! What's your problem?",
+         "Ugh!",),
+    0.2:("*appears frustrated*",),
+    0.4:("Don't do that, {pcn}.",
+         "I want you to stop that.",),
+    0.6:("Don't do that anymore!",
+         "Don't do that again.",),
     },
 "low-energy" : {
-    0.2:("",),
+    0  :("What? What do you want from me, {pcc}?",
+         "Just stop. It's not going to work.",),
+    0.2:("*sighs*",),
     },
 "motivated" : {
-    0.2:("",),
+    0  :("Stop! Halt! Desist!",),
+    0.2:("Great {pcgp}, please, desist!",),
+    0.4:("Please, I implore you, great {pcgp}, ",),
     },
 "unmotivated" : {
-    0.2:("",),
+    0  :("Aughhh...",
+         "*long, drawn out sigh*",),
+    0.2:("What a bother.",
+         "Geez. What a pain.",),
     },
 "relaxed" : {
-    0.2:("",),
+    0.2:("Woah, there, horsey.",),
+    0.4:("Woah, just take it easy, man.",
+         "Calm down, dude.",),
+    0.6:("Woaah dude. Take like, a chill pill, {tof}.",
+         "Chill, {tof}, chill!",
+         "{pcn}, chill the fuck out.",),
     },
 "uptight" : {
     0  :("Buzz off, bothersome pest.",),
-    0.2:("Do you kiss your mother with that mouth?",),
+    0.2:("By God, I am a good Christian {npcgg}, but I am not above teaching you a lesson now.",),
+    0.4:("Do you kiss your mother with that mouth?",),
     },
 "proactive" : {
-    0.2:("",),
+    0  :("I'll beat your ass. I'm not afraid of you.",
+         "What have you got?",),
+    0.4:("Why are you trying to pick a fight?",),
     },
 "apathetic" : {
-    0.2:("",),
-    },
-}
-
-_={
-"generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*very little reaction*",
+         "*glances at you*",),
     },
 }
 
@@ -1574,7 +1935,7 @@ FLATTERY_SUCCESS={
     },
 "motivated" : {
     0  :("Coming from you, that means nothing.",),
-    0.1:("Yes, you're right. I am fabulous.",),
+    0.1:("Yes, you are right. I am fabulous.",),
     },
 }
 
@@ -1652,7 +2013,8 @@ FLIRTATION_SUCCESS={
     0.4:("*giggles*",
          "*smiles, glances down*",),
     0.5:("*glances suggestively*",),
-    0.6:("Hey... *smiles*",),
+    0.6:("Hey... *smiles*",
+         "*laughs, leans forward*",),
     0.7:("Hey, {flirt}.",
          "*bites lip*",),
     0.8:("Hey there, {flirt}. Are you free this Friday?",
@@ -1667,7 +2029,7 @@ FLIRTATION_SUCCESS={
 
 FLIRTATION_FAILURE={
 "generic" : {
-    0  :("Help, help! I'm being sexually assaulted!",
+    0  :("Help, help! I'm being raped!",
          "I'm extremely uncomfortable right now.",),
     0.1:("Oh -- sorry, I can't.",
          "Not with you. No.",
@@ -1682,12 +2044,17 @@ FLIRTATION_FAILURE={
          "*ignoring you*",),
     0.4:("*stares at you*",
          "*looks away*",),
-    0.5:("*tries to look busy*",),
-    0.6:("*shuffles nervously*",),
-    0.7:("*grumbles uncomfortably*",),
+    0.5:("*tries to look busy*",
+         "*leans away*",),
+    0.6:("*shuffles nervously*",
+         "*grumbles uncomfortably*",),
+    0.7:("I'm sorry, {pcn}. You've got the wrong idea.",),
     0.8:("Sorry... I can't.",),
     0.9:("I'm sorry, {pcn}. You're very nice, but I just don't think of you in that way.",),
     1.0:("Oh, {pcn}. You're too much. Really.",),
+    },
+"bubbly" : {
+    0  :("You {slur}, you don't mean any of that!",),
     },
 }
 
@@ -1714,7 +2081,6 @@ ANGRY={
          "You absolute {nc}! What are you thinking?",
          "What's gotten into you?",
          "Quit trying to piss me off, {pcn}.",
-         "Have you gone mad, {pcgg}?",
          "You complete {nc} of a {pcc}. I'm going to smash your face.",),
     },
 "outgoing" : {
@@ -1732,9 +2098,28 @@ ANGRY={
 "bubbly" : {
     0.4:("You {nc}, I'll eat you for breakfast!",),
     },
+"motivated" : {
+    0  :("I will have you know I am a skilled practitioner of the art of fisticuffs.",),
+    0.4:("That's one step too far, great {pcgp}. You'd best keep quiet.",),
+    0.6:("Have you gone mad, {pcgg}?",),
+    },
 }
 
-
+_={
+"generic" : {
+    0  :("",),
+    0.1:("",),
+    0.2:("",),
+    0.3:("",),
+    0.4:("",),
+    0.5:("",),
+    0.6:("",),
+    0.7:("",),
+    0.8:("",),
+    0.9:("",),
+    1.0:("",),
+    },
+}
 
 
 

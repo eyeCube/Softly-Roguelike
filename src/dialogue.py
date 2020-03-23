@@ -23,7 +23,8 @@ import messages
 # Player -on- NPC dialogue #
 
 MESSAGES={
-TALK_INTRODUCTION   :(messages.INTRODUCTION,messages.INTRODUCTION,),
+TALK_INTRODUCTION   :(messages.INTRODUCTION,None,),
+TALK_PESTER         :(messages.PESTER,None,),
 TALK_ASKQUESTION    :(messages.QUESTION_SUCCESS,messages.QUESTION_FAILURE,),
 TALK_GOSSIP         :(messages.GOSSIP_SUCCESS,messages.GOSSIP_FAILURE),
 TALK_INTERROGATE    :(messages.INTERROGATE_SUCCESS,messages.INTERROGATE_FAILURE,),
@@ -39,7 +40,6 @@ TALK_INTIMIDATION   :(messages.INTIMIDATION_SUCCESS,messages.INTIMIDATION_FAILUR
 TALK_FLATTERY       :(messages.FLATTERY_SUCCESS,messages.FLATTERY_FAILURE,),
 TALK_FLIRTATION     :(messages.FLIRTATION_SUCCESS,messages.FLIRTATION_FAILURE,),
 TALK_DEBATE         :(messages.DEBATE_SUCCESS,messages.DEBATE_FAILURE,),
-TALK_PESTER         :(messages.PESTER_SUCCESS,messages.PESTER_FAILURE,),
 TALK_TAUNT          :(messages.TAUNT_SUCCESS,messages.TAUNT_FAILURE,),
     }
 
@@ -71,37 +71,43 @@ def _dislike(ent, amt):
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
 
+
+    #-----------------------------#
+    # response / reaction by NPCS #
+    #-----------------------------#
+
+# get possible responses
+def __get_possible_responses_eval(
+    personality_string: str, meta: dict, dic: dict
+    ):
+    for k,v in meta.items():
+        if (k=="generic" or k==personality_string):
+            for disp_ratio, strings in v.items():
+                if (disposition >= rog.around(disp_ratio*DMAX)
+                    and disposition <= rog.around((disp_ratio+padding)*DMAX)
+                    ):
+                    for string in strings:
+                        dic.update({string})
 def _get_possible_responses(
-    talk_type:int, personality: int, disposition: int
+    talk_type:int, personality: int, disposition: int, padding=0.2
     ) -> tuple:
     ''' get a list of possible NPC text dialogue responses given:
         talk_type:   the type of conversation,
         personality: the personality type of the dialogue partner
         disposition: the sentiments the person has towards the PC
+        padding:     float, affects size of range of possibilities
         Return both generic and personality-specific responses together.
             Format: (strings for success, strings for failure,)
-        '''
-    def __eval(personality_string: str, meta: dict, dic: dict):
-        for k,v in meta.items():
-            if (k=="generic" or k==personality_string):
-                for disp_ratio, strings in v.items():
-                    if (disposition >= rog.around(disp_ratio*DMAX)
-                        and disposition <= rog.around((disp_ratio+0.2)*DMAX)
-                        ):
-                        for string in strings:
-                            dic.update({string})
+    '''
     DMAX = MAX_DISPOSITION
     on_success = {}
     on_failure = {}
     meta_success = MESSAGES[talk_type][0]
     meta_failure = MESSAGES[talk_type][1]
     pid = PERSONALITY_STRINGS[personality]
-    __eval(pid, meta_success, on_success)
-    __eval(pid, meta_failure, on_failure)
+    __get_possible_responses_eval(pid, meta_success, on_success)
+    __get_possible_responses_eval(pid, meta_failure, on_failure)
     return (on_success, on_failure,)
-
-
-# response / reaction by NPCS #
 
 def _get_response(possible: tuple, success: bool) -> str:
     ''' get response from list of possible responses '''
