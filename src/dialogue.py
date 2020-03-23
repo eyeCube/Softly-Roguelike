@@ -122,10 +122,9 @@ def _get_response_full(
 
 def _get_reaction(
     ent:int, persuasion_type:int, personality:int, disposition:int,
-    style=0, mx=1, value=0
+    mx=1, value=0 #,style=0
     ) -> int:
     ''' get reaction from an entity based on conversational parameters
-        style: CONVO_ const
         mx: multiplier for intensity
         value: value of transaction, if it's a barter or bribe
         Returns >0 values for positive reactions, <0 for negative
@@ -151,9 +150,7 @@ def _get_reaction(
     if world.has_component(ent, cmp.NeverAcceptsBribes):
         value_modf = 1
     
-    # intensity of the conversation based on conversational style
-    intensity += CONVO_STYLE_INTENSITY[style]
-    # " based on type of conversation / persuasion
+    # intensity of the conversation based on type of conversation / persuasion
     intensity = value_modf
     intensity = max(intensity, intensity * pc_idn * 0.05)
     if persuasion_type==TALK_TORTURE:
@@ -200,11 +197,6 @@ def _get_reaction(
         reaction += ( 0.01*DMAX + speech_bonus * 1 * mx ) * intensity
     elif persuasion_type == dislikes[0]:
         reaction -= ( 0.02*DMAX + speech_penalty * 0.1 * mx ) * intensity
-            # styles of conversation
-    if style == likes[1]:
-        reaction += ( 0.001*DMAX + speech_bonus * 1 * mx ) * intensity
-    elif style == dislikes[1]:
-        reaction -= ( 0.002*DMAX + speech_penalty * 0.1 * mx ) * intensity
     
     # special cases
     if (world.has_component(ent, cmp.NeverAcceptsBribes)
@@ -226,18 +218,6 @@ def _get_reaction(
         reaction -= 0.01 * DMAX * mx
     elif (persuasion_type==TALK_BOAST and personality==PERSON_MOTIVATED):
         reaction += 0.01 * DMAX * mx
-
-    # styles of conversation
-    if style==CONVO_FRIENDLY:
-        _like(ent, 1)
-    elif style==CONVO_POLITE:
-        _like(ent, 1)
-    elif style==CONVO_RESPECTFUL:
-        _like(ent, 2)
-    elif style==CONVO_RUDE:
-        _dislike(ent, 1)
-    elif style==CONVO_DISRESPECTFUL:
-        _dislike(ent, 2)
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def

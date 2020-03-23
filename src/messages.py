@@ -34,6 +34,7 @@
     ncs     name calling plural
     slur    curse
     slurs   slur plural
+    flirt   flirt word ("baby", "cutie", "hot stuff", "",)
     tod     time of day
     tof     term of friendship
     toe     term of endearment
@@ -299,7 +300,7 @@ GREETING={ # conversation acceptance
          "UFOs are real. I've seen one with my own eyes. They're real. Aliens are real.",),
     0.7:("Hello my friend. Looking for a right beating in a good ol' game of fless?",
          "Oh no, not you again. *chuckles* Good to see you, you son of a bitch. How've you been?",),
-    0.8:("Hey, I need you to break a tie. No matter which way you shake it, the Shobbit is just *so* vastly much better produced than the Lord of the Kings. Right?",),
+    0.8:("Hey, I need you to break a tie. No matter which way you shake it, The Shobbit films are just *so* vastly much better produced than the Lord of the Kings. Right?",),
     0.9:("There's no-one I'd rather see. What's new?",),
     1.0:("There's my {pcn}. No-one could ever beat you in a fight!",),
     },
@@ -591,12 +592,12 @@ GREETING={ # conversation acceptance
          "What is it, {pcgg}?",
          "Yes, {pct}{pcn}?",),
     0.3:("Yes, {pct}{pcn}? Is there something you need?",
-         "Great {pcgg}.",
+         "Great {pcgp}.",
          "Oh, {pcn}. How are you.",),
     0.4:("What do you need?",
-         "Great {pcgg}, are you in need of my assistance?",),
+         "Great {pcgp}, are you in need of my assistance?",),
     0.5:("Greetings!",
-         "Bonjour, great {pcgg}.",
+         "Bonjour, great {pcgp}.",
          "A pleasure.",
          "Hello, {pcn}. So nice to see you on this fine {tod}.",),
     0.6:("Salutations.",
@@ -690,248 +691,121 @@ GREETING={ # conversation acceptance
     # Persuasion #
     #------------#
 
-# Flattery -- admiring, complimenting, etc. #
-
-FLATTERY_SUCCESS={
-"generic" : {
-    0  :("Thanks.",
-         "Mm-hm.",
-         "Yep.",),
-    0.1:("You're too kind.",
-         "Thanks, {pct}",
-         "That's nice.",),
-    0.2:("Thanks, that's really nice.",
-         "Thank you, {pcc}.",
-         "Thank you.",
-         "Thanks.",),
-    0.3:("Well, thanks!",
-         "How nice.",
-         "Thanks!",),
-    0.4:("Why, thank you!",
-         "That's so nice, thanks.",
-         "How nice! Thanks.",
-         "Thank you.",),
-    0.5:("You're such a sweetheart.",
-         "That's very nice.",
-         "Thanks, that means a lot.",
-         "Oh, thank you! How very nice.",
-         "Thank you!",),
-    0.6:("Oh, I'm glad you think so.",
-         "How nice. Thank you, {pcn}.",
-         "Yes, I worked hard on it. Thanks for noticing.",),
-    0.7:("Thanks, {toe}.",
-         "Wow, thanks, {pcn}! You're looking good, too!",
-         "I'm glad you think so.",),
-    0.8:("What a wonderful compliment. Thank you, {pcn}.",
-         "Thank you, my dear {pcn}.",
-         "Thanks, {toe}. You're too kind.",),
-    0.9:("Aw, thanks, {toe}!",
-         "That's wonderful. Thank you, sweet {pcn}.",),
-    1.0:("That means so much coming from you. Thank you, dearest {pcn}.",
-         "I'm so happy you like it.",),
-    },
-"proud" : {
-    0.2:("Well, it's about time someone noticed.",),
-    },
-"low-self-esteem" : {
-    0  :("Are you my own personal hell manifest?",),
-    0.1:("Yea, right. Don't make me laugh...",),
-    0.2:("That's not true. But thank you.",),
-    0.3:("No, I'm not that great. Thanks anyway.",
-         "Oh, please. Give me a break.",),
-    0.4:("Stop, you're exaggerating.",
-         "No, really -- you're too much.",),
-    0.5:("No, I don't deserve that praise. But thanks.",
-         "Really, you're too much.",),
-    0.6:("*weak smile*",
-         "Thanks...",),
-    0.7:("*starts, then pauses* Oh... thanks.",
-         "It's too much, {pcn}. Thanks for the thought, though.",),
-    0.8:("Thanks, that means a lot coming from you.",
-         "I'm glad you like it!",),
-    0.9:("I'm really glad you see it that way. I just wish I felt the same way about it.",),
-    1.0:("What a lovely thing to say.",
-         "Oh, thank you, {pcn}. Thanks so much.",),
-    },
-"motivated" : {
-    0  :("Coming from you, that means nothing.",),
-    0.1:("Yes, you're right. I am fabulous.",),
-    },
-}
-
-FLATTERY_FAILURE={
-"generic" : {
-    0  :("Just quit it.",
-          "*scowl*",
-          "Ugh!",
-          "Enough!",
-          "I've had enough! Get lost!",),
-    0.1:("Cool.",
-          "Good for you.",
-          "I don't care.",
-          "*raises, then lowers eyebrows*",
-          "Enough.",
-          "Uh...",
-          "I don't want to hear that from you.",),
-    0.2:("Thanks but I don't need to hear that coming from you.",
-          "*false smile*",
-          "Ok, that's enough.",
-          "I don't need to hear that from you.",),
-    0.3:("Well, that's nice of you.",
-          "Oh... thanks.",
-          "Stop. You're too much, really.",
-          "*grimaces*",
-          "That's enough, now.",),
-    0.4:("*frowns*",
-          "Oh. Well, I can't say I agree with you on that one.",
-          "I know you mean well, but now you're making me uncomfortable.",
-          "Ok, you've said your fill. Let's change the subject.",),
-    0.5:("I don't want to talk about this.",
-          "Ok. Let's change the subject.",
-          "*confused / upset expression*",),
-    0.6:("*uncomfortable, forced smile*",
-          "All right, {pcn}.",
-          "K. Thanks.",
-          "Well that's very nice, {pcn}. Anyway, is there something else you needed?",),
-    0.7:("Hm. Ok.",
-          "Ok, that's enough, please, let's talk about something different now.",
-          "I have to disagree with you about that.",
-          "I'm really not that great.",),
-    0.8:("That's nice of you, {pcn}. But I'd rather you didn't say things like that.",
-          "Right. Anyways.",),
-    0.9:("Well I'm glad you like it, but let's get back to what we were talking about before.",),
-    1.0:("Oh. Thank you... {pcn}.",),
-    },
-"low-self-esteem" : {
-    0  :("*crying* I can't take any more of your lies.",
-         "*crying* You're so mean!",
-         "*sobbing*",
-         "You're just evil.",),
-    0.1:("Don't try to make me laugh.",
-         "No. That's never been true.",),
-    0.2:("Yeah, right. You just made that up.",
-         "Hm. I wish.",),
-    0.3:("You're just saying that.",
-         "I know you're full of it.",),
-    0.4:("You're lying.",
-         "You're a liar.",
-         "That's just ridiculous.",),
-    0.5:("You liar!",
-         "Yea, right. Come on, {tof}.",
-         "I wish...",),
-    0.6:("Stop it! I wish that were true.",),
-    0.7:("Not that I don't think you're being sincere, but I just can't see it that way.",),
-    0.8:("That's really nice of you to say, but... I can't believe you. It's not you, it's me...",),
-    },
-}
-
-# flirtation -- making a pass, complimenting in a romantic or sexual way, suggestive language (flirting) #
-
-FLIRTATION_SUCCESS={
-"generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
-    },
-}
-
-FLIRTATION_FAILURE={
-"generic" : {
-    0  :("Help, help! I'm being sexually assaulted!",
-         "I'm extremely uncomfortable right now.",),
-    0.1:("Oh -- sorry, I can't.",
-         "Not with you. No.",
-         "Please, stop. You're making me so uncomfortable.",
-         "Don't make me call the cops.",),
-    0.2:("Oh, I'm actually seeing someone.",
-         "It's too much. Too sudden.",
-         "You're making me very uncomfortable...",
-         "*no response*",),
-    0.3:("You're making me uncomfortable.",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("I'm sorry, {pcn}. You're very nice, but I just don't think of you in that way.",),
-    1.0:("Oh, {pcn}. You're too much. Really.",),
-    },
-}
-
-# anger -- brought near the point of violent outbreak #
-
-ANGRY={
-"generic" : {
-    0  :("I'm going to kick your ass.",
-         "Are you ready to fight, {slur}?",
-         "You're such a {nc}.",
-         "{Slur}.",
-         "{Nc}.",
-         "Fucking {nc}, {insult}.",
-         "{Insult}.",
-         "*no response*",),
-    0.2:("You've made me really fuckin' mad.",
-         "I will bury you.",
-         "I'm not scared, {nc}. Come at me, {tof}.",
-         "Hey. Shut up.",),
-    0.4:("Who would do something like that?",
-         "What a {nc}.",
-         "What a {slur} you are.",
-         "You absolute {nc}.",),
-    0.6:("You're being a real {nc}.",
-         "Stop being such a {slur}.",
-         "You {nc}!",
-         "Are you trying to piss me off?",),
-    0.8:("You {nc}! I hate you! I can't believe you would do this!",
-         "You absolute {nc}! What are you thinking?",
-         "What's gotten into you?",
-         "Quit trying to piss me off, {pcn}.",
-         "Have you gone mad, {pcgg}?",
-         "You complete {nc} of a {pcc}. I'm going to smash your face.",),
-    },
-"argumentative" : {
-    0  :("I'm about to curb-stomp your ass.",
-         "*laughs* Look at this fuckin' {nc}.",),
-    0.2:("You made a mistake, kid.",),
-    },
-"bubbly" : {
-    0.4:("You {nc}, I'll eat you for breakfast!",),
-    },
-}
-
 # small talk -- idle chit-chat between two people, generally acquaintances rather than close friends #
 
 SMALLTALK_SUCCESS={ # could work differently than other messages:
             # all options are always available as long as you have >= the disposition requirement
 "generic" : {
-    0  :("These are strange times.",),
-    0.1:("I do enjoy the rain.",),
-    0.2:("MREs used to be a lot better.",),
-    0.3:("Nice weather we're having.",),
-    0.4:("Water keeps getting more and more expensive.",),
-    0.5:("This is going to be a bad year for crops.",),
-    0.6:("It's a good day today.",),
-    0.7:("What a lovely day it's turned out to be.",),
-    0.8:("It's shaping up to be a wonderful {tod}.",),
-    0.9:("I'm glad you came to chat. I've been looking forward to it.",),
-    1.0:("Oh, I do enjoy our conversations. Please stay a while.",),
+    0  :("That was strange.",
+         "Oh, yeah. Right. That's good.",),
+    0.1:("Yes, it's not bad.",
+         "Good. And you?",),
+    0.2:("MREs used to be a lot better.",
+         "We live in strange times.",
+         "Arright.",),
+    0.3:("Nice weather we're having.",
+         "I'm doing well, thanks. And you?",
+         "Cool.",),
+    0.4:("Water keeps getting more and more expensive.",
+         "That's weird, I thought I left it right here...",
+         "Great.",),
+    0.5:("This is going to be a bad year for crops.",
+         "Oh, good to hear.",),
+    0.6:("It's a good day today.",
+         "I didn't know that, that is something.",),
+    0.7:("What a lovely day it's turned out to be.",
+         "The weather's been feeling better these days, hm?",),
+    0.8:("It's shaping up to be a wonderful {tod}.",
+         "Well, that's very interesting.",),
+    0.9:("I'm glad you came to chat. I've been looking forward to it.",
+         "That's great to hear. I'm doing well, thank you.",),
+    1.0:("Oh, I do enjoy our conversations. Please stay a while.",
+         "So nice to hear it, {toe}. I've been doing well.",
+         "Thanks for the update, {toe}.",
+         "Oh, how nice.",),
+    },
+"proud" : {
+    0  :("Reeeally.",),
+    0.2:("Yes, I'm fine. Thanks.",
+         "Yes, I'm doing very well. Thanks for your concern.",),
+    0.4:("Good to hear. Yes, I'm doing well, as always.",),
+    0.6:("Look at this picture of my dog. Isn't {she} so precious?",),
+    0.8:("Look at this picture of my daughter. Isn't she so precious?",
+         "Look at this picture of my newborn son. Isn't he so precious?",),
+    1.0:("Look at this picture of my family. Aren't they just so precious?",),
     },
 "low-self-esteem" : {
+    0  :("Shitty day as usual.",),
+    0.2:("Another day another nickel.",),
+    0.4:("Yep, shitty weather as always.",),
     0.6:("I've been through the ringer this year, but I'm feeling a little better lately.",),
+    0.8:("Shitty day. I'm feeling all right now, though.",),
+    1.0:("I'm feeling a lot better now that you're here.",),
+    },
+"argumentative" : {
+    0.2:("Nah, it's definitely the complete opposite. But you have a right to your wrong opinion.",),
+    0.4:("Oh no way. No way. *laughs*",),
+    0.6:("I disagree, but that's an interesting opinion.",),
+    0.8:("Yeah, today is all right, but you should have seen yesterday.",),         
+    },
+"non-confrontational" : {
+    0  :("Ah..",
+         "Yeah, that's right, all right.",),
+    0.2:("Oh... I see, I see.",
+         "Oh, for sure.",),
+    0.4:("Hm... Interesting...",
+         "Oh, absolutely.",
+         "Indeed.",),
+    0.6:("Indubitably.",),
+    0.8:("You're absolutely right about that, {pcgg}.",),
+    },
+"outgoing" : {
+    0.2:("Huh! That's something, all right.",),
+    0.4:("Yes, I agree. It is nice.",
+         "Oh yeah, I am excited about it.",),
+    0.6:("Oh, how nice to hear, {pcn}.",),
+    },
+"shy" : {
+    0  :("Oh, OK...",),
+    0.2:("Oh, that's... nice.",),
+    0.6:("I do enjoy the rain.",),
+    1.0:("Yesterday I saw a deer.",),
+    },
+"independent" : {
+    0.8:("",),
+    },
+"codependent" : {
+    0.8:("",),
+    },
+"bubbly" : {
+    0.8:("",),
+    },
+"low-energy" : {
+    0.4:("Lovely weather.",),
+    0.6:("Indeed, {pcn}.",),
+    0.8:("",),
     },
 "motivated" : {
+    0.2:("I'm hype.",),
     0.4:("Corn stocks are *still* dropping. Can you believe it?",),
+    0.6:("This is going to be a good decade for entrepreneurs.",),
+    0.8:("I might be on to something.",),
+    },
+"unmotivated" : {
+    0.8:("",),
+    },
+"relaxed" : {
+    0.8:("",),
+    },
+"uptight" : {
+    0.8:("",),
     },
 "proactive" : {
-    0.4:("The rivers have been running dry more often. It's because the mega-corporations keep building more and more dams.",),
+    0.4:("Well, more and more rivers are running dry these days. It's because the mega-corporations keep building more and more dams. It's terrible.",),
+    0.6:("That's good news.",),
+    },
+"apathetic" : {
+    0.8:("",),
     },
 }
 
@@ -941,14 +815,22 @@ SMALLTALK_FAILURE={
          "You're bothering me.",),
     0.2:("Let's just be quiet for a while.",
          "Ok.",),
-    0.3:("Oh. Yea.",),
-    0.4:("Mm...hm.",),
-    0.6:("Oh. Wow.",),
+    0.3:("Oh. Yea.",
+         "Ah, hm.",),
+    0.4:("Mm...hm.",
+         "Ah. I see.",),
+    0.6:("Oh. Wow.",
+         "Hmmm. Is that right.",),
     0.8:("Huh. That's pretty cool.",),
     1.0:("Oh, that's super interesting.",),
     },
 "argumentative" : {
     0  :("Who gives a shit?",),
+    0.2:("No. Wrong.",),
+    0.4:("No disrespect, but that's demonstrably false.",),
+    0.6:("That's... not quite right.",
+         "Aliens are definitely real, {pcgg}.",),
+    0.8:("",),
     },
 "motivated" : {
     0  :("Shoo, fly.",
@@ -957,6 +839,8 @@ SMALLTALK_FAILURE={
     0.2:("Who's got the time for that?",),
     },
 "proactive" : {
+    0.2:("Well, it'd be much nicer of a day if our own government didn't poison our air with mind-control gas.",),
+    0.4:("",),
     },
 }
 
@@ -1155,8 +1039,9 @@ ASKFAVOR_FAILURE={
     0.8:("Oh, I can't. I'm really sorry...",
          "For my own sake, I can't help you with that.",),
     0.9:("Well I would love to help, but I really can't. Please forgive me.",
-         "I love you, but I'm not going to do that.",),
-    1.0:("I don't think you could ever get me to do that, no matter what you did.",),
+         "I care deeply for you, {pcn}, but I can't do that for you.",),
+    1.0:("I don't think you could ever get me to do that, no matter what you did.",
+         "I'm truly sorry, {pcn}. I can't.",),
     },
 }
 
@@ -1195,7 +1080,7 @@ BEG_FAILURE={
     0.6:("I'm afraid I can't swing it.",),
     0.7:("No, I can't do that, sorry, {pcn}. I pray you'll get through this.",),
     0.8:("I have faith that you can get out of this yourself.",),
-    0.9:("I can't, {pcn}. I love you, but I can't give you that.",),
+    0.9:("I can't, {pcn}. I care about you, but I can't give you that.",),
     1.0:("I'm really sorry.",),
     },
 "independent" : {
@@ -1461,33 +1346,150 @@ PESTER_FAILURE={
 
 TAUNT_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
+    0  :("Let's take this outside.",
+         "I'll make you regret this!",
+         "Do you want to die, {slur}?",
+         "{Slur}!",),
+    0.2:("You {slur}!",),
+    0.4:("If you're looking for a fight, you've found one.",),
+    0.6:("Sure, I'll kick your ass for you.",),
+    0.8:("You're asking for it.",),
+    },
+"proud" : {
+    0:  ("Die!",),
+    0.2:("That's it. I'm gonna knock your teeth in.",),
+    },
+"low-self-esteem" : {
     0.2:("",),
-    0.3:("",),
+    },
+"argumentative" : {
+    0  :("I'll kill you!",),
+    0.2:("I'll teach you a lesson you won't forget, little kid.",),
+    0.4:("I'm going to kick your ass.",),
+    },
+"non-confrontational" : {
+    0.2:("I'm not going to enjoy kicking your ass.",),
+    0.4:("I take no pleasure in this.",),
+    0.6:("*sighs* you total {nc}.",),
+    },
+"outgoing" : {
+    0.2:("Let's go. You ready, {slur}?",),
+    },
+"shy" : {
+    0  :("*quietly enters a combat stance*",),
+    },
+"independent" : {
+    0  :("Argh! That's it, I'm going to destroy you!",),
+    },
+"codependent" : {
+    0.2:("So, you want a fight, huh? I'll abide.",),
+    },
+"bubbly" : {
+    0.2:("*grinding teeth* You're going to raise my blood pressure!",),
+    0.4:("Aghh! You {slur}!",),
+    0.6:("I'm so going to hurt you!",),
+    },
+"low-energy" : {
+    0.2:("",),
+    },
+"motivated" : {
+    0  :("You've crossed the line, {pcgp}.",),
+    0.2:("I'll kick you in time to resume my studies!",),
+    0.4:("I'm always ready for a friendly tussle, my great {pcgp}. *unrolling sleeves gesture*",),
+    },
+"unmotivated" : {
+    0.2:("",),
+    },
+"relaxed" : {
+    0  :("*sighs, enters combat stance* All right, let's make this quick.",),
+    0.2:("That's the line, {pcgg}.",),
     0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    },
+"uptight" : {
+    0  :("All right then. Have at you, {slur}!",),
+    0.2:("Well then, great {pcgp}, prepare yourself!",),
+    0.4:("I'll not pull my punches!",),
+    0.6:("By jove, you've gone mad. I'll knock some sense into you.",),
+    },
+"proactive" : {
+    0.2:("",),
+    },
+"apathetic" : {
+    0.2:("",),
     },
 }
 
 TAUNT_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
+    0  :("What a {slur}.",
+         "*ignoring you*",),
+    0.2:("Stop it. Now.",
+         "Please stop.",),
+    0.4:("*annoyed expression*",
+         "Ugh. Leave me alone, {pcgg}.",
+         "Stop it!",),
+    0.6:("Leave me alone, {pcn}.",
+         "Quit it!",),
+    0.8:("Quit, {pcn}!",
+         "*angry expression*",
+         "Why are you like this?",),
+    },
+"proud" : {
+    0  :("*laughs* Wow, you're such a {nc}.",
+         "*scoffs*",),
+    0.2:("*laughs* Look at you. {Nc}.",),
+    0.4:("You're embarassing yourself.",),
+    },
+"low-self-esteem" : {
+    0  :("Thanks for making my {tod} even worse.",
+         "{Slur}.",),
+    0.2:("You're mean.",
+         "I know you are but what am I?",),
+    0.4:("I know, but you don't have to be such a {slur} about it.",),
+    },
+"argumentative" : {
+    0  :("Are you running for the biggest {slur} of the year award? You've got my vote.",),
+    },
+"non-confrontational" : {
+    0  :("*ignoring you agressively*",),
+    },
+"outgoing" : {
+    0  :("Piss off.",),
     0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    },
+"shy" : {
+    0.2:("",),
+    },
+"independent" : {
+    0.2:("",),
+    },
+"codependent" : {
+    0.2:("",),
+    },
+"bubbly" : {
+    0.2:("",),
+    },
+"low-energy" : {
+    0.2:("",),
+    },
+"motivated" : {
+    0.2:("",),
+    },
+"unmotivated" : {
+    0.2:("",),
+    },
+"relaxed" : {
+    0.2:("",),
+    },
+"uptight" : {
+    0  :("Buzz off, bothersome pest.",),
+    0.2:("Do you kiss your mother with that mouth?",),
+    },
+"proactive" : {
+    0.2:("",),
+    },
+"apathetic" : {
+    0.2:("",),
     },
 }
 
@@ -1506,6 +1508,272 @@ _={
     1.0:("",),
     },
 }
+
+# Flattery -- admiring, complimenting, etc. #
+
+FLATTERY_SUCCESS={
+"generic" : {
+    0  :("Thanks.",
+         "Mm-hm.",
+         "Yep.",),
+    0.1:("You're too kind.",
+         "Thanks, {pct}",
+         "That's nice.",),
+    0.2:("Thanks, that's really nice.",
+         "Thank you, {pcc}.",
+         "Thank you.",
+         "Thanks.",),
+    0.3:("Well, thanks!",
+         "How nice.",
+         "Thanks!",),
+    0.4:("Why, thank you!",
+         "That's so nice, thanks.",
+         "How nice! Thanks.",
+         "Thank you.",),
+    0.5:("You're such a sweetheart.",
+         "That's very nice.",
+         "Thanks, that means a lot.",
+         "Oh, thank you! How very nice.",
+         "Thank you!",),
+    0.6:("Oh, I'm glad you think so.",
+         "How nice. Thank you, {pcn}.",
+         "Yes, I worked hard on it. Thanks for noticing.",),
+    0.7:("Thanks, {toe}.",
+         "Wow, thanks, {pcn}! You're looking good, too!",
+         "I'm glad you think so.",),
+    0.8:("What a wonderful compliment. Thank you, {pcn}.",
+         "Thank you, my dear {pcn}.",
+         "Thanks, {toe}. You're too kind.",),
+    0.9:("Aw, thanks, {toe}!",
+         "That's wonderful. Thank you, sweet {pcn}.",),
+    1.0:("That means so much coming from you. Thank you, dearest {pcn}.",
+         "I'm so happy you like it.",),
+    },
+"proud" : {
+    0.2:("Well, it's about time someone noticed.",),
+    },
+"low-self-esteem" : {
+    0  :("Are you my own personal hell manifest?",),
+    0.1:("Yea, right. Don't make me laugh...",),
+    0.2:("That's not true. But thank you.",),
+    0.3:("No, I'm not that great. Thanks anyway.",
+         "Oh, please. Give me a break.",),
+    0.4:("Stop, you're exaggerating.",
+         "No, really -- you're too much.",),
+    0.5:("No, I don't deserve that praise. But thanks.",
+         "Really, you're too much.",),
+    0.6:("*weak smile*",
+         "Thanks...",),
+    0.7:("*starts, then pauses* Oh... thanks.",
+         "It's too much, {pcn}. Thanks for the thought, though.",),
+    0.8:("Thanks, that means a lot coming from you.",
+         "I'm glad you like it!",),
+    0.9:("I'm really glad you see it that way. I just wish I felt the same way about it.",),
+    1.0:("What a lovely thing to say.",
+         "Oh, thank you, {pcn}. Thanks so much.",),
+    },
+"motivated" : {
+    0  :("Coming from you, that means nothing.",),
+    0.1:("Yes, you're right. I am fabulous.",),
+    },
+}
+
+FLATTERY_FAILURE={
+"generic" : {
+    0  :("Just quit it.",
+          "*scowl*",
+          "Ugh!",
+          "Enough!",
+          "I've had enough! Get lost!",),
+    0.1:("Cool.",
+          "Good for you.",
+          "I don't care.",
+          "*raises, then lowers eyebrows*",
+          "Enough.",
+          "Uh...",
+          "I don't want to hear that from you.",),
+    0.2:("Thanks but I don't need to hear that coming from you.",
+          "*false smile*",
+          "Ok, that's enough.",
+          "I don't need to hear that from you.",),
+    0.3:("Well, that's nice of you.",
+          "Oh... thanks.",
+          "Stop. You're too much, really.",
+          "*grimaces*",
+          "That's enough, now.",),
+    0.4:("*frowns*",
+          "Oh. Well, I can't say I agree with you on that one.",
+          "I know you mean well, but now you're making me uncomfortable.",
+          "Ok, you've said your fill. Let's change the subject.",),
+    0.5:("I don't want to talk about this.",
+          "Ok. Let's change the subject.",
+          "*confused / upset expression*",),
+    0.6:("*uncomfortable, forced smile*",
+          "All right, {pcn}.",
+          "K. Thanks.",
+          "Well that's very nice, {pcn}. Anyway, is there something else you needed?",),
+    0.7:("Hm. Ok.",
+          "Ok, that's enough, please, let's talk about something different now.",
+          "I have to disagree with you about that.",
+          "I'm really not that great.",),
+    0.8:("That's nice of you, {pcn}. But I'd rather you didn't say things like that.",
+          "Right. Anyways.",),
+    0.9:("Well I'm glad you like it, but let's get back to what we were talking about before.",),
+    1.0:("Oh. Thank you... {pcn}.",),
+    },
+"low-self-esteem" : {
+    0  :("*crying* I can't take any more of your lies.",
+         "*crying* You're so mean!",
+         "*sobbing*",
+         "You're just evil.",),
+    0.1:("Don't try to make me laugh.",
+         "No. That's never been true.",),
+    0.2:("Yeah, right. You just made that up.",
+         "Hm. I wish.",),
+    0.3:("You're just saying that.",
+         "I know you're full of it.",),
+    0.4:("You're lying.",
+         "You're a liar.",
+         "That's just ridiculous.",),
+    0.5:("You liar!",
+         "Yea, right. Come on, {tof}.",
+         "I wish...",),
+    0.6:("Stop it! I wish that were true.",),
+    0.7:("Not that I don't think you're being sincere, but I just can't see it that way.",),
+    0.8:("That's really nice of you to say, but... I can't believe you. It's not you, it's me...",),
+    },
+}
+
+# flirtation -- making a pass, complimenting in a romantic or sexual way, suggestive language (flirting) #
+
+FLIRTATION_SUCCESS={
+"generic" : {
+    0  :("*laughs nervously*",),
+    0.4:("*giggles*",
+         "*smiles, glances down*",),
+    0.5:("*glances suggestively*",),
+    0.6:("Hey... *smiles*",),
+    0.7:("Hey, {flirt}.",
+         "*bites lip*",),
+    0.8:("Hey there, {flirt}. Are you free this Friday?",
+         "You're not too bad, yourself.",
+         "*flutters eyes*",),
+    0.9:("*suggestive smile*",
+         "*opens mouth in horniness*",),
+    1.0:("*looks suggestively at your lips*",
+         "*shows tounge*",),
+    },
+}
+
+FLIRTATION_FAILURE={
+"generic" : {
+    0  :("Help, help! I'm being sexually assaulted!",
+         "I'm extremely uncomfortable right now.",),
+    0.1:("Oh -- sorry, I can't.",
+         "Not with you. No.",
+         "Please, stop. You're making me so uncomfortable.",
+         "Don't make me call the cops.",),
+    0.2:("Oh, I'm actually seeing someone.",
+         "It's too much. Too sudden.",
+         "You're making me very uncomfortable...",
+         "*no response*",),
+    0.3:("You're making me uncomfortable.",
+         "*smiles, glances away*",
+         "*ignoring you*",),
+    0.4:("*stares at you*",
+         "*looks away*",),
+    0.5:("*tries to look busy*",),
+    0.6:("*shuffles nervously*",),
+    0.7:("*grumbles uncomfortably*",),
+    0.8:("Sorry... I can't.",),
+    0.9:("I'm sorry, {pcn}. You're very nice, but I just don't think of you in that way.",),
+    1.0:("Oh, {pcn}. You're too much. Really.",),
+    },
+}
+
+# anger -- brought near the point of violent outbreak #
+
+ANGRY={
+"generic" : {
+    0  :("I'm going to kick your ass.",
+         "You're such a {nc}.",
+         "{Slur}.",
+         "{Nc}.",
+         "{Insult}.",
+         "*no response*",),
+    0.2:("Hey. Shut up.",),
+    0.4:("Who would do something like that?",
+         "What a {nc}.",
+         "What a {slur} you are.",
+         "You absolute {nc}.",),
+    0.6:("You're being a real {nc}.",
+         "Stop being such a {slur}.",
+         "You {nc}!",
+         "Are you trying to piss me off?",),
+    0.8:("You {nc}! I hate you! I can't believe you would do this!",
+         "You absolute {nc}! What are you thinking?",
+         "What's gotten into you?",
+         "Quit trying to piss me off, {pcn}.",
+         "Have you gone mad, {pcgg}?",
+         "You complete {nc} of a {pcc}. I'm going to smash your face.",),
+    },
+"outgoing" : {
+    0  :("Are you ready to fight, {slur}?",),
+    },
+"argumentative" : {
+    0  :("I'm about to curb-stomp your ass.",
+         "Fucking {nc}, {insult}.",
+         "*laughs* Look at this fuckin' {nc}.",),
+    0.2:("You've made me really fuckin' mad.",
+         "I will bury you.",
+         "I'm not scared, you {nc}. Come at me, {tof}.",
+         "You made a mistake, kiddo.",),
+    },
+"bubbly" : {
+    0.4:("You {nc}, I'll eat you for breakfast!",),
+    },
+}
+
+
+
+
+
+'''
+
+"proud" : {
+    },
+"low-self-esteem" : {
+    },
+"argumentative" : {
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    },
+"shy" : {
+    },
+"independent" : {
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    },
+"low-energy" : {
+    },
+"motivated" : {
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
+    },
+"uptight" : {
+    },
+"proactive" : {
+    },
+"apathetic" : {
+    },
+    '''
+
 
 
 
