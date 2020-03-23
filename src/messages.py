@@ -33,6 +33,7 @@
     npcgg   NPC gender - generic
     nc      name calling
     ncs     name calling plural
+    cuss    exclamation
     slur    curse
     slurs   slur plural
     aslur   a(n) + slur
@@ -63,6 +64,8 @@ TERM_OF_ENDEARMENT=(
 TERM_OF_ATTRACTION=(
     "sweety", "honey", "darling",
 )
+
+CUSS=("fuck", "shit", "damn", "hell",)
 
 SLUR=(
     # singular
@@ -103,7 +106,6 @@ COMPLIMENT_WHACKY=(
 
 PHRASE_QUIRKY=(
     "well slap me sideways and call me Sally",
-    "",
 )
 
 PHRASE_WHY=(
@@ -437,7 +439,7 @@ GREETING={ # conversation acceptance
          "Hello best friend!",
          "How are you my {toe}?",),
     },
-"bubbly" : { # friendly, quirky, smily, does a lot of gesturing. Hugs a lot.
+"bubbly" : { # friendly, quirky, smily, does a lot of gesturing. Hugs a lot. Screams "rape!" when threatened.
     0  :("Just get it over with, {slur}!",
          "Hey, {slur}! {Gcomp}.",
          "Oh, hi, {slur}. I always love when you come, because I get to look forward to you leaving.",
@@ -445,9 +447,9 @@ GREETING={ # conversation acceptance
     0.1:("Sorry, but not sorry.",
          "Gross. It's {pcn}.",
          "Ew.",),
-    0.2:("Hey, it's {pcn} again!",),
-    0.3:("Hey again!",
-         "Hey, {gcomp}, {pcgg}.",),
+    0.2:("Hey, {gcomp}, {pcgg}.",),
+    0.3:("Hey, it's {pcn} again!",
+         "Hey again!",),
     0.4:("Hello again {pcn}! Good {tod}.",
          "Hey {pcn}, {gcomp}.",),
     0.5:("Hey there! *punches you in the arm*",
@@ -777,18 +779,14 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     1.0:("Yesterday I saw a deer.",),
     },
 "independent" : {
-    0.8:("",),
     },
 "codependent" : {
-    0.8:("",),
     },
 "bubbly" : {
-    0.8:("",),
     },
 "low-energy" : {
     0.4:("Lovely weather.",),
     0.6:("Indeed, {pcn}.",),
-    0.8:("",),
     },
 "motivated" : {
     0.2:("I'm hype.",),
@@ -797,7 +795,6 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.8:("I might be on to something.",),
     },
 "unmotivated" : {
-    0.8:("",),
     },
 "relaxed" : {
     0.4:("Hey {pcn}, you believe in aliens, right?",),
@@ -805,14 +802,12 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.8:("What do you think it's like to be an alien? Like, would they feel the same kinds of emotions we do?",),
     },
 "uptight" : {
-    0.8:("",),
     },
 "proactive" : {
     0.4:("Well, more and more rivers are running dry these days. It's because the mega-corporations keep building more and more dams. It's terrible.",),
     0.6:("That's good news.",),
     },
 "apathetic" : {
-    0.8:("",),
     },
 }
 
@@ -836,7 +831,6 @@ SMALLTALK_FAILURE={
     0.2:("No. Wrong.",),
     0.4:("No disrespect, but that's demonstrably false.",),
     0.6:("That's... not quite right.",),
-    0.8:("",),
     },
 "motivated" : {
     0  :("Shoo, fly.",
@@ -1276,33 +1270,144 @@ BARTER_FAILURE={ # range: as long as disp >= value, can display msg (like taunt 
 
 CHARM_SUCCESS={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("Oh, that is nice.",
+         "Thanks.",),
+    0.1:("Well, how thoughtful.",
+         "Oh. Thank you.",),
+    0.2:("That's very nice.",
+         "Hm. Well, thanks.",),
+    0.3:("Thank you, {pct}{pcc}.",
+         "Thanks.",),
+    0.4:("Thanks, {pcn}. That's very kind.",
+         "Oh. Thanks.",
+         "Thanks, {gcomp}.",),
+    0.5:("Oh, thank you, I like your {icomp}.",
+         "Thank you, {pcn}.",
+         "You're not looking half bad, yourself.",
+         "Thanks. I like your {icomp}.",),
+    0.6:("Please, you're too kind.",
+         "Aw, thank you.",
+         "*smiles* Oh, thanks for noticing.",
+         "Thanks, I like your {icomp}!",),
+    0.7:("Oh, thank you so much, {pcn}, I like it too.",
+         "Yes, it's my favorite, too.",
+         "Oh thanks! Yours is also great.",
+         "Thanks! I love your {icomp}.",),
+    0.8:("Oh, {pcn}, thank you.",
+         "Thanks! I love your {icomp}!",),
+    0.9:("Oh, well thank you, dear {pcn}.",
+         "Thanks, sweet {pcn}. {comp}.",),
+    1.0:("Thank you, my dearest {pcn}.",
+         "*smiles widely*",),
+    },
+"proud" : {
+    0  :("*standing up straight* Oh, please. You're too kind.",),
+    0.4:("*proudly* Oh, stop. You're embarrassing me!",),
+    0.6:("*smiling* Oh, no, that's too much. Too much.",),
+    },
+"low-self-esteem" : {
+    },
+"argumentative" : {
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    0.6:("*smiling* Oh, quit it, you.",,),  
+    },
+"shy" : {
+    0.2:("Thank... you.",),
+    0.4:("Thanks, um... {pcn}.",),
+    0.6:("Oh, {pcn}... Thank you...!",),
+    0.8:("Thank you, {pcn}! You're so sweet.",),
+    },
+"independent" : {
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    0.6:("Aww, thank you so much! *hugs*",),
+    },
+"low-energy" : {
+    },
+"motivated" : {
+    0.6:("Absolutely!",),
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
+    },
+"uptight" : {
+    0  :("Perhaps I misjudged you.",),
+    0.4:("My, aren't you charming?",),
+    },
+"proactive" : {
+    },
+"apathetic" : {
     },
 }
 
 CHARM_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
-    1.0:("",),
+    0  :("*nauseous expression*",),
+    0.1:("Gross.",),
+    0.2:("Ew.",),
+    0.3:("*shuffles uncomfortably*",),
+    0.4:("*bares teeth*",),
+    0.5:("*cringes*",),
+    0.6:("*shivers in embarrassment*",),
+    0.7:("Stop, {pcn}. You're embarrassing me.",),
+    0.8:("Really, {pcn}?",),
+    0.9:("Oh, cut it out.",),
+    },
+"proud" : {
+    0  :("Oh, please. That's not even close to my best feature.",
+         "You're embarrassing yourself, {toe}.",),
+    0.2:("Ha! *That's* what you chose to compliment? Says a lot about who *you* are.",
+         "Oh, {toe}, stop.",),
+    0.4:("Pff, please!",
+         "What?",
+         "Come again? Did you really just say that?",),
+    0.6:("Bitch, please!",),
+    },
+"low-self-esteem" : {
+    0  :("Stop. You're lying.",
+         "I know you don't mean that.",
+         "That's a big lie and you know it.",
+         "Liar!",
+         "Stop lying to me.",
+         "I can't stand people lying to me all the time. Just stop.",),
+    },
+"argumentative" : {
+    0  :("Wow, that was just sad.",),
+    0.2:("Oh, man. What a blunder, {tof}.",),
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    },
+"shy" : {
+    },
+"independent" : {
+    0  :("Blech. You trying to give me diabetes?",),
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    0  :("*imitates gag reflex*",),
+    },
+"low-energy" : {
+    },
+"motivated" : {
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
+    },
+"uptight" : {
+    },
+"proactive" : {
+    },
+"apathetic" : {
     },
 }
 
@@ -1427,34 +1532,118 @@ BRIBERY_FAILURE={
 # intimidate -- scare using IDN stat to raise disposition,
 # but also gives the Mistreated component,
 #   which makes them quick to turn on you if given the opportunity.
+#   (unless they have the Masochist component)
 
-INTIMIDATION_SUCCESS={
+INTIMIDATION_SUCCESS={ # disp >= value: displays (like pester, smalltalk, barter, intimidation, taunt)
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
+    0  :("*screams*",
+         "No, please, don't hurt me!",
+         "Oh, {cuss}!",),
+    0.2:("No!",
+         "No, don't!",),
+    0.4:("Why?!",
+         "{Tof}! Ah, {cuss}!",),
+    0.6:("*shrinks away in terror*",
+         "No! Why are you doing this?",),
+    },
+"bubbly" : {
+    0  :("*screams* Ahhhhhh!! I'm being raped!",),
+    },
+"proud" : {
+    0  :("I'll make you eat those words!",),
+    },
+"outgoing" : {
+    0.6:("*screaming* {pcn}! You {slur}!",
+         "Damn you, {pcn}!",),
+    },
+"shy" : {
+    0  :("*whimpers in terror*",
+         "*shaking, backing away*",
+         "*crying*",),
+    0.6:("*screaming* You're so scary!",),
     },
 }
 
 INTIMIDATION_FAILURE={
 "generic" : {
-    0  :("",),
-    0.1:("",),
-    0.2:("",),
-    0.3:("",),
-    0.4:("",),
-    0.5:("",),
-    0.6:("",),
-    0.7:("",),
-    0.8:("",),
-    0.9:("",),
+    0  :("You don't scare me.",
+         "*ignoring you*",),
+    0.2:("*visibly annoyed*",
+         "Stop!",),
+    0.4:("Don't do that!",
+         "Ah, {slur}.",),
+    0.6:("*half-hearted yelp*",
+         "*startled*",),
+    0.8:("Stop, {pcn}!",
+         "{pcn}!",
+         "No!",),
+    },
+"proud" : {
+    0  :("As if I could ever be bested by the likes of you!",
+         "You're comparing yourself to me? Ha! You're not even good enough to be my fake.",
+         "Boooo!",
+         "You suck!",),
+    },
+"low-self-esteem" : {
+    0  :("I'm not afraid of you!",),
+    },
+"argumentative" : {
+    0  :("Wow, you should work in haunted houses.",
+         "Oh, you're soooo scary. I'm soooo scared.",
+         "Oh, I pissed my pants, ah.",
+         "Ooooh, so spoopy.",),
+    },
+"non-confrontational" : {
+    0  :("*looks at you with wide eyes, looks away*",
+         "*aggressively ignoring you*",),
+    },
+"outgoing" : {
+    0  :("I'm not afraid, {slur}.",
+         "Blah, blah, blah.",
+         "Yeah, yeah.",
+         "Go on, I'm listening.",
+         "Keep talking.",
+         "Prick.",),
+    },
+"shy" : {
+    0  :("Stop... you're scaring me...",
+         "*tears in eyes* Quit it...!",
+         "Leave me alone!",),
+    },
+"independent" : {
+    0  :("Ho. That scared me good, all right.",),
+    },
+"codependent" : {
+    0  :("Total {slur}.",),
+    0.4:("Aw, why would you do that?",),
+    },
+"bubbly" : {
+    0  :("*screams* Help me, this {pcgg}'s trying to rape me!",),
+    0.6:("*twitches, slaps you*",),
+    },
+"low-energy" : {
+    0  :("Bruh...",),
+    },
+"motivated" : {
+    0  :("Did you think I would submit so easily?",),
+    },
+"unmotivated" : {
+    0  :("Dude, what's your problem?",),
+    },
+"relaxed" : {
+    0  :("Aliens are scarier than you.",),
+    },
+"uptight" : {
+    0  :("*standing up straight, looking you in the eye*",
+         "HA!",
+         "Just try it.",
+         "You think I would fall for that? You must think I'm pretty naive.",),
+    },
+"proactive" : {
+    0  :("*sneers*",),
+    },
+"apathetic" : {
+    0  :("Oh fuck. I can't believe you've done this.",),
     },
 }
 
@@ -2029,8 +2218,8 @@ FLIRTATION_SUCCESS={
 
 FLIRTATION_FAILURE={
 "generic" : {
-    0  :("Help, help! I'm being raped!",
-         "I'm extremely uncomfortable right now.",),
+    0  :("I'm extremely uncomfortable right now.",
+         "*disgusted expression*",),
     0.1:("Oh -- sorry, I can't.",
          "Not with you. No.",
          "Please, stop. You're making me so uncomfortable.",
@@ -2053,8 +2242,11 @@ FLIRTATION_FAILURE={
     0.9:("I'm sorry, {pcn}. You're very nice, but I just don't think of you in that way.",),
     1.0:("Oh, {pcn}. You're too much. Really.",),
     },
-"bubbly" : {
+"outgoing" : {
     0  :("You {slur}, you don't mean any of that!",),
+    },
+"bubbly" : {
+    0  :("Help, help! I'm being raped!",),
     },
 }
 
