@@ -18,6 +18,11 @@
 '''
 
 from const import *
+import rogue as rog
+import components as cmp
+import dice
+import random
+import math
 import messages
 
 # Player -on- NPC dialogue #
@@ -63,10 +68,9 @@ PERSON_PROACTIVE            : "proactive",
 PERSON_APATHETIC            : "apathetic",
     }
 
-def _like(ent, amt):
+def _change_disposition(ent, amt):
+    print("ent {} disp change: {}".format(rog.getname(ent), amt))
     rog.world().component_for_entity(ent,cmp.Disposition).disposition += amt
-def _dislike(ent, amt):
-    rog.world().component_for_entity(ent,cmp.Disposition).disposition -= amt
 
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
@@ -77,9 +81,11 @@ def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
     #-----------------------------#
 
 # get possible responses
-def __get_possible_responses_eval(
-    personality_string: str, meta: dict, dic: dict
+def __eval(
+    personality_string: str, disposition:int, padding:int,
+    meta: dict, lis: list
     ):
+    DMAX = MAX_DISPOSITION
     for k,v in meta.items():
         if (k=="generic" or k==personality_string):
             for disp_ratio, strings in v.items():
@@ -87,7 +93,7 @@ def __get_possible_responses_eval(
                     and disposition <= rog.around((disp_ratio+padding)*DMAX)
                     ):
                     for string in strings:
-                        dic.update({string})
+                        lis.append(string)
 def _get_possible_responses(
     talk_type:int, personality: int, disposition: int, padding=0.2
     ) -> tuple:
@@ -100,13 +106,13 @@ def _get_possible_responses(
             Format: (strings for success, strings for failure,)
     '''
     DMAX = MAX_DISPOSITION
-    on_success = {}
-    on_failure = {}
+    on_success = []
+    on_failure = []
     meta_success = MESSAGES[talk_type][0]
     meta_failure = MESSAGES[talk_type][1]
     pid = PERSONALITY_STRINGS[personality]
-    __get_possible_responses_eval(pid, meta_success, on_success)
-    __get_possible_responses_eval(pid, meta_failure, on_failure)
+    __eval(pid, disposition, padding, meta_success, on_success)
+    __eval(pid, disposition, padding, meta_failure, on_failure)
     return (on_success, on_failure,)
 
 def _get_response(possible: tuple, success: bool) -> str:
@@ -128,7 +134,7 @@ def _get_response_full(
 
 def _get_reaction(
     ent:int, persuasion_type:int, personality:int, disposition:int,
-    mx=1, value=0 #,style=0
+    mx=1, value=0, style=0
     ) -> int:
     ''' get reaction from an entity based on conversational parameters
         mx: multiplier for intensity
@@ -146,6 +152,7 @@ def _get_reaction(
     speech_penalty = max(0, MAX_SKILL - speech_bonus)
     pc_idn = rog.getms(pc, 'idn')
     pc_bea = rog.getms(pc, 'bea')
+    pc_pos = world.component_for_entity(pc, cmp.Position)
     
     # get stats for conversational partner
     ent_sight = rog.getms(ent,'sight')
@@ -229,9 +236,9 @@ def _get_reaction(
 # end def
 
 
-    #--------#
-    # public #
-    #--------#
+    #-------------------#
+    # public interface  #
+    #-------------------#
 
 def dialogue(ent:int, style=0):
     ''' wrapper dialogue function '''
@@ -242,17 +249,25 @@ def dialogue(ent:int, style=0):
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     personality=world.component_for_entity(ent,cmp.Personality).personality
     dispcompo.disposition = newdisp
+    print("New disposition: ", dispcompo.disposition)
     menu={}
+    menuitems=[]
     for k,v in PERSUASION.items():
         menu[v] = k
-    opt=rog.menu("{}{}".format(entn.title,entn.name), 0,0,menu.keys())
+        menuitems.append(v)
+    entn = world.component_for_entity(ent,cmp.Name)
+    opt = rog.menu(
+        "{}{}".format(TITLES[entn.title],entn.name),
+        0,0, menuitems
+        )
     result = menu[opt]
-    _FUNCS(result)(ent, personality, disposition, style=style)
+    _FUNCS[result](ent, personality, dispcompo.disposition, style=style)
 # end def
 
 def greet(ent:int, style=0) -> int:
     ''' introduce self / attempt to init conversation '''
     pc=rog.pc()
+    world=rog.world()
     personality=world.component_for_entity(ent,cmp.Personality).personality
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     # new disposition after dialogue concludes
@@ -263,7 +278,7 @@ def greet(ent:int, style=0) -> int:
         style=style, mx=0.5
         )
     new_disposition += rog.sign(ed) # just nudge disposition
-    fdisp = ed / DISPOSITION_MAX
+    fdisp = ed / MAX_DISPOSITION
     
     # roll for speech success
     speech_bonus = rog.getskill(pc, SKL_PERSUASION)
@@ -273,9 +288,8 @@ def greet(ent:int, style=0) -> int:
     else:
         roll += 100*fdisp
     # cases
-    if roll <= 0: _response(ent, RESPONSE_REJECTION)
-    elif roll < 40: _response(ent, RESPONSE_EXCUSE)
-    elif roll < 80: _response(ent, RESPONSE_BUSY)
+    if roll <= 0:
+        _response(ent, RESPONSE_REJECTION)
     else:
         _response(ent, RESPONSE_ACCEPT)
     return new_disposition
@@ -288,12 +302,12 @@ def record(ent:int, memory):
     world=rog.world()
     if world.has_component(ent, cmp.ConversationMemory):
         compo=world.component_for_entity(ent, cmp.ConversationMemory)
-        compo.memories.append(response_type)
+        compo.memories.append(memory)
         if len(compo.memories) > compo.max_len:
             compo.memories.pop(0)
     else:
         world.add_component(ent, cmp.ConversationMemory(
-            MAX_NPC_CONVO_MEMORIES, response_type))
+            MAX_NPC_CONVO_MEMORIES, memory))
 # end def
         
 def forget(self, n=-1):
@@ -316,48 +330,153 @@ def init_convo(ent:int, style=0):
     # persuasion / conversation types #
     #---------------------------------#
 
-def talk_barter(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def _talk(success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> str:
+    possible=_get_possible_responses(ttype,personality,disposition,padding)
+    response=_get_response(possible, success)
+    print(response)
+    return response
 
-def talk_question(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_INTRODUCTION
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    print("introduction {}: {}".format(rog.getname(ent),reaction))
+    return _talk(success, ttype, personality, disposition, padding=0.1)
 
-def talk_interrogate(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_BARTER
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("barter {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition, padding=1)
 
-def talk_torture(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_QUESTION
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("ask question {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_askfavor(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_INTERROGATE
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("interrogate {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_beg(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_GOSSIP
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("gossip {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
+
+def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_TORTURE
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("torture {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
+
+def talk_askfavor(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_ASKFAVOR
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("ask favor {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
+
+def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_BEG
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("beg {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
     
-def talk_charm(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_CHARM
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("charm {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_boast(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_BOAST
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("boast {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_smalltalk(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_SMALLTALK
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("smalltalk {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition, padding=1)
 
-def talk_bribe(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_BRIBERY
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("bribe {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_intimidate(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_INTIMIDATION
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("intimidate {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition, padding=1)
 
-def talk_flatter(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_FLATTERY
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("flatter {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_flirt(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_FLIRTATION
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("flirt {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
-def talk_debate(ent:int, speech:int, personality:int, disposition:int, style=0):
-    pass
+def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_DEBATE
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("debate {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(success, ttype, personality, disposition)
 
+def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_PESTER
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    print("pester {}: {}".format(rog.getname(ent),reaction))
+    return _talk(True, ttype, personality, disposition, padding=1)
+
+def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_TAUNT
+    reaction=_get_reaction(ent, ttype, personality, disposition)
+    _change_disposition(ent, reaction)
+    success = (reaction > 0)
+    print("taunt {}: {}, {}".format(rog.getname(ent),success,reaction))
+    return _talk(True, ttype, personality, disposition, padding=1)
 
     #-----------------------------------------------#
     # constants (relying on the above declarations) #
@@ -367,6 +486,7 @@ _FUNCS={
 TALK_ASKQUESTION    : talk_question,
 TALK_INTERROGATE    : talk_interrogate,
 TALK_ASKFAVOR       : talk_askfavor,
+TALK_GOSSIP         : talk_gossip,
 TALK_BEG            : talk_beg,
 TALK_BARTER         : talk_barter,
 TALK_TORTURE        : talk_torture,
@@ -378,6 +498,8 @@ TALK_INTIMIDATION   : talk_intimidate,
 TALK_FLATTERY       : talk_flatter,
 TALK_FLIRTATION     : talk_flirt,
 TALK_DEBATE         : talk_debate,
+TALK_PESTER         : talk_pester,
+TALK_TAUNT          : talk_taunt,
     }
 
 

@@ -1,0 +1,46 @@
+
+New dialogue system
+
+I spent a couple of days hammering out the foundation for the dialogue system in my roguelike, Softly Into the Night.
+
+This is an experimental system of dialogue that I have developed from scratch. I am not very well versed in dialogue systems, so this is certainly far from being well-designed. Regardless, I think that this system does some interesting things.
+
+Inspirations
+
+Rather than having static dialogue that always shows the same messages on a loop each time you talk to an NPC, I wanted dialogue that felt more alive. I was inspired by Animal Crossing, how there were different personality types and each kind of felt like a consistent character. But I'm not sure how they did their dialogue, and mine is a lot different.
+
+I was also inspired by Morrowind's dialogue system and disposition system, which allows you to pick from a list of topics or choose to persuade or barter with them. I may go with keyword topics in the same way, but they will be hidden behind an "ask questions" dialogue option. But my system has more different types of dialogue, and (of course) much less overall dialogue. In the end, my system has elements of both Morrowind and Animal Crossing's dialogue systems.
+
+Permutations
+
+There are 16 different personality types in Softly. A character can have exactly one personality type, and that doesn't change over the course of their life, under normal circumstances. There are 8 traits, and 2 personalities for each trait, one scoring high in that trait, and the other low. The 8 traits are below, followed by the two respective personalities:
+	* Self esteem (proud vs. low self-esteem)
+	* Agreeableness (argumentative vs. non-confrontational)
+	* Bashfulness (outgoing vs. shy)
+	* Independence (independent vs. codependent)
+	* Energy level (bubbly vs. low energy)
+	* Motivation level (motivated vs. unmotivated)
+	* Open-mindedness (relaxed vs. uptight)
+	* Acceptance (proactive vs. apathetic)
+
+Each personality type has a significant amount of unique dialogue that only they can say. But, all main personality types also share a core list of dialogue to draw from. Personality types have different compatibilities with other personalities, which affects the amount of disposition you gain and lose from interactions.
+
+In addition, there are multiple different ways to talk to an NPC -- 18 in total. These include barter, taunt, intimidate, flatter, flirt, bribe, and much more. Each different type of dialogue, paired with the specific personality type of the NPC, results in dialogue that's unique to that specific combination. Not only that, there is actually another, third axis: disposition.
+
+Disposition, or how much the NPC likes you, affects the dialogue options that they have at their disposal for a given situation, as well. So, combining the type of dialogue, and the personality of the NPC, we get a lot of different flavors of dialogue popping up, so the dialogue feels more organic.
+
+Finally, many dialogue strings contain tags which will be replaced in-game by different things, like the player's name, class, gender, etc. But some of these tags draw from a list of words and selects one at random. So this final, small, fourth dimension adds yet another layer of slight variation to the dialogue, just to add another little touch of subtlety and life.
+
+Then, there are special cases, like the NPC may outright reject dialogue with you, or they can become angry with you, which are both technically whole extra pools of dialogue to draw from. There is some rare, humorous dialogue that will be uncommon to see. Other special cases for dialogue system itself, not necessarily the messages, are when, for instance, you try and beg to the proud personality type. They will almost always reject you, thinking that you have to work for what you earn.
+
+Conclusion
+
+So all in all, I'm happy with the system I came up with. It took a lot of time (I'd say < 24 hours) to write out enough text that I'm happy with what I call a bare-minimum coverage for what I wanted. It's approximately 10,000 words of dialogue right now. I plan to fill it out some more later and just gradually add more over time when/if I think of anything.
+
+I've genuinely enjoyed this mini-project. One thing I liked a lot is that I felt as though I was being very introspective about emotions, and thinking a lot about how people would react to different things in different situations. It took a lot of "putting myself in other people's shoes," which I would argue was a fantastic exercise in empathy. I feel like I learned a lot, anyway.
+
+At the end of the day, the dialogue I wrote is far from perfect, or even good, probably. But, I tried to add soul to it and make it quirky and unique in its own right. And I tried to make it funny, and be at least a little bit more interesting than just seeing the same messages over and over again with no variation.
+
+I know this might be a bit much to have done for the scope of my game. But honestly, I don't think it is, simply because of the fact that I so much enjoy going into detail like this. I want to make a big game; I always have. And one thing I've always wanted in my game is to have characters, NPCs who feel like people, even if that illusion only lasts for a little while. I want my world to feel alive, and people are such a big part of that.
+
+~Jacob Wharton

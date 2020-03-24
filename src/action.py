@@ -28,6 +28,7 @@ import math
 from const import *
 import rogue as rog
 import components as cmp
+import dialogue
 import dice
 import maths
 ##import entities
@@ -93,6 +94,41 @@ EQ_MAINMOUTH    : (wear_mouth_main, "wear", "mouth",),
 
     # PC-specific actions first #
 
+# dialogue | talking | speaking | speech
+def chat_context(pc):
+    world = rog.world()
+    pos = world.component_for_entity(pc, cmp.Position)
+    rng=10 # speaking range
+    lis=[]
+    for i in range(rng*2 + 1):
+        for j in range(rng*2 + 1):
+            x = i - rng
+            y = j - rng
+            xx = pos.x + x
+            yy = pos.y + y
+            if not rog.is_in_grid(xx,yy):
+                continue
+            mon = rog.monat(xx,yy)
+            if (mon and not mon==rog.pc()):
+                if not world.has_component(mon, cmp.Speaks):
+                    print("here?")
+                    continue
+                dist = math.sqrt((xx - pos.x)**2 + (yy - pos.y)**2)
+                lis.append((mon, dist,))
+        # end for
+    # end for
+    if not lis:
+        print("ehhehe")
+        return False
+    lis.sort(key=lambda x: x[1])
+    ent = lis[0][0]
+    print("yo")
+    
+    # talk
+    dialogue.dialogue(ent)
+    
+    return True
+    
 # pickup
 # grab an item from the game world, removing it from the grid
 def pickup_pc(pc):

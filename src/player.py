@@ -230,6 +230,12 @@ def commands(pc, pcAct):
                         )
         # end conditional
 
+        # chat with closest speaking entity;
+        #   if multiple good options, prompt for which one.
+        if act == "chat-context":
+            action.chat_context(pc)
+            _Update()
+            return
         if act == "change-pos": # change body position
             action.change_bodypos_pc(pc)
             _Update()

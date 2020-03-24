@@ -822,6 +822,7 @@ CONVO_COMBATIVE     : 1,
 # persuasion / dialogue types
 i=1;
 TALK_INTRODUCTION   =i;i+=1; # introduction; first time meeting someone
+TALK_GREETING       =i;i+=1; # start of conversation
     # persuasion to yield services
 TALK_ASKQUESTION    =i;i+=1;
 TALK_INTERROGATE    =i;i+=1; # use intimiation to question

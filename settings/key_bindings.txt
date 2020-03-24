@@ -108,6 +108,11 @@ SPACE
 NONE
 NONE
 
+// chat | talk | speak
+c
+NONE
+NONE
+
 // target entity (+ target limbs) to fire / throw / attack
 t
 NONE
@@ -128,7 +133,7 @@ f
 NONE
 NONE
 
-// throw item in dominant hand
+// throw missile
 shift+t
 NONE
 NONE

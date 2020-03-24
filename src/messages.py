@@ -1312,7 +1312,7 @@ CHARM_SUCCESS={
 "non-confrontational" : {
     },
 "outgoing" : {
-    0.6:("*smiling* Oh, quit it, you.",,),  
+    0.6:("*smiling* Oh, quit it, you.",),  
     },
 "shy" : {
     0.2:("Thank... you.",),
@@ -1727,7 +1727,10 @@ PESTER={ # range: >= (like taunt, smalltalk, etc.)
     0.6:("Please stop.",),
     },
 "argumentative" : {
-    0  :("{Slur}!",
+    0  :("Were you dropped on your head as an infant?",
+         "Did your mother feed you bleach instead of baby formula?",
+         "Why are you the way that you are? I hate so much about the things that you choose to be.",
+         "{Slur}!",
          "{Slur}.",),
     0.2:("You {slur}!",
          "You fucking {slur}.",),
@@ -1793,16 +1796,17 @@ PESTER={ # range: >= (like taunt, smalltalk, etc.)
          "Ughhh.",),
     0.4:("Nooo!!!",
          "No!! Quit it!",
-         "*suicide gesture*",),
+         "*suicide gesture*",
+         "{pcn}!",
+         "{tof}!",),
     0.6:("{pcn}, I'm going to slap you silly if you don't stop doing that.",
          "Cut it out, {tof}! I mean it!",),
+    0.8:("Stop, {pcn}! I love you but you're driving me up the wall!",),
     },
 "low-energy" : {
-    0  :("Were you dropped on your head as a baby?",
-         "You {nc}.",
+    0  :("You {nc}.",
          "{Insult}.",
-         "{Slur}.",
-         "Why are you the way that you are? I hate so much about the things that you choose to be.",),
+         "{Slur}.",),
     0.2:("Dude, what is your problem?",
          "What is wrong with you?",
          "*exaggerated facepalm*",),
@@ -1929,7 +1933,7 @@ TAUNT_SUCCESS={
 "unmotivated" : {
     0  :("Oh, man. What a drag. Looks like I'm going to have to bust some ass.",),
     0.4:("I'll slap you silly!",),
-    0.6:("You {nc}. {Insult}.",
+    0.6:("You {nc}. {Insult}.",),
     },
 "relaxed" : {
     0  :("*sighs, enters combat stance* All right, let's make this quick.",),
@@ -2198,7 +2202,8 @@ FLATTERY_FAILURE={
 
 FLIRTATION_SUCCESS={
 "generic" : {
-    0  :("*laughs nervously*",),
+    0  :("*laughs nervously*",
+         "*smiles, avoids eye contact*",),
     0.4:("*giggles*",
          "*smiles, glances down*",),
     0.5:("*glances suggestively*",),
@@ -2213,6 +2218,12 @@ FLIRTATION_SUCCESS={
          "*opens mouth in horniness*",),
     1.0:("*looks suggestively at your lips*",
          "*shows tounge*",),
+    },
+"outgoing" : {
+    0.8:("*goes in for a kiss*",),
+    },
+"bubbly" : {
+    0.4:("*blows kiss*",),
     },
 }
 

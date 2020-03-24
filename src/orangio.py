@@ -241,6 +241,11 @@ SPACE
 NONE
 NONE
 
+// chat | talk | speak
+c
+NONE
+NONE
+
 // target entity (+ target limbs) to fire / throw / attack
 t
 NONE
@@ -261,7 +266,7 @@ f
 NONE
 NONE
 
-// throw item in dominant hand
+// throw missile
 shift+t
 NONE
 NONE
@@ -483,6 +488,7 @@ COMMANDS = {        # translate commands into actions
     'up'            : {'context-dir': (0,  0, -1,) },
     'down'          : {'context-dir': (0,  0,  1,) },
     'context'       : {'context': True},
+    'chat-context'  : {'chat-context': True},
     'target-prompt' : {'target-prompt': True},
     'move-prompt'   : {'move-prompt': True},
     'attack-prompt' : {'attack-prompt': True},

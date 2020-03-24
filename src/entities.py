@@ -520,10 +520,10 @@ def _melee_pain(item, amt):
     _elementalMelee(item, ELEM_PAIN, amt)
 def _bonusToSoft(item, bonus):
     if bonus > 0:
-        rog.world().add_component(item, cmp.bonusToSoft(bonus))
+        rog.world().add_component(item, cmp.BonusToSoft(bonus))
 def _bonusToHard(item, bonus):
     if bonus > 0:
-        rog.world().add_component(item, cmp.bonusToHard(bonus))
+        rog.world().add_component(item, cmp.BonusToHard(bonus))
 def _amputate(item, value):
     if value > 0:
         rog.world().add_component(item, cmp.HacksOffLimbs(value))
@@ -3955,7 +3955,7 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     
-    cov = getcov(BP_TORSO)
+    cov = getcov(BP_CORE)
     
     # equipment
     if core.slot.item:
@@ -3973,7 +3973,7 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_TORSO
+            BP_CORE
             )
                                 
     else: # unarmored combat
@@ -4017,7 +4017,7 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_TORSO
+            BP_FRONT
             )
                                 
     else: # unarmored combat
@@ -4061,7 +4061,7 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_TORSO
+            BP_BACK
             )
                                 
     else: # unarmored combat
@@ -4105,7 +4105,7 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
         equip=__EQ(
             eqdadd['enc'], equipable.strReq, 0,
             eqdadd, eqdmul,
-            BP_TORSO
+            BP_HIPS
             )
                                 
     else: # unarmored combat

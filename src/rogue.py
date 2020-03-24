@@ -961,6 +961,13 @@ def exhaust(ent):
     print('ent named {} exhausted.'.format(getname(ent)))
     knockout(ent)
 
+# sleepiness
+def fatigue(ent, amt:int):
+    if amt < 0: return
+    make(ent,DIRTY_STATS)
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    body.fatigue += amt
+
 # satiation / hydration
 def feed(ent, sat, hyd): # add satiation / hydration w/ Digest status
     if world.has_component(ent, cmp.StatusDigest):
@@ -1783,12 +1790,17 @@ def attackbp(
     ''' entity attkr attacks bp bptarget with weapon weap '''
     world=Rogue.world
     if dmgtype!=-1: # force a damage type
+        if (not weap or not world.has_component(weap, cmp.DamageTypeMelee)):
+            return False
+        compo = world.component_for_entity(weap, cmp.DamageTypeMelee)
         if dmgtype not in compo.types:
             return False
         dmgIndex += compo.types[dmgtype]
     else: # get damage type
         dmgtype = get_dmgtype(attkr,weap,skill_type)
-        dmgIndex += compo.types[dmgtype]
+        if (weap and world.has_component(weap, cmp.DamageTypeMelee)):
+            compo = world.component_for_entity(weap, cmp.DamageTypeMelee)
+            dmgIndex += compo.types[dmgtype]
     # end get damage type
     
     #  TESTING
@@ -3223,10 +3235,10 @@ def queue_action(ent, act):
 
 # gender name and pronouns
 def get_gender(ent): # gender name
-    gender=rog.world().component_for_entity(ent, cmp.Gender).gender
+    gender=Rogue.world.component_for_entity(ent, cmp.Gender).gender
     return _get_gender_name(gender)
 def get_pronouns(ent): # gender pronouns
-    gender=rog.world().component_for_entity(ent, cmp.Gender).gender
+    gender=Rogue.world.component_for_entity(ent, cmp.Gender).gender
     return _get_pronouns(gender)
 def get_pronoun_subject(ent): # "he, she", etc.
     return _get_pronoun_subject(get_pronouns(ent))

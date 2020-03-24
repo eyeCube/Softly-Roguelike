@@ -106,7 +106,15 @@ def main():
 ##    import entities
     #
     pos=rog.get(rog.pc(),cmp.Position)
-    rog.create_monster('W',pos.x,pos.y-1)
+    
+    w=rog.create_monster('W',pos.x,pos.y-1)
+    
+     #testing speech
+    rog.world().add_component(w, cmp.Speaks())
+    rog.world().add_component(w, cmp.Personality(PERSON_BUBBLY))
+    rog.world().add_component(w, cmp.Disposition())
+    #
+    
         
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
 ##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
