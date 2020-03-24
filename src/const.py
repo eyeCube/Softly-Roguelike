@@ -410,7 +410,7 @@ MAXLEVEL    = 20        # deepest dungeon level
 STARTING_TIME = 25200   # turns elapsed at start of game (beginning time of day)
 CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes
 
-MAX_SKILL           = 100   # max skill level maximum skill lvl maxskilllvl
+MAX_SKILL           = 100   # max skill level maximum skill lvl maxskilllvl skillmax skill_max
 CM_ADVANTAGE_BP     = 8     # how much extra height you need to gain +1 advantage in combat
 HEIGHTMAP_GRADIENT  = 0.1   # ratio of height value on heightmap to the width/height of a tile
 CM_PER_TILE         = 100   # tiles are exactly 1x1m
@@ -951,86 +951,110 @@ MAIN_PERSONALITIES=(
     PERSON_APATHETIC,
     )
 
+VAL_NORM=1
+VAL_PLUS=1.1
+VAL_MINUS=0.9
+
 PERSONALITIES={
-# personality : ( name, likes, dislikes,)
+# personality : (
+#   name, likes, dislikes,
+#   perceived_value_owned, perceived_value_other,
+#   )
 PERSON_PROUD                : (
     "proud",
     (TALK_FLATTERY,CONVO_RESPECTFUL,),
     (TALK_INTIMIDATION,CONVO_DISRESPECTFUL,),
+    VAL_PLUS, VAL_MINUS,
     ),
 PERSON_LOWSELFESTEEM        : (
     "low self-esteem",
     (TALK_FLATTERY,CONVO_DISRESPECTFUL,),
     (TALK_FLIRTATION,CONVO_RESPECTFUL,),
+    VAL_MINUS, VAL_PLUS,
     ),
 PERSON_ARGUMENTATIVE        : (
     "argumentative",
     (TALK_DEBATE,CONVO_COMBATIVE,),
     (TALK_BRIBERY,CONVO_FRIENDLY,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_NONCONFRONTATIONAL   : (
     "non-confrontational",
     (TALK_BRIBERY,CONVO_FRIENDLY,),
     (TALK_DEBATE,CONVO_COMBATIVE,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_OUTGOING             : (
     "outgoing",
     (TALK_FLIRTATION,CONVO_HAUGHTY,),
     (TALK_INTIMIDATION,CONVO_RUDE,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_SHY                  : (
     "shy",
     (TALK_FLATTERY,CONVO_DRY,),
     (TALK_SMALLTALK,CONVO_JOKING,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_INDEPENDENT          : (
     "independent",
     (TALK_SMALLTALK,CONVO_POLITE,),
     (TALK_BRIBERY,CONVO_HAUGHTY,),
+    VAL_PLUS, VAL_MINUS,
     ),
 PERSON_CODEPENDENT          : (
     "codependent",
     (TALK_INTIMIDATION,CONVO_HAUGHTY,),
     (TALK_BRIBERY,CONVO_RESPECTFUL,),
+    VAL_MINUS, VAL_PLUS,
     ),
 PERSON_BUBBLY               : (
     "bubble",
     (TALK_FLIRTATION,CONVO_JOKING,),
     (TALK_FLATTERY,CONVO_DRY,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_LOWENERGY            : (
     "low energy",
     (TALK_SMALLTALK,CONVO_DRY,),
     (TALK_FLIRTATION,CONVO_COMBATIVE,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_MOTIVATED            : (
     "motivated",
     (TALK_BRIBERY,CONVO_POLITE,),
     (TALK_INTIMIDATION,CONVO_JOKING,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_UNMOTIVATED          : (
     "unmotivated",
     (TALK_INTIMIDATION,CONVO_DRY,),
     (TALK_DEBATE,CONVO_POLITE,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_RELAXED              : (
     "relaxed",
     (TALK_SMALLTALK,CONVO_FRIENDLY,),
     (TALK_DEBATE,CONVO_HAUGHTY,),
+    VAL_NORM, VAL_NORM,
     ),
 PERSON_UPTIGHT              : (
     "uptight",
     (TALK_DEBATE,CONVO_POLITE,),
-    (TALK_SMALLTALK,CONVO_RUDE,),),
+    (TALK_SMALLTALK,CONVO_RUDE,),
+    VAL_NORM, VAL_NORM,
+    ),
 PERSON_PROACTIVE            : (
     "proactive",
     (TALK_DEBATE,CONVO_COMBATIVE,),
-    (TALK_SMALLTALK,CONVO_DISRESPECTFUL,),),
+    (TALK_SMALLTALK,CONVO_DISRESPECTFUL,),
+    VAL_NORM, VAL_NORM,
+    ),
 PERSON_APATHETIC            : (
-    "apathetic", (0,0,), (0,0,),
+    "apathetic", (0,0,), (0,0,), VAL_NORM, VAL_NORM,
     ),
 PERSON_NONE                 : (
-    "emotionless", (0,0,), (0,0,),
+    "emotionless", (0,0,), (0,0,), VAL_NORM, VAL_NORM,
     ),
 }
 

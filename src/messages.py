@@ -27,11 +27,13 @@
     pcgp    PC gender - polite ("sir", "madam")
     pcgs    PC gender - subject ("he", "she")
     pcgo    PC gender - object ("him", "her")
+    pcgo2   PC gender - object2 ("guy", "girl")
     npct    NPC title
     npcn    NPC name
     npcc    NPC class
     npcgg   NPC gender - generic
     nc      name calling
+    anc     a(n) + nc
     ncs     name calling plural
     cuss    exclamation
     slur    curse
@@ -750,9 +752,14 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     1.0:("I'm feeling a lot better now that you're here.",),
     },
 "argumentative" : {
-    0.2:("Nah, it's definitely the complete opposite. But you have a right to your wrong opinion.",),
-    0.4:("Oh no way. No way. *laughs*",),
-    0.6:("I disagree, but that's an interesting opinion.",),
+    0  :("Nah, it's definitely the complete opposite.",
+         "Yeah, shitty day, all right.",
+         "Yeah, I guess. Not really but sure.",
+         "Whatever!",),
+    0.4:("Oh no way. No way. *laughs*",
+         "Well, I'm sure I could find something wrong with that statement.",),
+    0.6:("I disagree, but that's an interesting opinion.",
+         "It's not too bad, I suppose.",),
     0.8:("Yeah, today is all right, but you should have seen yesterday.",),         
     },
 "non-confrontational" : {
@@ -827,10 +834,20 @@ SMALLTALK_FAILURE={
     1.0:("Oh, that's super interesting.",),
     },
 "argumentative" : {
-    0  :("Who gives a shit?",),
-    0.2:("No. Wrong.",),
-    0.4:("No disrespect, but that's demonstrably false.",),
-    0.6:("That's... not quite right.",),
+    0  :("Who gives a shit?",
+         "*laughs* You {nc}.",
+         "Listen, {tof}. You and I are not pals. Give it up already.",),
+    0.2:("No. Wrong.",
+         "Well, whatever, who cares anyway?",
+         "Who cares?",
+         "Yeah. You're right, all right.",),
+    0.4:("No disrespect, but that's demonstrably false.",
+         "No, sorry, {tof}. That's wrong.",
+         "Get your facts straight.",
+         "I respect your right to your wrong opinion.",),
+    0.6:("That's... not quite right.",
+         "That isn't right.",
+         "That's not what I remember, check your sources.",),
     },
 "motivated" : {
     0  :("Shoo, fly.",
@@ -1625,7 +1642,9 @@ INTIMIDATION_FAILURE={
     0  :("Bruh...",),
     },
 "motivated" : {
-    0  :("Did you think I would submit so easily?",),
+    0  :("Did you think I would submit so easily?",
+         "You're no match for me!",
+         "I will not be bested by the likes of you, great {pcgp}.",),
     },
 "unmotivated" : {
     0  :("Dude, what's your problem?",),
@@ -1665,14 +1684,17 @@ DEBATE_SUCCESS={
 "outgoing" : {
     0.1:("I agree that you're {aslur}.",),
     },
+"uptight" : {
+    0  :("Hmph!",
+         "Argh...",),
+    0.4:("Is that so?",),
+    0.6:("Well, maybe I'm not remembering it correctly.",),
+    },
 }
 
 DEBATE_FAILURE={
 "generic" : {
-    0  :("What a joke.",
-         "*laughs at you*",
-         "That's not true, {slur}.",
-         "Bullshit.",),
+    0  :("I'm not going to waste any more of my time with you.",),
     0.1:("Liar.",
          "You're wrong.",),
     0.2:("That's not true.",
@@ -1680,18 +1702,149 @@ DEBATE_FAILURE={
          "That's not even an argument.",),
     0.3:("You're just splitting hairs.",
          "That's a boldface lie.",),
-    0.4:("That's a weak defense at best.",
-         "That doesn't sound right.",),
+    0.4:("That doesn't sound right.",
+         "Ah. Well, I learned it differently.",
+         "Well, I can see you're not going to budge on this.",),
     0.5:("I don't believe a word you're saying.",
-         "Uh... really? I don't think so.",),
+         "Uh... really? I don't think so.",
+         "You're just arguing semantics.",),
     0.6:("Yeah, right, {pcgg}!",
-         "*dubiously* Mm... Mm-mm.",),
+         "*dubiously* Mm... Mm-mm.",
+         "That's not true and you know it.",),
     0.7:("That's not what I heard.",
          "*shakes head*",),
     0.8:("We'll just have to agree to disagree.",
          "*facepalm*",),
     0.9:("Well, you might be right. But I'm not changing my mind.",
          "Oh, come on!",),
+    },
+"proud" : {
+    0  :("Ha! You {nc}, you should have just kept your mouth shut. Then you wouldn't look like such {anc}.",
+         "I'm embarrassed for you, {tof}.",
+         "You're making such a fool of yourself, {pct}{pcc}.",
+         "What a joke.",
+         "*laughs at you*",
+         "Man, you're so smart.",
+         "Can you believe this {pcgo2}? Who does {pcgs} think {pcgs} is?",
+         "Ah. I see your preschool has prepared you well for debating with me, who has earned a Ph.D in rhetoric.",),
+    },
+"low-self-esteem" : {
+    0  :("All right. You win. {Slur}."),
+    },
+"argumentative" : {
+    0  :("No. Wrong.",
+         "Well, whatever, who cares anyway?",
+         "Who cares?",
+         "Yeah. You're right, all right.",
+         "You complete {nc}, arguing with you is a waste of time.",
+         "Ah. I see. So you're an intellectual, are you.",),
+    0.4:("That's a weak defense at best.",
+         "No disrespect, but that's demonstrably false.",
+         "No, sorry, {tof}. That's wrong.",
+         "Get your facts straight.",
+         "I respect your right to your wrong opinion.",
+         "That's a logical fallacy.",),
+    0.6:("That's... not quite right.",
+         "That isn't right.",
+         "That's not what I remember, check your sources.",),
+    },
+"non-confrontational" : {
+    0  :("Right. OK. No, yeah, you're right.",
+         "Ah. I see.",
+         "Yeah yeah. Whatever you say...",),
+    0.2:("*dubiously averts eyes*",
+         "Whatever you say.",),
+    0.4:("OK, sure...",
+         "Whatever.",),
+    },
+"outgoing" : {
+    0  :("What a load of horseshit.",
+         "*rolls eyes*",
+         "Bullshit.",),
+    0.4:("Oh, please, {pcn}. You're so full of shit.",
+         "*laughs, rolls eyes*",),
+    0.6:("*rolls eyes* Please!",
+         "*laughs* Good one, {pcn}.",),
+    },
+"shy" : {
+    0  :("Oh... Um... Well, you see... Oh! Nevermind...",
+         "I think... Um, that's not exactly right...",),
+    0.4:("Oh no, that's not true...",),
+    0.6:("No... I disagree...",),
+    },
+"independent" : {
+    0  :("That's it, I'm done.",
+         "I don't need this.",
+         "You're completely backwards.",),
+    0.2:("I don't have time for this.",),
+    },
+"codependent" : {
+    0  :("That's not true, {slur}.",),
+    0.4:("You're so full of shit, your eyes are brown.",),
+    },
+"bubbly" : {
+    0  :("That's bullshit, you liar.",
+         "Bullshit.",),
+    0.2:("Don't lie.",),
+    0.4:("Don't lie, {pcn}.",),
+    0.6:("*sarcastically* OK. You're right, {pcn}.",
+         "Don't lie to me.",),
+    0.8:("*sarcastically* You're right, {toe}.",
+         "Don't lie to me!",),
+    },
+"low-energy" : {
+    0  :("*falls backward in exasperation*",
+         "What a load.",),
+    0.2:("Whatever, {tof}.",
+         "Where did you hear that?",),
+    0.4:("All right, sure. We'll go with that.",),
+    },
+"motivated" : {
+    0  :("Good day to you, {pcgp}.",
+         "Well, I never.",),
+    0.2:("Great {pcgp}, I do believe you are mistaken.",
+         "That is quite untrue.",
+         "Quite the falsehood, indeed.",),
+    0.4:("You must be mistaken, old chap. There are actually two different ways to go about the business, you see...",),
+    },
+"unmotivated" : {
+    0  :("K.",
+         "Ah.",
+         "Cool.",
+         "*raises eyebrows*",),
+    0.2:("Hmmm. 'That right.",),
+    0.4:("*feigns interest*",),
+    },
+"relaxed" : {
+    0  :("Dude, no need to get so worked up about it.",
+         "All right, {tof}. It's not that big a deal.",),
+    0.2:("I would have come to a similar conclusion if I was in your shoes.",),
+    0.4:("It sounds reasonable, but there's a flaw in your logic.",),
+    0.6:("Duuude. That was like, so far gone, man.",),
+    },
+"uptight" : {
+    0  :("*scoffs* Well! I never!",
+         "*scoffs, raises eyebrows*",),
+    0.2:("What on Earth gave you that idea?",),
+    },
+"proactive" : {
+    0  :("{Tof}, did you even go to college?",
+         "That's just crock of donkey shit.",
+         "How far up your own ass did you have to climb to find that nugget of gold?",),
+    0.2:("No. Sorry, that's false.",
+         "Mercury in our fish.",
+         "Fish. Mercury.",),
+    0.4:("Well no, that's been disproven.",
+         "We should totally just stab Caesar!",),
+    0.6:("It's the damn government releasing chem trails into our air, making all our kids autistic.",),
+    },
+"apathetic" : {
+    0  :("Who cares.",
+         "Doesn't matter anyway.",
+         "We're all going to die anyway, so what does it matter?",
+         "Nothing matters at the end of the day.",
+         "It's not worth it.",
+         "*sighs, shakes head*",),
     },
 }
 
@@ -1846,13 +1999,19 @@ PESTER={ # range: >= (like taunt, smalltalk, etc.)
     },
 "uptight" : {
     0  :("You're naught but a burden.",
-         "Buzz, buzz, bothersome fly.",),
+         "Buzz, buzz, bothersome fly.",
+         "Curse you, cur!",),
     0.2:("Bothersome creature."
+         "A curse upon you.",
          "You pest!",
          "What on God's green Earth are you doing, {pcgg}?",),
     0.4:("Cut it out, {pcn}.",
-         "{Pcgg}, cut that shit out. It's a bad habit.",),
-    0.6:("What's gotten into you?",),
+         "{Pcgg}, cut that shit out. It's a bad habit.",
+         "Curse you, {pcn}.",
+         "Burdensome pest!",),
+    0.6:("What's gotten into you?",
+         "Are you feeling all right?",
+         "Curse you, {pcn}, you pest!",),
     },
 "proactive" : {
     0  :("Help, help! I'm being oppressed!",),

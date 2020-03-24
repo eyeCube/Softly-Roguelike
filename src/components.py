@@ -136,6 +136,14 @@ class NeverAcceptsBribes:
     __slots__=[]
     def __init__(self):
         pass
+class Taken: # has a lover already
+    __slots__=[]
+    def __init__(self):
+        pass
+class Ascetic: # doesn't easily partake in sinful behavior
+    __slots__=[]
+    def __init__(self):
+        pass
 class GetsAngry: # can get mad at the PC for any reasons
     __slots__=['anger']
     def __init__(self):
