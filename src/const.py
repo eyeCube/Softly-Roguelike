@@ -1172,6 +1172,7 @@ STA_USE             = 1 # default use item cost
 #energy (action potential or AP) cost to perform actions
 NRG_MOVE            = 100   # on default terrain (flat ground) 
 NRG_ATTACK          = 200
+NRG_TALK            = 200
 NRG_BOMB            = 200   
 NRG_PICKUP          = 50    # grab thing and wield it (requires empty hand)
 NRG_POCKET          = 100   # picking up and putting in your inventory
@@ -2452,11 +2453,20 @@ GENDER_OTHER    =i;i+=1; # nonbinary
 GENDER_NEW      =i; # index for creating a new gender
 
 GENDERS={
-# gender        : (string,      pronouns)
-GENDER_NONE     : ("genderless",('it',  'it',  'its',  'its',   "thing",),),
-GENDER_MALE     : ("male",      ('he',  'him', 'his',  'his',   "man",),),
-GENDER_FEMALE   : ("female",    ('she', 'her', 'her',  'hers',  "woman",),),
-GENDER_OTHER    : ("nonbinary", ('they','them','their','theirs',"person",),),
+# gender        : (string,
+#    pronouns: subject, object, possessive, generic, polite, informal,)
+GENDER_NONE     : (
+    "genderless",
+    ('it', 'it', 'its', 'its', "thing", "thing", "thing",),),
+GENDER_MALE     : (
+    "male",
+    ('he',  'him', 'his', 'his', "man", "sir", "guy",),),
+GENDER_FEMALE   : (
+    "female",
+    ('she', 'her', 'her', 'hers', "woman", "madam", "girl",),),
+GENDER_OTHER    : (
+    "nonbinary",
+    ('they','them','their','theirs',"person","individual","person",),),
     }
 
 GENDER_POLITE_PRONOUNS={
@@ -2467,13 +2477,27 @@ GENDER_FEMALE : "madam",
 
 
 
-
 #
 # Alerts
 #
 
 ALERT_EMPTYCONTAINER    = "This container is empty."
 ALERT_CANTUSE           = "You can't use that!"
+
+
+
+#
+# Times of Day
+#
+
+TIMES_OF_DAY={
+0: "midnight",
+0.183334: "dusk",
+0.25: "morning",
+0.5: "noon",
+0.75: "evening",
+0.83334: "night",
+    }
 
 
 
@@ -3688,6 +3712,28 @@ CLS_DOCTOR      =i;i+=1;
 CLS_PROGRAMMER  =i;i+=1;
 CLS_MONK        =i;i+=1;
 CLS_BOUNTYHUNTER=i;i+=1;
+
+CLASSES={ # colloquial names (not true titles)
+CLS_ENGINEER    : "Engineer",
+CLS_TECHNICIAN  : "Technician",
+CLS_SECURITY    : "Security Guard",
+CLS_ATHLETE     : "Olympian",
+CLS_PILOT       : "Driver",
+CLS_SMUGGLER    : "Smuggler",
+CLS_CHEMIST     : "Scientist",
+CLS_POLITICIAN  : "Politician",
+CLS_RIOTPOLICE  : "Police",
+CLS_JANITOR     : "Janitor",
+CLS_DEPRIVED    : "Hobo",
+CLS_SOLDIER     : "Marine",
+CLS_THIEF       : "Thief",
+CLS_ACROBAT     : "Juggler",
+CLS_WRESTLER    : "Grappler",
+CLS_DOCTOR      : "Doctor",
+CLS_PROGRAMMER  : "Techwizard",
+CLS_MONK        : "Bowlhead",
+CLS_BOUNTYHUNTER: "Bounty Hunter",
+    }
 
 
 

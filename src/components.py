@@ -328,6 +328,11 @@ class SenseHearing:
     def __init__(self):
         self.events = []
 
+class Job:
+    __slots__=['job']
+    def __init__(self, job: int):
+        self.job=job # CLS_ const
+
 class Gender:
     __slots__=['gender']
     def __init__(self, gender: int):

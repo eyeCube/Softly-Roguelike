@@ -33,6 +33,7 @@ class BarterOffer:
 # Player -on- NPC dialogue #
 
 MESSAGES={
+TALK_GREETING       :(messages.GREETING,None,),
 TALK_INTRODUCTION   :(messages.INTRODUCTION,None,),
 TALK_PESTER         :(messages.PESTER,None,),
 TALK_ASKQUESTION    :(messages.QUESTION_SUCCESS,messages.QUESTION_FAILURE,),
@@ -80,6 +81,84 @@ def _change_disposition(ent, amt):
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
 
+# tag substitution
+def __gcomp(): return random.choice(message.COMPLIMENT_GENERIC)
+def __wcomp(): return random.choice(message.COMPLIMENT_WHACKY)
+def __comp(): return random.choice(message.COMPLIMENT)
+def __insult(): return random.choice(message.INSULT)
+def __toe(): return random.choice(message.TERM_OF_ENDEARMENT)
+def __cuss(): return random.choice(message.CUSS)
+def __slur(): return random.choice(message.SLUR[0])
+def __slurs(): return random.choice(message.SLUR[1])
+def __aslur(): return __a(__slur())
+def __nc(): return random.choice(message.NAMECALLING[0])
+def __ncs(): return random.choice(message.NAMECALLING[1])
+def __anc(): return __a(__nc())
+def __a(name):
+    if (name[0] == "a"
+        or name[0] == "e"
+        or name[0] == "i"
+        or name[0] == "o"
+        or name[0] == "u"):
+        n = "n"
+    else:
+        n = ""
+    return "a{n} {name}".format(n=n, name=name)
+def __tod(): # time of day
+    result = "twilight zone"
+    thetime = rog.get_time()
+    for k,v in TIMES_OF_DAY.items():
+        if thetime >= k:
+            result = v
+    return result
+def __tof():
+    pcgender = rog.get_gender(rog.pc())
+    return random.choice(TERM_OF_FRIENDSHIP[pcgender])
+def __flirt():
+    pcgender = rog.get_gender(rog.pc())
+    return random.choice(TERM_OF_FLIRTATION[pcgender])
+def __icomp():
+    # TODO: new dialogue pool for if you're fully naked;
+    #   will never call this function in that case.
+    lis = rog.list_equipment(rog.pc())
+    return random.choice(lis) if lis else "pubes"
+def _substitute_tags(ent:int, message:str) -> str:
+    pc=rog.pc()
+    world=rog.world()
+    return message.format(
+        # NPC data
+        npct=TITLES[world.component_for_entity(ent,cmp.Name).title],
+        npcn=world.component_for_entity(ent,cmp.Name).name,
+        npcc=CLASSES[world.component_for_entity(ent,cmp.Job).job],
+        npcgg=get_pronoun_generic(ent),
+        # PC data
+        pct=TITLES[world.component_for_entity(pc,cmp.Name).title],
+        pcn=world.component_for_entity(pc,cmp.Name).name,
+        pcc=CLASSES[world.component_for_entity(pc,cmp.Job).job],
+        pcgg=get_pronoun_generic(pc),
+        pcgp=get_pronoun_polite(pc),
+        pcgs=get_pronoun_subject(pc),
+        pcgo=get_pronoun_object(pc),
+        pcgi=get_pronoun_informal(pc),
+        # other
+        nc=__nc(),
+        anc=__anc(),
+        ncs=__ncs(),
+        slur=__slur(),
+        slurs=__aslur(),
+        aslur=__slurs(),
+        cuss=__cuss(),
+        flirt=__flirt(),
+        tod=__tod(),
+        tof=__tof(),
+        toe=__toe(),
+        gcomp=__gcomp(),
+        wcomp=__wcomp(),
+        icomp=__icomp(),
+        comp=__comp(),
+        insult=__insult(),
+    )
+# end def
 
     #-----------------------------#
     # response / reaction by NPCS #
@@ -242,6 +321,8 @@ def _get_reaction(
         intensity = 1.5 * intensity
     elif persuasion_type==TALK_SMALLTALK:
         intensity = 0.5 * intensity
+    elif persuasion_type==TALK_GREETING:
+        intensity = 0.25 * intensity
     elif persuasion_type==TALK_BARTER:
         intensity = intensity + 0.1 * (value//MULT_VALUE)
     elif persuasion_type==TALK_BRIBERY:
@@ -252,6 +333,7 @@ def _get_reaction(
     attraction = 0
     pc_isfemale = rog.get_gender(pc)=="female"
     pc_ismale = rog.get_gender(pc)=="male"
+    
     # Sexual Attraction to Women
     if (ent_cansee and pc_isfemale
         and world.has_component(ent, cmp.AttractedToWomen)
@@ -301,13 +383,15 @@ def _get_reaction(
         # sorry hun, I'm taken.
         if world.has_component(ent, cmp.Taken):
             reaction -= 20
-
+        
         # I don't do sex.
         if world.has_component(ent, cmp.Ascetic):
             reaction -= 40
-
+        
             #
-            
+        
+        # attraction matter more for flirtation than other
+        #   types of conversation.
         reaction -= 15
         reaction += attraction*2
         speech_mod = 0.2
@@ -426,6 +510,16 @@ def _get_transaction_value(
     # public interface  #
     #-------------------#
 
+def say(ent, string:str):
+    ''' converse with an entity and msg out that entity's response '''
+    # TODO: elapse time while talking as interruptable delayed action
+    # temporary: just do a one-time AP cost for each thing said
+    rog.spendAP(rog.pc(), NRG_TALK)
+    rog.spendAP(ent, NRG_TALK)
+    message = "{}: {}".format(rog.getname(ent), string)
+    rog.alert(message) # just in case it doesn't get displayed right away.
+    rog.msg(message)
+    
 def dialogue(ent:int, style=0):
     ''' wrapper dialogue function
         Greet, introduce self if first time meeting,
@@ -434,16 +528,22 @@ def dialogue(ent:int, style=0):
     world=rog.world()
     if not world.has_component(ent,cmp.Speaks):
         return False
-    newdisp = greet(ent, style=style)
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     personality=world.component_for_entity(ent,cmp.Personality).personality
+
+    # greetings
+    newdisp = greet(ent, style=style)
     dispcompo.disposition = newdisp
-    
-    # introduction
+        # introductions
     if not world.has_component(ent,cmp.Introduced):
-        talk_introduce(ent, personality, dispcompo.disposition, style=style)
+        response=talk_introduce(ent,personality,dispcompo.disposition,style=style)
+    else:
+        response=talk_greeting(ent,personality,dispcompo.disposition,style=style)
+    print(response)
+    say(ent,response)
     
-    menu={"*" : "cancel"}
+    # dialogue menu
+    menu={"*" : "goodbye"}
     _menu={}
     for k,v in PERSUASION.items():
         menu[v[0]] = v[1]
@@ -451,15 +551,19 @@ def dialogue(ent:int, style=0):
     entn = world.component_for_entity(ent,cmp.Name)
     opt = rog.menu(
         "{}{}".format(TITLES[entn.title],entn.name),
-        0,0, menu, autoItemize=False
+        rog.view_port_x(),rog.view_port_y(),
+        menu,
+        autoItemize=False
         )
+    if opt==-1: return False
     result = _menu[opt]
     
     # execute the dialogue
-    response = _FUNCS[result](ent, personality, dispcompo.disposition, style=style)
-    rog.msg("{}: {}".format(rog.getname(ent), response))
+    response=_FUNCS[result](ent,personality,dispcompo.disposition,style=style)
+    say(ent,response)
     print(response)
     print("New disposition: ", dispcompo.disposition)
+    return True
 # end def
 
 def greet(ent:int, style=0) -> int: # attempt to init conversation
@@ -503,6 +607,10 @@ def _talk(success:bool, ttype:int, personality:int, disposition:int, padding=0.2
     response=_get_response(possible, success)
     return response
 
+def talk_greeting(ent:int, personality:int, disposition:int, style=0) -> str:
+    ttype = TALK_GREETING
+    return _talk(True, ttype, personality, disposition, padding=0.2)
+
 def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTRODUCTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
@@ -518,7 +626,7 @@ def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
     return _talk(success, ttype, personality, disposition, padding=1)
 
 def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
-    ttype = TALK_QUESTION
+    ttype = TALK_ASKQUESTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)

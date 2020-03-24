@@ -249,6 +249,7 @@ def level_set(lv):
 # clock
 def turn_pass():        Rogue.clock.turn_pass()
 def get_turn():         return Rogue.clock.turn
+def get_time():         return (Rogue.clock.turn % 86400) / 86400
 
 # view
 def view_nudge(dx,dy):      Rogue.view.nudge(dx,dy)
@@ -1961,6 +1962,41 @@ def get_dmgtype(attkr=0, weap=0, skill_type=0):
     #    Equipment    #
     #-----------------#
 
+def list_equipment(ent):
+    lis = []
+    body = Rogue.world.component_for_entity(ent, cmp.Body)
+    # core
+    if body.plan==BODYPLAN_HUMANOID:
+        lis.append(body.slot)
+        lis.append(body.core.front.slot.item)
+        lis.append(body.core.back.slot.item)
+        lis.append(body.core.hips.slot.item)
+        lis.append(body.core.core.slot.item)
+    else:
+        raise Exception # TODO: differentiate with different body types
+    # parts
+    for cls, part in body.parts.items():
+        if type(part)==cmp.BPC_Arms:
+            for arm in part.arms:
+                lis.append(arm.hand.held.item)
+                lis.append(arm.hand.slot.item)
+                lis.append(arm.arm.slot.item)
+        elif type(part)==cmp.BPC_Legs:
+            for leg in part.legs:
+                lis.append(leg.foot.slot.item)
+                lis.append(leg.leg.slot.item)
+        elif type(part)==cmp.BPC_Heads:
+            for head in part.heads:
+                lis.append(head.mouth.held.item)
+                lis.append(head.head.slot.item)
+                lis.append(head.face.slot.item)
+                lis.append(head.neck.slot.item)
+                lis.append(head.eyes.slot.item)
+                lis.append(head.ears.slot.item)
+    while None in lis:
+        lis.remove(None)
+    return lis
+
 def equip(ent,item,equipType): # equip an item in 'equipType' slot
     '''
         equip ent with item in the slot designated by equipType const
@@ -2103,6 +2139,7 @@ def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
                 _deequip(ent, leg.leg)
         elif type(part)==cmp.BPC_Heads:
             for head in part.heads:
+                _dewield(ent, head.mouth)
                 _deequip(ent, head.head)
                 _deequip(ent, head.face)
                 _deequip(ent, head.neck)
@@ -3251,13 +3288,19 @@ def get_pronoun_possessive2(ent): # "his, "hers", etc.
     return _get_pronoun_possessive2(get_pronouns(ent))
 def get_pronoun_generic(ent): # "man, woman", etc.
     return _get_pronoun_generic(get_pronouns(ent))
+def get_pronoun_polite(ent): # "sir, madam", etc.
+    return _get_pronoun_polite(get_pronouns(ent))
+def get_pronoun_informal(ent): # "guy, girl", etc.
+    return _get_pronoun_informal(get_pronouns(ent))
 def _get_pronoun_subject(pronouns): return pronouns[0]
 def _get_pronoun_object(pronouns): return pronouns[1]
 def _get_pronoun_possessive(pronouns): return pronouns[2]
 def _get_pronoun_possessive2(pronouns): return pronouns[3]
 def _get_pronoun_generic(pronouns): return pronouns[4]
-def _get_pronouns(gender): return GENDERS[gender][1]
+def _get_pronoun_polite(pronouns): return pronouns[5]
+def _get_pronoun_informal(pronouns): return pronouns[6]
 def _get_gender_name(gender): return GENDERS[gender][0]
+def _get_pronouns(gender): return GENDERS[gender][1]
 
 
 

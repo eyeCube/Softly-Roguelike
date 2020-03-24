@@ -27,7 +27,7 @@
     pcgp    PC gender - polite ("sir", "madam")
     pcgs    PC gender - subject ("he", "she")
     pcgo    PC gender - object ("him", "her")
-    pcgo2   PC gender - object2 ("guy", "girl")
+    pcgi    PC gender - object2 ("guy", "girl")
     npct    NPC title
     npcn    NPC name
     npcc    NPC class
@@ -53,6 +53,11 @@
     * capitalized first letter indicates the need to capitalize the word
         that is substituted.
 '''
+
+TERM_OF_FLIRTATION={
+    "male" : ("hot stuff","cutie","babe","sexy",),
+    "female" : ("babe","baby","cutie","pretty lady",),
+}
 
 TERM_OF_FRIENDSHIP={
     "male" : ("bro","dude","man",),
@@ -1725,7 +1730,7 @@ DEBATE_FAILURE={
          "What a joke.",
          "*laughs at you*",
          "Man, you're so smart.",
-         "Can you believe this {pcgo2}? Who does {pcgs} think {pcgs} is?",
+         "Can you believe this {pcgi}? Who does {pcgs} think {pcgs} is?",
          "Ah. I see your preschool has prepared you well for debating with me, who has earned a Ph.D in rhetoric.",),
     },
 "low-self-esteem" : {
@@ -2364,6 +2369,9 @@ FLIRTATION_SUCCESS={
 "generic" : {
     0  :("*laughs nervously*",
          "*smiles, avoids eye contact*",),
+    0.2:("*starts checking you out*",
+         "*looks away*",
+         "*glancing over you*",),
     0.4:("*giggles*",
          "*smiles, glances down*",),
     0.5:("*glances suggestively*",),

@@ -710,6 +710,7 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.Mutable())
         world.add_component(pc, cmp.Inventory())
         world.add_component(pc, cmp.Gender(Chargen._gender))
+        world.add_component(pc, cmp.Job(Chargen._classID))
         world.add_component(pc, cmp.Speaks())
         world.add_component(pc, cmp.Personality(personality))
     # end if

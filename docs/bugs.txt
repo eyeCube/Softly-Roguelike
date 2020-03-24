@@ -2,6 +2,8 @@
 BAD BUGS: 
 
 glitches:
+	- flirt error no dialogue to draw from (bubbly personality 250 disp)
+	- introduction didn't happen when first talking to ent
 	- enemy whipmaster moving VERY slowly
 	- throw no longer working
 	- randomness in the tilemap render function (needs to be handled elsewhere!!!)
