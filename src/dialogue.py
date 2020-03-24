@@ -602,8 +602,17 @@ def dialogue(ent:int, style=0):
     if opt==-1: return False
     result = _menu[opt]
     
+    # perceived value for use by _talk function
+    value = 0
+    # favors
+    if result==TALK_ASKFAVOR:
+        value = 40 # TEMPORARY
+    
     # execute the dialogue
-    response=_FUNCS[result](ent,personality,dispcompo.disposition,style=style)
+    response = _FUNCS[result](
+        ent, personality, dispcompo.disposition,
+        value=value, style=style
+        )
     say(ent,response)
     print(response)
     print("New disposition: ", dispcompo.disposition)
@@ -651,25 +660,25 @@ def _talk(ent:int, success:bool, ttype:int, personality:int, disposition:int, pa
     response=_get_response(possible, success)
     return _substitute_tags(ent, response)
 
-def talk_greeting(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_greeting(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_GREETING
     return _talk(ent, True, ttype, personality, disposition, padding=0.2)
 
-def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_introduce(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_INTRODUCTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     rog.world().add_component(ent,cmp.Introduced())
     return _talk(ent, True, ttype, personality, disposition, padding=0.1)
 
-def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_barter(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BARTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     success = (reaction > 0)
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
-def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_question(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_ASKQUESTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -677,7 +686,7 @@ def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
     _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_interrogate(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_INTERROGATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -685,14 +694,14 @@ def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
     if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_gossip(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_GOSSIP
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_torture(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_TORTURE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -700,7 +709,7 @@ def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
     if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_askfavor(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
+def talk_askfavor(ent:int, personality:int, disposition:int, value=40, style=0) -> str:
     ttype = TALK_ASKFAVOR
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -708,7 +717,7 @@ def talk_askfavor(ent:int, personality:int, disposition:int, value=0, style=0) -
     _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_beg(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BEG
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -716,7 +725,7 @@ def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
     if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
     
-def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_charm(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_CHARM
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -724,7 +733,7 @@ def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
         rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_boast(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BOAST
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -732,14 +741,14 @@ def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
         rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_smalltalk(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_SMALLTALK
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
-def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_bribe(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BRIBERY
     pc_offer = BarterOffer(money, items)
     npc_offer = BarterOffer()
@@ -751,7 +760,7 @@ def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_intimidate(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_INTIMIDATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -762,21 +771,21 @@ def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
         _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
-def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_flatter(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_FLATTERY
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_flirt(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_FLIRTATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_debate(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_DEBATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
@@ -796,7 +805,7 @@ def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
     # end if
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_pester(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_PESTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     if (reaction > 0 and world.has_component(ent,cmp.GetsAngry)):
@@ -805,7 +814,7 @@ def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
         _change_disposition(ent, reaction)
     return _talk(ent, True, ttype, personality, disposition, padding=1)
 
-def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_taunt(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     world = rog.world()
     ttype = TALK_TAUNT
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)

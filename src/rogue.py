@@ -39,6 +39,7 @@ import misc
 import managers
 import maths
 import player
+import random
 import tilemap
 
 
@@ -1425,7 +1426,7 @@ def init_person(ent, personality=-1, getsAngry=True): # init speaker
     Rogue.world.add_component(ent, cmp.Speaks())
     Rogue.world.add_component(ent, cmp.Personality(personality))
     Rogue.world.add_component(ent, cmp.Disposition())
-    if getsAngry: Rogue.world.add_component(ent, cmp.GetAngry())
+    if getsAngry: Rogue.world.add_component(ent, cmp.GetsAngry())
     
 
     #---------------#
