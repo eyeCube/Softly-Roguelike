@@ -132,18 +132,6 @@ class Speaks: # can speak/talk/hold conversation/be persuaded/barter/engage in d
     __slots__=[]        # If an entity has Speaks component,
     def __init__(self): # it is expected to also have following components:
         pass            #   Disposition, Personality
-class NeverAcceptsBribes:
-    __slots__=[]
-    def __init__(self):
-        pass
-class Taken: # has a lover already
-    __slots__=[]
-    def __init__(self):
-        pass
-class Ascetic: # doesn't easily partake in sinful behavior
-    __slots__=[]
-    def __init__(self):
-        pass
 class GetsAngry: # can get mad at the PC for any reasons
     __slots__=['anger']
     def __init__(self):
@@ -167,11 +155,23 @@ class ConversationMemory:
         self.max_len=max_len
         for arg in args:
             self.memories.append(arg)
-class IntroducedToPC: # PC has had this person introduced to them.
+class Introduced: # PC has had this person introduced to them.
     __slots__=[]
     def __init__(self):
         pass
-class KnowsPC: # this person has had the PC introduced to them.
+class NeverAcceptsBribes:
+    __slots__=[]
+    def __init__(self):
+        pass
+class Rich: # has rich parents
+    __slots__=[]
+    def __init__(self):
+        pass
+class Taken: # has a lover already
+    __slots__=[]
+    def __init__(self):
+        pass
+class Ascetic: # doesn't easily partake in sinful behavior
     __slots__=[]
     def __init__(self):
         pass

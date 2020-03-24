@@ -138,6 +138,34 @@ def _get_response_full(
     string = _get_response(possible, success)
     return (cap, string,)
 
+def _response(ent:int, response_type:int):
+    __record(ent, response_type)
+
+def __record(ent:int, memory):
+    world=rog.world()
+    if world.has_component(ent, cmp.ConversationMemory):
+        compo=world.component_for_entity(ent, cmp.ConversationMemory)
+        compo.memories.append(memory)
+        if len(compo.memories) > compo.max_len:
+            compo.memories.pop(0)
+    else:
+        world.add_component(ent, cmp.ConversationMemory(
+            MAX_NPC_CONVO_MEMORIES, memory))
+# end def
+        
+def __forget(self, n=-1):
+    world=rog.world()
+    if world.has_component(ent, cmp.ConversationMemory):
+        compo=world.component_for_entity(ent, cmp.ConversationMemory)
+        if n==-1:
+            compo.memories=[]
+        else:
+            for _ in range(n): compo.memories.pop(0)
+        return True
+    return False
+# end def
+
+# get reaction / change in disposition
 def _get_reaction(
     ent:int, persuasion_type:int, personality:int, disposition:int,
     mx=1, value=0, style=0
@@ -221,8 +249,6 @@ def _get_reaction(
     
         # ---- attraction ---- #
     
-    reaction += speech_bonus * speech_mod  # add speech modifier
-    
     attraction = 0
     pc_isfemale = rog.get_gender(pc)=="female"
     pc_ismale = rog.get_gender(pc)=="male"
@@ -290,6 +316,9 @@ def _get_reaction(
         reaction += attraction
         speech_mod = 0.1
     # end if
+
+    # finally, add speech modifier
+    reaction += speech_bonus * speech_mod
         
         # ---- compatibility ---- #
     
@@ -345,12 +374,12 @@ def _get_reaction(
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def
 
+# get value of a transaction
 def _get_transaction_value(
     ent:int, personality:int, disposition:int,
     pc_offer:BarterOffer, npc_offer:BarterOffer,
-    style=style
+    style=0
     ) -> int:
-    ''' get perceived value of a trading transaction '''
     world = rog.world()
     pc = rog.pc()
     DMAX = MAX_DISPOSITION
@@ -389,6 +418,7 @@ def _get_transaction_value(
         total -= value*my_base*my_modf*my_disp_modf*my_speech_modf
     
     return int(total)
+# end def
 
 
 
@@ -397,7 +427,10 @@ def _get_transaction_value(
     #-------------------#
 
 def dialogue(ent:int, style=0):
-    ''' wrapper dialogue function '''
+    ''' wrapper dialogue function
+        Greet, introduce self if first time meeting,
+        Then choose a dialogue type and execute the dialogue.
+    '''
     world=rog.world()
     if not world.has_component(ent,cmp.Speaks):
         return False
@@ -405,23 +438,31 @@ def dialogue(ent:int, style=0):
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     personality=world.component_for_entity(ent,cmp.Personality).personality
     dispcompo.disposition = newdisp
-    menu={}
-    menuitems=[]
+    
+    # introduction
+    if not world.has_component(ent,cmp.Introduced):
+        talk_introduce(ent, personality, dispcompo.disposition, style=style)
+    
+    menu={"*" : "cancel"}
+    _menu={}
     for k,v in PERSUASION.items():
-        menu[v] = k
-        menuitems.append(v)
+        menu[v[0]] = v[1]
+        _menu[v[1]] = k
     entn = world.component_for_entity(ent,cmp.Name)
     opt = rog.menu(
         "{}{}".format(TITLES[entn.title],entn.name),
-        0,0, menuitems
+        0,0, menu, autoItemize=False
         )
-    result = menu[opt]
-    _FUNCS[result](ent, personality, dispcompo.disposition, style=style)
+    result = _menu[opt]
+    
+    # execute the dialogue
+    response = _FUNCS[result](ent, personality, dispcompo.disposition, style=style)
+    rog.msg("{}: {}".format(rog.getname(ent), response))
+    print(response)
     print("New disposition: ", dispcompo.disposition)
 # end def
 
-def greet(ent:int, style=0) -> int:
-    ''' introduce self / attempt to init conversation '''
+def greet(ent:int, style=0) -> int: # attempt to init conversation
     pc=rog.pc()
     world=rog.world()
     personality=world.component_for_entity(ent,cmp.Personality).personality
@@ -451,36 +492,7 @@ def greet(ent:int, style=0) -> int:
     return new_disposition
 # end def
 
-def _response(ent:int, response_type:int):
-    record(ent, response_type)
 
-def record(ent:int, memory):
-    world=rog.world()
-    if world.has_component(ent, cmp.ConversationMemory):
-        compo=world.component_for_entity(ent, cmp.ConversationMemory)
-        compo.memories.append(memory)
-        if len(compo.memories) > compo.max_len:
-            compo.memories.pop(0)
-    else:
-        world.add_component(ent, cmp.ConversationMemory(
-            MAX_NPC_CONVO_MEMORIES, memory))
-# end def
-        
-def forget(self, n=-1):
-    world=rog.world()
-    if world.has_component(ent, cmp.ConversationMemory):
-        compo=world.component_for_entity(ent, cmp.ConversationMemory)
-        if n==-1:
-            compo.memories=[]
-        else:
-            for _ in range(n): compo.memories.pop(0)
-        return True
-    return False
-# end def
-
-    
-def init_convo(ent:int, style=0):
-    pass
 
     #---------------------------------#
     # persuasion / conversation types #
@@ -489,13 +501,13 @@ def init_convo(ent:int, style=0):
 def _talk(success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> str:
     possible=_get_possible_responses(ttype,personality,disposition,padding)
     response=_get_response(possible, success)
-    print(response)
     return response
 
 def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTRODUCTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
+    rog.world().add_component(ent,cmp.Introduced())
     return _talk(True, ttype, personality, disposition, padding=0.1)
 
 def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
