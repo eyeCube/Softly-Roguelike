@@ -74,9 +74,10 @@ PERSON_PROACTIVE            : "proactive",
 PERSON_APATHETIC            : "apathetic",
     }
 
-def _change_disposition(ent, amt):
+def _change_disposition(ent, amt, maximum=999999):
     print("ent {} disp change: {}".format(rog.getname(ent), amt))
-    rog.world().component_for_entity(ent,cmp.Disposition).disposition += amt
+    compo = rog.world().component_for_entity(ent,cmp.Disposition)
+    compo.disposition = max(0, min(maximum, compo.disposition + amt))
 
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
@@ -325,36 +326,45 @@ def _get_reaction(
         else:
             reaction -= 10
     
-        # ---- intensity ---- #
+        # ---- intensity, default perception ---- #
 
     # intensity of the conversation based on transaction value    
     intensity = value_modf
     # intensity based on type of conversation / persuasion
     if persuasion_type==TALK_TORTURE:
+        reaction -= 0.1*DMAX
         intensity = 10 * intensity
     elif persuasion_type==TALK_INTIMIDATION:
+        reaction -= 0.01*DMAX
         intensity = 5 * intensity
     elif persuasion_type==TALK_INTERROGATE:
+        reaction -= 0.01*DMAX
         intensity = 5 * intensity
     elif persuasion_type==TALK_BEG:
+        reaction -= 0.05*DMAX
         intensity = 3 * intensity
     elif persuasion_type==TALK_DEBATE:
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLIRTATION:
         intensity = 2 * intensity
     elif persuasion_type==TALK_ASKFAVOR:
+        reaction -= 0.025*DMAX
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLATTERY:
+        reaction += 1
         intensity = 1.5 * intensity
     elif persuasion_type==TALK_TAUNT:
+        reaction -= 0.005*DMAX
         intensity = 1.5 * intensity
     elif persuasion_type==TALK_SMALLTALK:
         intensity = 0.5 * intensity
     elif persuasion_type==TALK_GREETING:
+        reaction += 1
         intensity = 0.25 * intensity
     elif persuasion_type==TALK_BARTER:
         intensity = intensity + 0.1 * (value//MULT_VALUE)
     elif persuasion_type==TALK_BRIBERY:
+        reaction -= 0.01*DMAX
         intensity = intensity + 0.05 * (value//MULT_VALUE)
     
         # ---- attraction ---- #
@@ -469,8 +479,6 @@ def _get_reaction(
         reaction = -0.05 * DMAX * mx
     if personality==PERSON_NONCONFRONTATIONAL:
         reaction -= (intensity - 2)
-    if persuasion_type==TALK_TORTURE:
-        reaction -= 0.1 * DMAX * mx
     if (persuasion_type==TALK_BEG and personality==PERSON_PROUD):
         reaction -= 0.05 * DMAX * mx
     elif (persuasion_type==TALK_INTERROGATE and personality==PERSON_RELAXED):
@@ -483,6 +491,13 @@ def _get_reaction(
         reaction -= 0.01 * DMAX * mx
     elif (persuasion_type==TALK_BOAST and personality==PERSON_MOTIVATED):
         reaction += 0.01 * DMAX * mx
+        
+    if persuasion_type==TALK_CHARM:
+        if world.has_component(ent, cmp.StatusCharmed):
+            reaction -= 100
+    elif persuasion_type==TALK_BOAST:
+        if world.has_component(ent, cmp.StatusCharmed):
+            reaction -= 100
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def
@@ -650,71 +665,78 @@ def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
 def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BARTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     success = (reaction > 0)
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_ASKQUESTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    ddisp = reaction - 40       # revealing info costs disp.
+    _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTERROGATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    ddisp = reaction - 100      # people don't like being interrogated.
+    if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_GOSSIP
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_TORTURE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    ddisp = reaction - 200      # people don't like being tortured.
+    if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
-def talk_askfavor(ent:int, personality:int, disposition:int, style=0) -> str:
+def talk_askfavor(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_ASKFAVOR
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    ddisp = -value      # favor costs some disp.
+    _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BEG
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    ddisp = reaction - 60       # people don't like being begged.
+    if ddisp < 0: _change_disposition(ent, ddisp, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
     
 def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_CHARM
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    if success: # adds charmed status -- doesn't overwrite
+        rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BOAST
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    if success: # adds charmed status -- doesn't overwrite
+        rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_SMALLTALK
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -725,49 +747,73 @@ def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
         ent, personality, disposition, pc_offer, npc_offer, style=style
         )
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTIMIDATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    if success:
+        rog.scare(ent, 5*reaction)
+        _change_disposition(ent, -20)
+    elif reaction < 0:
+        _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_FLATTERY
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_FLIRTATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_DEBATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    _change_disposition(ent, reaction, PERSUASION[ttype][2])
+    if (success and world.has_component(ent,cmp.GetsAngry)):
+        # success of anger roll depends on speech skill
+        tobeat = 10 + rog.getskill(rog.pc(),SKL_SPEECH)//10
+        # the following personalities anger people more easily in debate:
+        if (rog.get_personality(rog.pc())==PERSON_APATHETIC
+            or rog.get_personality(rog.pc())==PERSON_PROUD
+            or rog.get_personality(rog.pc())==PERSON_ARGUMENTATIVE
+            ):
+            tobeat -= 10
+        # roll
+        if dice.roll(20) >= tobeat:
+            rog.anger(ent, reaction)
+    # end if
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_PESTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
+    if (reaction > 0 and world.has_component(ent,cmp.GetsAngry)):
+        rog.anger(ent, 0.25*reaction)
+    elif reaction < 0: # can only lower disp.
+        _change_disposition(ent, reaction)
     return _talk(ent, True, ttype, personality, disposition, padding=1)
 
 def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
+    world = rog.world()
     ttype = TALK_TAUNT
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
-    _change_disposition(ent, reaction)
     success = (reaction > 0)
+    if (success and world.has_component(ent,cmp.GetsAngry)):
+        rog.anger(ent, reaction)
+    elif reaction < 0: # can only lower disp.
+        _change_disposition(ent, reaction)
     return _talk(ent, True, ttype, personality, disposition, padding=1)
 
     #-----------------------------------------------#

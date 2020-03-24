@@ -1852,6 +1852,10 @@ class StatusKO: # knocked out / unconscious (and sleep..?)
     __slots__=['timer']
     def __init__(self, t=-1):
         self.timer=t
+class StatusRage: # enraged, out of control with anger | furious
+    __slots__=['timer']
+    def __init__(self, t=64):
+        self.timer=t
 # Body Position statuses
 class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)
     __slots__=[]
@@ -1957,11 +1961,20 @@ class StatusFlanked: # already dodged/blocked/parried this turn
     def __init__(self, t=1, q=1):
         self.timer=t
         self.quality=q # DV loss (*MULT_STATS)
+
+# statuses with targets or other variables
+    # TODO: implement this status (what happens when you're angry?)
+    #   (meters and status adding already handled.)
+class StatusAngry: # mad at a particular entity | angry | taunt | aggro
+    __slots__=['timer','entity']
+    def __init__(self, entity, t=64):
+        self.entity=entity  # which entity are you mad at?
+        self.timer=t
 class StatusCharmed:
     __slots__=['timer','entity','quality']
-    def __init__(self, t=86400, ent=0, q=1):
+    def __init__(self, entity, t=86400, q=1):
         self.timer=t
-        self.entity=ent     # entity who charmed me
+        self.entity=entity  # entity who charmed me
         self.quality=q      # change in disposition
 #
 
@@ -2037,6 +2050,7 @@ STATUSES={ # dict of statuses that have a timer
     StatusKO        : 'K.O.',
     StatusBlink     : 'blinking eyes',
     StatusCharmed   : 'charmed',
+    StatusRage      : 'enraged',
     StatusBPos_Crouched : "crouched",
     StatusBPos_Seated   : "seated",
     StatusBPos_Prone    : "prone",

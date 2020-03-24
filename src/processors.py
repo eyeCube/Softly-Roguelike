@@ -591,7 +591,7 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
 
 class Status:
     @classmethod
-    def add(self, ent, component, t=-1, q=None):
+    def add(self, ent, component, t=-1, q=None, target=None):
         '''
             add a status if entity doesn't already have that status
             **MUST NOT set the DIRTY_STATS flag.
@@ -655,12 +655,16 @@ class Status:
         if t==-1: # use the default time value for the component
             if q: # status components with quality variable
                 rog.world().add_component(ent, component(q=q))
-            else:
+            elif target: # " target var
+                rog.world().add_component(ent, component(target))
+            else: # default
                 rog.world().add_component(ent, component())
         else: # pass in the time value
             if q: # status components with quality variable
                 rog.world().add_component(ent, component(t=t, q=q))
-            else:
+            elif target: # " target var
+                rog.world().add_component(ent, component(target, t=t))
+            else: # default
                 rog.world().add_component(ent, component(t=t))
         return True
         
@@ -927,6 +931,14 @@ class StatusProcessor(esper.Processor):
                 Status.remove(ent, cmp.StatusKO)
                 continue
             
+        # Rage
+        for ent, status in world.get_component(
+            cmp.StatusRage ):
+            status.timer -= 1
+            if status.timer == 0:
+                Status.remove(ent, cmp.StatusRage)
+                continue
+            
         #-------------------------------------------------#
         # Quantity Status Effects (statuses w/ no timers) #
         #-------------------------------------------------#
@@ -976,6 +988,14 @@ class MetersProcessor(esper.Processor):
                 (e.g. in cases of heat exchange with the air)
             and take effects from internal state
         '''
+        # special meter components
+        for ent,compo in self.world.get_component(
+            cmp.GetsAngry ):
+            if compo.anger > 0:
+                compo.anger -= 1
+        #
+
+        # ambient temperature
         for ent,(meters,pos) in self.world.get_components(
             cmp.Meters, cmp.Position ):
             pass
@@ -1000,7 +1020,7 @@ class MetersProcessor(esper.Processor):
 ##                    meters.temp <= FREEZE_THRESHOLD):
 ##                    rog.set_status(ent, cmp.StatusFrozen)
             #
-            
+        
         for ent,meters in self.world.get_component(
             cmp.Meters ):
             if (meters.sick > 0):

@@ -110,9 +110,7 @@ def main():
     w=rog.create_monster('W',pos.x,pos.y-1)
     
      #testing speech
-    rog.world().add_component(w, cmp.Speaks())
-    rog.world().add_component(w, cmp.Personality(PERSON_PROUD))
-    rog.world().add_component(w, cmp.Disposition())
+    rog.init_person(w)
     #
     
         

@@ -1419,6 +1419,13 @@ def convert_to_creature(ent, job=None, faction=None, species=None):
     Rogue.world.add_component(ent, cmp.Creature(job, faction, species))
     return True
 
+# persons | people | things that speak
+def init_person(ent, personality=-1, getsAngry=True): # init speaker
+    if personality==-1: personality = random.choice(MAIN_PERSONALITIES)
+    Rogue.world.add_component(ent, cmp.Speaks())
+    Rogue.world.add_component(ent, cmp.Personality(personality))
+    Rogue.world.add_component(ent, cmp.Disposition())
+    if getsAngry: Rogue.world.add_component(ent, cmp.GetAngry())
     
 
     #---------------#
@@ -3165,14 +3172,15 @@ def get_status(ent, statuscompo): #getstatus #status_get
         return Rogue.world.component_for_entity(ent, statuscompo)
     else:
         return None
-def set_status(ent, statuscompo, t=-1, q=None):
+def set_status(ent, statuscompo, t=-1, q=None, target=None):
     '''
         # ent       = Thing object to set the status for
         # statuscompo   = status class (not an object instance)
         # t         = duration (-1 is the default duration for that status)
         # q         = quality (for specific statuses)
+        # target    = entity target (for targeted statuses)
     '''
-    proc.Status.add(ent, statuscompo, t, q)
+    proc.Status.add(ent, statuscompo, t, q, target)
 def clear_status(ent, statuscompo):
     proc.Status.remove(ent, statuscompo)
 def clear_status_all(ent):
@@ -3224,7 +3232,6 @@ def recelem(ent, func, dmg, *args, **kwargs):
 def NEWburn(ent, dmg, maxTemp=999999):
     return recelem(ent, entities.burn, dmg, maxTemp)
 
-        
 def settemp(ent, temp):
     Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
 def burn(ent, dmg, maxTemp=999999):
@@ -3233,6 +3240,8 @@ def cool(ent, dmg, minTemp=-300):
     return entities.burn(ent, dmg, minTemp)
 def bleed(ent, dmg):
     return entities.bleed(ent, dmg)
+def scare(ent, dmg):
+    return entities.scare(ent, dmg)
 def hurt(ent, dmg):
     return entities.hurt(ent, dmg)
 def disease(ent, dmg):
@@ -3264,7 +3273,12 @@ def dirty(ent, g):
 def mutate(ent):
     return entities.mutate(ent)
 
-
+def anger(ent, offender, amt):
+    compo = world.component_for_entity(ent, cmp.GetsAngry)
+    compo.anger += amt
+    if compo.anger >= MAX_ANGER:
+        compo.anger = 0 # reset "meter"
+        set_status(ent, cmp.StatusAngry, target=offender, t=64)
 
     
 

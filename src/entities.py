@@ -2865,6 +2865,20 @@ def healbleed(ent, val):
     if meters.bleed > 0:
         meters.bleed = max(0, meters.bleed - val)
         rog.make(ent, DIRTY_STATS)
+
+#   FEAR METER
+def scare(ent, amt):
+    assert(amt > 0)
+    if rog.on(ent, IMMUNEFEAR): return 0
+    res = max(-99, rog.getms(ent, 'cou'))
+    dmg = amt*100/(res+100)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters.fear += max(0, dmg )
+    if meters.fear >= MAX_FEAR:
+        meters.fear = 0
+        rog.set_status(ent, cmp.StatusFrightened)
+        rog.make(ent, DIRTY_STATS)
+
         
 #   SICK METER 
 def disease(ent, amt):

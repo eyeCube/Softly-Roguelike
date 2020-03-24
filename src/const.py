@@ -367,6 +367,7 @@ IMMUNEROT   =i;i+=1;  # Immune to rotting
 IMMUNEWATER =i;i+=1;  # Immune to getting wet
 IMMUNEBLEED =i;i+=1;  # Immune to bleeding
 IMMUNEPAIN  =i;i+=1;  # Immune to pain
+IMMUNEFEAR  =i;i+=1;  # Immune to fear / intimidation
 DIRTY_STATS =i;i+=1;  # private -- indicates entity's stats (may) have changed
 
 
@@ -778,6 +779,7 @@ ENCUMBERANCE_MODIFIERS = {
 MAX_NPC_CONVO_MEMORIES = 10 # how many conversation memories each NPC can store
 PERSONALITY_DISPOSITION_INFLUENCE = 1.5
 MAX_DISPOSITION = 1000
+MAX_ANGER = 100
 
 # response types
 i=0;
@@ -847,23 +849,23 @@ TALK_TAUNT          =i;i+=1; # try to make them mad directly
 TALK_         =i;i+=1;
 
 PERSUASION={
-TALK_ASKFAVOR       : ('a',"ask favor",),
-TALK_BARTER         : ('b',"barter",),
-TALK_BRIBERY        : ('B',"bribe",),
-TALK_CHARM          : ('c',"charm",),
-TALK_DEBATE         : ('d',"debate",),
-TALK_GOSSIP         : ('g',"gossip",),
-TALK_FLATTERY       : ('f',"flatter",),
-TALK_FLIRTATION     : ('F',"flirt",),
-TALK_INTIMIDATION   : ('i',"intimidate",),
-TALK_INTERROGATE    : ('I',"interrogate",),
-TALK_BOAST          : ('o',"boast",),
-TALK_PESTER         : ('p',"pester",),
-TALK_BEG            : ('P',"beg",),
-TALK_ASKQUESTION    : ('q',"ask question",),
-TALK_SMALLTALK      : ('s',"small talk",),
-TALK_TAUNT          : ('t',"taunt",),
-TALK_TORTURE        : ('T',"torture",),
+TALK_ASKFAVOR       : ('a',"ask favor",MAX_DISPOSITION,),
+TALK_BARTER         : ('b',"barter",0.75*MAX_DISPOSITION,),
+TALK_BRIBERY        : ('B',"bribe",0.8*MAX_DISPOSITION),
+TALK_CHARM          : ('c',"charm",0.5*MAX_DISPOSITION),
+TALK_DEBATE         : ('d',"debate",0.7*MAX_DISPOSITION),
+TALK_GOSSIP         : ('g',"gossip",0.6*MAX_DISPOSITION),
+TALK_FLATTERY       : ('f',"flatter",0.9*MAX_DISPOSITION),
+TALK_FLIRTATION     : ('F',"flirt",MAX_DISPOSITION),
+TALK_INTIMIDATION   : ('i',"intimidate",0.5*MAX_DISPOSITION),
+TALK_INTERROGATE    : ('I',"interrogate",MAX_DISPOSITION),
+TALK_BOAST          : ('o',"boast",0.5*MAX_DISPOSITION),
+TALK_PESTER         : ('p',"pester",0.5*MAX_DISPOSITION),
+TALK_BEG            : ('P',"beg",0.5*MAX_DISPOSITION),
+TALK_ASKQUESTION    : ('q',"ask question",0.5*MAX_DISPOSITION),
+TALK_SMALLTALK      : ('s',"small talk",0.5*MAX_DISPOSITION),
+TALK_TAUNT          : ('t',"taunt",MAX_DISPOSITION),
+TALK_TORTURE        : ('T',"torture",MAX_DISPOSITION),
     }
 
 # personality types
