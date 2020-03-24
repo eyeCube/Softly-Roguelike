@@ -87,16 +87,16 @@ def __cap(string:str): # capitalize first letter
     if len(string)==1: return string.upper()
     return "{}{}".format(string[0].upper(), string[1:])
 def __tod(): return rog.get_time_of_day_colloquial()
-def __toe(): return random.choice(message.TERM_OF_ENDEARMENT)
-def __gcomp(): return random.choice(message.COMPLIMENT_GENERIC)
-def __wcomp(): return random.choice(message.COMPLIMENT_WHACKY)
-def __comp(): return random.choice(message.COMPLIMENT)
-def __insult(): return random.choice(message.INSULT)
-def __cuss(): return random.choice(message.CUSS)
-def __slur(): return random.choice(message.SLUR[0])
-def __slurs(): return random.choice(message.SLUR[1])
-def __nc(): return random.choice(message.NAMECALLING[0])
-def __ncs(): return random.choice(message.NAMECALLING[1])
+def __toe(): return random.choice(messages.TERM_OF_ENDEARMENT)
+def __gcomp(): return random.choice(messages.COMPLIMENT_GENERIC)
+def __wcomp(): return random.choice(messages.COMPLIMENT_WHACKY)
+def __comp(): return random.choice(messages.COMPLIMENT)
+def __insult(): return random.choice(messages.INSULT)
+def __cuss(): return random.choice(messages.CUSS)
+def __slur(): return random.choice(messages.SLUR[0])
+def __slurs(): return random.choice(messages.SLUR[1])
+def __nc(): return random.choice(messages.NAMECALLING[0])
+def __ncs(): return random.choice(messages.NAMECALLING[1])
 def __aslur(): return __a(__slur())
 def __anc(): return __a(__nc())
 def __a(string:str): # "a(n) + string"
@@ -111,33 +111,48 @@ def __a(string:str): # "a(n) + string"
     return "a{n} {string}".format(n=n, string=string)
 def __tof():
     pcgender = rog.get_gender(rog.pc())
-    return random.choice(TERM_OF_FRIENDSHIP[pcgender])
+    return random.choice(messages.TERM_OF_FRIENDSHIP[pcgender])
 def __flirt():
     pcgender = rog.get_gender(rog.pc())
-    return random.choice(TERM_OF_FLIRTATION[pcgender])
+    return random.choice(messages.TERM_OF_FLIRTATION[pcgender])
 def __icomp():
     # TODO: new dialogue pool for if you're fully naked;
     #   will never call this function in that case.
     lis = rog.list_equipment(rog.pc())
-    return random.choice(lis) if lis else "pubes"
+    if lis:
+        ent = random.choice(lis)
+        return rog.getname(ent)
+    else:
+        return "pubes"
 def _substitute_tags(ent:int, message:str) -> str:
     pc=rog.pc()
     world=rog.world()
+    # component data which may or may not exist
+    if world.has_component(ent,cmp.Gender):
+        npcgg=rog.get_pronoun_generic(ent)
+    else:
+        npcgg="&person" # temporary (remove & -- that's a flag to indicate where in the code this string is)
+    if world.has_component(ent,cmp.Job):
+        compo=world.component_for_entity(ent,cmp.Job)
+        npcc=CLASSES[compo.job]
+    else:
+        npcc="hobo"
+    #
     return message.format(
         # NPC data
+        npcc=npcc,
         npct=TITLES[world.component_for_entity(ent,cmp.Name).title],
         npcn=world.component_for_entity(ent,cmp.Name).name,
-        npcc=CLASSES[world.component_for_entity(ent,cmp.Job).job],
-        npcgg=get_pronoun_generic(ent),
+        npcgg=npcgg,
         # PC data
         pct=TITLES[world.component_for_entity(pc,cmp.Name).title],
         pcn=world.component_for_entity(pc,cmp.Name).name,
         pcc=CLASSES[world.component_for_entity(pc,cmp.Job).job],
-        pcgg=get_pronoun_generic(pc),
-        pcgp=get_pronoun_polite(pc),
-        pcgs=get_pronoun_subject(pc),
-        pcgo=get_pronoun_object(pc),
-        pcgi=get_pronoun_informal(pc),
+        pcgg=rog.get_pronoun_generic(pc),
+        pcgp=rog.get_pronoun_polite(pc),
+        pcgs=rog.get_pronoun_subject(pc),
+        pcgo=rog.get_pronoun_object(pc),
+        pcgi=rog.get_pronoun_informal(pc),
         # other
         nc=__nc(),
         anc=__anc(),
@@ -278,8 +293,10 @@ def _get_reaction(
         # ---- initialize ---- #
     
     # get stats for player
-    speech_bonus = rog.getskill(pc, SKL_PERSUASION)
-    speech_penalty = max(0, MAX_SKILL - speech_bonus)
+    speech = rog.getskill(pc, SKL_PERSUASION)
+    speech_penalty = max(0, MAX_SKILL - speech)
+    speech_bonus_modf = 0.5 + speech / MAX_SKILL
+    speech_penalty_modf = 1.5 - speech / MAX_SKILL
     pc_idn = rog.getms(pc, 'idn')
     pc_bea = rog.getms(pc, 'bea')
     pc_cou = rog.getms(pc, 'cou')
@@ -312,9 +329,6 @@ def _get_reaction(
 
     # intensity of the conversation based on transaction value    
     intensity = value_modf
-    # intensity based on stats
-    intensity = max(intensity, intensity * pc_idn * 0.05)
-    intensity = max(intensity, intensity * pc_bea * 0.05)
     # intensity based on type of conversation / persuasion
     if persuasion_type==TALK_TORTURE:
         intensity = 10 * intensity
@@ -417,7 +431,7 @@ def _get_reaction(
     # end if
 
     # finally, add speech modifier
-    reaction += speech_bonus * speech_mod
+    reaction += speech * speech_mod
         
         # ---- compatibility ---- #
     
@@ -445,9 +459,9 @@ def _get_reaction(
     dislikes=_get_dislikes(personality)
             # persuasion types
     if persuasion_type == likes[0]:
-        reaction += ( 0.01*DMAX + speech_bonus * 1 * mx ) * intensity
+        reaction += ( 0.01*DMAX * speech_bonus_modf * 1 * mx ) * intensity
     elif persuasion_type == dislikes[0]:
-        reaction -= ( 0.02*DMAX + speech_penalty * 0.1 * mx ) * intensity
+        reaction -= ( 0.02*DMAX * speech_penalty_modf * 0.1 * mx ) * intensity
     
     # special cases
     if (world.has_component(ent, cmp.NeverAcceptsBribes)
@@ -617,91 +631,91 @@ def greet(ent:int, style=0) -> int: # attempt to init conversation
     # persuasion / conversation types #
     #---------------------------------#
 
-def _talk(success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> str:
+def _talk(ent:int, success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> str:
     possible=_get_possible_responses(ttype,personality,disposition,padding)
     response=_get_response(possible, success)
-    return response
+    return _substitute_tags(ent, response)
 
 def talk_greeting(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_GREETING
-    return _talk(True, ttype, personality, disposition, padding=0.2)
+    return _talk(ent, True, ttype, personality, disposition, padding=0.2)
 
 def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTRODUCTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     rog.world().add_component(ent,cmp.Introduced())
-    return _talk(True, ttype, personality, disposition, padding=0.1)
+    return _talk(ent, True, ttype, personality, disposition, padding=0.1)
 
 def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BARTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition, padding=1)
+    return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_ASKQUESTION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTERROGATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_GOSSIP
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_TORTURE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_askfavor(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_ASKFAVOR
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BEG
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
     
 def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_CHARM
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BOAST
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_SMALLTALK
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition, padding=1)
+    return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_BRIBERY
@@ -713,48 +727,48 @@ def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTIMIDATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition, padding=1)
+    return _talk(ent, success, ttype, personality, disposition, padding=1)
 
 def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_FLATTERY
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_FLIRTATION
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_DEBATE
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(success, ttype, personality, disposition)
+    return _talk(ent, success, ttype, personality, disposition)
 
 def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_PESTER
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
-    return _talk(True, ttype, personality, disposition, padding=1)
+    return _talk(ent, True, ttype, personality, disposition, padding=1)
 
 def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_TAUNT
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    return _talk(True, ttype, personality, disposition, padding=1)
+    return _talk(ent, True, ttype, personality, disposition, padding=1)
 
     #-----------------------------------------------#
     # constants (relying on the above declarations) #

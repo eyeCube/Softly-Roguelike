@@ -527,10 +527,10 @@ def chargen(sx, sy):
         #get the relevant data
         _type = _classList[_className][0] # get the class Char value
         _mask = _type
-        _classID = _classList[_className][1]
-        _mass = entities.getJobMass(_classID)
-        _jobstats = entities.getJobStats(_classID).items()
-        _jobskills = entities.getJobSkills(_classID)
+        Chargen._classID = _classList[_className][1]
+        _mass = entities.getJobMass(Chargen._classID)
+        _jobstats = entities.getJobStats(Chargen._classID).items()
+        _jobskills = entities.getJobSkills(Chargen._classID)
         Chargen._className = _className
         
         #add specific class skills

@@ -1,4 +1,20 @@
 
+	
+NOTES:
+	In general, make persuasion slightly less effective. Gaining disp. too easy without any speech skill whatsoever or any stats at all.
+		Of course I was A compatibility when getting easy disp. Maybe compatbility is too big of a factor.
+	likes/dislikes matter too much.
+	pester : result in loss of disp. Anger up
+	beg : disp. down a lot
+	Bribery : disp down
+	Taunt : disp down, anger up
+	interrogate : reaction down
+	charm : small change but adds charmed status
+	boast : small change but adds charmed status
+	torture : reaction down (if didn't already do it)
+	Limits on how high each type of persuasion can go
+	
+	
 BAD BUGS: 
 
 glitches:
@@ -16,4 +32,3 @@ glitches:
 	
 FIXED:
 	- duplication of items
-	

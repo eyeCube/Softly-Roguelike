@@ -251,13 +251,13 @@ def turn_pass():        Rogue.clock.turn_pass()
 def get_turn():         return Rogue.clock.turn
 def get_time_ratio():   return (Rogue.clock.turn % 86400) / 86400
 def get_time_of_day():
-    thetime = rog.get_time()
+    thetime = get_time_ratio()
     for k,v in TIMES_OF_DAY.items():
         if thetime >= k:
             result = v[0]
     return result
 def get_time_of_day_colloquial():
-    thetime = rog.get_time()
+    thetime = get_time_ratio()
     for k,v in TIMES_OF_DAY.items():
         if thetime >= k:
             result = v[1]
@@ -1979,7 +1979,7 @@ def list_equipment(ent):
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     # core
     if body.plan==BODYPLAN_HUMANOID:
-        lis.append(body.slot)
+        lis.append(body.slot.item)
         lis.append(body.core.front.slot.item)
         lis.append(body.core.back.slot.item)
         lis.append(body.core.hips.slot.item)

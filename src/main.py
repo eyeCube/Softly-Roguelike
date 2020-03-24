@@ -111,13 +111,13 @@ def main():
     
      #testing speech
     rog.world().add_component(w, cmp.Speaks())
-    rog.world().add_component(w, cmp.Personality(PERSON_BUBBLY))
+    rog.world().add_component(w, cmp.Personality(PERSON_PROUD))
     rog.world().add_component(w, cmp.Disposition())
     #
     
         
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
-##    rog.setskill(rog.pc(), SKL_SWORDS, 30)
+    rog.setskill(rog.pc(), SKL_PERSUASION, 50)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
 ##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)
