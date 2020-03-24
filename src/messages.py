@@ -1927,7 +1927,8 @@ TAUNT_SUCCESS={
     },
 "motivated" : {
     0  :("You have crossed the line, {pcgp}.",),
-    0.2:("I will kick you in time to resume my studies!",),
+    0.2:("I will kick you in time to resume my studies!",
+         "I take exception to that.",),
     0.4:("I am always ready for a friendly tussle, my great {pcgp}. *unrolling sleeves gesture*",),
     },
 "unmotivated" : {

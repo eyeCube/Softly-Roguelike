@@ -111,18 +111,15 @@ def chat_context(pc):
             mon = rog.monat(xx,yy)
             if (mon and not mon==rog.pc()):
                 if not world.has_component(mon, cmp.Speaks):
-                    print("here?")
                     continue
                 dist = math.sqrt((xx - pos.x)**2 + (yy - pos.y)**2)
                 lis.append((mon, dist,))
         # end for
     # end for
     if not lis:
-        print("ehhehe")
         return False
     lis.sort(key=lambda x: x[1])
     ent = lis[0][0]
-    print("yo")
     
     # talk
     dialogue.dialogue(ent)

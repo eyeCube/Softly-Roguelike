@@ -848,10 +848,10 @@ TALK_         =i;i+=1;
 
 PERSUASION={
 TALK_INTRODUCTION   : "introduce",
-TALK_ASKQUESTION    : "question",
+TALK_ASKQUESTION    : "ask question",
 TALK_GOSSIP         : "gossip",
 TALK_INTERROGATE    : "interrogate",
-TALK_ASKFAVOR       : "favor",
+TALK_ASKFAVOR       : "ask favor",
 TALK_BEG            : "beg",
 TALK_BARTER         : "barter",
 TALK_TORTURE        : "torture",
@@ -886,6 +886,7 @@ PERSON_RELAXED              =i;i+=1;
 PERSON_UPTIGHT              =i;i+=1;
 PERSON_PROACTIVE            =i;i+=1;
 PERSON_APATHETIC            =i;i+=1;
+PERSON_BEAST                =i;i+=1;
 PERSON_            =i;i+=1;
 
 # personality compatibility | personality compatibilities
@@ -897,37 +898,58 @@ B=i;i+=1;
 A=i;i+=1;
 PERSONALITY_COMPATIBILITIES={
 # personality               :       (compatibility)
-#                             P L A N O S I C B L M U R U P A 
-#                             R O R O U H N O U O O N E P R P 
-#                             O W G N T Y D D B W T M L T O A 
-#                             U   U - G   E E B   I O A I A T 
-#                             D E M C O   P P L E V T X G C H 
-#                               S E O I   E E Y N A I E H T E 
-#                               T N N N   N N   E T V D T I T 
-#                               E T F G   D D   R E A     V I 
-#                               E A R     E E   G D T     E C 
-#                               M T O     N N   Y   E         
-#                                 I N     T T       D         
-#                                 V T                         
-#                                 E .                         
-#                                                             
-PERSON_PROUD                :(B,D,D,C,A,C,B,D,C,D,A,E,B,D,C,D,),
-PERSON_LOWSELFESTEEM        :(C,B,D,B,E,B,D,B,C,B,D,C,B,E,B,C,),
-PERSON_ARGUMENTATIVE        :(C,C,A,E,B,D,A,C,B,D,B,D,D,D,B,D,),
-PERSON_NONCONFRONTATIONAL   :(D,C,E,B,D,A,B,D,C,B,C,C,A,E,D,B,),
-PERSON_OUTGOING             :(B,E,C,C,A,C,C,C,A,E,B,D,C,C,C,C,),
-PERSON_SHY                  :(C,B,E,A,D,B,D,B,D,B,D,B,B,C,C,B,),
-PERSON_INDEPENDENT          :(C,E,D,C,C,C,C,D,C,C,B,E,B,B,C,E,),
-PERSON_CODEPENDENT          :(B,B,B,D,C,B,A,A,C,D,B,C,C,C,B,C,),
-PERSON_BUBBLY               :(C,D,B,C,B,C,C,C,A,E,B,D,C,C,B,D,),
-PERSON_LOWENERGY            :(E,B,E,A,D,C,B,D,E,B,D,B,A,E,D,B,),
-PERSON_MOTIVATED            :(B,C,B,D,B,E,B,D,C,D,B,E,D,B,C,E,),
-PERSON_UNMOTIVATED          :(E,B,D,B,C,B,D,B,C,B,C,A,B,E,E,B,),
-PERSON_RELAXED              :(D,C,D,B,C,B,B,D,D,B,C,B,A,E,D,C,),
-PERSON_UPTIGHT              :(B,D,E,C,D,D,A,E,C,D,B,E,D,B,E,E,),
-PERSON_PROACTIVE            :(D,D,B,E,B,D,B,C,C,D,B,D,D,C,A,E,),
-PERSON_APATHETIC            :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+#                             N P L A N O S I C B L M U R U P A B 
+#                             O R O R O U H N O U O O N E P R P E 
+#                             N O W G N T Y D D B W T M L T O A A 
+#                             E U   U - G   E E B   I O A I A T S 
+#                               D E M C O   P P L E V T X G C H T 
+#                                 S E O I   E E Y N A I E H T E   
+#                                 T N N N   N N   E T V D T I T   
+#                                 E T F G   D D   R E A     V I   
+#                                 E A R     E E   G D T     E C   
+#                                 M T O     N N   Y   E           
+#                                   I N     T T       D           
+#                                   V T                           
+#                                   E .                           
+#                                                               
+PERSON_NONE                 :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+PERSON_PROUD                :(E,B,D,D,C,A,C,B,D,C,D,A,E,B,D,C,D,E,),
+PERSON_LOWSELFESTEEM        :(E,C,B,D,B,E,B,D,B,C,B,D,C,B,E,B,C,D,),
+PERSON_ARGUMENTATIVE        :(E,C,C,A,E,B,D,A,C,B,D,B,D,D,D,B,D,E,),
+PERSON_NONCONFRONTATIONAL   :(E,D,C,E,B,D,A,B,D,C,B,C,C,A,E,D,B,D,),
+PERSON_OUTGOING             :(E,B,E,C,C,A,C,C,C,A,E,B,D,C,C,C,C,E,),
+PERSON_SHY                  :(E,C,B,E,A,D,B,D,B,D,B,D,B,B,C,C,B,E,),
+PERSON_INDEPENDENT          :(E,C,E,D,C,C,C,C,D,C,C,B,E,B,B,C,E,D,),
+PERSON_CODEPENDENT          :(E,B,B,B,D,C,B,A,A,C,D,B,C,C,C,B,C,D,),
+PERSON_BUBBLY               :(E,C,D,B,C,B,C,C,C,A,E,B,D,C,C,B,D,E,),
+PERSON_LOWENERGY            :(E,E,B,E,A,D,C,B,D,E,B,D,B,A,E,D,B,D,),
+PERSON_MOTIVATED            :(E,B,C,B,D,B,E,B,D,C,D,B,E,D,B,C,E,C,),
+PERSON_UNMOTIVATED          :(E,E,B,D,B,C,B,D,B,C,B,C,A,B,E,E,B,D,),
+PERSON_RELAXED              :(E,D,C,D,B,C,B,B,D,D,B,C,B,A,E,D,C,C,),
+PERSON_UPTIGHT              :(E,B,D,E,C,D,D,A,E,C,D,B,E,D,B,E,E,E,),
+PERSON_PROACTIVE            :(E,D,D,B,E,B,D,B,C,C,D,B,D,D,C,A,E,B,),
+PERSON_APATHETIC            :(E,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+PERSON_BEAST                :(E,B,E,D,D,C,C,C,C,C,E,B,E,D,C,D,A,A,),
     }
+
+MAIN_PERSONALITIES=(
+    PERSON_PROUD,
+    PERSON_LOWSELFESTEEM,
+    PERSON_ARGUMENTATIVE,
+    PERSON_NONCONFRONTATIONAL,
+    PERSON_OUTGOING,
+    PERSON_SHY,
+    PERSON_INDEPENDENT,
+    PERSON_CODEPENDENT,
+    PERSON_BUBBLY,
+    PERSON_LOWENERGY,
+    PERSON_MOTIVATED,
+    PERSON_UNMOTIVATED,
+    PERSON_RELAXED,
+    PERSON_UPTIGHT,
+    PERSON_PROACTIVE,
+    PERSON_APATHETIC,
+    )
 
 PERSONALITIES={
 # personality : ( name, likes, dislikes,)

@@ -597,6 +597,10 @@ def chargen(sx, sy):
             _chargen_traits()
             _selectFromBigMenu()
         # end while
+
+        # choose a personality
+        personality = random.choice(MAIN_PERSONALITIES)
+        print(personality)
         
         
         # continue creating player entity #
@@ -706,6 +710,8 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.Mutable())
         world.add_component(pc, cmp.Inventory())
         world.add_component(pc, cmp.Gender(Chargen._gender))
+        world.add_component(pc, cmp.Speaks())
+        world.add_component(pc, cmp.Personality(personality))
     # end if
     
     # init PC entity

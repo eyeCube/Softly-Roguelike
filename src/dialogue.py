@@ -85,6 +85,7 @@ def __eval(
     personality_string: str, disposition:int, padding:int,
     meta: dict, lis: list
     ):
+    if not meta: return
     DMAX = MAX_DISPOSITION
     for k,v in meta.items():
         if (k=="generic" or k==personality_string):
@@ -171,13 +172,21 @@ def _get_reaction(
     elif persuasion_type==TALK_INTIMIDATION:
         intensity = 5 * intensity
     elif persuasion_type==TALK_INTERROGATE:
+        intensity = 5 * intensity
+    elif persuasion_type==TALK_BEG:
         intensity = 3 * intensity
     elif persuasion_type==TALK_DEBATE:
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLIRTATION:
         intensity = 2 * intensity
-    elif persuasion_type==TALK_BEG:
+    elif persuasion_type==TALK_ASKFAVOR:
         intensity = 2 * intensity
+    elif persuasion_type==TALK_FLATTERY:
+        intensity = 1.5 * intensity
+    elif persuasion_type==TALK_TAUNT:
+        intensity = 1.5 * intensity
+    elif persuasion_type==TALK_SMALLTALK:
+        intensity = 0.25 * intensity
     elif persuasion_type==TALK_BARTER:
         intensity = intensity + 0.1 * (value//MULT_VALUE)
     elif persuasion_type==TALK_BRIBERY:
@@ -185,7 +194,6 @@ def _get_reaction(
     
     # generic reaction to your appearance and skill
     reaction += dice.roll(20)       # add element of random chance
-    reaction += speech_bonus * 0.1  # add speech modifier
         # attraction
     attraction = 0
     pc_isfemale = rog.get_gender(pc)=="female"
@@ -194,13 +202,39 @@ def _get_reaction(
         and world.has_component(ent, cmp.AttractedToWomen)
         ):
         intensity += 1
-        attraction += 1 + pc_bea//10
+        attraction += 1 + pc_bea//5
     elif (ent_cansee and pc_ismale
         and world.has_component(ent, cmp.AttractedToMen)
         ):
         intensity += 1
         attraction += -1 + pc_idn//10 - (0.001 * pc_idn**2) + pc_bea//20
-    reaction += attraction
+    if persuasion_type==TALK_FLIRTATION:
+        reaction -= 20
+        reaction += attraction*2
+        speech_mod = 0.2
+    else:
+        reaction += attraction
+        speech_mod = 0.1
+    reaction += speech_bonus * speech_mod  # add speech modifier
+    
+    # personality compatibility
+    pc_personality = rog.get_personality(pc)
+    compat = PERSONALITY_COMPATIBILITIES[personality][pc_personality]
+    if compat==1:
+        reaction -= 20
+    elif compat==2:
+        reaction -= 10
+    elif compat==3:
+        pass
+    elif compat==4:
+        reaction += 10
+    elif compat==5:
+        reaction += 20
+    print("personalities: ent: {}, player: {}".format(
+        personality, pc_personality))
+    print("personalities: ent: {}, player: {}".format(
+        PERSONALITIES[personality][0], PERSONALITIES[pc_personality][0]))
+    print("personality compatibility: ", compat)
     
     # likes and dislikes
     likes=_get_likes(personality)
@@ -249,7 +283,6 @@ def dialogue(ent:int, style=0):
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     personality=world.component_for_entity(ent,cmp.Personality).personality
     dispcompo.disposition = newdisp
-    print("New disposition: ", dispcompo.disposition)
     menu={}
     menuitems=[]
     for k,v in PERSUASION.items():
@@ -262,6 +295,7 @@ def dialogue(ent:int, style=0):
         )
     result = menu[opt]
     _FUNCS[result](ent, personality, dispcompo.disposition, style=style)
+    print("New disposition: ", dispcompo.disposition)
 # end def
 
 def greet(ent:int, style=0) -> int:
@@ -340,7 +374,6 @@ def talk_introduce(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_INTRODUCTION
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
-    print("introduction {}: {}".format(rog.getname(ent),reaction))
     return _talk(success, ttype, personality, disposition, padding=0.1)
 
 def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -348,7 +381,6 @@ def talk_barter(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("barter {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition, padding=1)
 
 def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -356,7 +388,6 @@ def talk_question(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("ask question {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -364,7 +395,6 @@ def talk_interrogate(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("interrogate {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -372,7 +402,6 @@ def talk_gossip(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("gossip {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -380,7 +409,6 @@ def talk_torture(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("torture {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_askfavor(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -388,7 +416,6 @@ def talk_askfavor(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("ask favor {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -396,7 +423,6 @@ def talk_beg(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("beg {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
     
 def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -404,7 +430,6 @@ def talk_charm(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("charm {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -412,7 +437,6 @@ def talk_boast(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("boast {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -420,7 +444,6 @@ def talk_smalltalk(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("smalltalk {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition, padding=1)
 
 def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -428,7 +451,6 @@ def talk_bribe(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("bribe {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -436,7 +458,6 @@ def talk_intimidate(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("intimidate {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition, padding=1)
 
 def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -444,7 +465,6 @@ def talk_flatter(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("flatter {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -452,7 +472,6 @@ def talk_flirt(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("flirt {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -460,14 +479,12 @@ def talk_debate(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("debate {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(success, ttype, personality, disposition)
 
 def talk_pester(ent:int, personality:int, disposition:int, style=0) -> str:
     ttype = TALK_PESTER
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
-    print("pester {}: {}".format(rog.getname(ent),reaction))
     return _talk(True, ttype, personality, disposition, padding=1)
 
 def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
@@ -475,7 +492,6 @@ def talk_taunt(ent:int, personality:int, disposition:int, style=0) -> str:
     reaction=_get_reaction(ent, ttype, personality, disposition)
     _change_disposition(ent, reaction)
     success = (reaction > 0)
-    print("taunt {}: {}, {}".format(rog.getname(ent),success,reaction))
     return _talk(True, ttype, personality, disposition, padding=1)
 
     #-----------------------------------------------#
