@@ -2469,11 +2469,6 @@ GENDER_OTHER    : (
     ('they','them','their','theirs',"person","individual","person",),),
     }
 
-GENDER_POLITE_PRONOUNS={
-GENDER_MALE   : "sir",
-GENDER_FEMALE : "madam",
-    }
-
 
 
 
@@ -2490,13 +2485,15 @@ ALERT_CANTUSE           = "You can't use that!"
 # Times of Day
 #
 
-TIMES_OF_DAY={
-0: "midnight",
-0.183334: "dusk",
-0.25: "morning",
-0.5: "noon",
-0.75: "evening",
-0.83334: "night",
+TIMES_OF_DAY={ # as ratios of the full length of the day
+# ratio     :(actual name, colloquial name,)
+0           :("midnight","morning",), # 12:00am
+0.1666667   :("dusk","morning",), # 4:00am
+0.25        :("morning","morning",), # 6:00am
+0.48        :("noon","morning",), # ~11:30am
+0.625       :("afternoon","afternoon",), # 3:00pm / 15:00
+0.75        :("evening","evening",), # 6:00pm / 18:00
+0.8333334   :("night","evening",), # 8:00pm / 20:00
     }
 
 

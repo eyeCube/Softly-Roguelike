@@ -82,35 +82,33 @@ def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
 
 # tag substitution
+def __cap(string:str): # capitalize first letter
+    if len(string)==0: return string
+    if len(string)==1: return string.upper()
+    return "{}{}".format(string[0].upper(), string[1:])
+def __tod(): return rog.get_time_of_day_colloquial()
+def __toe(): return random.choice(message.TERM_OF_ENDEARMENT)
 def __gcomp(): return random.choice(message.COMPLIMENT_GENERIC)
 def __wcomp(): return random.choice(message.COMPLIMENT_WHACKY)
 def __comp(): return random.choice(message.COMPLIMENT)
 def __insult(): return random.choice(message.INSULT)
-def __toe(): return random.choice(message.TERM_OF_ENDEARMENT)
 def __cuss(): return random.choice(message.CUSS)
 def __slur(): return random.choice(message.SLUR[0])
 def __slurs(): return random.choice(message.SLUR[1])
-def __aslur(): return __a(__slur())
 def __nc(): return random.choice(message.NAMECALLING[0])
 def __ncs(): return random.choice(message.NAMECALLING[1])
+def __aslur(): return __a(__slur())
 def __anc(): return __a(__nc())
-def __a(name):
-    if (name[0] == "a"
-        or name[0] == "e"
-        or name[0] == "i"
-        or name[0] == "o"
-        or name[0] == "u"):
+def __a(string:str): # "a(n) + string"
+    if (string[0] == "a"
+        or string[0] == "e"
+        or string[0] == "i"
+        or string[0] == "o"
+        or string[0] == "u"):
         n = "n"
     else:
         n = ""
-    return "a{n} {name}".format(n=n, name=name)
-def __tod(): # time of day
-    result = "twilight zone"
-    thetime = rog.get_time()
-    for k,v in TIMES_OF_DAY.items():
-        if thetime >= k:
-            result = v
-    return result
+    return "a{n} {string}".format(n=n, string=string)
 def __tof():
     pcgender = rog.get_gender(rog.pc())
     return random.choice(TERM_OF_FRIENDSHIP[pcgender])
@@ -157,6 +155,23 @@ def _substitute_tags(ent:int, message:str) -> str:
         icomp=__icomp(),
         comp=__comp(),
         insult=__insult(),
+        # capitalized
+        Nc=__cap(__nc()),
+        Anc=__cap(__anc()),
+        Ncs=__cap(__ncs()),
+        Slur=__cap(__slur()),
+        Slurs=__cap(__aslur()),
+        Aslur=__cap(__slurs()),
+        Cuss=__cap(__cuss()),
+        Flirt=__cap(__flirt()),
+        Tod=__cap(__tod()),
+        Tof=__cap(__tof()),
+        Toe=__cap(__toe()),
+        Gcomp=__cap(__gcomp()),
+        Wcomp=__cap(__wcomp()),
+        Icomp=__cap(__icomp()),
+        Comp=__cap(__comp()),
+        Insult=__cap(__insult()),
     )
 # end def
 

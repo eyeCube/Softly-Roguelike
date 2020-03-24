@@ -249,7 +249,19 @@ def level_set(lv):
 # clock
 def turn_pass():        Rogue.clock.turn_pass()
 def get_turn():         return Rogue.clock.turn
-def get_time():         return (Rogue.clock.turn % 86400) / 86400
+def get_time_ratio():   return (Rogue.clock.turn % 86400) / 86400
+def get_time_of_day():
+    thetime = rog.get_time()
+    for k,v in TIMES_OF_DAY.items():
+        if thetime >= k:
+            result = v[0]
+    return result
+def get_time_of_day_colloquial():
+    thetime = rog.get_time()
+    for k,v in TIMES_OF_DAY.items():
+        if thetime >= k:
+            result = v[1]
+    return result
 
 # view
 def view_nudge(dx,dy):      Rogue.view.nudge(dx,dy)
