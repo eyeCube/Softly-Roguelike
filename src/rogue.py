@@ -622,6 +622,8 @@ def getname(ent):
     return Rogue.world.component_for_entity(ent, cmp.Name).name
 def get_personality(ent):
     return Rogue.world.component_for_entity(ent, cmp.Personality).personality
+def get_value(ent):
+    return Rogue.world.component_for_entity(ent, cmp.Form).value
 
 # tilemap
 def thingat(x,y):       return Rogue.map.thingat(x,y) #entity at

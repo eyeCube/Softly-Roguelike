@@ -647,6 +647,10 @@ class Status:
         elif component is cmp.StatusHazy:
             pronoun=rog.get_pronoun_possessive(ent)
             status_str = " begins slurring {} speech".format(pronoun)
+        elif component is cmp.StatusAngry:
+            status_str = " becomes angry"
+        elif component is cmp.StatusRage:
+            status_str = " enters into a fit of rage"
         #if status_str:
             #"{}{}{}".format(TITLES[name.title], name.name, status_str)
 

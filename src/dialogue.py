@@ -491,13 +491,19 @@ def _get_reaction(
         reaction -= 0.01 * DMAX * mx
     elif (persuasion_type==TALK_BOAST and personality==PERSON_MOTIVATED):
         reaction += 0.01 * DMAX * mx
-        
+    
+    # trying to charm while already charmed
     if persuasion_type==TALK_CHARM:
         if world.has_component(ent, cmp.StatusCharmed):
             reaction -= 100
     elif persuasion_type==TALK_BOAST:
         if world.has_component(ent, cmp.StatusCharmed):
             reaction -= 100
+    
+    # waste my time with 0 value offer -> minus some disp.
+    if (persuasion_type==TALK_BRIBE or persuasion_type==TALK_BARTER):
+        if value == 0:
+            reaction = min(-10, value)
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def
@@ -548,6 +554,49 @@ def _get_transaction_value(
     return int(total)
 # end def
 
+def _get_gift_for(ent) -> tuple:
+    opt = rog.prompt(
+        0,0,rog.window_w(),4,q='Offer money or possessions? $/i',
+        mode='wait',default='$'
+        )
+    if opt=='$':
+        value = rog.prompt(
+            0,0,rog.window_w(),4,q='Offer how much money?',
+            mode='wait',default=0
+            )
+    elif opt=='i':
+        options = {
+            "cancel" : 0,
+            "item from inventory" : -100,
+            }
+        body = world.component_for_entity(rog.pc(), cmp.Body)
+        i=-1
+        for arm in body.parts[cmp.BPC_Arms].arms:
+            i+=1
+            if (arm and arm.hand.held.item):
+                options.update({"{}".format(item) : item})
+        opt = rog.menu("Offer what item?",0,0,menu)
+        if opt==-1: return ("money",0,)
+        item = options[opt]
+        if item==0: return ("money",0,)
+        if item==-100:
+            # temporary
+            # TODO: get from inventory
+            return ("money",0,)
+        itemn = world.component_for_entity(item, cmp.Name)
+        entn = world.component_for_entity(ent, cmp.Name)
+        ans = rog.prompt(
+            "Offer {ti}{i} to {tn}{n}?".format(
+            i=itemn.name,n=entn.name,
+            it=TITLES[itemn.title],
+            tn=TITLES[entn.title]
+            ),
+            0,0, mode='wait'
+            )
+        if ans=='y':
+            return ("item",item,)
+    return ("money",0,) # if we made it this far
+# end def
 
 
     #-------------------#
@@ -604,9 +653,18 @@ def dialogue(ent:int, style=0):
     
     # perceived value for use by _talk function
     value = 0
-    # favors
     if result==TALK_ASKFAVOR:
-        value = 40 # TEMPORARY
+        # TODO: implement favor dialogue menu
+        value,npc_offer = _ask_favor(ent)
+    elif result==TALK_BARTER:
+        # TODO: implement trading dialogue menu
+        value,pc_offer,npc_offer = _get_trade(ent)
+    elif result==TALK_BRIBE:
+        type_gift,val = _get_gift_for(ent)
+        if type_gift=="money": # val is a quantity of $
+            value = val//MULT_VALUE
+        elif type_gift=="item": # val is an item
+            value = rog.get_value(val)
     
     # execute the dialogue
     response = _FUNCS[result](
@@ -673,7 +731,7 @@ def talk_introduce(ent:int, personality:int, disposition:int, value=0, style=0) 
 
 def talk_barter(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BARTER
-    reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
+    reaction=_get_reaction(ent, ttype, personality, disposition, value=value, style=style)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     success = (reaction > 0)
     return _talk(ent, success, ttype, personality, disposition, padding=1)
@@ -711,7 +769,7 @@ def talk_torture(ent:int, personality:int, disposition:int, value=0, style=0) ->
 
 def talk_askfavor(ent:int, personality:int, disposition:int, value=40, style=0) -> str:
     ttype = TALK_ASKFAVOR
-    reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
+    reaction=_get_reaction(ent, ttype, personality, disposition, value=value, style=style)
     success = (reaction > 0)
     ddisp = -value      # favor costs some disp.
     _change_disposition(ent, ddisp, PERSUASION[ttype][2])
