@@ -1,0 +1,18 @@
+diabetes raises even when you fail flattery
+diabetes and other pseudo statuses should lower meters much slower
+	could be random: if dice.roll(20) == 1: diabetes -= 1
+
+resistant to diabetes:
+	proud
+	bubbly
+res. to anger:
+	apathetic
+	low energy
+	low self-esteem
+	nonconfrontational
+	shy
+res. to annoyance:
+	relaxed
+	apathetic
+	codependent
+

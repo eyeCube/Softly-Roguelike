@@ -163,6 +163,10 @@ class GetsDiabetes: # can only take so much flattery in one sitting
     __slots__=['diabetes']
     def __init__(self):
         self.diabetes = 0 # buildup of diabetes
+class GetsCreepedOut: # can become creeped out
+    __slots__=[]
+    def __init__(self):
+        pass
 class Taunted: # was taunted by PC recently
     __slots__=[]
     def __init__(self):
@@ -1989,7 +1993,12 @@ class StatusAngry: # mad at a particular entity | angry | taunt | aggro
 class StatusAnnoyed: # annoyed at a particular entity | pestered | bothered | talked to already too many times
     __slots__=['timer','entity']
     def __init__(self, entity, t=3600):
-        self.entity=entity  # which entity are you mad at?
+        self.entity=entity  # which entity are you annoyed at?
+        self.timer=t
+class StatusCreepedOut: # creeped out | weirded out | freaked out by entity
+    __slots__=['timer','entity']
+    def __init__(self, entity, t=3600):
+        self.entity=entity  # which entity are you creeped out from?
         self.timer=t
 class StatusCharmed:
     __slots__=['timer','entity','quality']
