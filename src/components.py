@@ -132,10 +132,6 @@ class Speaks: # can speak/talk/hold conversation/be persuaded/barter/engage in d
     __slots__=[]        # If an entity has Speaks component,
     def __init__(self): # it is expected to also have following components:
         pass            #   Disposition, Personality
-class GetsAngry: # can get mad at the PC for any reasons
-    __slots__=['anger']
-    def __init__(self):
-        self.anger=0 # buildup of anger towards the PC; can result in violence
 class Disposition: # feelings towards the PC
     __slots__=['disposition']
     def __init__(self, default=250):
@@ -155,6 +151,14 @@ class ConversationMemory:
         self.max_len=max_len
         for arg in args:
             self.memories.append(arg)
+class GetsAngry: # can get mad at the PC for any reasons
+    __slots__=['anger']
+    def __init__(self):
+        self.anger=0 # buildup of anger towards the PC; can result in violence
+class Taunted: # was taunted by PC recently
+    __slots__=[]
+    def __init__(self):
+        pass
 class Introduced: # PC has had this person introduced to them.
     __slots__=[]
     def __init__(self):

@@ -576,13 +576,18 @@ class FluidProcessor(esper.Processor):
 class UpkeepProcessor(esper.Processor): # TODO: test this
     def process(self):
         # just query some components that match entities
-        # that will be needing stamina regen
+        
+        # stamina regen
         for ent, (stats, creat) in self.world.get_components(
             cmp.Stats, cmp.Creature ):
 ##            print("mp regen ", rog.getms(ent, 'mpregen'))
             rog.givemp(ent, rog.getms(ent, 'mpregen')//MULT_STATS)
             rog.givehp(ent, rog.getms(ent, 'hpregen')//MULT_STATS)
-
+        # taunted
+        for ent, compo in self.world.get_component(cmp.Taunted):
+            if dice.roll(20) <= 5:
+                self.world.remove_component(ent, cmp.Taunted)
+# end class
 
 
 #
@@ -591,7 +596,7 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
 
 class Status:
     @classmethod
-    def add(self, ent, component, t=-1, q=None, target=None):
+    def add(self, ent, component, t=-1, q=None, firstVar=None):
         '''
             add a status if entity doesn't already have that status
             **MUST NOT set the DIRTY_STATS flag.
@@ -657,17 +662,20 @@ class Status:
         # TODO: events to display the messages
         
         if t==-1: # use the default time value for the component
-            if q: # status components with quality variable
+            if firstVar: # " target var
+                if q: # status components with quality variable
+                    rog.world().add_component(ent, component(firstVar, q=q))
+                else:
+                    rog.world().add_component(ent, component(firstVar))
+            elif q: # status components with quality variable
                 rog.world().add_component(ent, component(q=q))
-            elif target: # " target var
-                rog.world().add_component(ent, component(target))
             else: # default
                 rog.world().add_component(ent, component())
         else: # pass in the time value
             if q: # status components with quality variable
                 rog.world().add_component(ent, component(t=t, q=q))
-            elif target: # " target var
-                rog.world().add_component(ent, component(target, t=t))
+            elif firstVar: # " target var
+                rog.world().add_component(ent, component(firstVar, t=t))
             else: # default
                 rog.world().add_component(ent, component(t=t))
         return True

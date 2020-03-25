@@ -77,7 +77,7 @@ PERSON_APATHETIC            : "apathetic",
 def _change_disposition(ent, amt, maximum=999999):
     print("ent {} disp change: {}".format(rog.getname(ent), amt))
     compo = rog.world().component_for_entity(ent,cmp.Disposition)
-    compo.disposition = max(0, min(maximum, compo.disposition + amt))
+    compo.disposition = int(max(0, min(maximum, compo.disposition + amt)))
 
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
@@ -309,8 +309,28 @@ def _get_reaction(
     ent_sight = rog.getms(ent,'sight')
     ent_cansee = rog.can_see(ent, pc_pos.x,pc_pos.y, ent_sight)
     
+    # charmed bonus to disposition
+    if world.has_component(ent, cmp.StatusCharmed):
+        compo = world.component_for_entity(ent, cmp.Charmed)
+        if compo.entity == rog.pc():
+            disposition += compo.quality
+
+        # ---- basic reaction ---- #
+    
     # (perceived) value of the transaction
     value_modf = max(1, (value//MULT_VALUE)*0.1)
+
+    # reaction based on existing disposition
+    if disposition < 0.2*DMAX:
+        reaction -= 20
+    elif disposition < 0.4*DMAX:
+        reaction -= 10
+    elif disposition < 0.6*DMAX:
+        pass
+    elif disposition < 0.8*DMAX:
+        reaction += 10
+    else:
+        reaction += 20
     
         # ---- special cases ---- #
     
@@ -346,6 +366,7 @@ def _get_reaction(
     elif persuasion_type==TALK_DEBATE:
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLIRTATION:
+        reaction -= 0.03*DMAX
         intensity = 2 * intensity
     elif persuasion_type==TALK_ASKFAVOR:
         reaction -= 0.025*DMAX
@@ -353,8 +374,14 @@ def _get_reaction(
     elif persuasion_type==TALK_FLATTERY:
         reaction += 1
         intensity = 1.5 * intensity
+            # special combo-persuasion: Taunt -> Flattery
+        if world.has_component(ent, cmp.Taunted):
+            if dice.roll(20) <= 5 + speech//5:
+                reaction += 10
+                intensity += 0.1
+                charm(ent, 50 + speech)
     elif persuasion_type==TALK_TAUNT:
-        reaction -= 0.005*DMAX
+        reaction -= 5
         intensity = 1.5 * intensity
     elif persuasion_type==TALK_SMALLTALK:
         intensity = 0.5 * intensity
@@ -431,7 +458,6 @@ def _get_reaction(
         
         # attraction matter more for flirtation than other
         #   types of conversation.
-        reaction -= 15
         reaction += attraction*2
         speech_mod = 0.2
     else:
@@ -501,7 +527,7 @@ def _get_reaction(
             reaction -= 100
     
     # waste my time with 0 value offer -> minus some disp.
-    if (persuasion_type==TALK_BRIBE or persuasion_type==TALK_BARTER):
+    if (persuasion_type==TALK_BRIBERY or persuasion_type==TALK_BARTER):
         if value == 0:
             reaction = min(-10, value)
     
@@ -603,6 +629,10 @@ def _get_gift_for(ent) -> tuple:
     # public interface  #
     #-------------------#
 
+# adds charmed status -- doesn't overwrite
+def charm(ent, amt):
+    print("charmed!")
+    rog.set_status(ent, cmp.StatusCharmed, q=amt, target=rog.pc())
 def say(ent, string:str):
     ''' converse with an entity and msg out that entity's response '''
     # TODO: elapse time while talking as interruptable delayed action
@@ -623,6 +653,7 @@ def dialogue(ent:int, style=0):
         return False
     dispcompo=world.component_for_entity(ent,cmp.Disposition)
     personality=world.component_for_entity(ent,cmp.Personality).personality
+    entn = world.component_for_entity(ent,cmp.Name)
 
     # greetings
     newdisp = greet(ent, style=style)
@@ -641,14 +672,16 @@ def dialogue(ent:int, style=0):
     for k,v in PERSUASION.items():
         menu[v[0]] = v[1]
         _menu[v[1]] = k
-    entn = world.component_for_entity(ent,cmp.Name)
     opt = rog.menu(
         "{}{}".format(TITLES[entn.title],entn.name),
         rog.view_port_x(),rog.view_port_y(),
         menu,
         autoItemize=False
         )
-    if opt==-1: return False
+    if opt==-1:
+        return False
+    if opt=="goodbye":
+        return False
     result = _menu[opt]
     
     # perceived value for use by _talk function
@@ -659,7 +692,7 @@ def dialogue(ent:int, style=0):
     elif result==TALK_BARTER:
         # TODO: implement trading dialogue menu
         value,pc_offer,npc_offer = _get_trade(ent)
-    elif result==TALK_BRIBE:
+    elif result==TALK_BRIBERY:
         type_gift,val = _get_gift_for(ent)
         if type_gift=="money": # val is a quantity of $
             value = val//MULT_VALUE
@@ -715,6 +748,8 @@ def greet(ent:int, style=0) -> int: # attempt to init conversation
 
 def _talk(ent:int, success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> str:
     possible=_get_possible_responses(ttype,personality,disposition,padding)
+    if (not possible[0] and not possible[1]):
+        return "*NO MESSAGE IMPLEMENTED*"
     response=_get_response(possible, success)
     return _substitute_tags(ent, response)
 
@@ -787,16 +822,14 @@ def talk_charm(ent:int, personality:int, disposition:int, value=0, style=0) -> s
     ttype = TALK_CHARM
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
-    if success: # adds charmed status -- doesn't overwrite
-        rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
+    if success: charm(ent, reaction)
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_boast(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
     ttype = TALK_BOAST
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
-    if success: # adds charmed status -- doesn't overwrite
-        rog.set_status(ent, cmp.StatusCharmed, q=reaction, target=rog.pc())
+    if success: charm(ent, reaction)
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_smalltalk(ent:int, personality:int, disposition:int, value=0, style=0) -> str:
@@ -848,9 +881,9 @@ def talk_debate(ent:int, personality:int, disposition:int, value=0, style=0) -> 
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
-    if (success and world.has_component(ent,cmp.GetsAngry)):
+    if (success and rog.world().has_component(ent,cmp.GetsAngry)):
         # success of anger roll depends on speech skill
-        tobeat = 10 + rog.getskill(rog.pc(),SKL_SPEECH)//10
+        tobeat = 10 + rog.getskill(rog.pc(),SKL_PERSUASION)//10
         # the following personalities anger people more easily in debate:
         if (rog.get_personality(rog.pc())==PERSON_APATHETIC
             or rog.get_personality(rog.pc())==PERSON_PROUD
@@ -859,7 +892,7 @@ def talk_debate(ent:int, personality:int, disposition:int, value=0, style=0) -> 
             tobeat -= 10
         # roll
         if dice.roll(20) >= tobeat:
-            rog.anger(ent, reaction)
+            rog.anger(ent, rog.pc(), reaction)
     # end if
     return _talk(ent, success, ttype, personality, disposition)
 
@@ -878,6 +911,11 @@ def talk_taunt(ent:int, personality:int, disposition:int, value=0, style=0) -> s
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     if (success and world.has_component(ent,cmp.GetsAngry)):
+        # chance to add temporary pseudo-status, the "Taunted" component
+        rollval = 5 + rog.getskill(rog.pc(), SKL_PERSUASION)//5
+        if dice.roll(20) < rollval:
+            rog.taunt(ent)
+        # add some anger
         rog.anger(ent, reaction)
     elif reaction < 0: # can only lower disp.
         _change_disposition(ent, reaction)

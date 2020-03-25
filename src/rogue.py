@@ -3276,6 +3276,8 @@ def dirty(ent, g):
 def mutate(ent):
     return entities.mutate(ent)
 
+# pseudo-statuses
+
 def anger(ent, offender, amt):
     compo = world.component_for_entity(ent, cmp.GetsAngry)
     compo.anger += amt
@@ -3283,6 +3285,8 @@ def anger(ent, offender, amt):
         compo.anger = 0 # reset "meter"
         set_status(ent, cmp.StatusAngry, target=offender, t=64)
 
+def taunt(ent:int):
+    world.add_component(ent, cmp.Taunted())
     
 
     #-----------#

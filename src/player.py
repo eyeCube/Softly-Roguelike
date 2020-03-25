@@ -443,7 +443,13 @@ def chargen(sx, sy):
     # get character data from player input #
     
     # name
-    Chargen._name=rog.prompt(Chargen.x1,Chargen.y1,Chargen.ww,Chargen.hh,maxw=20, q="what is your name?", mode="text")
+    ans=""
+    while (not ans or ans=='0'):
+        ans=rog.prompt(
+            Chargen.x1,Chargen.y1,Chargen.ww,Chargen.hh,maxw=20,
+            q="what is your name?", mode="text"
+            )
+    Chargen._name = ans
     _title = 0
     
     # print char data so far
