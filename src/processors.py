@@ -661,6 +661,7 @@ class Status:
 
         # TODO: events to display the messages
         
+        # figure out what parameters the status needs
         if t==-1: # use the default time value for the component
             if firstVar: # " target var
                 if q: # status components with quality variable
@@ -672,13 +673,17 @@ class Status:
             else: # default
                 rog.world().add_component(ent, component())
         else: # pass in the time value
-            if q: # status components with quality variable
+            if firstVar: # " target var
+                if q: # status components with quality variable
+                    rog.world().add_component(ent, component(firstVar, t=t, q=q))
+                else:
+                    rog.world().add_component(ent, component(firstVar, t=t))
+            elif q: # status components with quality variable
                 rog.world().add_component(ent, component(t=t, q=q))
-            elif firstVar: # " target var
-                rog.world().add_component(ent, component(firstVar, t=t))
             else: # default
                 rog.world().add_component(ent, component(t=t))
         return True
+    # end def
         
     @classmethod
     def remove(self, ent, component):
@@ -694,6 +699,7 @@ class Status:
             #"{}{}{}".format(TITLES[name.title], name.name, status_str)
         rog.world().remove_component(ent, component)
         return True
+    # end def
     
     @classmethod
     def remove_all(self, ent): # TODO: finish this
@@ -704,6 +710,7 @@ class Status:
             #auxiliary effects
             #message
             rog.world().remove_component(ent, component)
+    # end def
 #
 # Status Processor
 #

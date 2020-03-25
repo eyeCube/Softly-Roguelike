@@ -151,10 +151,14 @@ class ConversationMemory:
         self.max_len=max_len
         for arg in args:
             self.memories.append(arg)
-class GetsAngry: # can get mad at the PC for any reasons
+class GetsAngry: # can get mad for any reasons, can result in violence
     __slots__=['anger']
     def __init__(self):
-        self.anger=0 # buildup of anger towards the PC; can result in violence
+        self.anger=0 # buildup of anger
+class GetsAnnoyed: # gets bothered by e.g. repeatedly talking to them
+    __slots__=['annoyance']
+    def __init__(self):
+        self.annoyance = 0 # buildup of annoyance
 class Taunted: # was taunted by PC recently
     __slots__=[]
     def __init__(self):
@@ -1972,6 +1976,11 @@ class StatusFlanked: # already dodged/blocked/parried this turn
 class StatusAngry: # mad at a particular entity | angry | taunt | aggro
     __slots__=['timer','entity']
     def __init__(self, entity, t=64):
+        self.entity=entity  # which entity are you mad at?
+        self.timer=t
+class StatusAnnoyed: # annoyed at a particular entity | pestered | bothered | talked to already too many times
+    __slots__=['timer','entity']
+    def __init__(self, entity, t=3600):
         self.entity=entity  # which entity are you mad at?
         self.timer=t
 class StatusCharmed:

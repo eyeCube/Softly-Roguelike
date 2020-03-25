@@ -780,6 +780,7 @@ MAX_NPC_CONVO_MEMORIES = 10 # how many conversation memories each NPC can store
 PERSONALITY_DISPOSITION_INFLUENCE = 1.5
 MAX_DISPOSITION = 1000
 MAX_ANGER = 100
+MAX_ANNOYANCE = 100
 
 # response types
 i=0;
@@ -825,6 +826,7 @@ CONVO_COMBATIVE     : 1,
 i=1;
 TALK_INTRODUCTION   =i;i+=1; # introduction; first time meeting someone
 TALK_GREETING       =i;i+=1; # start of conversation
+TALK_REJECTION      =i;i+=1; # rejection of conversation
     # persuasion to yield services
 TALK_ASKQUESTION    =i;i+=1;
 TALK_INTERROGATE    =i;i+=1; # use intimiation to question
@@ -849,6 +851,7 @@ TALK_TAUNT          =i;i+=1; # try to make them mad directly
 TALK_         =i;i+=1;
 
 PERSUASION={
+TALK_GREETING       : ('_',"greet",MAX_DISPOSITION,),
 TALK_ASKFAVOR       : ('a',"ask favor",MAX_DISPOSITION,),
 TALK_BARTER         : ('b',"barter",0.75*MAX_DISPOSITION,),
 TALK_BRIBERY        : ('B',"bribe",0.8*MAX_DISPOSITION),
@@ -888,6 +891,7 @@ PERSON_UPTIGHT              =i;i+=1;
 PERSON_PROACTIVE            =i;i+=1;
 PERSON_APATHETIC            =i;i+=1;
 PERSON_BEAST                =i;i+=1;
+PERSON_ROBOT                =i;i+=1;
 PERSON_            =i;i+=1;
 
 # personality compatibility | personality compatibilities
@@ -898,39 +902,40 @@ C=i;i+=1;
 B=i;i+=1;
 A=i;i+=1;
 PERSONALITY_COMPATIBILITIES={
-# personality               :       (compatibility)
-#                             N P L A N O S I C B L M U R U P A B 
-#                             O R O R O U H N O U O O N E P R P E 
-#                             N O W G N T Y D D B W T M L T O A A 
-#                             E U   U - G   E E B   I O A I A T S 
-#                               D E M C O   P P L E V T X G C H T 
-#                                 S E O I   E E Y N A I E H T E   
-#                                 T N N N   N N   E T V D T I T   
-#                                 E T F G   D D   R E A     V I   
-#                                 E A R     E E   G D T     E C   
-#                                 M T O     N N   Y   E           
-#                                   I N     T T       D           
-#                                   V T                           
-#                                   E .                           
-#                                                               
-PERSON_NONE                 :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
-PERSON_PROUD                :(E,B,D,D,C,A,C,B,D,C,D,A,E,B,D,C,D,E,),
-PERSON_LOWSELFESTEEM        :(E,C,B,D,B,E,B,D,B,C,B,D,C,B,E,B,C,D,),
-PERSON_ARGUMENTATIVE        :(E,C,C,A,E,B,D,A,C,B,D,B,D,D,D,B,D,E,),
-PERSON_NONCONFRONTATIONAL   :(E,D,C,E,B,D,A,B,D,C,B,C,C,A,E,D,B,D,),
-PERSON_OUTGOING             :(E,B,E,C,C,A,C,C,C,A,E,B,D,C,C,C,C,E,),
-PERSON_SHY                  :(E,C,B,E,A,D,B,D,B,D,B,D,B,B,C,C,B,E,),
-PERSON_INDEPENDENT          :(E,C,E,D,C,C,C,C,D,C,C,B,E,B,B,C,E,D,),
-PERSON_CODEPENDENT          :(E,B,B,B,D,C,B,A,A,C,D,B,C,C,C,B,C,D,),
-PERSON_BUBBLY               :(E,C,D,B,C,B,C,C,C,A,E,B,D,C,C,B,D,E,),
-PERSON_LOWENERGY            :(E,E,B,E,A,D,C,B,D,E,B,D,B,A,E,D,B,D,),
-PERSON_MOTIVATED            :(E,B,C,B,D,B,E,B,D,C,D,B,E,D,B,C,E,C,),
-PERSON_UNMOTIVATED          :(E,E,B,D,B,C,B,D,B,C,B,C,A,B,E,E,B,D,),
-PERSON_RELAXED              :(E,D,C,D,B,C,B,B,D,D,B,C,B,A,E,D,C,C,),
-PERSON_UPTIGHT              :(E,B,D,E,C,D,D,A,E,C,D,B,E,D,B,E,E,E,),
-PERSON_PROACTIVE            :(E,D,D,B,E,B,D,B,C,C,D,B,D,D,C,A,E,B,),
-PERSON_APATHETIC            :(E,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
-PERSON_BEAST                :(E,B,E,D,D,C,C,C,C,C,E,B,E,D,C,D,A,A,),
+# personality               :           (compatibility)
+#                             N P L A N O S I C B L M U R U P A B R 
+#                             O R O R O U H N O U O O N E P R P E O 
+#                             N O W G N T Y D D B W T M L T O A A B 
+#                             E U   U - G   E E B   I O A I A T S O 
+#                               D E M C O   P P L E V T X G C H T T 
+#                                 S E O I   E E Y N A I E H T E     
+#                                 T N N N   N N   E T V D T I T     
+#                                 E T F G   D D   R E A     V I     
+#                                 E A R     E E   G D T     E C     
+#                                 M T O     N N   Y   E             
+#                                   I N     T T       D             
+#                                   V T                             
+#                                   E .                             
+#                                                                   
+PERSON_NONE                 :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+PERSON_PROUD                :(E,B,D,D,C,A,C,B,D,C,D,A,E,B,D,C,D,E,D,),
+PERSON_LOWSELFESTEEM        :(E,C,B,D,B,E,B,D,B,C,B,D,C,B,E,B,C,D,C,),
+PERSON_ARGUMENTATIVE        :(E,C,C,A,E,B,D,A,C,B,D,B,D,D,D,B,D,E,E,),
+PERSON_NONCONFRONTATIONAL   :(E,D,C,E,B,D,A,B,D,C,B,C,C,A,E,D,B,D,C,),
+PERSON_OUTGOING             :(E,B,E,C,C,A,C,C,C,A,E,B,D,C,C,C,C,E,C,),
+PERSON_SHY                  :(E,C,B,E,A,D,B,D,B,D,B,D,B,B,C,C,B,E,C,),
+PERSON_INDEPENDENT          :(E,C,E,D,C,C,C,C,D,C,C,B,E,B,B,C,E,D,C,),
+PERSON_CODEPENDENT          :(E,B,B,B,D,C,B,A,A,C,D,B,C,C,C,B,C,D,B,),
+PERSON_BUBBLY               :(E,C,D,B,C,B,C,C,C,A,E,B,D,C,C,B,D,E,C,),
+PERSON_LOWENERGY            :(E,E,B,E,A,D,C,B,D,E,B,D,B,A,E,D,B,D,C,),
+PERSON_MOTIVATED            :(E,B,C,B,D,B,E,B,D,C,D,B,E,D,B,C,E,C,C,),
+PERSON_UNMOTIVATED          :(E,E,B,D,B,C,B,D,B,C,B,C,A,B,E,E,B,D,C,),
+PERSON_RELAXED              :(E,D,C,D,B,C,B,B,D,D,B,C,B,A,E,D,C,C,C,),
+PERSON_UPTIGHT              :(E,B,D,E,C,D,D,A,E,C,D,B,E,D,B,E,E,E,D,),
+PERSON_PROACTIVE            :(E,D,D,B,E,B,D,B,C,C,D,B,D,D,C,A,E,B,B,),
+PERSON_APATHETIC            :(E,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,),
+PERSON_BEAST                :(E,B,E,D,D,C,C,C,C,C,E,B,E,D,C,D,A,A,E,),
+PERSON_ROBOT                :(C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,E,A,),
     }
 
 MAIN_PERSONALITIES=(
@@ -952,109 +957,120 @@ MAIN_PERSONALITIES=(
     PERSON_APATHETIC,
     )
 
+# value modifiers for bartering (value of own things vs. other things)
 VAL_NORM=1
-VAL_PLUS=1.1
-VAL_MINUS=0.9
+VAL_PLUS1=1.1
+VAL_MINUS1=0.9
+VAL_PLUS2=1.2
+VAL_MINUS2=0.8
+VAL_PLUS3=1.3
+VAL_MINUS3=0.7
 
 PERSONALITIES={
 # personality : (
 #   name, likes, dislikes,
 #   perceived_value_owned, perceived_value_other,
 #   )
-PERSON_PROUD                : (
+PERSON_PROUD : (
     "proud",
     (TALK_FLATTERY,CONVO_RESPECTFUL,),
     (TALK_INTIMIDATION,CONVO_DISRESPECTFUL,),
-    VAL_PLUS, VAL_MINUS,
+    VAL_PLUS2, VAL_MINUS2,
     ),
-PERSON_LOWSELFESTEEM        : (
+PERSON_LOWSELFESTEEM : (
     "low self-esteem",
     (TALK_FLATTERY,CONVO_DISRESPECTFUL,),
     (TALK_FLIRTATION,CONVO_RESPECTFUL,),
-    VAL_MINUS, VAL_PLUS,
+    VAL_NORM, VAL_NORM,
     ),
-PERSON_ARGUMENTATIVE        : (
+PERSON_ARGUMENTATIVE : (
     "argumentative",
     (TALK_DEBATE,CONVO_COMBATIVE,),
     (TALK_BRIBERY,CONVO_FRIENDLY,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_NONCONFRONTATIONAL   : (
+PERSON_NONCONFRONTATIONAL : (
     "non-confrontational",
     (TALK_BRIBERY,CONVO_FRIENDLY,),
     (TALK_DEBATE,CONVO_COMBATIVE,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_OUTGOING             : (
+PERSON_OUTGOING : (
     "outgoing",
     (TALK_FLIRTATION,CONVO_HAUGHTY,),
     (TALK_INTIMIDATION,CONVO_RUDE,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_SHY                  : (
+PERSON_SHY : (
     "shy",
     (TALK_FLATTERY,CONVO_DRY,),
     (TALK_SMALLTALK,CONVO_JOKING,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_INDEPENDENT          : (
+PERSON_INDEPENDENT : (
     "independent",
     (TALK_SMALLTALK,CONVO_POLITE,),
     (TALK_BRIBERY,CONVO_HAUGHTY,),
-    VAL_PLUS, VAL_MINUS,
+    VAL_PLUS2, VAL_MINUS2,
     ),
-PERSON_CODEPENDENT          : (
+PERSON_CODEPENDENT : (
     "codependent",
     (TALK_INTIMIDATION,CONVO_HAUGHTY,),
     (TALK_BRIBERY,CONVO_RESPECTFUL,),
-    VAL_MINUS, VAL_PLUS,
+    VAL_NORM, VAL_NORM,
     ),
-PERSON_BUBBLY               : (
+PERSON_BUBBLY : (
     "bubbly",
     (TALK_FLIRTATION,CONVO_JOKING,),
     (TALK_FLATTERY,CONVO_DRY,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_LOWENERGY            : (
+PERSON_LOWENERGY : (
     "low energy",
     (TALK_SMALLTALK,CONVO_DRY,),
     (TALK_FLIRTATION,CONVO_COMBATIVE,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_MOTIVATED            : (
+PERSON_MOTIVATED : (
     "motivated",
     (TALK_BRIBERY,CONVO_POLITE,),
     (TALK_INTIMIDATION,CONVO_JOKING,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_UNMOTIVATED          : (
+PERSON_UNMOTIVATED : (
     "unmotivated",
     (TALK_INTIMIDATION,CONVO_DRY,),
     (TALK_DEBATE,CONVO_POLITE,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_RELAXED              : (
+PERSON_RELAXED : (
     "relaxed",
     (TALK_SMALLTALK,CONVO_FRIENDLY,),
     (TALK_DEBATE,CONVO_HAUGHTY,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_UPTIGHT              : (
+PERSON_UPTIGHT : (
     "uptight",
     (TALK_DEBATE,CONVO_POLITE,),
     (TALK_SMALLTALK,CONVO_RUDE,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_PROACTIVE            : (
+PERSON_PROACTIVE : (
     "proactive",
     (TALK_DEBATE,CONVO_COMBATIVE,),
     (TALK_SMALLTALK,CONVO_DISRESPECTFUL,),
-    VAL_NORM, VAL_NORM,
+    VAL_PLUS1, VAL_MINUS1,
     ),
-PERSON_APATHETIC            : (
+PERSON_ROBOT : (
+    "Mr. VendR",
+    (TALK_BARTER,CONVO_DRY,),
+    (TALK_SMALLTALK,CONVO_JOKING,),
+    VAL_PLUS3, VAL_MINUS3,
+    ),
+PERSON_APATHETIC : (
     "apathetic", (0,0,), (0,0,), VAL_NORM, VAL_NORM,
     ),
-PERSON_NONE                 : (
+PERSON_NONE : (
     "emotionless", (0,0,), (0,0,), VAL_NORM, VAL_NORM,
     ),
 }
