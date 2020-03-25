@@ -17,46 +17,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 '''
 
-'''
-    tags in {} are substituted with the following.
-    tag   - substituted with:
-    pct     PC title
-    pcn     PC name
-    pcc     PC class
-    pcgg    PC gender - generic ("man", "woman")
-    pcgp    PC gender - polite ("sir", "madam")
-    pcgs    PC gender - subject ("he", "she")
-    pcgo    PC gender - object ("him", "her")
-    pcgi    PC gender - object2 ("guy", "girl")
-    npct    NPC title
-    npcn    NPC name
-    npcc    NPC class
-    npcgg   NPC gender - generic
-    nc      name calling
-    anc     a(n) + nc
-    ncs     name calling plural
-    cuss    exclamation
-    slur    curse
-    slurs   slur plural
-    aslur   a(n) + slur
-    flirt   flirt word ("baby", "cutie", "hot stuff", "",)
-    tod     time of day
-    tof     term of friendship
-    toe     term of endearment
-    gcomp   generic compliment
-    comp    compliment
-    wcomp   whacky over the top compliment
-    icomp   item of a compliment (something you are wearing or holding or carrying)
-    insult  generic 
-    
-    
-    * capitalized first letter indicates the need to capitalize the word
-        that is substituted.
-'''
-
 TERM_OF_FLIRTATION={
     "male" : ("hot stuff","cutie","babe","sexy",),
     "female" : ("babe","baby","cutie","pretty lady",),
+    "nonspecific" : ("hot stuff","babe","baby","cutie","sexy",),
 }
 
 TERM_OF_FRIENDSHIP={
@@ -148,11 +112,8 @@ INTRODUCTION={
 
 REJECTION={ # conversation rejection
 "generic" : {
-    0  :("I'm sick of you. Go away, and don't ever come back.",
-         "I hate you.",
-         "Leave. Now.",
-         "Piss off.",
-         "*no response*",),
+    0  :("*no response*",
+         "*ignoring you*",),
     0.1:("Get lost.",
          "Go away.",
          "Shut up.",
@@ -170,18 +131,94 @@ REJECTION={ # conversation rejection
     0.8:("Hello, sweet {pcn}. I'm sorry, I have a lot of work to do at the moment.",),
     0.9:("As much as it pains me to say it, dear {pcn}, I'm too busy to talk at the moment.",),
     },
+"proud" : {
+    0  :("Just walk away, you miserable dog.",
+         "Fuck off.",
+         "{Insult}.",
+         "*scoffs*",),
+    },
+"low-self-esteem" : {
+    0  :("*visibly saddened by your presence*",),
+    },
+"argumentative" : {
+    0  :("Piss off.",
+         "Go fall in a hole and die.",
+         "Well, that was a nice conversation. See you later, fuckwad!",
+         "Wow. Cool. {Slur}.",
+         "Suck my dick, you fuckhead.",
+         "Cockwad.",
+         "{Insult}.",
+         "{Slur}.",),
+    },
+"non-confrontational" : {
+    0  :("*pretends not to hear you*",
+         "*pretends you don't exist*",),
+    },
+"outgoing" : {
+    0  :("No!!! God. No! God, please, no. No! No! Noooo!!!!!",
+         "God, just go. Go away, and don't come back.",),
+    },
+"shy" : {
+    0  :("...",
+         "*whimper*",
+         "*tiny, uncomfortable squeak*",),
+    },
+"independent" : {
+    0  :("I'm sick of you. Go away, and don't ever come back.",
+         "I don't need you, and I never will.",
+         "You're nothing but a pest.",),
+    },
+"codependent" : {
+    0  :("I hate you.",
+         "I wish you were dead.",
+         "I don't want you. I don't need you. Just get out of my life.",
+         "Go away, and don't ever come back.",),
+    },
+"bubbly" : {
+    0  :("*pretends to be having a wonderful time while ignoring you*",
+         "*talks loudly over you to drown you out*",
+         "*talking to {pcgs}self*",),
+    },
+"low-energy" : {
+    0  :("Eat shit, {slur}.",
+         "I do not have the energy to deal with you right now.",),
+    },
 "motivated" : {
     0  :("I do not have time for you. Now or ever.",
-         "No, no time. Not for you.",),
-    0.1:("No, {pcgp}.",),
+         "No, no time. Not for you.",
+         "You, good {pcgp}, are {anc}. Good day to you.",
+         "No time, good {pcgp}.",),
+    0.1:("Excuse me, good {pcgp}.",
+         "Pardon.",
+         "Pardon me.",
+         "Excuse me.",),
     0.2:("Excuse me, I'm busy; please let me finish my work.",),
     0.3:("I'm sorry, {pcgp}{pcc}, I'm very busy at the moment, but come back shortly.",),
     },
-"outgoing" : {
-    100 : ("Forgive me. I must be going.",),
+"unmotivated" : {
+    0  :("I don't have to talk to you.",
+         "Bye.",),
+    },
+"relaxed" : {
+    0  :("*begins loudly chanting mantras to drown you out*",
+         "*ignoring you*",
+         "*meditating*",),
+    0.2:("Dude. Leave me in peace, {pcgsib}.",),
+    0.4:("Leave me in peace, {pcgsib} {pcn}.",),
+    },
+"uptight" : {
+    0  :("Wretched cur, begone!",
+         "Away with you, wretched creature.",),
+    0.1:("A curse upon you. I will not stoop to conversing with the likes of you.",),
+    0.2:("Forgive me. I must be going.",),
     },
 "proactive" : {
-    100 : ("I'm sorry, I don't talk to {slurs} like you.",),
+    0  :("Listen, {slur}. You have the right to free speech, and I have the right to ignore what you have to say.",
+         "You complete {slur}!",),
+    0.1:("I'm sorry, I don't talk to {slurs} like you.",),
+    },
+"apathetic" : {
+    0  :("Leave. Now.",),
     },
 }
 
@@ -234,8 +271,7 @@ GREETING={ # conversation acceptance
     },
 "proud" : { # happy, high opinion of self, family man/woman, helpful, not dependable
     0  :("What is it, person who is inferior to me in every way?",
-         "Just walk away, you miserable dog.",
-         "Piss off, you wretched creature.",),
+         "Whatever you're looking for, I'm sure I don't know how to find it.",),
     0.1:("Hey, {pcc}, is it true you pissed your bed until you were eight?",
          "Horrible creature.",
          "I saw a muckrat the other day.",),
@@ -288,17 +324,15 @@ GREETING={ # conversation acceptance
     1.0:("You're so wonderful... I don't deserve you.",),
     },
 "argumentative" : { # opinionated, slurs a lot, loves arguing/fighting, helpful, dependable, friendly, rude, insulting
-    0  :("Hey, {slur}.",
-         "Yea, I know your mother gives free handies, and like I told you before, I'm straight.",
-         "Go fall in a hole and die.",
+    0  :("Hey, {slur}. {Gcomp}.",
+         "Yea, I know your mother gives free handies, and like I told you before, I'm not interested.",
          "Not you. Anyone but you, please, for the love of God.",
          "Hello again, {slur}. It's so great to see you. Oh no, please, feel free to be an absolute fucking {slur}. Be my guest.",),
     0.1:("Looking for a fight?",
-        "Hey, ...you.",
+         "Hey, ...you.",
          "Whassup, {slur}.",
          "Ugh.",
-         "Not you. Get lost or hit me like a {pcgg}, {slur}.",
-         "Whatever you're looking for, I'm sure I don't know how to find it.",),
+         "Not you. Get lost or hit me like a {pcgg}, {slur}.",),
     0.2:("You're not the person I was hoping to see.",
          "Can I *help* you?",),
     0.3:("Hey {pcn}, you agree that socialism is the same thing as naziism, right?",
@@ -335,10 +369,8 @@ GREETING={ # conversation acceptance
     1.0:("Will I get to see you tomorrow, {pcn}?",),
     },
 "outgoing" : { # compliments a lot. Very intense. Uses goofy words/phrases.
-    0  :("No!!! God. No! God, please, no. No! No! Noooo!!!!!",
-         "What the hell do you want?",
-         "What do you want, {slur}?",
-         "God, just go. Go away, and don't come back.",),
+    0  :("What the hell do you want?",
+         "What do you want, {slur}?",),
     0.1:("Make it quick or hit the road.",
          "I don't like you.",),
     0.2:("I'm sure there's someone else you can bother.",),
@@ -422,8 +454,7 @@ GREETING={ # conversation acceptance
          "Dear {toe}, how have you been?",),
     },
 "codependent" : { # Needy. Helpful. Dependable. Somewhat selfish.
-    0  :("I don't want you. I don't need you. Just get out of my life.",
-         "Go away, and don't ever come back.",),
+    0  :("*annoyed* What?",),
     0.1:("You again? What is it this time?",),
     0.2:("Hey there, {pcgp} {pcc}.",),
     0.3:("Hey, {pcn}. What's up?",),
@@ -481,8 +512,7 @@ GREETING={ # conversation acceptance
          "Hey! *smiles, hugs*",),
     },
 "low-energy" : { # quick, to-the-point, lazy, speaks slowly, very loving to people with highest disposition. acts high.
-    0  :("*long, exasperated sigh*",
-         "Eat shit, {slur}.",),
+    0  :("*long, exasperated sigh*",),
     0.1:("They don't pay me enough to deal with {slur}s like you.",),
     0.2:("Oh. It's only you. What?",),
     0.3:("Yea? Something you need?",),
@@ -502,18 +532,20 @@ GREETING={ # conversation acceptance
          "*hugs*",),
     },
 "motivated" : { # says "great {pcgp}" a lot, talks about stocks, their work, uses polite, old-fashioned speech. Hugs people they love the most
-    0  :("What could possibly be worth my time, coming from a {slur} like you?",
-         "Suck my dick, you fuckhead.",),
+    0  :("What could possibly be worth my time, coming from a {nc} like you?",),
     0.1:("What do you want? I'm very busy.",
-         "Just one more, and make it quick.",),
+         "Just one more, and make it quick.",
+         "Good {pcgp}.",),
     0.2:("Yes? If it's nothing important, I'll be going now.",
-         "What is it now?",),
+         "What is it now?",
+         "What is it, good {pcgp}?",),
     0.3:("Good {tod}.",
-         "Yes, {pcgp}? Make it quick, I'm very busy.",
+         "Yes, good {pcgp}? Make it quick, I'm very busy.",
          "Is there something I can do for you? If not, please leave me to my work.",
          "Yes, {pcn}. {Gcomp}.",),
     0.4:("Good day, {pcgp}.",
-         "Hello, {pcn}. {Gcomp}.",),
+         "Hello, {pcn}. {Gcomp}.",
+         "Hello again, good {pcgp}. How does the {tod} fare?",),
     0.5:("Good day, {pcgp}!",
          "Good {tod}. {Comp}.",),
     0.6:("Great {pcgp}, what can I do for you?"
@@ -559,9 +591,10 @@ GREETING={ # conversation acceptance
 "relaxed" : { # chill, talks about UFOs, aliens, acts like tripping, hippy-ish. Hugs people they love.
     0  :("Listen, you need to leave me alone.",
          "Listen, {slur}. You're ruining my {tod}.",
-         "You are scum.",
-         "God have mercy.",
-         "{Slur}.",),
+         "You are scum of the Earth.",
+         "You bottom-feeder.",
+         "Lord, have mercy.",
+         "Hey, {slur}.",),
     0.1:("Dang, what a drag.",
          "Oh. {pcn}. I thought it was something important. *picks nose*",
          "Not you.",
@@ -570,29 +603,43 @@ GREETING={ # conversation acceptance
          "Mm-hmm? What is it now, {pcc}?",
          "Oh. You.",),
     0.3:("Uh-huh? What is it?",
-         "Oh, hey {pcn}. What's up?",
-         "Oh, it's {pcn}.",),
+         "Oh, hey {pcgsib}. What's up?",
+         "Oh, it's {pcn}.",
+         "Yes, {pcgsib}?",),
     0.4:("Heyy.",
-         "Hey, {pcgg}. What's hangin'? I mean -- how's it hangin'?",),
+         "Hey, {pcgg}. What's hangin'? I mean -- how's it hangin'?",
+         "Hey, {pcgg}.",
+         "Hello {pcgsib}.",),
     0.5:("Yo, {pcn}. {Gcomp}.",
+         "Hey, {tof}.",
+         "Hello, friend.",
          "Dude, you're never going to believe this, but I saw a UFO the other day.",),
     0.6:("Hey, {pcn}. Good to see you, {pcgg}. What have you been up to?",
+         "Yes, {tof}?",
+         "Hello, my friend.",
          "UFOs are real. I've seen one with my own eyes. They're real. Aliens are real.",),
     0.7:("Aw, yea. It's my friend, {pcn}.",
          "Yo, {pcgg}. You want a beer?",
+         "Hello my dear friend.",
+         "Hey {pcgsib}. Great to see you. How you been?",
          "What's up, {pcgg}? You feelin' cool?",),
     0.8:("'Eyyy, how've you been, {pcgg}?",
          "Hey! So good to see you! *hugs*",
+         "Hey, {pcgsib}! *hugs*",
+         "Hey, {pcn}, man! *hugs*",
          "I promise you there are aliens out there, somewhere. It's just logical. I mean, think about it. Space is so vast, and there are so many planets with the necessary conditions for life.",),
     0.9:("{pcn}! Just the person I was hoping to see.",
-         "Hello again, {toe}. *hugs*",
+         "Hey again, {toe}. *hugs*",
+         "Hello, my dearest friend. *hugs*",
          "Hey, {pcn}. *smiles*",),
     1.0:("Heyyyy... how's it goin', my {toe}?",
          "Friend...! How nice you could come by. *hugs*",
-         "*small but sincere smile*",),
+         "*small but sincere smile*",
+         "*relaxed, comfortable expression*",),
     },
 "uptight" : { # God-fearing, polite, kind, strict
     0  :("God will punish you.",
+         "God have mercy on your soul.",
          "Jesus help you.",
          "Burn in hell, you wretched cur.",
          "You are the worst type of person.",
@@ -659,7 +706,7 @@ GREETING={ # conversation acceptance
     1.0:("Hi!! *hugs*",
          "It's so good to see you again, {pcn}! What have you been up to lately?",),
     },
-"apathetic" : { # doesn't give much of a fuck
+"apathetic" : { # doesn't give much of a fuck, kind of a punk/rebel without a cause. Secretly lonely and suffering from mental health issues.
     0  :("*scowls in digust*",
          "*gives you the finger*",
          "Eat dogshit!",
@@ -714,8 +761,7 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
          "Oh, yeah. Right. That's good.",),
     0.1:("Yes, it's not bad.",
          "Good. And you?",),
-    0.2:("MREs used to be a lot better.",
-         "We live in strange times.",
+    0.2:("We live in strange times.",
          "Arright.",),
     0.3:("Nice weather we're having.",
          "I'm doing well, thanks. And you?",
@@ -739,7 +785,9 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
          "Oh, how nice.",),
     },
 "proud" : {
-    0  :("Reeeally.",),
+    0  :("Reeeally.",
+         "Good.",
+         "Yes, well, I'm always doing well.",),
     0.2:("Yes, I'm fine. Thanks.",
          "Yes, I'm doing very well. Thanks for your concern.",),
     0.4:("Good to hear. Yes, I'm doing well, as always.",),
@@ -749,12 +797,19 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     1.0:("Look at this picture of my family. Aren't they just so precious?",),
     },
 "low-self-esteem" : {
-    0  :("Shitty day as usual.",),
-    0.2:("Another day another nickel.",),
-    0.4:("Yep, shitty weather as always.",),
-    0.6:("I've been through the ringer this year, but I'm feeling a little better lately.",),
+    0  :("Shitty day as usual.",
+         "Oh you know, just another day. Barely hangin' on.",
+         "Yep, another day I wish I hadn't gotten out of bed in the morning.",),
+    0.2:("Yep. *sighs* Here we go again.",
+         "I'm holding it together.",
+         "Another day another nickel.",),
+    0.4:("Yep, shitty weather as always.",
+         "Oh, it's the worst.",
+         "I'll be all right. How are you doin'?",),
+    0.6:("Well, I feel a little better now that I'm talking to you.",
+         "I've been through the ringer this year, but I'm feeling a little better lately.",),
     0.8:("Shitty day. I'm feeling all right now, though.",),
-    1.0:("I'm feeling a lot better now that you're here.",),
+    1.0:("It's a good day.",),
     },
 "argumentative" : {
     0  :("Nah, it's definitely the complete opposite.",
@@ -762,6 +817,8 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
          "Yeah, I guess. Not really but sure.",
          "Whatever!",),
     0.4:("Oh no way. No way. *laughs*",
+         "MREs used to be a lot better.",
+         "Well, you should have seen how good they were back in the day.",
          "Well, I'm sure I could find something wrong with that statement.",),
     0.6:("I disagree, but that's an interesting opinion.",
          "It's not too bad, I suppose.",),
@@ -779,10 +836,14 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.8:("You're absolutely right about that, {pcgg}.",),
     },
 "outgoing" : {
-    0.2:("Huh! That's something, all right.",),
+    0.2:("Huh! That's something, all right.",
+         "Doing well. Yourself?",),
     0.4:("Yes, I agree. It is nice.",
-         "Oh yeah, I am excited about it.",),
-    0.6:("Oh, how nice to hear, {pcn}.",),
+         "Oh yeah, I am excited about it.",
+         "Isn't is great?",
+         "Very good. You?",),
+    0.6:("Oh, how nice to hear, {pcn}.",
+         "Oh! It's just the best.",),
     },
 "shy" : {
     0  :("Oh, OK...",),
@@ -791,10 +852,26 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     1.0:("Yesterday I saw a deer.",),
     },
 "independent" : {
+    0.2:("Huh. T.I.L.",
+         "Oh, yes. For sure.",),
+    0.3:("Ah. Very good to know.",
+         "Mm! Yeah.",
+         "Good, and yourself?",),
+    0.4:("Yes, absolutely.",
+         "That's nice to hear.",
+         "Well, that's nice.",),
     },
 "codependent" : {
+    0.8:("I'm feeling a lot better now that you're here.",),
+    1.0:("It's a wonderful day because you're in it.",),
     },
 "bubbly" : {
+    0  :("Ah!",
+         "*feigning interest*",),
+    0.1:("Oh, yes, I suppose so.",),
+    0.2:("Yes, it is a nice day.",),
+    0.3:("Ah! So cool.",),
+    0.4:("Yes, a wonderful day.",),
     },
 "low-energy" : {
     0.4:("Lovely weather.",),
@@ -802,8 +879,12 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     },
 "motivated" : {
     0.2:("I'm hype.",),
-    0.4:("Corn stocks are *still* dropping. Can you believe it?",),
-    0.6:("This is going to be a good decade for entrepreneurs.",),
+    0.4:("The prices of corn stocks are *still* falling. Can you believe it?",
+         "The economy is in shambles.",),
+    0.6:("This is going to be a good decade for entrepreneurs.",
+         "Oh indubitably.",
+         "I'm thinking of starting a business. Do you know anything about accounting?",
+         "I want to get my feet wet in the indie film industry. I've always longed to be an indie director. I have some powerful ideas for screenplays, mind you.",),
     0.8:("I might be on to something.",),
     },
 "unmotivated" : {
@@ -2291,9 +2372,36 @@ FLATTERY_SUCCESS={
     1.0:("What a lovely thing to say.",
          "Oh, thank you, {pcn}. Thanks so much.",),
     },
+"argumentative" : {
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    },
+"shy" : {
+    },
+"independent" : {
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    0.2:("Oh, that's, actually very nice.",),
+    },
+"low-energy" : {
+    },
 "motivated" : {
     0  :("Coming from you, that means nothing.",),
     0.1:("Yes, you are right. I am fabulous.",),
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
+    },
+"uptight" : {
+    },
+"proactive" : {
+    },
+"apathetic" : {
     },
 }
 

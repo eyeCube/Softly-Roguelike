@@ -159,6 +159,10 @@ class GetsAnnoyed: # gets bothered by e.g. repeatedly talking to them
     __slots__=['annoyance']
     def __init__(self):
         self.annoyance = 0 # buildup of annoyance
+class GetsDiabetes: # can only take so much flattery in one sitting
+    __slots__=['diabetes']
+    def __init__(self):
+        self.diabetes = 0 # buildup of diabetes
 class Taunted: # was taunted by PC recently
     __slots__=[]
     def __init__(self):
@@ -1863,6 +1867,10 @@ class StatusKO: # knocked out / unconscious (and sleep..?)
 class StatusRage: # enraged, out of control with anger | furious
     __slots__=['timer']
     def __init__(self, t=64):
+        self.timer=t
+class StatusDiabetes: # too much flattery, any more will make them upset
+    __slots__=['timer']
+    def __init__(self, t=86400):
         self.timer=t
 # Body Position statuses
 class StatusBPos_Crouched: # body position: crouched (legs and/or torso bent to make self smaller / lower)

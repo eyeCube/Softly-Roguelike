@@ -587,6 +587,12 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
         for ent, compo in self.world.get_component(cmp.Taunted):
             if dice.roll(20) <= 5:
                 self.world.remove_component(ent, cmp.Taunted)
+        for ent, compo in self.world.get_component(cmp.GetsAngry):
+            self.world.component_for_entity(ent, cmp.GetsAngry).anger -= 1
+        for ent, compo in self.world.get_component(cmp.GetsAnnoyed):
+            self.world.component_for_entity(ent, cmp.GetsAnnoyed).annoyance -= 1
+        for ent, compo in self.world.get_component(cmp.GetsDiabetes):
+            self.world.component_for_entity(ent, cmp.GetsDiabetes).diabetes -= 1
 # end class
 
 

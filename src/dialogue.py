@@ -129,6 +129,7 @@ def _substitute_tags(ent:int, message:str) -> str:
     pc=rog.pc()
     world=rog.world()
     # component data which may or may not exist
+    pcgsib = "sister" if rog.get_gender_id(pc)==GENDER_FEMALE else "brother"
     if world.has_component(ent,cmp.Gender):
         npcgg=rog.get_pronoun_generic(ent)
     else:
@@ -151,6 +152,8 @@ def _substitute_tags(ent:int, message:str) -> str:
         pcc=CLASSES[world.component_for_entity(pc,cmp.Job).job],
         pcgg=rog.get_pronoun_generic(pc),
         pcgp=rog.get_pronoun_polite(pc),
+        pcgpos=rog.get_pronoun_possessive(pc),
+        pcgsib=pcgsib,
         pcgs=rog.get_pronoun_subject(pc),
         pcgo=rog.get_pronoun_object(pc),
         pcgi=rog.get_pronoun_informal(pc),
@@ -289,7 +292,7 @@ def _get_reaction(
     world=rog.world()
     pc=rog.pc()
     DMAX = MAX_DISPOSITION
-    reaction = -40
+    reaction = -20
     dice_size = 20
     
         # ---- initialize ---- #
@@ -529,13 +532,19 @@ def _get_reaction(
     elif persuasion_type == dislikes[0]:
         reaction -= ( 0.02*DMAX * speech_penalty_modf * 0.1 * mx ) * intensity
     
-    # special cases
+    # special cases #
     if (personality==PERSON_NONCONFRONTATIONAL
-        and intensity >= 5):
+        and intensity >= 5
+        ):
         reaction -= 20
-    if (world.has_component(ent, cmp.NeverAcceptsBribes)
-        and persuasion_type==TALK_BRIBERY):
+    if (persuasion_type==TALK_BRIBERY
+        and world.has_component(ent, cmp.NeverAcceptsBribes)
+        ):
         reaction = -0.05 * DMAX * mx
+    if (persuasion_type==TALK_FLATTERY
+        and world.has_component(ent, cmp.StatusDiabetes)
+        ):
+        reaction = -0.075 * DMAX * mx
     if (persuasion_type==TALK_BEG and personality==PERSON_PROUD):
         reaction -= 0.05 * DMAX * mx
     elif (persuasion_type==TALK_INTERROGATE and personality==PERSON_RELAXED):
@@ -549,14 +558,6 @@ def _get_reaction(
     elif (persuasion_type==TALK_BOAST and personality==PERSON_MOTIVATED):
         reaction += 0.01 * DMAX * mx
     
-    # trying to charm while already charmed
-    if persuasion_type==TALK_CHARM:
-        if world.has_component(ent, cmp.StatusCharmed):
-            reaction -= 100
-    elif persuasion_type==TALK_BOAST:
-        if world.has_component(ent, cmp.StatusCharmed):
-            reaction -= 100
-    
     # waste my time with 0 value offer -> minus some disp.
     if (persuasion_type==TALK_BRIBERY or persuasion_type==TALK_BARTER):
         if value == 0:
@@ -566,6 +567,14 @@ def _get_reaction(
     reaction += speech * speech_mod
     # add element of random chance
     reaction += dice.roll(dice_size)
+    
+    # trying to charm while already charmed
+    if persuasion_type==TALK_CHARM:
+        if world.has_component(ent, cmp.StatusCharmed):
+            reaction = min(reaction - 100, -20)
+    elif persuasion_type==TALK_BOAST:
+        if world.has_component(ent, cmp.StatusCharmed):
+            reaction = min(reaction - 100, -20)
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def
@@ -704,7 +713,7 @@ def dialogue(ent:int, style=0):
     reaction = greet(ent, style=style)
     dispcompo.disposition += reaction
     if reaction < 0: # refuse to chat
-        rejection(ent)
+        rejection(ent, personality, dispcompo.disposition, style=style)
         return False
     
         # introductions
@@ -796,26 +805,26 @@ def greet(ent:int, style=0) -> int: # attempt to init conversation
     return reaction
 # end def
 
-def rejection(ent): # refusal to initiate conversation
-    response = talk_rejection(ent,personality,dispcompo.disposition,style=style)
+def rejection(ent:int, personality:int, disposition:int, style=0): # refusal to initiate conversation
+    response,success = talk_rejection(ent,personality,disposition,style=style)
     print(response)
     say(ent, response, ttype=TALK_GREETING, success=False)
 # end def
 
-def annoy(ent:int, amt:int):
+def annoy(ent:int, amt:int): # buildup for Annoyed Status
     world = rog.world()
     if not world.has_component(ent, cmp.GetsAnnoyed):
         return
     # if I love you, annoyance amount is reduced; hate increases it
-    if world.get_disposition(ent)/MAX_DISPOSITION <= 0.1:
+    if rog.get_disposition(ent)/MAX_DISPOSITION <= 0.1:
         amt = amt * 4
-    elif world.get_disposition(ent)/MAX_DISPOSITION <= 0.2:
+    elif rog.get_disposition(ent)/MAX_DISPOSITION <= 0.2:
         amt = amt * 2
-    elif world.get_disposition(ent)/MAX_DISPOSITION >= 0.8:
+    elif rog.get_disposition(ent)/MAX_DISPOSITION >= 0.8:
         amt = amt * 0.5
     # personality compatibility affects annoyance amount
-    personality = get_personality(ent)
-    pc_personality = get_personality(rog.pc())
+    personality = rog.get_personality(ent)
+    pc_personality = rog.get_personality(rog.pc())
     compat = get_compatibility(personality, pc_personality)
     if compat==1:
         amt *= 4
@@ -834,6 +843,15 @@ def annoy(ent:int, amt:int):
         rog.set_status(ent, cmp.StatusAnnoyed, target=rog.pc())
 # end def
 
+def flatter(ent): # buildup for Diabetes Status
+    world=rog.world()
+    if world.has_component(ent, cmp.GetsDiabetes):
+        compo = world.component_for_entity(ent, cmp.GetsDiabetes)
+        compo.diabetes += dice.roll(20)
+        if compo.diabetes >= MAX_DIABETES:
+            rog.set_status(ent, cmp.StatusDiabetes)
+            print("DIABETES!")
+# end def
 
     #---------------------------------#
     # persuasion / conversation types #
@@ -929,6 +947,7 @@ def talk_charm(ent:int, personality:int, disposition:int, value=0, style=0) -> t
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     if success: charm(ent, reaction)
+    if reaction < 0: _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_boast(ent:int, personality:int, disposition:int, value=0, style=0) -> tuple:
@@ -936,6 +955,7 @@ def talk_boast(ent:int, personality:int, disposition:int, value=0, style=0) -> t
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     if success: charm(ent, reaction)
+    if reaction < 0: _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 
 def talk_smalltalk(ent:int, personality:int, disposition:int, value=0, style=0) -> tuple:
@@ -972,6 +992,7 @@ def talk_flatter(ent:int, personality:int, disposition:int, value=0, style=0) ->
     ttype = TALK_FLATTERY
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
+    if success: flatter(ent)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
     return _talk(ent, success, ttype, personality, disposition)
 

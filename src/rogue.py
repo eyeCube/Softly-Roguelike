@@ -1424,13 +1424,18 @@ def convert_to_creature(ent, job=None, faction=None, species=None):
     Rogue.world.add_component(ent, cmp.Creature(job, faction, species))
     return True
 
-# persons | people | things that speak
-def init_person(ent, personality=-1, getsAngry=True): # init speaker
+# persons | people | things that speak | init speaker
+def init_person(
+    ent, personality=-1,
+    getsAngry=True, getsAnnoyed=True, getsDiabetes=True
+    ):
     if personality==-1: personality = random.choice(MAIN_PERSONALITIES)
     Rogue.world.add_component(ent, cmp.Speaks())
     Rogue.world.add_component(ent, cmp.Personality(personality))
     Rogue.world.add_component(ent, cmp.Disposition())
     if getsAngry: Rogue.world.add_component(ent, cmp.GetsAngry())
+    if getsAnnoyed: Rogue.world.add_component(ent, cmp.GetsAnnoyed())
+    if getsDiabetes: Rogue.world.add_component(ent, cmp.GetsDiabetes())
     
 
     #---------------#
@@ -3307,6 +3312,8 @@ def queue_action(ent, act):
     #-----------#
 
 # gender name and pronouns
+def get_gender_id(ent): # gender ID
+    return Rogue.world.component_for_entity(ent, cmp.Gender).gender
 def get_gender(ent): # gender name
     gender=Rogue.world.component_for_entity(ent, cmp.Gender).gender
     return _get_gender_name(gender)
