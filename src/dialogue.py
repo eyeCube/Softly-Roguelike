@@ -19,6 +19,7 @@
 
 from const import *
 import rogue as rog
+from colors import COLORS as COL
 import components as cmp
 import dice
 import random
@@ -75,9 +76,12 @@ PERSON_APATHETIC            : "apathetic",
     }
 
 def _change_disposition(ent, amt, maximum=999999):
-    print("ent {} disp change: {}".format(rog.getname(ent), amt))
+##    print("ent {} disp change: {}".format(rog.getname(ent), amt))
     compo = rog.world().component_for_entity(ent,cmp.Disposition)
-    compo.disposition = int(max(0, min(maximum, compo.disposition + amt)))
+    if ((amt > 0 and compo.disposition < maximum)
+        or amt < 0):
+        compo.disposition += amt
+    compo.disposition = max(0, compo.disposition)
 
 def _get_likes   (personality:int): return PERSONALITIES[personality][1]
 def _get_dislikes(personality:int): return PERSONALITIES[personality][2]
@@ -312,7 +316,7 @@ def _get_reaction(
     ent_sight = rog.getms(ent,'sight')
     ent_cansee = rog.can_see(ent, pc_pos.x,pc_pos.y, ent_sight)
     
-    disposition = get_effective_disposition(disposition)
+    disposition = get_effective_disposition(ent, disposition)
 
         # ---- basic reaction ---- #
     
@@ -321,23 +325,23 @@ def _get_reaction(
 
     # reaction based on existing disposition
     if disposition == 0:
-        reaction -= 40
+        reaction -= 18
     elif disposition < 0.1*DMAX:
-        reaction -= 30
+        reaction -= 12
     elif disposition < 0.2*DMAX:
-        reaction -= 20
+        reaction -= 6
     elif disposition < 0.4*DMAX:
-        reaction -= 10
-    elif disposition < 0.6*DMAX:
         pass
+    elif disposition < 0.6*DMAX:
+        reaction += 6
     elif disposition < 0.8*DMAX:
-        reaction += 10
+        reaction += 12
     elif disposition < 0.9*DMAX:
-        reaction += 20
+        reaction += 18
     elif disposition < DMAX:
-        reaction += 30
+        reaction += 24
     else:
-        reaction += 40
+        reaction += 30
 
         # ---- status reaction ---- #
     
@@ -364,15 +368,15 @@ def _get_reaction(
 
     # intensity of the conversation based on transaction value    
     intensity = 1
-    speech_mod = 0.25
+    speech_mod = 0.4
     # intensity based on type of conversation / persuasion
     if persuasion_type==TALK_TORTURE:
-        speech_mod = 2*speech_mod
+        speech_mod = 1.25*speech_mod
         dice_size = 100
         reaction -= 0.15*DMAX
         intensity = 10 * intensity
     elif persuasion_type==TALK_INTERROGATE:
-        speech_mod = 2*speech_mod
+        speech_mod = 1.5*speech_mod
         dice_size = 60
         reaction -= 0.085*DMAX
         intensity = 5 * intensity
@@ -397,15 +401,15 @@ def _get_reaction(
         speech_mod = 1.5*speech_mod
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLIRTATION:
-        speech_mod = 2*speech_mod
+        speech_mod = 1.5*speech_mod
         dice_size = 80
-        reaction -= 60
+        reaction -= 50
         intensity = 2 * intensity
     elif persuasion_type==TALK_ASKFAVOR:
         reaction -= 0.025*DMAX
         intensity = 2 * intensity
     elif persuasion_type==TALK_FLATTERY:
-        speech_mod = 1.25*speech_mod
+        speech_mod = 1.5*speech_mod
         reaction -= 15
         dice_size = 40
         intensity = 1.5 * intensity
@@ -488,10 +492,10 @@ def _get_reaction(
         #
         # attraction matter more for flirtation than other
         #   types of conversation.
-        reaction += attraction*2
+        reaction += attraction
     else:
         # other
-        reaction += attraction
+        reaction += attraction*0.5
     # end if
         
         # ---- compatibility ---- #
@@ -509,11 +513,11 @@ def _get_reaction(
         reaction += 10
     elif compat==5:
         reaction += 20
-    print("personalities: ent: {}, player: {}".format(
-        personality, pc_personality))
-    print("personalities: ent: {}, player: {}".format(
-        PERSONALITIES[personality][0], PERSONALITIES[pc_personality][0]))
-    print("personality compatibility: ", compat)
+##    print("personalities: ent: {}, player: {}".format(
+##        personality, pc_personality))
+##    print("personalities: ent: {}, player: {}".format(
+##        PERSONALITIES[personality][0], PERSONALITIES[pc_personality][0]))
+##    print("personality compatibility: ", compat)
     
     # likes and dislikes
     likes=_get_likes(personality)
@@ -572,6 +576,11 @@ def _get_reaction(
     elif persuasion_type==TALK_BOAST:
         if world.has_component(ent, cmp.StatusCharmed):
             reaction = min(reaction - 100, -20)
+    
+    # people who have a hard time learning to trust others
+    if (disposition >= 0.5*DMAX # lose reaction once disp crosses a threshold
+        and world.has_component(ent, cmp.Untrusting)):
+        reaction -= 20
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def
@@ -687,10 +696,11 @@ def _apply_compatibility_modifier_pseudostatus(ent, amt, factor=2):
     #-------------------#
 
 def get_disp_ratio(ent:int):
-    disp = world.component_for_entity(ent, cmp.Disposition).disposition
-    disp = get_effective_disposition(disp)
+    disp = rog.world().component_for_entity(ent, cmp.Disposition).disposition
+    disp = get_effective_disposition(ent, disp)
     return disp / MAX_DISPOSITION
-def get_effective_disposition(disposition:int):
+def get_effective_disposition(ent:int, disposition:int):
+    world=rog.world()
     ret = disposition
     # charmed bonus
     if world.has_component(ent, cmp.StatusCharmed):
@@ -703,7 +713,6 @@ def get_compatibility(my_personality, other_personality):
     return PERSONALITY_COMPATIBILITIES[my_personality][other_personality]
 # adds charmed status -- doesn't overwrite
 def charm(ent, amt):
-    print("charmed!")
     rog.set_status(ent, cmp.StatusCharmed, q=amt, target=rog.pc())
 def say(ent:int, string:str, ttype=-1, success=False, ):
     ''' converse with an entity and msg out that entity's response '''
@@ -716,8 +725,11 @@ def say(ent:int, string:str, ttype=-1, success=False, ):
     else:
         talk_string = PERSUASION[ttype][1]
         success_string = "success" if success else "failure"
-        message = "<{} {}> {}: {}".format(
-            talk_string, success_string, rog.getname(ent), string
+        disposition = get_effective_disposition(
+            ent, rog.get_disposition(ent))
+        message = "<{} {}> {}: {} Disposition: {} / {}".format(
+            talk_string, success_string, rog.getname(ent), string,
+            disposition//10, MAX_DISPOSITION//10
             )
     rog.alert(message) # just in case it doesn't get displayed right away.
     rog.msg(message)
@@ -753,13 +765,13 @@ def dialogue(ent:int, style=0):
         #   that wears off in an hour or so.
         response,success = talk_greeting(
             ent,personality,dispcompo.disposition,style=style)
-    print(response)
     say(ent, response)
     
     # dialogue menu
     menu={"*" : "goodbye"}
     _menu={}
     for k,v in PERSUASION.items():
+        if k==TALK_GREETING: continue
         menu[v[0]] = v[1]
         _menu[v[1]] = k
     opt = rog.menu(
@@ -795,8 +807,6 @@ def dialogue(ent:int, style=0):
         value=value, style=style
         )
     say(ent,response,result,success)
-    print(response)
-    print("New disposition: ", dispcompo.disposition)
     return True
 # end def
 
@@ -871,15 +881,15 @@ def diabetes(ent): # buildup for Diabetes Status
     world=rog.world()
     if world.has_component(ent, cmp.GetsDiabetes):
         compo = world.component_for_entity(ent, cmp.GetsDiabetes)
-        dice_size = 120 - rog.getskill(rog.pc(),SKL_PERSUASION)
+        dice_size = 140 - rog.getskill(rog.pc(),SKL_PERSUASION)
         dice_size = _apply_compatibility_modifier_pseudostatus(
             ent, dice_size, factor=1.5 )
-        dice_size = res_diabetes(ent)
+        dice_size *= res_diabetes(ent)
         compo.diabetes += dice.roll(rog.around(dice_size))
         if compo.diabetes >= MAX_DIABETES:
             compo.diabetes = 0
             rog.set_status(ent, cmp.StatusDiabetes)
-            print("DIABETES!")
+        print(compo.diabetes)
 # end def
 def creepout(ent): # creep out
     world = rog.world()
@@ -922,11 +932,11 @@ def _res_annoyance(personality):
     if (personality==PERSON_RELAXED
         or personality==PERSON_APATHETIC
         or personality==PERSON_CODEPENDENT
-        or personalty==PERSON_LOWSELFESTEEM
-        or personalty==PERSON_SHY
-        or personalty==PERSON_LOWENERGY
-        or personalty==PERSON_UNMOTIVATED
-        or personalty==PERSON_NONCONFRONTATIONAL):
+        or personality==PERSON_LOWSELFESTEEM
+        or personality==PERSON_SHY
+        or personality==PERSON_LOWENERGY
+        or personality==PERSON_UNMOTIVATED
+        or personality==PERSON_NONCONFRONTATIONAL):
         return 0.5
     if (personality==PERSON_INDEPENDENT
         or personality==PERSON_MOTIVATED
@@ -942,7 +952,7 @@ def _res_annoyance(personality):
 
 def _talk(ent:int, success:bool, ttype:int, personality:int, disposition:int, padding=0.2) -> tuple:
     world = rog.world()
-    ed = get_effective_disposition(disposition)
+    ed = get_effective_disposition(ent, disposition)
     # get list of potential string responses
     possible = _get_possible_responses(ttype, personality, ed, padding)
     if (not possible[0] and not possible[1]):
@@ -1049,7 +1059,10 @@ def talk_smalltalk(ent:int, personality:int, disposition:int, value=0, style=0) 
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     _change_disposition(ent, reaction, PERSUASION[ttype][2])
-    return _talk(ent, success, ttype, personality, disposition, padding=1)
+    if rog.world().has_component(ent, cmp.SmallTalked):
+        annoy(ent, 40)
+    rog.world().add_component(ent, cmp.SmallTalked())
+    return _talk(ent, success, ttype, personality, disposition, padding=0.3)
 
 def talk_bribe(ent:int, personality:int, disposition:int, value=0, style=0) -> tuple:
     ttype = TALK_BRIBERY
@@ -1135,11 +1148,7 @@ def talk_taunt(ent:int, personality:int, disposition:int, value=0, style=0) -> t
     reaction=_get_reaction(ent, ttype, personality, disposition, style=style)
     success = (reaction > 0)
     if (success and world.has_component(ent,cmp.GetsAngry)):
-        # chance to add temporary pseudo-status, the "Taunted" component
-        rollval = 5 + rog.getskill(rog.pc(), SKL_PERSUASION)//5
-        if dice.roll(20) < rollval:
-            rog.taunt(ent)
-        # add some anger
+        rog.taunt(ent)
         anger(ent, reaction)
     elif reaction < 0: # can only lower disp.
         _change_disposition(ent, reaction)

@@ -583,16 +583,22 @@ class UpkeepProcessor(esper.Processor): # TODO: test this
 ##            print("mp regen ", rog.getms(ent, 'mpregen'))
             rog.givemp(ent, rog.getms(ent, 'mpregen')//MULT_STATS)
             rog.givehp(ent, rog.getms(ent, 'hpregen')//MULT_STATS)
-        # taunted
+        
+        # pseudo statuses' meters #
+        for ent, compo in self.world.get_component(cmp.SmallTalked):
+            if dice.roll(20) <= 1:
+                self.world.remove_component(ent, cmp.SmallTalked)
         for ent, compo in self.world.get_component(cmp.Taunted):
             if dice.roll(20) <= 5:
                 self.world.remove_component(ent, cmp.Taunted)
         for ent, compo in self.world.get_component(cmp.GetsAngry):
+            if dice.roll(20) > 5: continue
             self.world.component_for_entity(ent, cmp.GetsAngry).anger -= 1
         for ent, compo in self.world.get_component(cmp.GetsAnnoyed):
+            if dice.roll(20) > 2: continue
             self.world.component_for_entity(ent, cmp.GetsAnnoyed).annoyance -= 1
         for ent, compo in self.world.get_component(cmp.GetsDiabetes):
-            if dice.roll(20) != 1: continue
+            if dice.roll(20) > 1: continue
             self.world.component_for_entity(ent, cmp.GetsDiabetes).diabetes -= 1
 # end class
 
@@ -659,14 +665,24 @@ class Status:
         elif component is cmp.StatusHazy:
             pronoun=rog.get_pronoun_possessive(ent)
             status_str = " begins slurring {} speech".format(pronoun)
-        elif component is cmp.StatusAngry:
-            status_str = " becomes angry"
         elif component is cmp.StatusRage:
             status_str = " enters into a fit of rage"
-        #if status_str:
-            #"{}{}{}".format(TITLES[name.title], name.name, status_str)
-
+        elif component is cmp.StatusAngry:
+            status_str = " becomes angry"
+        elif component is cmp.StatusAnnoyed:
+            status_str = " becomes annoyed"
+        elif component is cmp.StatusCreepedOut:
+            status_str = " becomes creeped out"
+        elif component is cmp.StatusCharmed:
+            status_str = " becomes charmed"
+        elif component is cmp.StatusDiabetes:
+            status_str = " gets Diabetes"
+        
         # TODO: events to display the messages
+        name = rog.world().component_for_entity(ent, cmp.Name)
+        if status_str:
+            string = "{}{}{}".format(TITLES[name.title], name.name, status_str)
+            rog.msg(string) # TEMPORARY
         
         # figure out what parameters the status needs
         if t==-1: # use the default time value for the component

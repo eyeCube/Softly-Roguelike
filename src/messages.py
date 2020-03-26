@@ -754,8 +754,7 @@ GREETING={ # conversation acceptance
 
 # small talk -- idle chit-chat between two people, generally acquaintances rather than close friends #
 
-SMALLTALK_SUCCESS={ # could work differently than other messages:
-            # all options are always available as long as you have >= the disposition requirement
+SMALLTALK_SUCCESS={
 "generic" : {
     0  :("That was strange.",
          "Oh, yeah. Right. That's good.",),
@@ -769,8 +768,7 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.4:("Water keeps getting more and more expensive.",
          "That's weird, I thought I left it right here...",
          "Great.",),
-    0.5:("This is going to be a bad year for crops.",
-         "Oh, good to hear.",),
+    0.5:("Oh, good to hear.",),
     0.6:("It's a good day today.",
          "I didn't know that, that is something.",),
     0.7:("What a lovely day it's turned out to be.",
@@ -878,29 +876,95 @@ SMALLTALK_SUCCESS={ # could work differently than other messages:
     0.6:("Indeed, {pcn}.",),
     },
 "motivated" : {
-    0.2:("I'm hype.",),
-    0.4:("The prices of corn stocks are *still* falling. Can you believe it?",
+    0.2:("Oh, indeed.",
+         "Yes, good {pcgp}.",),
+    0.3:("I am well, good {pcgp}. How are you this fine {tod}?",),
+    0.4:("This is going to be a disasterous year for corn.",
+         "The prices of corn stocks are *still* falling. Can you believe it?",
          "The economy is in shambles.",),
-    0.6:("This is going to be a good decade for entrepreneurs.",
+    0.6:("I have a feeling this is going to be a good decade for entrepreneurs.",
          "Oh indubitably.",
          "I'm thinking of starting a business. Do you know anything about accounting?",
          "I want to get my feet wet in the indie film industry. I've always longed to be an indie director. I have some powerful ideas for screenplays, mind you.",),
     0.8:("I might be on to something.",),
     },
 "unmotivated" : {
+    0.1:("Aight.",),
+    0.2:("Doin' good {tof}.",
+         "Good, {tof}.",
+         "Doin' aight, {tof}, and you?",
+         "Good, you?",),
+    0.3:("Nothin' much. What's good with you, {tof}?",
+         "Chillin' chillin'.",
+         "Have you seen Peach n' Bong? It's great, {tof}, you gotta see it.",),
+    0.4:("Yooo. That's what's up.",
+         "Huh. That's something I never thought about before.",
+         "That's cool, {tof}.",
+         "Yeah, {tof}, I guess so.",
+         "Oh, yeah. I'm hype, {tof}.",
+         "Chillin', {tof}. What's up with you?",),
     },
 "relaxed" : {
-    0.4:("Hey {pcn}, you believe in aliens, right?",),
-    0.6:("I wonder if that was a UFO I saw the other day...",),
-    0.8:("What do you think it's like to be an alien? Like, would they feel the same kinds of emotions we do?",),
+    0.2:("Far out, {tof}.",
+         "Gnarly, {tof}.",
+         "Righteous.",),
+    0.4:("Hey {pcn}, you believe in aliens, right?",
+         "Yeah, he's one of my favorites, too.",
+         "That's a sexy tree.",
+         "It sort of looks like an alien.",
+         "I believe it was Socrates who said 'I only know that I know nothing.' Or I don't know, maybe that was Plato.",
+         "Well, the way I see it, it's only a matter of time for we make first contact.",),
+    0.6:("I wonder if that was a UFO I saw the other day...",
+         "It was definitely a UFO...",
+         "Good, I'm glad.",
+         "That's good to hear.",
+         "That's nice, {pcn}.",
+         "I'm doing very well.",
+         "Chillin', {tof}. What are you doing?",),
+    0.8:("That's what I imagine it would be like for aliens.",
+         "What do you think it's like to be an alien? Like, would they feel the same kinds of emotions we do?",),
     },
 "uptight" : {
+    0.2:("Fine. Yourself?",
+         "Good. How are you?",
+         "How are you?",
+         "Yes, it feels fine.",
+         "Oh, yes.",),
+    0.4:("Strawberries are actually not technically berries.",
+         "Well, I suppose so.",
+         "Very well.",
+         "Fine, {pcn}. How are you this {tod}?",
+         "Good! How are you doing today?",
+         "It's OK.",),
+    0.6:("That's a nice picture.",
+         "Oh, interesting.",
+         "Oh I didn't know that.",
+         "No, I haven't seen it before.",
+         "Good. I just bought some peaches down at the farmer's market. They were so delicious, oh my God.",
+         "It reminds me of when I lived in St. Austin. Green everywhere, as far as you could see.",),
     },
 "proactive" : {
     0.4:("Well, more and more rivers are running dry these days. It's because the mega-corporations keep building more and more dams. It's terrible.",),
     0.6:("That's good news.",),
     },
 "apathetic" : {
+    0.2:("Ya, {tof}.",
+         "The sky.",
+         "Yo.",
+         "Well, yeah, {tof}.",
+         "Too true.",
+         "Good.",),
+    0.3:("Ah. If only, {tof}. If only.",
+         "Eh. I've seen better.",
+         "Yeah, it's all right.",
+         "Good, {tof}.",),
+    0.4:("I'm hype.",
+         "Good. You?",
+         "I don't care much for it. But I don't judge people who do.",),
+    0.5:("Sick, {tof}.",
+         "Yo, {pcn}. That's cool.",
+         "Interesting.",
+         "Good, {pcn}. You?",),
     },
 }
 
@@ -967,10 +1031,35 @@ GOSSIP_SUCCESS={
          "Oh, no...",),
     1.0:("What? She did what?!",),
     },
+"proud" : {
+    0.4:("I feel sorry for that guy.",),
+    },
+"low-self-esteem" : {
+    },
+"argumentative" : {
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    },
 "shy" : {
     0.4:("No, you're kidding!",),
     0.6:("How awful!",),
     0.8:("*laughs* That's so funny, {pcn}.",),
+    },
+"independent" : {
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    },
+"low-energy" : {
+    },
+"motivated" : {
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
     },
 "uptight" : {
     0.2:("What has this country come to?",),
@@ -978,6 +1067,10 @@ GOSSIP_SUCCESS={
     0.6:("What? Little Ms. Sally's girl? I knew their family would go downhill when they stopped going to Church on Sundays, but I never imagined it would come to this.",),
     0.8:("How very sad. What has become of our once great nation?",
          "My aunt Shirley has that same kind of thing. We visited her last summer, and she brought it out while everybody was eating at the dinner table. Uncle Morey would not stop laughing.",),
+    },
+"proactive" : {
+    },
+"apathetic" : {
     },
 }
 
@@ -996,6 +1089,35 @@ GOSSIP_FAILURE={
     0.8:("You should just mind your own business.",
          "Oh, sorry, I don't like to talk about people behind their backs.",),
     },
+"proud" : {
+    },
+"low-self-esteem" : {
+    },
+"argumentative" : {
+    },
+"non-confrontational" : {
+    },
+"outgoing" : {
+    },
+"shy" : {
+    },
+"independent" : {
+    },
+"codependent" : {
+    },
+"bubbly" : {
+    },
+"low-energy" : {
+    },
+"motivated" : {
+    },
+"unmotivated" : {
+    },
+"relaxed" : {
+    0.2:("You should just keep your nose out of other people's shit!",),
+    },
+"uptight" : {
+    },
 "proactive" : {
     0  :("You ape.",
          "Barbarian.",),
@@ -1005,8 +1127,7 @@ GOSSIP_FAILURE={
     0.6:("How... how do you even know about that?",),
     0.8:("That's my sister you're talking about, {pcgg}.",),
     },
-"relaxed" : {
-    0.2:("Just keep your nose out of other people's shit!",),
+"apathetic" : {
     },
 }
 
@@ -1327,7 +1448,7 @@ BARTER_SUCCESS={
     },
 }
 
-BARTER_FAILURE={ # range: as long as disp >= value, can display msg (like taunt and smalltalk)
+BARTER_FAILURE={
 "generic" : {
     0  :("*laughs* Do you take me for a fool?",
          "*laughs uproariously*",
@@ -1637,7 +1758,7 @@ BRIBERY_FAILURE={
 #   which makes them quick to turn on you if given the opportunity.
 #   (unless they have the Masochist component)
 
-INTIMIDATION_SUCCESS={ # disp >= value: displays (like pester, smalltalk, barter, intimidation, taunt)
+INTIMIDATION_SUCCESS={
 "generic" : {
     0  :("*screams*",
          "No, please, don't hurt me!",
@@ -1936,7 +2057,7 @@ DEBATE_FAILURE={
 
 # pester -- annoy someone in an effort to make them dislike you or lose temper. Always results in loss of disposition. #
 
-PESTER={ # range: >= (like taunt, smalltalk, etc.)
+PESTER={
 "generic" : {
     0  :("*ignoring you*",),
     0.2:("How bothersome.",
@@ -2206,7 +2327,7 @@ TAUNT_SUCCESS={
     },
 }
 
-TAUNT_FAILURE={ # taunt is different: as long as disposition >= ratio, then message can appear
+TAUNT_FAILURE={
 "generic" : {
     0  :("What a {slur}.",
          "*ignoring you*",),

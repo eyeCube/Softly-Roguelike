@@ -115,7 +115,7 @@ def main():
     
         
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
-    rog.setskill(rog.pc(), SKL_PERSUASION, 50)
+    rog.setskill(rog.pc(), SKL_PERSUASION, 0)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
 ##    rog.sets(rog.pc(), 'dex', 120)
 ##    rog.sets(rog.pc(), 'int', 40)

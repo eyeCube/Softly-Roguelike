@@ -167,7 +167,15 @@ class GetsCreepedOut: # can become creeped out
     __slots__=[]
     def __init__(self):
         pass
+class Untrusting: # doesn't easily come to trust / love people
+    __slots__=[]
+    def __init__(self):
+        pass
 class Taunted: # was taunted by PC recently
+    __slots__=[]
+    def __init__(self):
+        pass
+class SmallTalked: # has small talked to PC recently
     __slots__=[]
     def __init__(self):
         pass
