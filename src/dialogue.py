@@ -21,6 +21,7 @@ from const import *
 import rogue as rog
 from colors import COLORS as COL
 import components as cmp
+import action
 import dice
 import random
 import math
@@ -201,6 +202,57 @@ def _substitute_tags(ent:int, message:str) -> str:
     #-----------------------------#
     # response / reaction by NPCS #
     #-----------------------------#
+    
+# attraction level
+def get_attraction_feminine(_bea, _int=0, factor_int=False, default=0):
+    ''' Get perceived feminine attraction level of an entity
+            based on the provided stats.
+        Feminine attraction involves few stats -- mostly just beauty.
+        Assumes entity can be detected and observed by admirer.
+        factor_int: factor intelligence stat into attraction?
+        default: base attraction level
+    '''
+    attraction = default
+    attraction += _bea/4 # note no limits in any direction
+    if factor_int: attraction += (_int - BASE_INT)
+    attraction=rog.around(attraction)
+##    print("attraction: ",attraction)
+    return attraction
+# end def
+def get_attraction_masculine(
+    _bea,_idn,_cou,_str,_int,
+    fbea=1,fidn=1,fcou=1,fstr=1,fint=1,default=-25
+    ):
+    ''' Get perceived masculine attraction level of an entity
+            based on the provided stats.
+        Masculine attraction involves much more stats than feminine.
+        Assumes entity can be detected and observed by admirer.
+        fbea,fidn,etc.: multiplier factors for each stat's
+            effectiveness in raising attraction.
+        default: base attraction level
+            raise or lower this to change how "easy" women are
+    '''
+    attraction=default
+    
+    # many stats factor into attraction:
+        # intimidation -- inverse quadratic
+            # 200 IDN is where it crosses 0
+            # max gain from IDN ~10 from ~80 to 120 IDN
+    attraction += fidn * (_idn/5 - (0.001 * _idn**2))
+        # beauty -- matters less than it does when judging women
+    attraction += fbea * (_bea/10) # note no limits in any direction
+        # strength
+    attraction += fstr * ((_str - BASE_STR)/2)
+        # intelligence
+    attraction += fint * ((_int - BASE_INT))
+        # courage -- max attraction: +30 (verify)
+    x = BASE_COURAGE//2
+    while (x <= _cou and x < BASE_COURAGE*8):
+        x = x*2
+        attraction += fcou * 10
+    attraction = rog.around(attraction)
+##    print("attraction: ",attraction)
+    return attraction
 
 # get possible responses
 def __eval(
@@ -325,23 +377,29 @@ def _get_reaction(
 
     # reaction based on existing disposition
     if disposition == 0:
-        reaction -= 18
+        reaction -= 24
     elif disposition < 0.1*DMAX:
-        reaction -= 12
+        reaction -= 18
     elif disposition < 0.2*DMAX:
+        reaction -= 12
+    elif disposition < 0.3*DMAX:
         reaction -= 6
     elif disposition < 0.4*DMAX:
         pass
+    elif disposition < 0.5*DMAX:
+        reaction += 3
     elif disposition < 0.6*DMAX:
         reaction += 6
+    elif disposition < 0.7*DMAX:
+        reaction += 9
     elif disposition < 0.8*DMAX:
         reaction += 12
     elif disposition < 0.9*DMAX:
-        reaction += 18
+        reaction += 15
     elif disposition < DMAX:
-        reaction += 24
+        reaction += 18
     else:
-        reaction += 30
+        reaction += 21
 
         # ---- status reaction ---- #
     
@@ -397,6 +455,13 @@ def _get_reaction(
         intensity = 2 * intensity
         reaction -= 0.02*DMAX
         reaction += value_modf * value//MULT_VALUE
+    elif persuasion_type==TALK_CHARM: # relies on speech skill
+        speech_mod = 1.5*speech_mod
+        reaction -= 20
+    elif persuasion_type==TALK_BOAST: # relies on perceived strength/fame
+        speech_mod = 1.25*speech_mod
+        reaction -= 40
+        reaction += rog.get_power_level(rog.pc())
     elif persuasion_type==TALK_DEBATE:
         speech_mod = 1.5*speech_mod
         intensity = 2 * intensity
@@ -414,11 +479,14 @@ def _get_reaction(
         dice_size = 40
         intensity = 1.5 * intensity
             # special combo-persuasion: Taunt -> Flattery
-        if world.has_component(ent, cmp.Taunted):
+        if (world.has_component(ent, cmp.Taunted)
+            and not world.has_component(ent, cmp.ComboTauntFlattery)
+            ):
             if dice.roll(20) <= 5 + speech//5:
-                reaction += 10
+                reaction += 40
                 intensity += 0.1
-                charm(ent, 50 + speech)
+                rog.world().add_component(ent, cmp.ComboTauntFlattery())
+                diabetes(ent) # gives more diabetes than usual flattery
     elif persuasion_type==TALK_TAUNT:
         speech_mod = 1.2*speech_mod
         reaction -= 0.01*DMAX
@@ -432,7 +500,7 @@ def _get_reaction(
         intensity = 0.25 * intensity
     
         # ---- attraction ---- #
-    
+            
     attraction = 0
     pc_isfemale = rog.get_gender(pc)=="female"
     pc_ismale = rog.get_gender(pc)=="male"
@@ -442,38 +510,15 @@ def _get_reaction(
         and world.has_component(ent, cmp.AttractedToWomen)
         ):
         intensity += 1
-        attraction += pc_bea/4 # note no limits in any direction
+        attraction += get_attraction_feminine(pc_bea)
     # Sexual Attraction to Men
     elif (ent_cansee and pc_ismale
         and world.has_component(ent, cmp.AttractedToMen)
         ):
         intensity += 1
-            # vvv lower this value if women are too easy vvv
-        attraction -= 5 # picky when choosing a man
-        
-        # many stats factor into attraction:
-            # intimidation -- inverse quadratic
-                # 200 IDN is where it crosses 0
-                # max gain from IDN ~10 from ~80 to 120 IDN
-        attraction += pc_idn/5 - (0.001 * pc_idn**2)
-            # beauty -- matters less than it does when judging women
-        attraction += pc_bea/10 # note no limits in any direction
-            # strength
-        attraction += (pc_str - BASE_STR)/2
-            # intelligence
-        attraction += (pc_int - BASE_INT)
-            # courage
-                # max gain from COU 20
-        if pc_cou <= 0.5*BASE_COU:
-            attraction -= 20
-        elif pc_cou <= BASE_COU:
-            attraction -= 10
-        elif pc_cou >= 2*BASE_COU:
-            attraction += 5
-        elif pc_cou >= 3*BASE_COU:
-            attraction += 10
-        elif pc_cou >= 4*BASE_COU:
-            attraction += 20
+        attraction += get_attraction_masculine(
+            pc_bea, pc_idn, pc_cou, pc_str, pc_int
+            )
     # end if
     
     # apply attraction reaction
@@ -631,7 +676,7 @@ def _get_transaction_value(
     return int(total)
 # end def
 
-def _get_gift_for(ent) -> tuple:
+def _get_gift_for(ent:int) -> tuple:
     opt = rog.prompt(
         0,0,rog.window_w(),4,q='Offer money or possessions? $/i',
         mode='wait',default='$'
@@ -674,6 +719,86 @@ def _get_gift_for(ent) -> tuple:
             return ("item",item,)
     return ("money",0,) # if we made it this far
 # end def
+
+def _barter(ent:int, personality:int, disposition:int, style=0):
+    netvalue = 0   # TRUE value of transaction from perspective of the NPC
+    delta_money = 0     # PC's offer for money (pos.: give to NPC, neg: take money from NPC)
+    pc_offer = []       # PC items offered
+    npc_offer = []      # NPC items requested
+    def offer(item):
+        netvalue += rog.get_value(item)
+        pc_offer.append(offer)
+    def request(item):
+        netvalue -= rog.get_value(item)
+        npc_offer.append(offer)
+    while True:
+        '''
+            idea: format: center of screen has two side-by-side
+            lists that show what items are being offered/requested
+            and below or above shows the money offered/requested.
+            When you choose offer or request menu the respective
+            inventory pops up and you can choose an item from it.
+            
+        '''
+        
+        # update the transaction display #
+        
+        
+        # user input #
+        menu={
+            '*' : "cancel",
+            'o' : "offer item",
+            'r' : "request item",
+            'h' : "haggle",
+            }
+        opt=rog.menu("barter",0,0,menu, autoItemize=False)
+        if opt==-1:
+            break
+        selected = menu[opt]
+        if selected=="cancel":
+            _change_disposition(ent, -10)
+            return
+        elif selected=="offer item":
+            item = _offer_menu(ent, personality, disposition, pc_offer, style=style)
+            if item:
+                offer(item)
+        elif selected=="request item":
+            item = _request_menu(ent, personality, disposition, npc_offer, style=style)
+            if item:
+                request(item)
+        elif selected=="haggle":
+            delta_money = _haggle_menu(ent, personality, disposition, pc_offer, npc_offer, style=style)
+        
+        
+    # end while
+# end def
+
+def _offer_menu(
+    ent:int, personality:int, disposition:int,
+    pc_offer:list, style=0
+    ):
+    def givefunc(pc, item):
+        # context-sensitive removal of item from your person
+        rog.remove_equipment(pc, item)
+        if rog.world().has_component(item, cmp.Carried):
+            rog.take(pc, item)
+        # give to NPC
+        rog.give(pc, item)
+    item = action._inventory_pc(rog.pc())
+    if item==-1:
+        return False
+
+def _request_menu(
+    ent:int, personality:int, disposition:int,
+    npc_offer:list, style=0
+    ):
+    pass
+    
+def _haggle_menu(
+    ent:int, personality:int, disposition:int,
+    pc_offer:list, npc_offer:list, style=0
+    ):
+    pass
 
 
 # personality compatibility affects annoyance amount
@@ -956,9 +1081,10 @@ def _talk(ent:int, success:bool, ttype:int, personality:int, disposition:int, pa
     # get list of potential string responses
     possible = _get_possible_responses(ttype, personality, ed, padding)
     if (not possible[0] and not possible[1]):
-        return "*NO MESSAGE IMPLEMENTED*"
-    response = _get_response(possible, success)
-    return (_substitute_tags(ent, response), success,)
+        response = "*NO MESSAGE IMPLEMENTED*"
+    else:
+        response = _substitute_tags(ent, _get_response(possible, success))
+    return (response, success,)
 
 def talk_greeting(ent:int, personality:int, disposition:int, value=0, style=0) -> tuple:
     ttype = TALK_GREETING

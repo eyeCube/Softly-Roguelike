@@ -832,10 +832,12 @@ def give(ent,item):
         cooldown(item)
     
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
+    Rogue.world.add_component(ent, cmp.Carried(ent))
 # end def
 
 def take(ent,item):
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.remove(item)
+    Rogue.world.remove_component(ent, cmp.Carried)
 
 def mutate(ent):
     # TODO: do mutation
@@ -1099,6 +1101,24 @@ def kill(ent): #remove a thing from the world
     # cleanup #
     release_entity(ent) #remove dead thing
 # end def
+
+def get_power_level(ent):
+    ''' get perceived strength / power level of an entity
+        Assumes you can assess their stats
+    '''
+    level = 0
+    # stat buffs
+    level += rog.getms(ent, 'idn')//4
+    level += rog.getms(ent, 'str')
+    level += rog.getms(ent, 'con')
+    # fame / infamy raises perception of power
+    level += rog.fame()
+    level -= rog.infamy()
+    # obvious damage to your person reduces perceived power level
+    hpmax = rog.getms(ent,'hpmax')
+    hp = rog.getms(ent,'hp')
+    level -= (hpmax - hp)/hpmax * 20
+    return level
 
 def zombify(ent):
     kill(ent) # temporary
@@ -1427,7 +1447,8 @@ def convert_to_creature(ent, job=None, faction=None, species=None):
 # persons | people | things that speak | init speaker
 def init_person(
     ent, personality=-1,
-    getsAngry=True, getsAnnoyed=True, getsDiabetes=True
+    getsAngry=True, getsAnnoyed=True, getsDiabetes=True,
+    likesMen=False, likesWomen=False
     ):
     if personality==-1: personality = random.choice(MAIN_PERSONALITIES)
     Rogue.world.add_component(ent, cmp.Speaks())
@@ -1436,6 +1457,8 @@ def init_person(
     if getsAngry: Rogue.world.add_component(ent, cmp.GetsAngry())
     if getsAnnoyed: Rogue.world.add_component(ent, cmp.GetsAnnoyed())
     if getsDiabetes: Rogue.world.add_component(ent, cmp.GetsDiabetes())
+    if likesMen: Rogue.world.add_component(ent, cmp.AttractedToMen())
+    if likesWomen: Rogue.world.add_component(ent, cmp.AttractedToWomen())
     
 
     #---------------#
@@ -2099,7 +2122,10 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     grid_remove(item)
     # indicate that the item is equipped using components
     world.add_component(item, cmp.Child(ent))
-    world.add_component(item, cmp.Equipped(ent, equipType))
+    if holdtype:
+        world.add_component(item, cmp.Held(ent, equipType))
+    else:
+        world.add_component(item, cmp.Equipped(ent, equipType))
     if world.has_component(item, cmp.Fitted):
         fitted=world.component_for_entity(item, cmp.Fitted)
         if fitted.entity==ent:
@@ -2143,6 +2169,15 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     
 # end def
 
+def remove_equipment(ent, item):
+    ''' dewield or deequip (context sensitive) '''
+    if rog.world().has_component(item, cmp.Equipped):
+        equipType=rog.world().component_for_entity(item,cmp.Equipped).equipType
+        rog.deequip(item, equipType)
+    elif rog.world().has_component(item, cmp.Held):
+        equipType=rog.world().component_for_entity(item,cmp.Held).equipType
+        rog.dewield(item, equipType)
+        
 def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     
@@ -2230,7 +2265,7 @@ def _dewield(ent, compo):
         return None
     
     world.remove_component(item, cmp.Child)
-    world.remove_component(item, cmp.Equipped)
+    world.remove_component(item, cmp.Held)
     compo.holding = False
     compo.held.item = None
     compo.held.fit = 0

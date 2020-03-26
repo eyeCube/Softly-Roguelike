@@ -108,6 +108,8 @@ def main():
     pos=rog.get(rog.pc(),cmp.Position)
     
     w=rog.create_monster('W',pos.x,pos.y-1)
+    rog.world().add_component(w, cmp.AttractedToMen())
+    rog.world().add_component(w, cmp.AttractedToWomen())
     
      #testing speech
     rog.init_person(w)

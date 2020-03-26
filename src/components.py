@@ -205,7 +205,7 @@ class Talented:
     __slots__=['skill']
     def __init__(self, skill: int):
         self.skill=skill
-class AttractedToMen: #TODO: implement this
+class AttractedToMen:
     __slots__=[]
     def __init__(self):
         pass
@@ -214,6 +214,10 @@ class AttractedToWomen:
     def __init__(self):
         pass
 class FastLearner:
+    __slots__=[]
+    def __init__(self):
+        pass
+class ComboTauntFlattery:
     __slots__=[]
     def __init__(self):
         pass
@@ -1035,7 +1039,12 @@ class BPP_Nucleus:
     grip:       only for armor covering hands/feet/similar BPs
                     this affects how well that appendage can grip
 '''
-class Equipped: # entity has been equipped by someone
+class Held: # entity is being held by someone (wielded in hand)
+    __slots__=['owner','equipType']
+    def __init__(self, owner, equipType):
+        self.owner=owner # entity that has equipped this item
+        self.equipType=equipType   # EQ_ const: slot the item is equipped in
+class Equipped: # entity is being worn by someone (armor)
     __slots__=['owner','equipType']
     def __init__(self, owner, equipType):
         self.owner=owner # entity that has equipped this item

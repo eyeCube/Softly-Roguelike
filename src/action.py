@@ -514,17 +514,32 @@ def _equipment_menu(ent,open_core,open_arms,open_legs,open_heads):
 
 # inventory menu
 def inventory_pc(pc):
+    ''' inventory menu with standard item viewing menu '''
+    inventory_pc_func(pc, _menu_item)
+# end def
+def inventory_pc_func(pc, func):
+    ''' inventory menu with custom function for handling item '''
+    item = _inventory_pc(pc)
+    if item:
+        func(pc, item)
+# end def
+def _inventory_pc(pc):
+    ''' inventory menu -> select an item from inventory '''
     world=rog.world()
     assert(world.has_component(pc, cmp.Inventory))
     pcInv = world.component_for_entity(pc, cmp.Inventory)
     pcn = world.component_for_entity(pc, cmp.Name)
     x=rog.view_port_x()
     y=rog.view_port_y()
+    selected=None
+    item=None
     #   items menu
     item=rog.menu("{}{}'s inventory".format(
         pcn.title,pcn.name), x,y, pcInv.data)
-    
-    #   viewing an item
+    return item
+# end def
+def _menu_item(pc, item):
+    ''' viewing an item, menu for item interaction '''
     if item != -1:
         itemn = world.component_for_entity(item, cmp.Name)
     ##        itemn = world.component_for_entity(item, cmp.Name)
@@ -537,6 +552,7 @@ def inventory_pc(pc):
         if opt == -1: return
         selected=opt.lower()
         _process_selected_item_option(pc, selected, item, rmgcost=True)
+    return (selected, item,)
 # end def
 
 def _getMenuItems_item(item):

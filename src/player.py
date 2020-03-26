@@ -374,7 +374,11 @@ def __init__Chargen():
     Chargen.cancer=False
     Chargen.rapidMetabolism=False
     Chargen.ironGut=False
+    Chargen.immunePoison=False
     Chargen.immuneVenom=False
+    Chargen.immunePain=False
+    Chargen.hemophilia=False
+    Chargen.hiv=False
     Chargen.hydrophobia=False
     Chargen.attractedMen=False
     Chargen.attractedWomen=False
@@ -1070,6 +1074,12 @@ def _select_trait(_trait):
         elif k=="immuneVenom":
             Chargen.immuneVenom=True
             success = True
+        elif k=="immunePoison":
+            Chargen.immunePoison=True
+            success = True
+        elif k=="immunePain":
+            Chargen.immunePain=True
+            success = True
         elif k=="hydrophobia":
             Chargen.hydrophobia=True
             success = True
@@ -1095,10 +1105,10 @@ def _select_trait(_trait):
             success = _select_scar()
                 # body stats
         elif k=="mfat":
-            Chargen.mbodyfat *= v #(TODO: make these change stats in chargen)
+            Chargen.mbodyfat *= v
             success = True
         elif k=="fat":
-            Chargen.bodyfat += v #(TODO: make these change stats in chargen)
+            Chargen.bodyfat += v
             success = True
         elif k=="mgut":
             Chargen.mgut *= v #(TODO: make these change stats in chargen)

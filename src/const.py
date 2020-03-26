@@ -2820,6 +2820,8 @@ MAT_DIAMOND     : ARMOR_HARD,
 #
 # Elements (types of damage)
 #
+MIN_RES = -95   # minimum resistance
+
 i=1;
 ELEM_PHYS   =i;i+=1;
 ELEM_BIO    =i;i+=1;
@@ -3776,25 +3778,19 @@ CHARACTERISTICS={
 "long bones"            : (-2,{'mcm':1.34,'mreach':1.25,'mmsp':1.2,},),
 "masculine"             : (-2,{'cou':16,'idn':16,'str':2,'con':2,},),
 "feminine"              : (-2,{'bea':32,'end':2,'agi':2,},),
-"acclimated to heat"    : (-2,{'resheat':30,},),
-"acclimated to cold"    : (-2,{'rescold':30,},),
-"pain tolerance"        : (-2,{'respain':50,},),
-"strong immune system"  : (-2,{'resbio':50,},),
-"big stomach"           : (-2,{'mgut':3},), # stomach capacity
-"wealthy upbringing"    : (-8,{'money':5000,},),
-"apprentice"            : (-8,{"skillPts":SKILLPOINTS,},),
-"natural physique"      : (-8,{"statPts":STATPOINTS,},),
-"genetically engineered": (-8,{"attPts":ATTRIBUTEPOINTS,},),
-"educated"              : (-4,{'identify':20,},),
+"hemophilia"            : (2, {'resbleed':-50,},),
+"HIV"                   : (2, {'resbio':-75,},),
+"acclimated to heat"    : (-2,{'resheat':50,},),
+"acclimated to cold"    : (-2,{'rescold':50,},),
+"pain tolerance"        : (-2,{'respain':100,},),
+"strong immune system"  : (-2,{'resbio':75,},),
+"immune to pain"        : (-2,{'immunePain':True,},),
+"immune to venom"       : (-2,{'immuneVenom':True},),
+"immune to poison"      : (-2,{'immunePoison':True},),
 "rapid metabolism"      : (-2,{'rapidMetabolism':True,},),
 "iron gut"              : (-2,{'ironGut':True,},),
-"immunity"              : (-2,{'immuneVenom':True},),
 "talented"              : (-2,{'talent':True,},),
 "fast learner"          : (-4,{'fastLearner':True,},),
-"dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
-"obese"                 : (2, {"mmass":1.75,"fat":5,"mfat":2,"end":-2,},),
-"gaunt"                 : (1, {"mmass":0.8,"mfat":0.5,"end":-2,},),
-"astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
 "attracted to men"      : (1, {'attractedMen':True,},),
 "attracted to women"    : (1, {'attractedWomen':True,},),
 "hydrophobia"           : (2, {'hydrophobia':True,},),
@@ -3802,7 +3798,17 @@ CHARACTERISTICS={
 "traumatic childhood"   : (4, {'trauma':True,},),
 "addiction"             : (4, {'addict':True,},),
 "allergy"               : (1, {'allergy':True,},),
-"scarred"               : (0, {'scarred':True,},),
+"scarred"               : (1, {'scarred':True,},),
+"dwarf"                 : (2, {"mcm":0.75,"mreach":0.75,'mmsp':0.83,},),
+"obese"                 : (2, {"mmass":1.75,"fat":5,"mfat":2,"end":-2,},),
+"gaunt"                 : (1, {"mmass":0.8,"mfat":0.5,"end":-2,},),
+"astigmatism"           : (2, {'mvision':0.5,'astigmatism':True,},),
+"big stomach"           : (-2,{'mgut':3},), # stomach capacity
+"wealthy upbringing"    : (-8,{'money':5000,},),
+"apprentice"            : (-8,{"skillPts":SKILLPOINTS,},),
+"natural physique"      : (-8,{"statPts":STATPOINTS,},),
+"genetically engineered": (-8,{"attPts":ATTRIBUTEPOINTS,},),
+"educated"              : (-4,{'identify':20,},),
     }
 CHARACTERISTICS_DESCRIPT={ # TODO: apply these when selecting traits in chargen. Input wait w/ y/n option like "do you want to select this trait?" confirmation
     # TODO: do a similar thing for class selection as well, to give context for what each class is good at / shortcomings etc.
@@ -3827,7 +3833,13 @@ CHARACTERISTICS_DESCRIPT={ # TODO: apply these when selecting traits in chargen.
 "educated"              : '''increased identify stat''',
 "rapid metabolism"      : '''gain energy/water from consumed food and fluids more rapidly; gain overall less energy/water''',
 "iron gut"              : '''increased resistance to ingested poisons''',
-"immunity"              : '''immune to venom''',
+"pain tolerance"        : '''increased resistance to pain''',
+"strong immune system"  : '''increased resistance to bio-hazards''',
+"hemophilia"            : '''decreased resistance to bleeding''',
+"HIV"                   : '''decreased resistance to bio-hazards''',
+"immune to pain"        : '''pain has no effect on you''',
+"immune to venom"       : '''injected venoms have no effect on you''',
+"immune to poison"      : '''ingested poisons have no effect on you''',
 "talented"              : '''<choose> talented in one chosen skill, for which you gain experience more rapidly''',
 "fast learner"          : '''gain experience more rapidly in all skills''',
 "dwarf"                 : '''much shorter; less reach; slower movement speed''',
@@ -4045,6 +4057,7 @@ SHAPE_CURVED        =i;i+=1;
 SHAPE_JAGGED        =i;i+=1;
 SHAPE_RIGHTANGLES   =i;i+=1;
 SHAPE_SILKY         =i;i+=1; # cloth
+SHAPE_STRING        =i;i+=1;
 SHAPE_INDISTINCT    =i;i+=1;
 SHAPE_AMORPHOUS     =i;i+=1;
 # names of shapes, for identification purposes
@@ -4080,6 +4093,7 @@ SHAPE_CURVED        : "curved object",
 SHAPE_JAGGED        : "jagged object",
 SHAPE_RIGHTANGLES   : "right-angled object",
 SHAPE_SILKY         : "silky object",
+SHAPE_STRING        : "rope-like object",
 SHAPE_INDISTINCT    : "indistinct object",
 SHAPE_AMORPHOUS     : "amorphous blob",
     }
@@ -4125,6 +4139,7 @@ ID_GREATCLUB        =i;i+=1;
 ID_PUSHDAGGER       =i;i+=1;
 ID_BATON            =i;i+=1;
 ID_WHIP             =i;i+=1;
+ID_BULLWHIP         =i;i+=1;
 ID_KNUCKLES         =i;i+=1;
 ID_BOOMERANG        =i;i+=1;
 ID_MACHETE          =i;i+=1;
@@ -4280,7 +4295,8 @@ ID_GREATHAMMER      : ("greathammer",SHAPE_TOOL,),
 ID_GREATCLUB        : ("greatclub",SHAPE_CLUB,),
 ID_PUSHDAGGER       : ("pushdagger",SHAPE_TOOL,),
 ID_BATON            : ("baton",SHAPE_STICK,),
-ID_WHIP             : ("whip",SHAPE_INDISTINCT,),
+ID_WHIP             : ("whip",SHAPE_STICK,),
+ID_BULLWHIP         : ("bullwhip",SHAPE_STRING,),
 ID_KNUCKLES         : ("knuckledusters",SHAPE_INDISTINCT,),
 ID_BOOMERANG        : ("boomerang",SHAPE_DISC,),
 ID_MACHETE          : ("machete",SHAPE_TOOL,),

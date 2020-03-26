@@ -20,12 +20,13 @@
 TERM_OF_FLIRTATION={
     "male" : ("hot stuff","cutie","babe","sexy",),
     "female" : ("babe","baby","cutie","pretty lady",),
-    "nonspecific" : ("hot stuff","babe","baby","cutie","sexy",),
+    "nonbinary" : ("hot stuff","babe","baby","cutie","sexy",),
 }
 
 TERM_OF_FRIENDSHIP={
     "male" : ("bro","dude","man",),
     "female" : ("girl","babe","woman",),
+    "nonbinary" : ("bro","dude","guy",),
 }
 
 TERM_OF_ENDEARMENT=(

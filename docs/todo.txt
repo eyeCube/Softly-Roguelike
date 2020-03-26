@@ -17,6 +17,28 @@ todo list (what needs to get done before Softly Into the Night is playable?)
 	map generation
 		
 	
+
+Traits needing implementation:
+	astigmatism
+	cancer
+	rapid metabolism
+	iron gut
+	immune venom
+	immune poison
+	immune pain
+	hydrophobia
+	hemophilia
+	attracted men
+	attracted women
+	fast learner
+	talent
+	trauma
+	addict
+	allergy
+	scarred
+	iron gut
+	
+
 	
 	implement stats:
 		grappling
@@ -27,6 +49,10 @@ todo list (what needs to get done before Softly Into the Night is playable?)
 		
 	augmentations:
 		physical:
+			cyborg joints:
+				* choose one limb to apply to
+				* 100% flexibility
+				* Limb extremely resitant to joint damage and pulling out of socket
 			metal jaw:
 				* bite attack has +4 pen, +2 dmg, +50 bleed,
 				* eating speed 500%

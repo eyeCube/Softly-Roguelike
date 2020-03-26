@@ -2075,9 +2075,13 @@ def _whip(item):
 def _rubberBandWhip(item):
     pass
 def _bullWhip(item):
-    _melee_pain(item, 20)
+    _melee_pain(item, 30)
 def _heavyWhip(item):
-    pass
+    _canThrow(item, acc=-8, rng=6, pen=-12, skill=SKL_ENDOVEREND)
+    _melee_pain(item, 20)
+def _metalWhip(item):
+    _canThrow(item, acc=-10, rng=8, pen=-12, skill=SKL_ENDOVEREND)
+    _melee_pain(item, 75)
 def _pushDagger(item):
     _melee_bleed(item, 3*BLEED_METAL)
     rog.world().add_component(item, cmp.Tool_Cut(6))
@@ -2798,7 +2802,7 @@ def _apply_grease(item):
 #   TEMP METER
 def burn(ent, amt, maxTemp): # heat damage
     assert(amt > 0)
-    res = max(-99, rog.getms(ent, 'resfire'))
+    res = max(MIN_RES, rog.getms(ent, 'resfire'))
     # TODO: heat while wet reduces wetness, may create steam
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -2808,7 +2812,7 @@ def burn(ent, amt, maxTemp): # heat damage
     return dmg # TODO: burns when returned dmg exceeds certain amount
 def cool(ent, amt, minTemp): # cold damage
     assert(amt > 0)
-    res = max(-99, rog.getms(ent, 'rescold'))
+    res = max(MIN_RES, rog.getms(ent, 'rescold'))
     # TODO: wet resistance to cold. Put this logic in _update_stats
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -2832,7 +2836,7 @@ def cool(ent, amt, minTemp): # cold damage
 def hurt(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEPAIN): return 0
-    res = max(-99, rog.getms(ent, 'respain'))
+    res = max(MIN_RES, rog.getms(ent, 'respain'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.pain < MAX_PAIN:
@@ -2851,7 +2855,7 @@ def healhurt(ent, val):
 def bleed(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBLEED): return 0
-    res = max(-99, rog.getms(ent, 'resbleed'))
+    res = max(MIN_RES, rog.getms(ent, 'resbleed'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.bleed < MAX_BLEED:
@@ -2870,7 +2874,7 @@ def healbleed(ent, val):
 def scare(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEFEAR): return 0
-    res = max(-99, rog.getms(ent, 'cou'))
+    res = max(MIN_RES, rog.getms(ent, 'cou'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.fear += max(0, dmg )
@@ -2884,7 +2888,7 @@ def scare(ent, amt):
 def disease(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
@@ -2896,7 +2900,7 @@ def disease(ent, amt):
 def intoxicate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.sick += max(0, dmg )
@@ -2917,7 +2921,7 @@ def healsick(ent, val):
 def irradiate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.rads += max(0, dmg )
@@ -2938,7 +2942,7 @@ def healrads(ent, val):
 def exposure(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     #increase exposure meter
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -2953,7 +2957,7 @@ def exposure(ent, amt):
 def corrode(ent, amt): # acid
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -2965,7 +2969,7 @@ def corrode(ent, amt): # acid
 def cough(ent, amt): # throat irritation
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -2977,7 +2981,7 @@ def cough(ent, amt): # throat irritation
 def vomit(ent, amt): # nausea
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -2989,7 +2993,7 @@ def vomit(ent, amt): # nausea
 def irritate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(-99, rog.getms(ent, 'resbio'))
+    res = max(MIN_RES, rog.getms(ent, 'resbio'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -3011,7 +3015,7 @@ def wet(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEWET): return 0
     world=rog.world()
-    res = max(-99, rog.getms(ent, 'reswet'))
+    res = max(MIN_RES, rog.getms(ent, 'reswet'))
     dmg = amt*100/(res+100)
     meters = world.component_for_entity(ent, cmp.Meters)
     mat = world.component_for_entity(ent, cmp.Form).material
@@ -3037,7 +3041,7 @@ def healwet(ent, val):
 def dirty(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEWET): return 0
-    res = max(-99, rog.getms(ent, 'reswet'))
+    res = max(MIN_RES, rog.getms(ent, 'reswet'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.dirt < MAX_DIRT: # IDEA: slough off excess dirt
@@ -3056,7 +3060,7 @@ def healdirt(ent, val):
 def rust(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNERUST): return 0
-    res = max(-99, rog.getms(ent, 'resrust'))
+    res = max(MIN_RES, rog.getms(ent, 'resrust'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rust < MAX_RUST:
@@ -3075,7 +3079,7 @@ def healrust(ent, val):
 def rot(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEROT): return 0
-    res = max(-99, rog.getms(ent, 'resrot'))
+    res = max(MIN_RES, rog.getms(ent, 'resrot'))
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     if meters.rot < MAX_ROT:
@@ -3095,7 +3099,7 @@ def healrot(ent, val):
 # elemental -> physical damage
 def electrify(ent, amt):
     assert(amt > 0)
-    res = max(-99, rog.getms(ent, 'reselec'))
+    res = max(MIN_RES, rog.getms(ent, 'reselec'))
     dmg = amt*100/(res+100) * 0.1 * MULT_STATS
     if dmg:
         rog.damage(ent, dmg)
@@ -3109,7 +3113,7 @@ def electrify(ent, amt):
 # light damage
 def lightdmg(ent, amt):
     assert(amt > 0)
-    res = max(-99, rog.getms(ent, 'reslight'))
+    res = max(MIN_RES, rog.getms(ent, 'reslight'))
     dmg = amt*100/(res+100)
     if rog.has_sight(ent):
         if dmg >= LIGHT_DMG_THRESHOLD_PERMABLIND:
@@ -6030,16 +6034,18 @@ WEAPONS={ #melee weapons
 "bone tower shield"     :(360,  12.7,320, BONE,32,1, (-2, 3,  -6, -6, 6,  4,  -81,10, -28,9,  100,0.1,14, 8, -7,),SKL_SHIELDS,_towerShield,ID_SHIELD,),
 "metal tower shield"    :(620,  10.8,800, METL,30,1, (-1, 4,  -6, -4, 8,  6,  -75,10, -24,9,  90, 0.1,14, 8, -6,),SKL_SHIELDS,_towerShield,ID_SHIELD,),
 "riot shield"           :(1060, 8.2, 250, PLAS,24,1, (0,  2,  -9, -3, 7,  6,  -69,8,  -20,10, 70, 0.1,14, 8, -5,),SKL_SHIELDS,_towerShield,ID_SHIELD,),
-    # whips / bullwhips   $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
+    # whips / flails      $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
 "rubber flail"          :(2,    0.1, 3,   RUBB,1, 3, (-8, 3,  2,  0,  0,  0,  -51,3,  -1, 0,  1,  0,  -19,0, -1,),None,_rubberBandWhip,ID_RUBBERBAND,),#2h only. This is a heavy metal ball attached to a rubber band like a primitive flail.
 "rubber whip"           :(6,    0.3, 30,  RUBB,3, 5, (4,  1,  0,  0,  0,  0,  -15,2,  -10,1,  7,  1,  -19,-4,0,),SKL_BLUDGEONS,_whip,ID_BATON,),
 "plastic duel whip"     :(2,    1.6, 90,  PLAS,12,2, (2,  2,  2,  0,  0,  0,  -30,3,  -6, 1,  16, 1,  1,  6, 0,),SKL_BLUDGEONS,_heavyWhip,ID_BATON,),
 "leather duel whip"     :(75,   1.45,150, LETH,12,2, (2,  3,  4,  0,  0,  0,  -24,3,  -10,1,  20, 1,  0,  6, 0,),SKL_BLUDGEONS,_heavyWhip,ID_BATON,),
-"leather bullwhip"      :(40,   0.6, 60,  LETH,4, 16,(-5, 4,  2,  0,  0,  0,  -51,2.5,-5, 0,  8,  3,  -15,6, 0,),SKL_BULLWHIPS,_bullWhip,ID_WHIP,),
-"graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, 20,(-2, 5,  5,  0,  0,  0,  -42,2.5,-5, 1,  8,  3,  -16,8, 0,),SKL_BULLWHIPS,_bullWhip,ID_WHIP,),
+"metal whip"            :(90,   0.8, 250, METL,8, 6, (0,  3,  6,  0,  0,  0,  -9, 3,  -12,2,  12, 1,  0,  8, -1,),SKL_BLUDGEONS,_metalWhip,ID_WHIP,),#stinger whip -- for causing pain
+    # bullwhips           $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
+"leather bullwhip"      :(40,   0.6, 60,  LETH,4, 16,(-5, 4,  2,  0,  0,  0,  -51,2.5,-5, 0,  8,  3,  -15,6, 0,),SKL_BULLWHIPS,_bullWhip,ID_BULLWHIP,),
+"graphene bullwhip"     :(7500, 0.5, 1800,CARB,3, 20,(-2, 5,  5,  0,  0,  0,  -42,2.5,-5, 1,  8,  3,  -16,8, 0,),SKL_BULLWHIPS,_bullWhip,ID_BULLWHIP,),
     # swords              $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
-"plastic sword"         :(2,    1.15,20,  PLAS,11,6, (4,  3,  6,  1,  0,  0,  15, 5,  -7, 3,  12, 1,  -1, 6, 0,),SKL_SWORDS,_pSword,ID_SWORD,),
-"wooden sword"          :(22,   1.05,40,  WOOD,10,8, (6,  4,  9,  2,  0,  0,  24, 4,  -6, 4,  10, 1,  -2, 7, 0.5,),SKL_SWORDS,_wSword,ID_SWORD,),
+"plastic sword"         :(2,    1.15,20,  PLAS,11,6, (4,  3,  6,  1,  0,  0,  15, 5,  -7, 3,  14, 1,  -1, 6, 0,),SKL_SWORDS,_pSword,ID_SWORD,),
+"wooden sword"          :(22,   1.05,40,  WOOD,10,8, (6,  4,  9,  2,  0,  0,  24, 4,  -6, 4,  12, 1,  -2, 7, 0.5,),SKL_SWORDS,_wSword,ID_SWORD,),
 "bone sword"            :(51,   0.75,60,  BONE,7, 10,(5,  5,  12, 1,  0,  0,  21, 3,  -5, 4,  8,  1,  -3, 7, 0,),SKL_SWORDS,_bSword,ID_SWORD,),
 "metal sword"           :(65,   1.0, 120, METL,9, 12,(7,  6,  14, 2,  0,  0,  39, 4,  -4, 5,  10, 1,  -3, 8, 1,),SKL_SWORDS,_mSword,ID_SWORD,),
 "diamonite sword"       :(2650, 0.9, 400, CARB,7, 15,(8,  9,  18, 3,  0,  0,  51, 4,  -4, 7,  9,  1,  0,  9, 1,),SKL_SWORDS,_dSword,ID_SWORD,),
