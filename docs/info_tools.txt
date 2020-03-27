@@ -91,11 +91,20 @@ class Tool_Crucible:
 		3:		large amounts of molten metal
 class Tool_Furnace:
 		level 	info
-		1:		can work wood and plastic, can cook food, can fire earthenware
+		1:		can work wood and plastic, can cook food (200-300 degrees F)
 					* a campfire is a level 1 furnace.
-		2: 		can soften to work: metal, glass; fires ceramics, stoneware
-		3: 		melts metal and glass
-		4: 		for working large amounts of metal, fast forging
+		2: 		can cook food (400 degrees F), can fire earthenware
+		3: 		can soften to work: metal, glass; fires ceramics, stoneware
+		4: 		melts metal and glass
+		5: 		for working large amounts of metal, fast forging
+class Tool_Tray:
+		level 	info
+		1:		can eat off of it
+		2:		can cook at low temperatures or in microwave
+		3:		can cook at high temperatures
+		4:		can withstand standard furnace temperatures
+		5:		can withstand hottest furnaces / blast furnaces
+		6:		can withstand direct contact with literal lava
 class Tool_Tongs:
 		level 	info
 		1:		can grasp small hot things
@@ -158,12 +167,13 @@ class Tool_Sharpener:
 		7: 		ceramic (* diamond sharpeners)
 class Tool_File:
 		level	can file:
-		1: 		wood
-		2: 		bone
-		3:		stone
-		4:		metal
-		5:		steel to a very fine edge
-		6: 		ceramic
+		1: 		keratin, chitin, plastic
+		2: 		wood
+		3: 		bone
+		4:		stone
+		5:		metal
+		6:		steel to a very fine edge, metal for fine jobs i.e. saw
+		7: 		ceramic
 class Tool_Grinder:
 		level	can grind:
 		1: 		wood, flesh, plastic

@@ -1,0 +1,59 @@
+
+arrow needs to be the exact right poundage for the bow you're using.
+	Under spined: like a wet noodle
+	Over spined (too stiff): not absorb energy right
+	In both cases you get lowered accuracy
+	To keep things simple, we could have 3 or so different arrow types instead of just 2:
+		light arrow -- small game, light poundage bows <50lbs.
+		standard arrow -- 50 - 100lbs.
+		heavy (war) arrow -- 100-150lbs.
+	Bolts are more forgiving; you can use the same bolts for any poundage of crossbow.
+
+Big feather on fletching: less range but more accuracy.
+
+3-pronged tip:
+	high damage, lower accuracy
+	+ damage to flesh
+	high bleed damage
+	
+A good arrow is very expensive: $40 IRL
+
+40m distance is the farthest away you can be consistently accurate against a human-sized target.
+	75m is a good shot.
+	175m is possible but it's a very impressive, difficult shot
+	
+Equipment / modifications for bows:
+	Bracer on the arm holding bow: + accuracy, no chance to damage own arm w/ release of arrow
+	Arrow release mechanism on loosing hand: + accuracy
+		Or glove: not as good, but better than uncovered hand
+	Sights: + acc
+	Stabilizer: + acc
+	
+Panic fucks up your senses and your coordination big time, especially if you have no muscle memory.
+	Fear: higher the value, lower the ability
+	todo: get_ability func that factors fear, stamina/max, etc.
+	
+Crossbow: accuracy much less dependent on skill level
+	Skill level makes much less of a difference than it does for bows
+	Unskilled users can still accurately fire a crossbow at 100m. Impossible w/ a bow.
+	At level 100 skill, bows are better; at level 0, crossbow are better.
+	Skill points required should be lower: increase Sk Pts req. for most other skills
+		And increase total Sk Pts.
+	
+	
+Getting a bead on target:
+	requires you to focus w/ tunnel vision on the target. Lose peripheral vision and hearing.
+	
+Arrow can over-penetrate and fly completely through a person, even if they're wearing soft armor. Might not even know what happened to you when the arrow hits you.
+Bolts overpenetrate more often than arrows.
+	Can draw bow at half-draw to reduce power.
+	Some crossbows may allow you to draw at reduced power as well.
+	
+Sounds of arrow cutting the air
+	If an arrow flies by you, you can hear it
+
+Sounds in distance:
+	remember the spot where sounds came from (use tilemap memories)
+	location is more accurate the better hearing you have
+	Animals can hear quiet things 200m away precisely!
+	

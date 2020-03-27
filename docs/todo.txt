@@ -4,18 +4,23 @@ bug list
 	CLEARED: when user closes/opens a door, sometimes loses LOS for 1 turn
 
 
+DONE:
+	menu + scrolling
+	throwing
+	inventory
+	
 todo list (what needs to get done before Softly Into the Night is playable?)
 
 	ranged combat
 	targeting specific body parts
-	menu (SEE EXAMPLES)
 	skills
 	crafting
 	augmentations
-	inventory
-		item viewer manager
 	map generation
+	equipment menu
 		
+	throwing at air
+		to do this, create temporary entity that represents an invisible dummy target that we can aim at for the purposes of the target function.
 	
 
 Traits needing implementation:
@@ -119,46 +124,3 @@ How to fix slow Python:
 	numpy/scipy - for dealing with arrays faster without loops
 
 		
-		
-		
-		EXAMPLES:
-		
-	menu:
-		lowercase on top (rn capitals appear first)
-		scrolling or some other method of showing large menus
-			scrolling:
-				Up/Down/PgUp/PgDown/Home/End, same as typical menu navigation
-				clicking takes scrolling into account
-				actual size of menu box never exceeds window height
-					the items in the menu just scroll up and down
-	like this:
-				____________________
-				| pick up what?		|
-				|-------------------|
-			1	|(a) corpse of zom	|
-			2	|(b) corpse of vom	|
-			3	|(c) thingamabob	|
-			4	|(d) whatsihoosit	|
-			5	|(e) thingamajig	|
-			6	|(f) doofuswanker	|
-			7	| < 6 more ... >	|
-				---------------------
-	moved up one:
-				____________________
-				| pick up what?		|
-				|-------------------|
-			1	| < 2 more ... >	|
-			2	|(c) thingamabob	|
-			3	|(d) whatsihoosit	|
-			4	|(e) thingamajig	|
-			5	|(f) doofuswanker	|
-			6	|(g) penisbob		|
-			7	| < 5 more ... >	|
-				---------------------
-	line 6 is now showing a new item, like 1 is obscured (obscuring two items at the top of the list), and every item has been moved up one tile. The top now shows "2 more" and the bottom shows "5 more" instead of "6 more" since only 5 more items remain below the visible portion of the menu. Notice the letters for each menu item DO NOT CHANGE so as to provide a pleasant scrolling experience.
-				
-				
-				
-				
-				
-				

@@ -602,7 +602,7 @@ def _get_skills(compo, showxp=True):
     # alphabetical ordering
     lis=[]
     for const,exp in compo.skills.items():
-        lis.append( (SKILLS[const][1], exp,) )
+        lis.append( (get_skill_name(const), exp,) )
     lis.sort(key = lambda x: x[0]) #, reverse=True
     
     # create string for each skill that is above a certain exp level
@@ -610,7 +610,7 @@ def _get_skills(compo, showxp=True):
         xp=""
         lvl=exp//EXP_LEVEL
         if (showxp and lvl < MAX_SKILL):
-            xp="  | xp. {xp}".format(xp=exp%EXP_LEVEL)
+            xp="  | xp. {xp}%".format(xp=int(100*(exp%EXP_LEVEL)/EXP_LEVEL))
         skills += "{n:>28}: lv. {lv}{xp}\n".format(
             n=name, lv=lvl, xp=xp)
     if skills: skills=skills[:-1] # remove final '\n'
@@ -990,7 +990,7 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
     name=world.component_for_entity(item, cmp.Name)
     if world.has_component(item, cmp.WeaponSkill):
         skillc=world.component_for_entity(item, cmp.WeaponSkill).skill
-        skill=SKILLS[skillc][1]
+        skill=get_skill_name(skillc)
     else:
         skill=""
     

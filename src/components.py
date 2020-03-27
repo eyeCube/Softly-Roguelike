@@ -1396,7 +1396,7 @@ class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, 
     #       Tools           #
     #-----------------------#
 
-       
+
 class Tool_Cut: # cutting pushes material aside, requires a sharp edge. Whittling is also available. Performs the finest work.
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1429,14 +1429,6 @@ class Tool_Chisel: # a chisel and hammer can remove a lot of material in a contr
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Anvil: # anvils bolster the hammer to allow for finer jobs in blacksmithing
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Furnace: # cooking, smelting, forge welding
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
 class Tool_Weld: # the quickest way to fuse two metals together
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1446,10 +1438,6 @@ class Tool_Torch: # fire tool (for burning/melting/force welding tiny things)
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_FireStarter: # match, flint/steel, etc.
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Crucible: # smelting (contains hot materials)
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1557,31 +1545,11 @@ class Tool_Drillbit_f:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Clamp:
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Flask: # chemistry container
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Pouring: # pours liquid better than regular cup-shaped container
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_GraduatedContainer: # measures contained quantity
+class Tool_Clamp: # chemistry tools
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
 class Tool_Thermometer: # measures temperature
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Dropper: # eye dropper / turkey baster
-    __slots__=['quality']
-    def __init__(self, quality: int):
-        self.quality=quality
-class Tool_Syringe:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1593,7 +1561,7 @@ class Tool_ChemistryClamp: # special clamp for chemistry / ring support
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_Cork:
+class Tool_Cork: # for cooking and/or chemistry
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -1601,10 +1569,80 @@ class Tool_Stopper: # like a cork but rubber
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Tool_HeatResistantGloves:
+class Tool_Flask: # chemistry container
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Pouring: # pours liquid better than regular cup-shaped container
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_GraduatedContainer: # measures contained quantity
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Anvil: # anvils bolster the hammer to allow for finer jobs in blacksmithing
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Stove: # cooking
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Furnace: # cooking, smelting, forge welding
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Crucible: # smelting (contains hot materials)
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Dropper: # eye dropper / turkey baster
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Syringe: # for cooking/or and chemistry
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_HeatResistantGloves: # for cooking/or and chemistry
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
+class Tool_LoafPan: # cooking tools
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Tray: # surface for cooking, eating, etc.
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_ChoppingBlock: # surface for cutting, chopping
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Pot: # cooking pot
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
+class Tool_Dehydrator:
+    __slots__=['quality','quantity']
+    def __init__(self, quality: int, quantity:int):
+        self.quality=quality
+        self.quantity=quantity
 class Tool_:
     __slots__=['quality']
     def __init__(self, quality: int):
@@ -1681,7 +1719,7 @@ class Mold_Anvil:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
-class Mold_AnvilSmall:
+class Mold_AnvilLarge:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
@@ -2199,6 +2237,7 @@ Tool_Striker            : 'striker',
 Tool_Chisel             : 'chisel',
 Tool_Anvil              : 'anvil',
 Tool_Furnace            : 'furnace',
+Tool_Stove              : 'stove',
 Tool_Weld               : 'weld',
 Tool_Torch              : 'torch',
 Tool_FireStarter        : 'fire starter',
@@ -2240,6 +2279,9 @@ Tool_Stand              : 'stand',
 Tool_Cork               : 'cork',
 Tool_Stopper            : 'stopper',
 Tool_HeatResistantGloves: 'heat-resistant gloves', #/mittens
+Tool_LoafPan            : 'loaf pan',
+Tool_Tray               : 'tray',
+Tool_ChoppingBlock      : 'cutting board',
 }
 
 # BP -> list of BPPs

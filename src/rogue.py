@@ -646,6 +646,7 @@ def cost_move(xf,yf,xt,yt,data):
 def is_in_grid_x(x):    return (x>=0 and x<ROOMW)
 def is_in_grid_y(y):    return (y>=0 and y<ROOMH)
 def is_in_grid(x,y):    return (x>=0 and x<ROOMW and y>=0 and y<ROOMH)
+def roomtemp(): return 22 #temporary
 
 # view
 def getx(x):        return x + view_port_x() - view_x()
@@ -755,7 +756,8 @@ def setskill(ent, skill, lvl): # set skill level
     skills.skills[skill] = lvl*EXP_LEVEL
     make(ent,DIRTY_STATS)
 def train(ent, skill, pts): # train (improve) skill
-    if getskill(ent, skill) >= MAX_SKILL:
+    level = getskill(ent, skill)
+    if level >= MAX_SKILL:
         return
     # trait bonuses
     if Rogue.world.has_component(ent, cmp.Talented):
@@ -765,27 +767,37 @@ def train(ent, skill, pts): # train (improve) skill
     if Rogue.world.has_component(ent, cmp.FastLearner):
         pts = pts * FASTLEARNER_EXPMOD
     # intelligence bonus to experience
-    pts += around( getms(ent,'int')*pts*EXP_INT_BONUS )
+    pts += around( getms(ent,'int')//MULT_STATS*pts*EXP_INT_BONUS )
     # diminishing returns on skill gainz
-    pts = around( pts - getskill(ent)*EXP_DIMINISH_RATE )
+    pts = around( pts - level*EXP_DIMINISH_RATE )
     # points calculated; try to apply experience
     if pts > 0:
         make(ent,DIRTY_STATS)
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
-        __train(skills, skill, pts)
-def __train(skills, skill, pts): # train one level at a time
+        __train(ent, skills, skill, pts)
+    # level up message
+    if (pc()==ent and getskill(ent, skill) > level):
+        msg("Leveled up {} to {}".format(
+            get_skill_name(skill), getskill(ent, skill)))
+# end def
+def __train(ent, skills, skill, pts): # train one level at a time
     if getskill(ent, skill) >= MAX_SKILL:
         return
     exp = min(pts, EXP_LEVEL)
     skills.skills[skill] = skills.skills.get(skill, 0) + exp
     pts = pts - exp - EXP_DIMINISH_RATE
     if pts > 0:
-        __train(ent, skill, pts)
+        __train(ent, skills, skill, pts)
+# end def
 def forget(ent, skill, pts): # lose skill experience
     assert(Rogue.world.has_component(ent, cmp.Skills))
     skills = Rogue.world.component_for_entity(ent, cmp.Skills)
     skills.skills[skill] = max(0, skills.skills.get(skill, pts) - pts)
     make(ent,DIRTY_STATS)
+# end def
+def get_skill_skillpts(skill): return SKILLS[skill][0]
+def get_skill_learnrate(skill): return SKILLS[skill][1]
+def get_skill_name(skill): return SKILLS[skill][2]
 
 # flags
         # bitwise flags
@@ -1108,15 +1120,15 @@ def get_power_level(ent):
     '''
     level = 0
     # stat buffs
-    level += rog.getms(ent, 'idn')//4
-    level += rog.getms(ent, 'str')
-    level += rog.getms(ent, 'con')
+    level += getms(ent, 'idn')//4
+    level += getms(ent, 'str')
+    level += getms(ent, 'con')
     # fame / infamy raises perception of power
-    level += rog.fame()
-    level -= rog.infamy()
+    level += fame()
+    level -= infamy()
     # obvious damage to your person reduces perceived power level
-    hpmax = rog.getms(ent,'hpmax')
-    hp = rog.getms(ent,'hp')
+    hpmax = getms(ent,'hpmax')
+    hp = getms(ent,'hp')
     level -= (hpmax - hp)/hpmax * 20
     return level
 
@@ -2171,12 +2183,12 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
 
 def remove_equipment(ent, item):
     ''' dewield or deequip (context sensitive) '''
-    if rog.world().has_component(item, cmp.Equipped):
-        equipType=rog.world().component_for_entity(item,cmp.Equipped).equipType
-        rog.deequip(item, equipType)
-    elif rog.world().has_component(item, cmp.Held):
-        equipType=rog.world().component_for_entity(item,cmp.Held).equipType
-        rog.dewield(item, equipType)
+    if world().has_component(item, cmp.Equipped):
+        equipType=world().component_for_entity(item,cmp.Equipped).equipType
+        deequip(item, equipType)
+    elif world().has_component(item, cmp.Held):
+        equipType=world().component_for_entity(item,cmp.Held).equipType
+        dewield(item, equipType)
         
 def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
     body = Rogue.world.component_for_entity(ent, cmp.Body)

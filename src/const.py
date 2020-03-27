@@ -283,6 +283,9 @@ DEATH_ELECTROCUTED  =i;i+=1;
     #   #Crafting    #
     #----------------#
 
+SKILL_CRAFTING_ROLL = 1 # how much does skill level affect crafting ability?
+RECIPE_SOUND_MULTIPLIER=10 # global modifier for sound level of crafting recipes
+
 i=1;
 CRAFTJOB_HACK       =i;i+=1;
 CRAFTJOB_QUICK      =i;i+=1;
@@ -293,15 +296,15 @@ CRAFTJOB_METICULOUS =i;i+=1;
 CRAFTJOB_THESIS     =i;i+=1;
 
 CRAFTJOBS={
-# ID : (name (+" job"), fail, crude, quality, masterpiece,),
+# ID : (name (+" job"), fail, crude, quality, masterpiece, to roll,),
     # multipliers: fail: chance to fail. Crude: chance to make crude item. Quality: chance to make quality item. Masterpiece: chance to make masterpiece item.
-CRAFTJOB_HACK       : ("hack",      10,    15,    _1_16, 0,),
-CRAFTJOB_QUICK      : ("quick",     4,     6,     0.25,  0,),
-CRAFTJOB_NORMAL     : ("normal",    1,     1,     1,     0,),
-CRAFTJOB_DETAILED   : ("detailed",  0.25,  0.25,  5,     _1_16, ),
-CRAFTJOB_FINE       : ("fine",      _1_16, _1_16, 10,    1,),
-CRAFTJOB_METICULOUS : ("meticulous",_1_64, _1_64, 20,    5,),
-CRAFTJOB_THESIS     : ("thesis",    _1_256,_1_256,50,    25,),
+CRAFTJOB_HACK       : ("hack",      10,    15,    _1_16, 0,     -24,),
+CRAFTJOB_QUICK      : ("quick",     4,     6,     0.25,  0,     -12,),
+CRAFTJOB_NORMAL     : ("normal",    1,     1,     1,     0,     0,),
+CRAFTJOB_DETAILED   : ("detailed",  0.25,  0.25,  5,     _1_16, 8,),
+CRAFTJOB_FINE       : ("fine",      _1_16, _1_16, 10,    1,     16,),
+CRAFTJOB_METICULOUS : ("meticulous",_1_64, _1_64, 20,    5,     24,),
+CRAFTJOB_THESIS     : ("thesis",    _1_256,_1_256,50,    25,    32,),
     }
 
 # Crafting Recipe Categories
@@ -336,7 +339,17 @@ CRC_CARTRIDGES      =i;i+=1; #
 i=1;
 CRT_WEAPONS         =i;i+=1;
 CRT_ARMOR           =i;i+=1;
+CRT_HEADWEAR        =i;i+=1;
+CRT_LEGWEAR         =i;i+=1;
+CRT_ARMWEAR         =i;i+=1;
+CRT_FOOTWEAR        =i;i+=1;
+CRT_HANDWEAR        =i;i+=1;
+CRT_FACEWEAR        =i;i+=1;
+CRT_EYEWEAR         =i;i+=1;
+CRT_EARWEAR         =i;i+=1;
+CRT_ABOUTWEAR       =i;i+=1;
 CRT_TOOLS           =i;i+=1;
+CRT_FOOD            =i;i+=1;
 CRT_STUFF           =i;i+=1;
 CRT_RAWMATS         =i;i+=1;
 
@@ -2521,18 +2534,32 @@ TIMES_OF_DAY={ # as ratios of the full length of the day
 # Tastes
 #
 i=1;
-TASTE_NASTY =i;i+=1;
-TASTE_BITTER =i;i+=1;
-TASTE_SWEET =i;i+=1;
-TASTE_SALTY =i;i+=1;
-TASTE_SAVORY =i;i+=1;
+TASTE_NASTY     =i;i+=1;
+TASTE_BITTER    =i;i+=1;
+TASTE_SWEET     =i;i+=1;
+TASTE_SALTY     =i;i+=1;
+TASTE_SAVORY    =i;i+=1;
+TASTE_BLAND     =i;i+=1;
+TASTE_ACIDIC    =i;i+=1; # sour
+TASTE_INEDIBLE  =i;i+=1;
+TASTE_TOOSWEET  =i;i+=1;
+TASTE_TOOSALTY  =i;i+=1;
+TASTE_EXQUISITE =i;i+=1;
+TASTE_SUPERBITTER=i;i+=1;
 
 TASTES = {
-    TASTE_NASTY : "yuck, disgusting!",
+    TASTE_INEDIBLE : "*gag* disgusting!",
+    TASTE_NASTY : "yuck, that tastes nasty!",
     TASTE_BITTER : "ack, bitter.",
-    TASTE_SWEET : "yum, sweet.",
-    TASTE_SALTY : "ack, salty.",
-    TASTE_SAVORY : "mmm... delicious!",
+    TASTE_SUPERBITTER : "ack, that's extremely bitter!",
+    TASTE_SWEET : "yum, sweet!",
+    TASTE_TOOSWEET : "ach! Way too sweet.",
+    TASTE_SALTY : "that's salty.",
+    TASTE_TOOSALTY : "ack, too much salt.",
+    TASTE_SAVORY : "yum, savory!",
+    TASTE_EXQUISITE : "mmm... delicious!",
+    TASTE_BLAND : "it's rather bland.",
+    TASTE_ACIDIC : "sour!",
 }
 
 
@@ -3032,9 +3059,9 @@ AMMO_ANYTHING       =i;i+=1;  # literally anything
 # constants
 SKILL_EFFECTIVENESS_MULTIPLIER = 0.6666667 # higher -> skills have more effect
 SKILL_MAXIMUM       = 100   # max level of skills
-EXP_LEVEL           = 1000  # experience needed to level up skills
+EXP_LEVEL           = 10000  # experience needed to level up skills
 EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
-EXP_INT_BONUS       = 0.008333   # % bonus EXP for skills per INT point
+EXP_INT_BONUS       = 0.08333   # % bonus EXP for skills per INT point
 
 #
 # Skills IDs skills unique IDs skill unique IDs
@@ -3099,16 +3126,19 @@ SKL_SURGERY     =i;i+=1; #stiching, organ/limb removal/transplanting, repairing 
 SKL_MASSAGE     =i;i+=1; #healing muscle/connective tissue using manual working of the tissue
 ##SKL_PERCEPTION  =i;i+=1; #hear exactly what happens, hearing range ++
 # Crafting
-SKL_ASSEMBLY    =i;i+=1; #crafting base skill (should it include firestarting??)
+SKL_ASSEMBLY    =i;i+=1; #crafting base skill
+SKL_FIRESTARTING=i;i+=1; #starting fires
 SKL_COOKING     =i;i+=1; #food prep
 SKL_WOOD        =i;i+=1; #woodcraft and repairing wooden things
 SKL_BONE        =i;i+=1; #bonecraft and repairing bone things
 SKL_PLASTIC     =i;i+=1; #plasticraft and repairing plastic things
 SKL_STONE       =i;i+=1; #stonecraft and repairing stone things
 SKL_GLASS       =i;i+=1; #glasscraft
+SKL_CLAY        =i;i+=1; #ceramicraft (earthenware craft, clay molding,...)
 SKL_METAL       =i;i+=1; #metalcraft and repairing metal things
 SKL_CERAMIC     =i;i+=1; #ceramicraft
 SKL_LEATHER     =i;i+=1; #leatherworking
+SKL_SEWING      =i;i+=1; #sewing cloth
 SKL_BOWYER      =i;i+=1; #
 SKL_FLETCHER    =i;i+=1; #
 SKL_BLADESMITH  =i;i+=1; #making and repairing knives
@@ -3170,79 +3200,82 @@ SKL_TESTER3     =i;i+=1; #
 
 SKILLPOINTS = 16 # max num skill pts user can distribute during chargen -- 60 is evenly divisible by 2, 3, 4, 5, and 6. (but 60 is a lot of points to distribute...)
 ATTRIBUTEPOINTS = 12
-STATPOINTS = 16
+STATPOINTS = 20
 CHARACTERPOINTS = 4
 SKILL_LEVELS_PER_SELECTION = 10
 SKILL_LEVELS_JOB = 30 # starting skill level for given job
 SKILL_INCREQ = 25   # how many skill levels before the skill costs 1 more skill point.
     
-SKILLS={ # ID : (SP,name,)
+SKILLS={ # ID : (SP, Learn_rate, name,)
     # SP = skill points required to learn (in chargen)
-SKL_ARMOR       :(3,'armored combat',),
-SKL_UNARMORED   :(2,'unarmored combat',),
-SKL_SHIELDS     :(2,'shields',),
-SKL_BOXING      :(3,'boxing',),
-SKL_WRESTLING   :(3,'wrestling',),
-SKL_AXES        :(1,'axes, one-handed',),
-SKL_GREATAXES   :(2,'axes, two-handed',),
-SKL_HAMMERS     :(1,'hammers, one-handed',),
-SKL_MALLETS     :(2,'hammers, two-handed',),
-SKL_JAVELINS    :(1,'spears, one-handed',),
-SKL_SPEARS      :(1,'spears, two-handed',),
-SKL_SWORDS      :(2,'swords, one-handed',),
-SKL_LONGSWORDS  :(3,'swords, two-handed',),
-SKL_POLEARMS    :(2,'polearms',),
-SKL_GREATSWORDS :(3,'greatswords',),
-SKL_KNIVES      :(2,'knives',),
-SKL_BLUDGEONS   :(1,'bludgeons',),
-SKL_STAVES      :(1,'staves',),
-SKL_BULLWHIPS   :(1,'bullwhips',),
-SKL_THROWING    :(2,'throwing',),
-SKL_IEDS        :(3,'explosives',),
-SKL_SLINGS      :(1,'slings',),
-SKL_BOWS        :(3,'bows',),
-SKL_CROSSBOWS   :(1,'crossbows',),
-SKL_CANNONS     :(2,'lockguns',),
-SKL_PISTOLS     :(2,'pistols',),
-SKL_RIFLES      :(2,'rifles',),
-SKL_SHOTGUNS    :(2,'shotguns',),
-SKL_SMGS        :(2,'SMGs',),
-SKL_MACHINEGUNS :(3,'machine guns',),
-SKL_HEAVY       :(3,'heavy weapons',),
-SKL_ENERGY      :(4,'energy weapons',),
+SKL_ARMOR       :(3,1.0,'armored combat',),
+SKL_UNARMORED   :(2,1.0,'unarmored combat',),
+SKL_SHIELDS     :(2,2.5,'shields',),
+SKL_BOXING      :(2,1.5,'boxing',),
+SKL_WRESTLING   :(2,1.5,'wrestling',),
+SKL_AXES        :(1,2.0,'axes, one-handed',),
+SKL_GREATAXES   :(2,1.5,'axes, two-handed',),
+SKL_HAMMERS     :(1,1.5,'hammers, one-handed',),
+SKL_MALLETS     :(2,1.5,'hammers, two-handed',),
+SKL_JAVELINS    :(1,3.0,'spears, one-handed',),
+SKL_SPEARS      :(1,4.0,'spears, two-handed',),
+SKL_SWORDS      :(2,1.0,'swords, one-handed',),
+SKL_LONGSWORDS  :(3,1.0,'swords, two-handed',),
+SKL_POLEARMS    :(2,2.0,'polearms',),
+SKL_GREATSWORDS :(3,1.0,'greatswords',),
+SKL_KNIVES      :(2,1.0,'knives',),
+SKL_BLUDGEONS   :(1,4.0,'bludgeons',),
+SKL_STAVES      :(1,2.0,'staves',),
+SKL_BULLWHIPS   :(1,1.0,'bullwhips',),
+SKL_THROWING    :(1,2.0,'throwing',),
+SKL_IEDS        :(4,2.0,'explosives',), # crafting and diffusing
+SKL_SLINGS      :(1,1.0,'slings',),
+SKL_BOWS        :(3,1.0,'bows',),
+SKL_CROSSBOWS   :(1,5.0,'crossbows',),
+SKL_CANNONS     :(1,1.0,'lockguns',),
+SKL_PISTOLS     :(2,2.0,'pistols',),
+SKL_RIFLES      :(2,1.5,'rifles',),
+SKL_SHOTGUNS    :(1,2.5,'shotguns',),
+SKL_SMGS        :(2,1.25,'SMGs',),
+SKL_MACHINEGUNS :(3,1.0,'machine guns',),
+SKL_HEAVY       :(3,1.0,'heavy weapons',),
+SKL_ENERGY      :(4,1.0,'energy weapons',),
 # Physical / Technical Skills
-SKL_ATHLETE     :(2,'athleticism',),
-SKL_STEALTH     :(1,'stealth',),
-SKL_COMPUTERS   :(4,'computers',),
-SKL_PILOT       :(2,'piloting',),
-SKL_PERSUASION  :(2,'persuasion',),
-SKL_CHEMISTRY   :(5,'chemistry',),
-SKL_SURVIVAL    :(1,'survival',),
-SKL_LOCKPICK    :(1,'lockpicking',),
-SKL_MEDICINE    :(3,'medicine',),
-SKL_SURGERY     :(6,'surgery',),
-SKL_MASSAGE     :(2,'massage',),
+SKL_ATHLETE     :(1,1.0,'athleticism',),
+SKL_STEALTH     :(1,1.0,'sneaking',), # stealth and hiding (camo)
+SKL_COMPUTERS   :(2,1.0,'computers',),
+SKL_PILOT       :(2,1.0,'piloting',),
+SKL_PERSUASION  :(2,1.0,'persuasion',),
+SKL_CHEMISTRY   :(4,1.0,'chemistry',),
+SKL_SURVIVAL    :(1,1.0,'survival',),
+SKL_LOCKPICK    :(1,1.0,'lockpicking',),
+SKL_MEDICINE    :(2,1.0,'medicine',),
+SKL_SURGERY     :(3,1.0,'surgery',),
+SKL_MASSAGE     :(1,1.0,'massage',),
 # Crafting Skills
-SKL_ASSEMBLY    :(1,'crafting',),
-SKL_COOKING     :(1,'cooking',),
-SKL_WOOD        :(1,'woodcraft',),
-SKL_BONE        :(1,'bonecraft',),
-SKL_LEATHER     :(2,'leathercraft',),
-SKL_PLASTIC     :(1,'plasticraft',),
-SKL_STONE       :(1,'stonecraft',),
-SKL_GLASS       :(3,'glasscraft',),
-SKL_METAL       :(3,'metalcraft',),
-SKL_BOWYER      :(2,'bowcraft',),
-SKL_FLETCHER    :(1,'fletching',),
-SKL_BLADESMITH  :(3,'bladesmithing',),
-SKL_GUNSMITH    :(3,'gunsmithing',),
-SKL_HARDWARE    :(2,'technosmithing',),
-SKL_MECHANIC    :(2,'autosmithing',),
-SKL_ARMORSMITH  :(3,'armorsmithing',),
-SKL_WELDING     :(2,'welding',),
-##SKL_TESTER1     :(1,'TESTER1',),
-##SKL_TESTER2     :(2,'TESTER2',),
-##SKL_TESTER3     :(3,'TESTER3',),
+SKL_FIRESTARTING:(1,2.0,'fire starting',),
+SKL_ASSEMBLY    :(1,2.0,'crafting',),
+SKL_COOKING     :(1,1.0,'cooking',),
+SKL_WOOD        :(1,2.5,'woodcraft',),
+SKL_BONE        :(1,1.2,'bonecraft',),
+SKL_LEATHER     :(2,1.0,'leathercraft',),
+SKL_SEWING      :(1,2.0,'sewcraft',),
+SKL_PLASTIC     :(1,3.0,'plasticraft',),
+SKL_STONE       :(1,1.0,'stonecraft',),
+SKL_CLAY        :(1,1.5,'ceramicraft',),
+SKL_GLASS       :(3,1.0,'glasscraft',),
+SKL_METAL       :(3,1.0,'metalcraft',),
+SKL_BOWYER      :(2,1.0,'bowcraft',),
+SKL_FLETCHER    :(1,1.0,'fletching',),
+SKL_BLADESMITH  :(3,1.0,'bladesmithing',),
+SKL_GUNSMITH    :(3,1.0,'gunsmithing',),
+SKL_HARDWARE    :(2,1.0,'technosmithing',),
+SKL_MECHANIC    :(2,1.0,'autosmithing',),
+SKL_ARMORSMITH  :(3,1.0,'armorsmithing',),
+SKL_WELDING     :(2,1.0,'welding',),
+##SKL_TESTER1     :(1,1.0,'TESTER1',),
+##SKL_TESTER2     :(2,1.0,'TESTER2',),
+##SKL_TESTER3     :(3,1.0,'TESTER3',),
     }
     
 
@@ -4036,6 +4069,7 @@ SHAPE_DEVICE        =i;i+=1;
 SHAPE_TOOL          =i;i+=1;
 SHAPE_GUN           =i;i+=1;
 SHAPE_SPHERE        =i;i+=1;
+SHAPE_ROUND         =i;i+=1;
 SHAPE_ROCK          =i;i+=1;
 SHAPE_BLOCK         =i;i+=1;
 SHAPE_CYLINDER      =i;i+=1;
@@ -4060,6 +4094,7 @@ SHAPE_SILKY         =i;i+=1; # cloth
 SHAPE_STRING        =i;i+=1;
 SHAPE_INDISTINCT    =i;i+=1;
 SHAPE_AMORPHOUS     =i;i+=1;
+SHAPE_LOAF          =i;i+=1;
 # names of shapes, for identification purposes
 SHAPES={
 SHAPE_WALL          : "wall",
@@ -4072,6 +4107,7 @@ SHAPE_DEVICE        : "device",
 SHAPE_TOOL          : "tool",
 SHAPE_GUN           : "gun",
 SHAPE_SPHERE        : "spherical object",
+SHAPE_ROUND         : "round object",
 SHAPE_ROCK          : "rock-like object",
 SHAPE_BLOCK         : "cubical object",
 SHAPE_CYLINDER      : "cylindrical object",
@@ -4096,6 +4132,7 @@ SHAPE_SILKY         : "silky object",
 SHAPE_STRING        : "rope-like object",
 SHAPE_INDISTINCT    : "indistinct object",
 SHAPE_AMORPHOUS     : "amorphous blob",
+SHAPE_LOAF          : "loaf",
     }
     
 
@@ -4203,10 +4240,21 @@ ID_GAUNTLET         =i;i+=1;
 ID_CLOAK            =i;i+=1; # about
 
 # misc. items
+ID_BAG              =i;i+=1;
 ID_RAG              =i;i+=1;
 ID_RAGS             =i;i+=1; # big rag / cloth
 ID_BANDAGE          =i;i+=1;
 ID_RUBBERBAND       =i;i+=1;
+ID_FLESH            =i;i+=1;
+ID_FUNGUS           =i;i+=1;
+ID_PLANT            =i;i+=1;
+ID_SEEDNUT          =i;i+=1;
+ID_ROOT             =i;i+=1;
+ID_LEAF             =i;i+=1;
+ID_BREAD            =i;i+=1;
+ID_FRUIT            =i;i+=1;
+ID_MRE              =i;i+=1;
+ID_           =i;i+=1;
 
 # tools
 ID_SCALPEL          =i;i+=1;
@@ -4360,10 +4408,20 @@ ID_GAUNTLET         : ("gauntlet",SHAPE_INDISTINCT,),
 ID_CLOAK            : ("cloak",SHAPE_AMORPHOUS,),
 
 # misc. items
+ID_BAG              : ("bag",SHAPE_AMORPHOUS,),
 ID_RAG              : ("rag",SHAPE_AMORPHOUS,),
 ID_RAGS             : ("rags",SHAPE_AMORPHOUS,),
 ID_BANDAGE          : ("bandage",SHAPE_AMORPHOUS,),
 ID_RUBBERBAND       : ("rubber band",SHAPE_INDISTINCT,),
+ID_FLESH            : ("cut of flesh",SHAPE_ORGANIC,),
+ID_FUNGUS           : ("fungus",SHAPE_ORGANIC,),
+ID_PLANT            : ("plant",SHAPE_ORGANIC,),
+ID_SEEDNUT          : ("nut",SHAPE_ROUND,),
+ID_ROOT             : ("root",SHAPE_ORGANIC,),
+ID_LEAF             : ("leaf",SHAPE_ORGANIC,),
+ID_BREAD            : ("bread",SHAPE_LOAF,),
+ID_FRUIT            : ("fruit",SHAPE_ORGANIC,),
+ID_MRE              : ("MRE",SHAPE_BLOCK,),
 
 # tools
 ID_SCALPEL          : ("scalpel",SHAPE_TOOL,),

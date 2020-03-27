@@ -978,8 +978,8 @@ def _chargen_skills():
 
 def _select_skill(_skillID):
     pc=Chargen.pc
-    _skillName = SKILLS[_skillID][1]    
-    _skillPts = SKILLS[_skillID][0] + rog.getskill(pc, _skillID)//SKILL_INCREQ
+    _skillName = rog.get_skill_name(_skillID)    
+    _skillPts = get_skill_skillpts(_skillID) + rog.getskill(pc, _skillID)//SKILL_INCREQ
     if rog.getskill(pc, _skillID) >= MAX_SKILL:
         _maxedSkill(_skillName)
         return False

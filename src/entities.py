@@ -511,6 +511,28 @@ def _sick(actor, n):
 def _drunk(actor, n):
     rog.intoxicate(actor, n)
 
+# contaminated food -- gets the eater sick
+def _contaminated_1(actor):
+    if dice.roll(20) <= 3:
+        rog.disease(actor, 20)
+def _contaminated_2(actor):
+    if dice.roll(20) <= 5:
+        rog.disease(actor, 40)
+def _contaminated_3(actor):
+    if dice.roll(20) <= 8:
+        rog.disease(actor, 60)
+def _contaminated_4(actor):
+    if dice.roll(20) <= 15:
+        rog.disease(actor, 80)
+def _contaminated_5(actor):
+    rog.disease(actor, 100)
+def _contaminated_6(actor):
+    rog.disease(actor, 200)
+def _contaminated_7(actor):
+    rog.disease(actor, 400)
+def _contaminated_8(actor):
+    rog.disease(actor, 800)
+
 
 def _melee_bleed(item, amt):
     if not amt: return
@@ -658,6 +680,23 @@ def _food_ration_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
         func=None, sat=FOOD_RATION, taste=TASTE_SAVORY, ap=FOOD_RATION_NRG
         ))
+def _food_ration_delicacy(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_RATION, taste=TASTE_EXQUISITE, ap=FOOD_RATION_NRG
+        ))
+def _food_ration_tasteless(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_RATION, taste=TASTE_BLAND, ap=FOOD_RATION_NRG
+        ))
+def _food_ration_contaminated_3(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=_contaminated_3, sat=FOOD_RATION, taste=TASTE_BLAND, ap=FOOD_RATION_NRG
+        ))
+def _food_meal_mre(ent):
+    taste=random.choice((TASTE_SAVORY,TASTE_SWEET,TASTE_NASTY,TASTE_SALTY,TASTE_BLAND,))
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MEAL, taste=taste, ap=FOOD_MEAL_NRG
+        ))
 def _food_meal_gamble(ent):
     ran=random.random(10)
     if ran < 2:
@@ -684,11 +723,17 @@ def _food_meal_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
         func=None, sat=FOOD_MEAL, taste=TASTE_SAVORY, ap=FOOD_MEAL_NRG
         ))
+def _food_meal_delicacy(ent):
+    rog.world().add_component(ent, cmp.Edible(
+        func=None, sat=FOOD_MEAL, taste=TASTE_EXQUISITE, ap=FOOD_MEAL_NRG
+        ))
 def _food_bigMeal_savory(ent):
     rog.world().add_component(ent, cmp.Edible(
         func=None, sat=FOOD_BIGMEAL, taste=TASTE_SAVORY, ap=FOOD_BIGMEAL_NRG
         ))
 def _food_cokenut(ent):
+    rog.alts(ent, 'arm', 8*MULT_STATS)
+    rog.alts(ent, 'pro', 12*MULT_STATS)
     def func(ent, eater):
         rog.poison(eater)
     rog.world().add_component(ent, cmp.Edible(
@@ -4252,9 +4297,9 @@ def dehydrate(ent):
 '''
 
 #create a thing from STUFF; does not register thing
-def create_stuff(name, x, y) -> int:
-    typ,mat,val,fgcol,hp,kg,script,idtype = STUFF[name]
+def create_stuff(name, x, y, condition=1) -> int:
     world = rog.world()
+    typ,mat,val,fgcol,hp,kg,script,idtype = STUFF[name]
     if fgcol == "random":
         fgcol = random.choice(list(COL.values()))
     else:
@@ -4266,7 +4311,30 @@ def create_stuff(name, x, y) -> int:
         cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
         cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
-        cmp.Flags(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
+        cmp.Identify(idtype)
+        )
+    _setGenericData(ent, material=mat)
+    _setGenericShape(ent, idtype)
+    script(ent)
+    return ent
+#create a thing from FOOD; does not register thing
+#--Name-------------------$$$,  KG,   Mat, ResRot,script
+def create_food(name, x, y, condition=1) -> int:
+    world = rog.world()
+    name,val,kg,mat,hp,resrot,script,idtype = FOOD[name]
+    fgcol = COL['white']
+    ent = world.create_entity(
+        cmp.Name(name, title=TITLE_THE),
+        cmp.Position(x,y),
+        cmp.Draw(T_FOOD, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form( mat=mat, val=max(1, rog.around(val*MULT_VALUE)) ),
+        cmp.Stats(
+            hp=hp*MULT_STATS,
+            mass=round(kg*MULT_MASS),
+            resrot=resrot),
+        cmp.Meters(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN, IMMUNERUST),
         cmp.Identify(idtype)
         )
     _setGenericData(ent, material=mat)
@@ -4274,7 +4342,7 @@ def create_stuff(name, x, y) -> int:
     script(ent)
     return ent
 #create a thing from RAWMATERIALS; does not register thing
-def create_rawmat(name, x, y) -> int:
+def create_rawmat(name, x, y, condition=1) -> int:
     typ,val,kg,hp,mat,fgcol,script,idtype = RAWMATERIALS[name]
     world = rog.world()
     if fgcol == "random":
@@ -4288,9 +4356,11 @@ def create_rawmat(name, x, y) -> int:
         cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
         cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
         cmp.Meters(),
-        cmp.Flags(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
         cmp.Identify(idtype)
         )
+    if (mat!=MAT_METAL and mat!=MAT_STEEL):
+        rog.make(ent, IMMUNERUST)
     _setGenericData(ent, material=mat)
     _setGenericShape(ent, idtype)
     script(ent)
@@ -4303,9 +4373,7 @@ def create_fluid(x,y,ID,volume) -> int:
     return ent
 
 
-#-----------------#
 # non-weapon gear #
-#-----------------#
 
 def _getGearStatsDict( ent,mass,resbio,resfire,rescold,reselec,
         resphys,resbleed,reslight,ressound,dfn,arm,pro,enc,bal,sight ):
@@ -4327,6 +4395,11 @@ def _getGearStatsDict( ent,mass,resbio,resfire,rescold,reselec,
     if enc==0: enc=1
     rog.world().add_component(ent, cmp.Encumberance(enc))
     return statsDict
+
+def create_aboutarmor(name,x,y,condition=1) -> int:
+    pass #TODO: make this func
+def create_tool(name,x,y,condition=1) -> int:
+    pass #TODO: make this func
 
 #create_armor - create armor item on ARMOR table 
 def create_armor(name,x,y,condition=1) -> int:
@@ -4374,7 +4447,7 @@ def create_armor(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4437,7 +4510,7 @@ def create_headwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4498,7 +4571,7 @@ def create_facewear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_HEADWEAR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4556,7 +4629,7 @@ def create_handwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4613,7 +4686,7 @@ def create_armwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4671,7 +4744,7 @@ def create_legwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4731,7 +4804,7 @@ def create_footwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=T_ARMOR,fgcol=fgcol,bgcol=bgcol) )
     world.add_component(ent, cmp.Form(mat=material, val=value))
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4793,7 +4866,7 @@ def create_weapon(name, x,y, condition=1) -> int:
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
     world.add_component(ent, cmp.Form(mat=material,val=value))
     world.add_component(ent, cmp.Position(x, y))    
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -4877,8 +4950,8 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     world.add_component(ent, cmp.Identify(idtype))
     world.add_component(ent, cmp.Position(x, y))
     world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
-    world.add_component(ent, cmp.Form(mat=material,val=value))    
-    world.add_component(ent, cmp.Flags())
+    world.add_component(ent, cmp.Form(mat=material,val=value))
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
     stats=cmp.Stats(
@@ -5392,25 +5465,31 @@ corpse_recurrence_percent={
 
 
 
-FOOD = {
+FOOD={
 # Columns:
 #   $$$         cost
 #   KG          mass
 #   Mat         material
+#   ResRot      resistance to rotting
 #   script      script to run to initialize values for the food item
-#--Name-------------------$$$,  KG,   Mat,  script
-"Corpse Button"         :(1,    0.03, FLSH, _food_morsel_bloody_nasty,),
-"Hack Leaf"             :(1,    0.02, WOOD, _food_morsel_bitter,),
-"Juniper Berry"         :(3,    0.01, FLSH, _food_morsel_sweet,),
-"Coke Nut"              :(12,   0.02, WOOD, _food_cokenut,),
-"Silly Fruit"           :(8,    0.04, FLSH, _food_sillyfruit,),
-"Mole Rat Meat"         :(10,   0.15, FLSH, _food_ration_savory,),
-"Dwarf Giant Cap"       :(25,   0.05, FLSH, _food_ration_savory,),
-"Eel Meat"              :(20,   0.50, FLSH, _food_meal_savory,),
-"Human Meat"            :(40,   1.00, FLSH, _food_meal_savory,),
-"Infant Meat"           :(80,   0.50, FLSH, _food_meal_savory,),
-"Giant Cap"             :(100,  0.35, FLSH, _food_meal_savory,),
-"MRE"                   :(60,   1.0,  FLSH, _food_meal_gamble,),
+#--Name-------------------$$$,  KG,   Mat, HP,ResRot,script,IDtype
+"corpse button"         :(1,    0.03, FLSH,1, 800, _food_morsel_bloody_nasty,ID_FUNGUS,),
+"hack leaf"             :(1,    0.02, WOOD,4, 100, _food_morsel_bitter,ID_LEAF,),
+"juniper berry"         :(3,    0.01, FLSH,1, 0,   _food_morsel_sweet,ID_FRUIT,),
+"coke nut"              :(12,   0.02, WOOD,1, 1600,_food_cokenut,ID_SEEDNUT,),
+"silly fruit"           :(8,    0.04, FLSH,1, 50,  _food_sillyfruit,ID_FRUIT,),
+"mole rat meat"         :(10,   0.15, FLSH,8, 0,   _food_ration_savory,ID_FLESH,),
+"dwarf giant cap"       :(25,   0.05, FLSH,2, 200, _food_ration_delicacy,ID_FUNGUS,),
+"eel meat"              :(20,   0.50, FLSH,4, 40,  _food_meal_savory,ID_FLESH,),
+"human meat"            :(40,   1.00, FLSH,8, -20, _food_meal_savory,ID_FLESH,),
+"infant meat"           :(80,   0.50, FLSH,2, -40, _food_meal_delicacy,ID_FLESH,),
+"giant cap"             :(100,  0.35, FLSH,4, 400, _food_meal_delicacy,ID_FUNGUS,),
+"MRE, spaghetti"        :(50,   0.7,  PLAS,16,6400,_food_meal_mre,ID_MRE,),
+"MRE, beef tacos"       :(60,   0.6,  PLAS,16,6400,_food_meal_mre,ID_MRE,),
+"MRE, barbeque chicken" :(70,   0.65, PLAS,16,6400,_food_meal_mre,ID_MRE,),
+"dry dough"             :(0.1,  0.13, FLSH,1, 0,   _food_ration_contaminated_3,ID_BREAD,),
+"dough"                 :(0.1,  0.16, FLSH,1, 0,   _food_ration_contaminated_3,ID_BREAD,),
+"hardtack"              :(0.2,  0.11, FLSH,1, 200, _food_ration_tasteless,ID_BREAD,),
     }
 
 STUFF={
