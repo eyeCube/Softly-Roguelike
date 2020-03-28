@@ -650,7 +650,7 @@ def target_pc_generic(pc):
         elif choice=='s':
             xdest=tpos.x
             ydest=tpos.y
-            fire_pc(pc, xdest,ydest)
+            shoot(pc, xdest,ydest)
         # throw weapon in main hand
         elif choice=='t':
             xdest=tpos.x
@@ -1604,63 +1604,72 @@ def throw(ent, xdest,ydest, power=0, item=0):
     prevy=apos.y
     strmult = rog.att_str_mult_force(_str)
     force = (power+1) * strmult * weapforce * rog.getms(weap, 'mass')/MULT_MASS
+    
+    # throw the item at tile tile
+    missile(weap, apos, force=force,atk=atk,dmg=dmg,pen=pen)
+    return True # return success
+# end def
+
+def shoot(ent, xdest,ydest):
+    pass
+
+def missile(ent, dpos, force=1,atk=0,dmg=1,pen=0):
     hitDie=pens=roll=0
     land=None
     _break=None
     hit=False
-    
-    # throw the item at tile tile
-    for (xx,yy,) in rog.line(apos.x,apos.y, tile[0],tile[1]):
+    for (xx,yy,) in rog.line(dpos.x,dpos.y, tile[0],tile[1]):
         if land:
             break
         
         # collision with creature
         mon=rog.monat(xx,yy)
-        if (mon and mon != rog.pc()):
-            # get defender's stats
-            dname=world.component_for_entity(mon, cmp.Name)
-            monpos = world.component_for_entity(mon, cmp.Position)
-            mdfn = rog.getms(dfndr, 'dfn')//MULT_STATS
-            marm = rog.getms(dfndr, 'arm')//MULT_STATS
-            mpro = rog.getms(dfndr, 'pro')//MULT_STATS
-            mhpmax = rog.getms(dfndr, 'hpmax')
-            #
-            
-            # by default, item lands at feet of monster.
-            land=(monpos.x,monpos.y,)
-            
-            # is this our target? If not, incur penalty to accuracy
-            if (mon != dfndr):
-                # higher penalty the further we are from our original target
-                atk -= int(10*rog.dist(xx,yy, tile[0],tile[1]))
+        if (not mon or mon == ent):
+            continue
+        # get defender's stats
+        dname=world.component_for_entity(mon, cmp.Name)
+        monpos = world.component_for_entity(mon, cmp.Position)
+        mdfn = rog.getms(dfndr, 'dfn')//MULT_STATS
+        marm = rog.getms(dfndr, 'arm')//MULT_STATS
+        mpro = rog.getms(dfndr, 'pro')//MULT_STATS
+        mhpmax = rog.getms(dfndr, 'hpmax')
+        #
+        
+        # by default, item lands at feet of monster.
+        land=(monpos.x,monpos.y,)
+        
+        # is this our target? If not, incur penalty to accuracy
+        if (mon != dfndr):
+            # higher penalty the further we are from our original target
+            atk -= int(10*rog.dist(xx,yy, tile[0],tile[1]))
 
-            # penalty to accuracy based on distance
-            excessd = rog.dist(apos.x,apos.y, xx,yy) - rng
-            if excessd:
-                atk -= int(RNG_ATK_PENALTY*excessd)
-            
-            # roll to hit
-            roll=dice.roll(20)
-            hitDie = roll + atk - mdfn
-            if hitDie > 0:
-                hit=True
-                pens, armor = _calc_pens(pen, mpro, marm)
-                _dmg = dmg - armor
-                if _dmg > 0:
-                    rog.collide(weap, 1, mon, _dmg, force)
-                    # bp damage
-                    if world.has_component(mon, cmp.Body):
-                        body = world.component_for_entity(mon, cmp.Body)
-                        bptarget = rog.randombp(body)
-                        skill_type = world.component_for_entity(
-                            weap, cmp.WeaponSkill).skill
-                        bpdmg = _calc_bpdmg(pens, 0, _dmg, mhpmax)
-                        dmgtype = rog.get_dmgtype(0, weap, skill_type)
-                        bpdmg += compo.types[dmgtype]
-                        if bpdmg > 0:
-                            rog.damagebp(bptarget, dmgtype, bpdmg-1)
-                # stick into target (TODO)
-                break
+        # penalty to accuracy based on distance
+        excessd = rog.dist(dpos.x,dpos.y, xx,yy) - rng
+        if excessd:
+            atk -= int(RNG_ATK_PENALTY*excessd)
+        
+        # roll to hit
+        roll=dice.roll(20)
+        hitDie = roll + atk - mdfn
+        if hitDie > 0:
+            hit=True
+            pens, armor = _calc_pens(pen, mpro, marm)
+            _dmg = dmg - armor
+            if _dmg > 0:
+                rog.collide(weap, 1, mon, _dmg, force)
+                # bp damage
+                if world.has_component(mon, cmp.Body):
+                    body = world.component_for_entity(mon, cmp.Body)
+                    bptarget = rog.randombp(body)
+                    skill_type = world.component_for_entity(
+                        weap, cmp.WeaponSkill).skill
+                    bpdmg = _calc_bpdmg(pens, 0, _dmg, mhpmax)
+                    dmgtype = rog.get_dmgtype(0, weap, skill_type)
+                    bpdmg += compo.types[dmgtype]
+                    if bpdmg > 0:
+                        rog.damagebp(bptarget, dmgtype, bpdmg-1)
+            # stick into target (TODO)
+            break
         # end if
         
         # collision with wall
@@ -1670,7 +1679,7 @@ def throw(ent, xdest,ydest, power=0, item=0):
             rog.collide(weap, 1, rog.ent_wall(), 0, force)
         
         # range limit (add a tiny random deviation)
-        elif rog.dist(apos.x,apos.y, xx,yy) > rng + dice.roll(3):
+        elif rog.dist(dpos.x,dpos.y, xx,yy) > rng + dice.roll(3):
             land=(xx,yy,)
         
         # remember previous tile, for collision purposes
@@ -1679,10 +1688,10 @@ def throw(ent, xdest,ydest, power=0, item=0):
     # end for
     
     # does the item land somewhere nearby or break?
-    if _break: # item breaks if possible else lands
+    if breaks: # item breaks if possible else lands
         # if world.has_component(weap, cmp.Breakable):
-            #breakthing()
         rog.port(weap, land[0],land[1]) #(TEMPORARY)
+            #breakthing()
     elif land:
         rog.port(weap, land[0],land[1])
     else: # remove the item from the game world
@@ -1698,10 +1707,7 @@ def throw(ent, xdest,ydest, power=0, item=0):
         ti=TITLES[iname.title],ni=iname.name,
         td=TITLES[dname.title],nd=dname.name,
         result=result))
-    #
-    return True # return success
 # end def
-
     
 
 #######################################################################
@@ -1805,7 +1811,7 @@ def _eat_cancelFunc(ent, qa): # helper func for eat action
         cmp.Draw(draw.char, draw.fgcol, draw.bgcol),
         cmp.Position(pos.x, pos.y),
         cmp.Stats(hp=1, mass=newMass),
-        cmp.Prefixes("partially eaten"), # TODO: make this affect the name display in the UI -> make a global function that gets the full name of an entity including all its components' alterations to the name (stored name != displayed name).
+        cmp.Prefixes(PREFIX_PARTIALLY_EATEN),
         # or should this be just a PartiallyEaten() component?
         )
     

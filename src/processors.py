@@ -108,8 +108,8 @@ class ActionQueue:
     
     @classmethod
     def get(cls, ent):
-        assert(rog.world().has_component(ent, cmp.QueuedAction))
-        return rog.world().component_for_entity(ent, cmp.QueuedAction)
+        assert(rog.world().has_component(ent, cmp.DelayedAction))
+        return rog.world().component_for_entity(ent, cmp.DelayedAction)
     
     @classmethod
     def queue(cls, ent, totalAP, func, data=None, cancelfunc=None):
@@ -123,21 +123,21 @@ class ActionQueue:
                 data    : additional data needed by the job to be completed
                           e.g. the item entity being crafted
         '''
-        rog.world().add_component(ent, cmp.QueuedAction(
+        rog.world().add_component(ent, cmp.DelayedAction(
             totalAP, func, data=data, cancelfunc=cancelfunc ))
 
     @classmethod
-    def interrupt(cls, ent):  # set QueuedAction.interrupted = True
-        assert(rog.world().has_component(ent, cmp.QueuedAction))
+    def interrupt(cls, ent):  # set DelayedAction.interrupted = True
+        assert(rog.world().has_component(ent, cmp.DelayedAction))
         rog.world().component_for_entity(
-            ent, cmp.QueuedAction).interrupted = True
+            ent, cmp.DelayedAction).interrupted = True
         
     @classmethod
-    def resume(cls, ent): # turn a PausedAction into a QueuedAction
+    def resume(cls, ent): # turn a PausedAction into a DelayedAction
         world = rog.world()
         assert(world.has_component(ent, cmp.PausedAction))
         compo = world.component_for_entity(ent, cmp.PausedAction)
-        world.add_component(ent, cmp.QueuedAction(  # copy all vars/
+        world.add_component(ent, cmp.DelayedAction(  # copy all vars/
             compo.ap, compo.func, data=compo.data,  #/from one component/
             cancelfunc=compo.cancelfunc ))          #/to the other
         world.remove_component(ent, cmp.PausedAction)
@@ -164,7 +164,7 @@ class ActionQueue:
     def _finish(cls, ent, qa): # successfully completed job
         ''' call the Action's function and remove the Action '''
         qa.func(ent, qa.data)
-        self.world.remove_component(ent, cmp.QueuedAction)
+        self.world.remove_component(ent, cmp.DelayedAction)
         
     @classmethod
     def _interrupt(cls, ent, qa): # prematurely terminated job
@@ -178,7 +178,7 @@ class ActionQueue:
         if qa.cancelfunc:  #pass in qa.data, qa.ap; possibly modify qa ...
             qa.cancelfunc(ent, qa)  # ... before copying into PausedAction
         self.world.add_component(ent, cmp.PausedAction(qa))
-        self.world.remove_component(ent, cmp.QueuedAction)
+        self.world.remove_component(ent, cmp.DelayedAction)
 # end class
 #
 
@@ -200,7 +200,7 @@ class ActorsProcessor(esper.Processor):
         
         # Action Queues
         for ent, (qa, actor) in self.world.get_components(
-            cmp.QueuedAction, cmp.Actor ):
+            cmp.DelayedAction, cmp.Actor ):
             
             # process interruptions and cancelled / paused jobs
             if qa.interrupted:

@@ -296,15 +296,15 @@ CRAFTJOB_METICULOUS =i;i+=1;
 CRAFTJOB_THESIS     =i;i+=1;
 
 CRAFTJOBS={
-# ID : (name (+" job"), fail, crude, quality, masterpiece, to roll,),
+# ID : (name (+" job"), to roll,)
     # multipliers: fail: chance to fail. Crude: chance to make crude item. Quality: chance to make quality item. Masterpiece: chance to make masterpiece item.
-CRAFTJOB_HACK       : ("hack",      10,    15,    _1_16, 0,     -24,),
-CRAFTJOB_QUICK      : ("quick",     4,     6,     0.25,  0,     -12,),
-CRAFTJOB_NORMAL     : ("normal",    1,     1,     1,     0,     0,),
-CRAFTJOB_DETAILED   : ("detailed",  0.25,  0.25,  5,     _1_16, 8,),
-CRAFTJOB_FINE       : ("fine",      _1_16, _1_16, 10,    1,     16,),
-CRAFTJOB_METICULOUS : ("meticulous",_1_64, _1_64, 20,    5,     24,),
-CRAFTJOB_THESIS     : ("thesis",    _1_256,_1_256,50,    25,    32,),
+CRAFTJOB_HACK       : ("hack",      -24,),
+CRAFTJOB_QUICK      : ("quick",     -12,),
+CRAFTJOB_NORMAL     : ("normal",    0,),
+CRAFTJOB_DETAILED   : ("detailed",  8,),
+CRAFTJOB_FINE       : ("fine",      16,),
+CRAFTJOB_METICULOUS : ("meticulous",24,),
+CRAFTJOB_THESIS     : ("thesis",    32,),
     }
 
 # Crafting Recipe Categories
@@ -2269,8 +2269,10 @@ KO_SPDMOD = 0
 # Tiles
 #
 
+
 FLOOR           =   249     # centered dot
-ROUGH           =   7       # big solid circle
+ROUGH           = 249 + 256
+PIT             =   9       # big 0-looking thing
 SHRUB           =   5       # club
 BRAMBLE         =   6       # spade
 JUNGLE          =   13      # musical note (16th note)
@@ -2301,10 +2303,10 @@ STAIRDOWN       = ord('>')
 #
 
     # ord
+T_MONEY         = ord('$')
 T_TRAP          = ord('!')
 T_DRUG          = ord('?')  # ("magic scroll") equivalent
 T_FUNGUS        = ord('\"')
-T_MONEY         = ord('$')
 T_CORPSE        = ord('%')
 T_FOOD          = ord('&')
 T_SHELTER       = ord('^')
@@ -2470,6 +2472,20 @@ BPINDEX={
     6 : '7th',
     7 : '8th',
 }
+
+
+
+
+
+#
+# prefixes
+#
+i=1;
+PREFIX_PARTIALLY_EATEN      =i;i+=1;
+
+PREFIXES={
+PREFIX_PARTIALLY_EATEN      : "partially eaten",
+    }
 
 
 

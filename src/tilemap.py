@@ -69,7 +69,8 @@ TILES={
 
 # unique const  :      char,      fgcol,     bgcol, enter,leave,opaque,damp
     FLOOR       : Tile(FLOOR,     'neutral', 'deep',    100,0,  False,1,),
-    ROUGH       : Tile(ROUGH,     'dkgreen', 'blue',    150,50, False,1,),
+    PIT         : Tile(PIT,       'purple', 'deep',    100,200,  False,1,),
+    ROUGH       : Tile(FLOOR,     'dkgreen', 'blue',    150,50, False,1,),
     SHRUB       : Tile(SHRUB,     'green',  'vdkgreen', 200,100,False,1,),
     BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 400,200,False,1,),
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen', 900,300,False,2,),
@@ -79,8 +80,8 @@ TILES={
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',   100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',    100,0,  False,1,),
     DOORCLOSED  : Tile(DOORCLOSED,'yellow', 'brown',    0,  100,True,5,),
-    DOOROPEN2   : Tile(LOCKEDOPEN,  'red', 'dkbrown',   100,0,  False,1,),
-    DOORCLOSED2 : Tile(LOCKEDCLOSED,'red', 'dkbrown',   0,  100,True,5,),
+    DOOROPEN2   : Tile(LOCKEDOPEN,  'orange', 'dkbrown',100,0,  False,1,),
+    DOORCLOSED2 : Tile(LOCKEDCLOSED,'orange', 'dkbrown',0,  100,True,5,),
     VAULTOPEN   : Tile(VAULTOPEN, 'metal', 'deep',      100,0,  False,1,),
     VAULTCLOSED : Tile(VAULTCLOSED,'metal', 'deep',     0,  100,True,100,),
     }

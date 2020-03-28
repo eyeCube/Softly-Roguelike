@@ -75,6 +75,8 @@ special additional data that can be provided:
     terrain    : string, what terrain type(s) the recipe must be built on
                     * default: 'any'
                     * "flat" - must be built on flat ground
+                        NOTE: hills/elevation not implemented as of 2020-03-27
+                        as such, there is no need for this flag
                     * "pit" - must be built on a pit (hole)
                     * "water" - must be built in water
     sound      : int, amount of audible noise produced during crafting
@@ -83,24 +85,21 @@ special additional data that can be provided:
                     * default: "sum-minus-byproducts" - total mass of
                         all components, minus the byproducts.
                     * "sum" - total mass of all components.
-                    * "sum_lower" - total mass of all components, minus a percentage.
-                    * "sum_higher" - total mass of all components, plus a percentage.
+                    * "sum-lower" - total mass of all components, minus a percentage.
+                    * "sum-higher" - total mass of all components, plus a percentage.
                     * "fixed" - mass of the item in the table, regardless of component mass
-                    * "fixed_lower" - table lookup minus a percentage
-                    * "fixed_higher" - table lookup minus a percentage
+                    * "fixed-lower" - table lookup minus a percentage
+                    * "fixed-higher" - table lookup minus a percentage
             ** NOTE: in most cases, we divide by the quantity of results.
     durability : string, how is the durability calculated?
                     * default: "average" - the average Hp/HpMax is taken.
                         resulting percentage is applied to the durability looked up on the table.
                     * "loss" - average minus a percentage
                     * "gain" - average plus a little extra
-                    * "weakest_link" - the minimum durability is taken.
-                    * "sum" - simply add Hp/HpMax of all components.
+                    * "weakest-link" - the minimum durability is taken.
                     * "fixed" - table lookup
-                    * "fixed_lower" - table lookup minus a percentage
-                    * "fixed_higher" - table lookup minus a percentage
-                    * "forged" - metal durability becomes 100%, then do default value calculation from there.
-                        - if you forge metal, the metal's damage gets taken away when it melts down and restores to maximum durability.
+                    * "fixed-lower" - table lookup minus a percentage
+                    * "fixed-higher" - table lookup plus a percentage
     value      : string, how is the value calculated?
                     * default: "loss" - sum of costs of raw mats
                         minus the byproducts' value, times 0.8 (lose some value)
@@ -1014,6 +1013,7 @@ RECIPES={
     'skills'    : ((SKL_METAL,15,),),
     'sound'     : 120,
     'construct' : 20,
+    'durability': 'fixed', #TODO: make all forged items fixed durability
     'components': (
         [ ('shard of metal', 1,), ],
         ),
@@ -1347,7 +1347,7 @@ RECIPES={
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,), (SKL_PLASTIC,1,),),
     'construct' : 24,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'components': (
         [ ('plastic bottlecap', 2,), ('plastic tube', 1,), ],
         [ ('parcel of tarp', 1,), ('duct tape', 1,), ('parcel of rubber', 1,),
@@ -1364,7 +1364,7 @@ RECIPES={
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,15,), (SKL_LEATHER,5,),),
     'construct' : 36,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'components': (
         [ ('metal tube', 1,), ],
         [ ('rubber gasket', 1,), ('leather gasket', 1,), ],
@@ -1385,7 +1385,7 @@ RECIPES={
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_METAL,15,),),
     'construct' : 88,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'components': (
         [ ('metal pipe', 1,), ],
         [ ('metal gasket', 1,), ],
@@ -1408,7 +1408,7 @@ RECIPES={
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,1,), (SKL_PLASTIC,1,),),
     'construct' : 4,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'components': (
         [ ('plastic bottle', 1,), ],
         [ ('rubber valve', 1,), ],
@@ -1785,7 +1785,7 @@ RECIPES={
     'sound'     : 120,
     'construct' : 96,
     'celsius'   : 300,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'mass'      : 'fixed',
     'components': ( [ ('chain link, small', 200,), ], ),
     'tools'     : (
@@ -1826,7 +1826,7 @@ RECIPES={
     'sound'     : 120,
     'construct' : 72,
     'celsius'   : 300,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'mass'      : 'fixed',
     'components': ( [ ('chain link', 100,), ], ),
     'tools'     : (
@@ -1865,7 +1865,7 @@ RECIPES={
     'sound'     : 120,
     'construct' : 48,
     'celsius'   : 300,
-    'durability': 'weakest_link',
+    'durability': 'weakest-link',
     'mass'      : 'fixed',
     'components': (
         [ ('chain link, large', 50,), ],
@@ -1968,7 +1968,7 @@ RECIPES={
     'quantity'  : 1,
     'table'     : CRT_STUFF,
     'skills'    : ((SKL_ASSEMBLY,5,),),
-    'durability': 'sum',
+    'durability': 'weakest-link',
     'construct' : 6,
     'components': (
         [ ('pole of plastic', 1,), ('pole of wood', 1,),

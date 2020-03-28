@@ -536,8 +536,8 @@ def fullname(ent):
     
     if world.has_component(ent, cmp.Prefixes):
         compo = world.component_for_entity(ent, cmp.Prefixes)
-        for string in compo.strings:
-            fullname = "{} {}".format(string, fullname)
+        for prefix in compo.strings:
+            fullname = "{} {}".format(PREFIXES[prefix], fullname)
             
     if world.has_component(ent, cmp.StatusRusted):
         compo = world.component_for_entity(ent, cmp.StatusRusted)

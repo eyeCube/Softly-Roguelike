@@ -399,7 +399,7 @@ class Skills:
 ##        self.level = level # int level
 ##        self.experience = experience # int experience CURRENT LEVEL
 
-class QueuedAction:
+class DelayedAction:
 # Queued Actions / Delayed Actions / multi-turn actions / queued jobs / queued tasks / action queue / ActionQueueProcessor
 # Actions that take multiple turns to complete use these components
 # to keep track of the progress and to finish up the task when complete
@@ -407,11 +407,11 @@ class QueuedAction:
 # and is pending its cancellation being processed by ActionQueueProcessor.
     __slots__=['ap','apMax','func','data','cancelfunc',
                'interrupted','elapsed' ]
-    def __init__(self, totalAP, func, data=None, cancelfunc=None):
+    def __init__(self, jobtype, totalAP, func, cancelfunc):
         self.ap=totalAP
         self.apmax=totalAP
         self.func=func # function that runs when action completed. Two parameters: ent, which is the entity calling the function, and data, which is special data about the job e.g. the item being crafted.
-        self.data=data
+        self.jobtype=jobtype # JOB_ const: what type of job?
         self.cancelfunc = cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
         self.elapsed=0 # number of turns elapsed since the job began
         self.interrupted=False # set to True when/if action is interrupted
@@ -424,7 +424,7 @@ class PausedAction: # QueuedAction that has been put on pause
         self.data       = queuedAction.data
         self.cancelfunc = queuedAction.cancelfunc
         self.elapsed    = queuedAction.elapsed
-class QueuedJob:
+class UnfinishedJob:
 # Queued Job / Unfinished job / crafting item:
 # given to the subject of a PausedAction's data
 # when a crafting job is paused, a crafting result item may be created,
@@ -437,12 +437,18 @@ class QueuedJob:
         self.func = func
         self.cancelfunc = cancelfunc
 
+class Crafting:
+    __slots__=['job']
+    def __init__(self, job):
+        self.job=job # data object containing info about crafting job
+
+
 class Prefixes:
-    __slots__=['strings']
+    __slots__=['prefixes']
     def __init__(self, *args):
-        self.strings=[] # string(s) to add to the prefix of the name
+        self.prefixes=[] # PREFIX_ consts to add to the prefix of the name
         for arg in args:
-            self.strings.append(arg)
+            self.prefixes.append(arg)
 
 class CountersRemaining:
     __slots__=['quantity']

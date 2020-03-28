@@ -259,29 +259,29 @@ def get_weapon_skill(gData):        return gData[7]
 def get_weapon_script(gData):       return gData[8]
 def get_weapon_idtype(gData):       return gData[9]
     # ranged weapons
-def get_ranged_ammotype(name):  return RANGEDWEAPONS[name][0]
-def get_ranged_value(name):     return RANGEDWEAPONS[name][1]
-def get_ranged_kg(name):        return RANGEDWEAPONS[name][2]
-def get_ranged_hp(name):        return RANGEDWEAPONS[name][3]
-def get_ranged_mat(name):       return RANGEDWEAPONS[name][4]
-def get_ranged_strReq(name):    return RANGEDWEAPONS[name][5]
-def get_ranged_dexReq(name):    return RANGEDWEAPONS[name][6]
-def get_ranged_capacity(name):  return RANGEDWEAPONS[name][7][0]
-def get_ranged_nShots(name):    return RANGEDWEAPONS[name][7][1]
-def get_ranged_reloadTime(name):return RANGEDWEAPONS[name][7][2]
-def get_ranged_jamChance(name): return RANGEDWEAPONS[name][7][3]
-def get_ranged_minRng(name):    return RANGEDWEAPONS[name][7][4]
-def get_ranged_maxRng(name):    return RANGEDWEAPONS[name][7][5]
-def get_ranged_ratk(name):      return RANGEDWEAPONS[name][7][6]
-def get_ranged_rdmg(name):      return RANGEDWEAPONS[name][7][7]
-def get_ranged_rpen(name):      return RANGEDWEAPONS[name][7][8]
-def get_ranged_dfn(name):       return RANGEDWEAPONS[name][7][9]
-def get_ranged_rasp(name):      return RANGEDWEAPONS[name][7][10]
-def get_ranged_enc(name):       return RANGEDWEAPONS[name][7][11]
-def get_ranged_force(name):     return RANGEDWEAPONS[name][7][12]
-def get_ranged_skill(name):     return RANGEDWEAPONS[name][8]
-def get_ranged_script(name):    return RANGEDWEAPONS[name][9]
-def get_ranged_idtype(name):    return RANGEDWEAPONS[name][10]
+def get_ranged_ammotype(gData):  return gData[0]
+def get_ranged_value(gData):     return gData[1]
+def get_ranged_mass(gData):      return gData[2]
+def get_ranged_hp(gData):        return gData[3]
+def get_ranged_mat(gData):       return gData[4]
+def get_ranged_strReq(gData):    return gData[5]
+def get_ranged_dexReq(gData):    return gData[6]
+def get_ranged_capacity(gData):  return gData[7][0]
+def get_ranged_nShots(gData):    return gData[7][1]
+def get_ranged_reloadTime(gData):return gData[7][2]
+def get_ranged_jamChance(gData): return gData[7][3]
+def get_ranged_minRng(gData):    return gData[7][4]
+def get_ranged_maxRng(gData):    return gData[7][5]
+def get_ranged_ratk(gData):      return gData[7][6]
+def get_ranged_rdmg(gData):      return gData[7][7]
+def get_ranged_rpen(gData):      return gData[7][8]
+def get_ranged_dfn(gData):       return gData[7][9]
+def get_ranged_rasp(gData):      return gData[7][10]
+def get_ranged_enc(gData):       return gData[7][11]
+def get_ranged_force(gData):     return gData[7][12]
+def get_ranged_skill(gData):     return gData[8]
+def get_ranged_script(gData):    return gData[9]
+def get_ranged_idtype(gData):    return gData[10]
     # limb-weapons
 def get_limbweapon_name(data):          return data[0]
 def get_limbweapon_atk(data):           return data[1][0]
@@ -293,6 +293,31 @@ def get_limbweapon_arm(data):           return data[1][5]
 def get_limbweapon_pro(data):           return data[1][6]
 def get_limbweapon_asp(data):           return data[1][7]
 def get_limbweapon_staminacost(data):   return data[1][8]
+    # food
+def get_food_val(data):     return data[0]
+def get_food_mass(data):    return data[1]
+def get_food_mat(data):     return data[2]
+def get_food_hp(data):      return data[3]
+def get_food_resrot(data):  return data[4]
+def get_food_script(data):  return data[5]
+def get_food_idtype(data):  return data[6]
+    # stuff
+def get_stuff_type(data):   return data[0]
+def get_stuff_mat(data):    return data[1]
+def get_stuff_val(data):    return data[2]
+def get_stuff_color(data):  return data[3]
+def get_stuff_hp(data):     return data[4]
+def get_stuff_mass(data):   return data[5]
+def get_stuff_script(data): return data[6]
+    # raw materials
+# name                    type,$$$$,KG,  Dur, Mat, Color,  script, ID
+def get_rawmat_type(data):  return data[0]
+def get_rawmat_val(data):   return data[1]
+def get_rawmat_mass(data):  return data[2]
+def get_rawmat_hp(data):    return data[3]
+def get_rawmat_color(data): return data[4]
+def get_rawmat_script(data):return data[5]
+def get_rawmat_idtype(data):return data[6]
 
 # JOBS #
 def getJobs():
@@ -732,8 +757,8 @@ def _food_bigMeal_savory(ent):
         func=None, sat=FOOD_BIGMEAL, taste=TASTE_SAVORY, ap=FOOD_BIGMEAL_NRG
         ))
 def _food_cokenut(ent):
-    rog.alts(ent, 'arm', 8*MULT_STATS)
-    rog.alts(ent, 'pro', 12*MULT_STATS)
+    rog.sets(ent, 'arm', 8*MULT_STATS)
+    rog.sets(ent, 'pro', 12*MULT_STATS)
     def func(ent, eater):
         rog.poison(eater)
     rog.world().add_component(ent, cmp.Edible(
@@ -4910,30 +4935,32 @@ def create_weapon(name, x,y, condition=1) -> int:
 def create_ranged_weapon(name, x, y, condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
+
+    data = RANGEDWEAPONS[NAME]
     
     # get data
-    ammotype    = get_ranged_ammotype(name)
-    value       = round(get_ranged_value(name)*MULT_VALUE)
-    kg          = round(get_ranged_kg(name)*MULT_MASS)
-    hpmax       = get_ranged_hp(name)
-    material    = get_ranged_mat(name)
-    strReq      = get_ranged_strReq(name)
-    dexReq      = get_ranged_dexReq(name)
-    capacity    = get_ranged_capacity(name)
-    rTime       = get_ranged_reloadTime(name)
-    nShots      = get_ranged_nShots(name)
-    jam         = get_ranged_jamChance(name)
-    minRng      = get_ranged_minRng(name)
-    maxRng      = get_ranged_maxRng(name)
-    rasp        = get_ranged_rasp(name)
-    ratk        = int(get_ranged_ratk(name)*MULT_STATS)
-    rdmg        = int(get_ranged_rdmg(name)*MULT_STATS)
-    rpen        = int(get_ranged_rpen(name)*MULT_STATS)
-    dfn         = int(get_ranged_dfn(name)*MULT_STATS)
-    enc         = get_ranged_enc(name)
-    force       = get_ranged_force(name)
-    skill       = get_ranged_skill(name)
-    script      = get_ranged_script(name)
+    ammotype    = get_ranged_ammotype(data)
+    value       = round(get_ranged_value(data)*MULT_VALUE)
+    kg          = round(get_ranged_mass(data)*MULT_MASS)
+    hpmax       = get_ranged_hp(data)
+    material    = get_ranged_mat(data)
+    strReq      = get_ranged_strReq(data)
+    dexReq      = get_ranged_dexReq(data)
+    capacity    = get_ranged_capacity(data)
+    rTime       = get_ranged_reloadTime(data)
+    nShots      = get_ranged_nShots(data)
+    jam         = get_ranged_jamChance(data)
+    minRng      = get_ranged_minRng(data)
+    maxRng      = get_ranged_maxRng(data)
+    rasp        = get_ranged_rasp(data)
+    ratk        = int(get_ranged_ratk(data)*MULT_STATS)
+    rdmg        = int(get_ranged_rdmg(data)*MULT_STATS)
+    rpen        = int(get_ranged_rpen(data)*MULT_STATS)
+    dfn         = int(get_ranged_dfn(data)*MULT_STATS)
+    enc         = get_ranged_enc(data)
+    force       = get_ranged_force(data)
+    skill       = get_ranged_skill(data)
+    script      = get_ranged_script(data)
     idtype      = get_ranged_idtype(gData)
     
     # AP cost to equip (TODO: get based on mass of weapon / weapon type?)
@@ -5501,6 +5528,12 @@ STUFF={
 ##"metal anvil, large":(10300,200,36999,METL,2000,12,(-20,8,  0,  0, 0, 0, -99,80,),None,),
 ##
 ##    }
+# money             :(type,material,value,color, HP, kg, script,)
+"$1 bill"           :(T_MONEY,CLTH, 1,   'green',1,0.001,None,),
+"$5 bill"           :(T_MONEY,CLTH, 5,   'green',1,0.001,None,),
+"$10 bill"          :(T_MONEY,CLTH, 10,  'green',1,0.001,None,),
+"$20 bill"          :(T_MONEY,CLTH, 20,  'green',1,0.001,None,),
+"$100 bill"         :(T_MONEY,CLTH, 100, 'green',1,0.001,None,),
     # REMOVED: solid, pushable / push : this is now handled by scripts
     # misc mats / mixes of materials / complex objects / variable material objects
 # name              :(type,material,value,color, HP, kg, script,)
