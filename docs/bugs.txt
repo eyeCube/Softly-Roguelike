@@ -18,7 +18,10 @@ NOTES:
 BAD BUGS: 
 
 glitches:
-	- flirt error no dialogue to draw from (bubbly personality 250 disp)
+	- throw from inventory: didn't remove item from inventory but did "throw" it
+		though it also didn't display a message.
+	- grazes message when you can't reach target
+	- can't reach target with hands if you're short
 	- introduction didn't happen when first talking to ent
 	- enemy whipmaster moving VERY slowly
 	- throw no longer working

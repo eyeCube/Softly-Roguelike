@@ -602,7 +602,7 @@ def _get_skills(compo, showxp=True):
     # alphabetical ordering
     lis=[]
     for const,exp in compo.skills.items():
-        lis.append( (get_skill_name(const), exp,) )
+        lis.append( (rog.get_skill_name(const), exp,) )
     lis.sort(key = lambda x: x[0]) #, reverse=True
     
     # create string for each skill that is above a certain exp level

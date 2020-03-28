@@ -114,6 +114,8 @@ def main():
      #testing speech
     rog.init_person(w)
     #
+    e2=rog.create_monster('W',pos.x,pos.y+1)
+    e2=rog.create_monster('W',pos.x,pos.y+2)
     
         
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)

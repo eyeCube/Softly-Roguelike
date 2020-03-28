@@ -884,6 +884,8 @@ def port(ent,x,y):
         do not check for a free space before moving
     '''
     grid_remove(ent)
+    if not Rogue.world.has_component(ent, cmp.Position):
+        Rogue.world.add_component(ent, cmp.Position())
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
     pos.x=x; pos.y=y;
     grid_insert(ent)
@@ -1157,8 +1159,8 @@ _REACHGRIDQUAD=[ #0==origin
     [8, 8, 9, 10,11,99,99,], # grid to calculate if you are in reach.
     [6, 7, 7, 9, 10,12,99,],
     [4, 5, 6, 7, 9, 11,99,],
-    [2, 3, 5, 7, 8, 10,12,],
-    [0, 2, 4, 6, 8, 10,12,],
+    [0, 3, 5, 7, 8, 10,12,],
+    [0, 0, 4, 6, 8, 10,12,],
 ]
 #   *also gives me direct control over reach required for specific range.
 def inreach(x1,y1, x2,y2, reach):
@@ -1528,22 +1530,26 @@ class __randombp_G: # global storage
     total=0 # records total coverage
     #wrapper function to add to total coverage
 def __randombp_cov( # add part to parts, add coverage to total
-    parts:dict, biases:dict, metacov:int, bp_const:int, part
+    parts:dict, bpdata:dict, biases:dict, metacov:int, bpm_const:int,
+    bp_const:int, part:object
     ):
-    amount = around(bpdata[bp_const]/100*metacov + biases.get(part, 0))
-    if amount<=0: return
-    parts[part] = amount
-    __G.total += amount
+##    thiscov:int
+    print("bpm: {}, bp: {}".format(bpm_const, bp_const))
+    thiscov = bpdata[bpm_const][bp_const]/100*metacov + biases.get(part, 0)
+    thiscov = max(1, around(thiscov))
+    parts[part] = thiscov
+    __randombp_G.total += thiscov
 # end def
-def randombp(body, biases=None) -> tuple:
+def randombp(body:cmp.Body, biases=None) -> object:
     ''' get a random body part from body body
         biases of form {BP_ instance : bonus_to_hit}
-        Returns tuple: (part_instance, instance_class,)
+        Returns part
+        ##tuple: (part_instance, instance_class,)
     '''
     __cov = __randombp_cov
     __G = __randombp_G
     __G.total=0
-    parts={}
+    parts={} # {part_instance : (chance,cls,),}
     bpdata=BPM_COVERAGE[body.plan]
     data=BODY_COVERAGE[body.plan]
     if not biases: biases={}
@@ -1552,10 +1558,10 @@ def randombp(body, biases=None) -> tuple:
     coretype=getcoretype(body.plan)
     if coretype==CORETYPE_TORSO:
         metacov = data[BPM_TORSO]
-        parts.update({body.core.core:__cov(BP_CORE,metacov)})
-        parts.update({body.core.hips:__cov(BP_HIPS,metacov)})
-        parts.update({body.core.front:__cov(BP_FRONT,metacov)})
-        parts.update({body.core.back:__cov(BP_BACK,metacov)})
+        __cov(parts,bpdata,biases,metacov,BPM_TORSO,BP_CORE,body.core.core)
+        __cov(parts,bpdata,biases,metacov,BPM_TORSO,BP_HIPS,body.core.hips)
+        __cov(parts,bpdata,biases,metacov,BPM_TORSO,BP_FRONT,body.core.front)
+        __cov(parts,bpdata,biases,metacov,BPM_TORSO,BP_BACK,body.core.back)
     # end if
     
     # parts
@@ -1563,33 +1569,31 @@ def randombp(body, biases=None) -> tuple:
         if cls==cmp.BPC_Arms:
             for arm in bpc.arms:
                 metacov=data[BPM_ARM]
-                __cov(parts,biases,metacov, BP_HAND, arm.hand)
-                __cov(parts,biases,metacov, BP_ARM, arm.arm)
+                __cov(parts,bpdata,biases,metacov,BPM_ARM,BP_HAND,arm.hand)
+                __cov(parts,bpdata,biases,metacov,BPM_ARM,BP_ARM,arm.arm)
         elif cls==cmp.BPC_Legs:
             for leg in bpc.legs:
                 metacov=data[BPM_LEG]
-                __cov(parts,biases,metacov, BP_FOOT, leg.foot)
-                __cov(parts,biases,metacov, BP_LEG, leg.leg)
+                __cov(parts,bpdata,biases,metacov,BPM_LEG,BP_FOOT,leg.foot)
+                __cov(parts,bpdata,biases,metacov,BPM_LEG,BP_LEG,leg.leg)
         elif cls==cmp.BPC_Heads:
             for head in bpc.heads:
                 metacov=data[BPM_HEAD]
-                __cov(parts,biases,metacov, BP_HEAD, head.head)
-                __cov(parts,biases,metacov, BP_FACE, head.face)
-                __cov(parts,biases,metacov, BP_EYES, head.eyes)
-                __cov(parts,biases,metacov, BP_EARS, head.ears)
-                __cov(parts,biases,metacov, BP_MOUTH, head.mouth)
-                __cov(parts,biases,metacov, BP_NECK, head.neck)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_HEAD,head.head)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_FACE,head.face)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_EYES,head.eyes)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_EARS,head.ears)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_MOUTH,head.mouth)
+                __cov(parts,bpdata,biases,metacov,BPM_HEAD,BP_NECK,head.neck)
     # end for
     
     # roll and select a part
     r = dice.roll(__G.total)
     last=0
-    chosenpart=None
-    while not chosenpart:
-        for part,(chance,cls) in parts.items():
-            if (r > last and r <= chance+last):
-                return (part, cls,)
-            last += chance
+    for part,chance in parts.items():
+        if (r > last and r <= chance+last):
+            return part
+        last += chance
     raise Exception("randombp: failed to pick a body part")
 # end def
 # fit
@@ -1704,7 +1708,7 @@ def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP stat
             bpp.status = BONESTATUS_SHATTERED
             return True
         if (status == BONESTATUS_SHATTERED and bpp.status == status ):
-            bpp.status = BONESTATUS_MUTILATED
+            bpp.status = BONESTATUS_MANGLED
             return True
     elif bpptype == BPP_SKIN:
         if (status == SKINSTATUS_RASH and bpp.status == status ):
@@ -2370,6 +2374,12 @@ def off_leg(ent): # get a BPM object
     body = Rogue.world.component_for_entity(ent, cmp.Body)
     bpc = body.parts[cmp.BPC_Legs]
     return bpc.legs[1] # temporary
+        # prompt for item equipped in various body parts
+def is_wielding_mainhand(ent) -> bool:
+    marm = dominant_arm(ent)
+    if (not marm or not marm.hand.held.item):
+        return False
+    return True
 
 def homeostasis(ent): entities.homeostasis(ent)
 def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst) # metabolize
@@ -3412,8 +3422,10 @@ class Aim_Manager_Listener(Manager_Listener):
         self.kwarglist=kwargs # keyword arguments "
     def alert(self, result):
         if type(result) is int: # we have an entity target
+##            print(self.arglist)
+##            print(self.kwarglist)
             self.shootfunc(
-                self.world, self.caller, result,
+                self.caller, result,
                 *self.arglist, **self.kwarglist
                 )
         super(Aim_Manager_Listener, self).alert(result)
