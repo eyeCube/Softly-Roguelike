@@ -2386,7 +2386,59 @@ def metabolism(ent, hunger, thirst=1): entities.metabolism(ent, hunger, thirst) 
 def stomach(ent): entities.stomach(ent)
 def starve(ent): entities.starve(ent)
 def dehydrate(ent): entities.dehydrate(ent)
-        
+
+# ranged weapon management / reloading
+def ranged_ammo_load(rweap:int, ammo_to_load:tuple):
+    compo = Rogue.world.component_for_entity(rweap, cmp.Shootable)
+    loaded = compo.ammo
+    if len(loaded) >= compo.stats['capacity']:
+        return False
+    if not Rogue.world.has_component(rweap, cmp.Ammo):
+        return False
+    ammocompo = Rogue.world.component_for_entity(rweap, cmp.Ammo)
+    if not ammocompo.type in compo.ammoTypes:
+        return False
+    loaded.append(ammo_to_load)
+    return True
+def ranged_action_auto(rweap:int):
+    compo = Rogue.world.component_for_entity(rweap, cmp.Shootable)
+    ammo = compo.ammo.pop(0)
+    # create used cartridge
+    return ammo
+def ranged_action_bolt(rweap:int):
+    compo = Rogue.world.component_for_entity(rweap, cmp.Shootable)
+    ammo = compo.ammo[0]
+    # replace ammo with a used cartridge
+##    compo.ammo[0] = ...
+    return ammo
+def ranged_eject_ammo(rweap:int):
+    pos = getpos(rweap)
+    compo = Rogue.world.component_for_entity(rweap, cmp.Shootable)
+    for ammo in compo.ammo:
+        port(ammo, pos.x,pos.y)
+    compo.ammo = []
+def ranged_attach_mod(rweap:int, mod:int, mod_type:int):
+    compo = Rogue.world.component_for_entity(rweap, cmp.Moddable)
+    if not compo.mods.get(mod_type, None): return False
+    compo.mods[mod_type] = mod # MOD_ const : mod_instance
+    modcompo = Rogue.world.component_for_entity(rweap, cmp.Mod)
+    for k,v in modcompo.mods.items():
+        compo.stats[k] += v
+    # special cases -- flashlights ? Suppressors ?
+      # Should these be handled differently?
+    return True
+def ranged_remove_mod(rweap:int, mod:int, mod_type:int):
+    compo = Rogue.world.component_for_entity(rweap, cmp.Moddable)
+    if not compo.mods.get(mod_type, None): return None
+    mod = compo.mods[mod_type]
+    compo.mods[mod_type] = None
+    modcompo = Rogue.world.component_for_entity(rweap, cmp.Mod)
+    for k,v in modcompo.mods.items():
+        compo.stats[k] -= v
+    # special cases removal
+    return mod
+
+           
 
     #--------------#
     #     Stats    #

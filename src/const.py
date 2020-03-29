@@ -4111,6 +4111,7 @@ SHAPE_STRING        =i;i+=1;
 SHAPE_INDISTINCT    =i;i+=1;
 SHAPE_AMORPHOUS     =i;i+=1;
 SHAPE_LOAF          =i;i+=1;
+SHAPE_FORK          =i;i+=1;
 # names of shapes, for identification purposes
 SHAPES={
 SHAPE_WALL          : "wall",
@@ -4149,6 +4150,7 @@ SHAPE_STRING        : "rope-like object",
 SHAPE_INDISTINCT    : "indistinct object",
 SHAPE_AMORPHOUS     : "amorphous blob",
 SHAPE_LOAF          : "loaf",
+SHAPE_FORK          : "forked object",
     }
     
 
@@ -4270,6 +4272,15 @@ ID_LEAF             =i;i+=1;
 ID_BREAD            =i;i+=1;
 ID_FRUIT            =i;i+=1;
 ID_MRE              =i;i+=1;
+ID_GUNMAGAZINE      =i;i+=1;
+ID_GUNSCOPE         =i;i+=1;
+ID_GUNSTRAP         =i;i+=1;
+ID_GUNSTOCK         =i;i+=1;
+ID_GUNMOD           =i;i+=1;
+ID_FLASHLIGHT       =i;i+=1;
+ID_LASER            =i;i+=1;
+ID_SUPPRESSOR       =i;i+=1;
+ID_BIPOD            =i;i+=1;
 ID_           =i;i+=1;
 
 # tools
@@ -4438,6 +4449,15 @@ ID_LEAF             : ("leaf",SHAPE_ORGANIC,),
 ID_BREAD            : ("bread",SHAPE_LOAF,),
 ID_FRUIT            : ("fruit",SHAPE_ORGANIC,),
 ID_MRE              : ("MRE",SHAPE_BLOCK,),
+ID_GUNMAGAZINE      : ("gun magazine",SHAPE_BLOCK,),
+ID_GUNSCOPE         : ("gun scope",SHAPE_CYLINDER,),
+ID_GUNSTRAP         : ("gun strap",SHAPE_STRING,),
+ID_GUNSTOCK         : ("gun stock",SHAPE_RIGHTANGLES,),
+ID_GUNMOD           : ("gun mod",SHAPE_INDISTINCT,),
+ID_FLASHLIGHT       : ("flashlight",SHAPE_CYLINDER,),
+ID_SUPPRESSOR       : ("suppressor",SHAPE_CYLINDER,),
+ID_LASER            : ("laser pointer",SHAPE_CYLINDER,),
+ID_BIPOD            : ("bipod",SHAPE_FORK,),
 
 # tools
 ID_SCALPEL          : ("scalpel",SHAPE_TOOL,),

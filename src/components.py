@@ -1220,18 +1220,6 @@ class EquipableInLegSlot:
     #------------------#
 
 
-class Ammo: # can be used as ammo
-    __slots__=['type','force','strReq','mods','func']
-    def __init__(self, typ, force=0, strReq=0, func=None, mods=None):
-        self.type=typ   # ammunition type (AMMO_ const)
-        self.strReq=strReq # strength required to shoot the ammo
-        self.force=force # added force the ammo provides (kick and knockback/stagger)
-        self.func=func   # function that runs when you shoot the ammo (makes noise, light, smoke, knocks you back, etc.)
-        if not mods:
-            self.mods={}
-        else:
-            self.mods=mods
-            
 class Usable:
     __slots__=['funcPC','funcNPC','usableFromWorld']
     def __init__(self, funcPC=None, funcNPC=None, usableFromWorld=False):
@@ -1273,17 +1261,6 @@ class Openable:
 ##    def __init__(self, data):
 ##        self.data=data
 
-class Moddable: # for weapons, etc. that can be upgraded using parts like silencers, bayonets, flashlights, magazines, scopes, straps, etc.
-    __slots__=['mods']
-    def __init__(self, mods): # {MOD_BAYONET : {'atk':2,'dmg':6,'pen':12,'asp':30,'reach':1,},},
-        self.mods={} # current modifications -- value of None: no item in the slot.
-
-class Mod: # used to upgrade a Moddable entity
-    __slots__=['type','mods']
-    def __init__(self, _typ, mods):
-        self.type=_typ # MOD_ const
-        self.mods=mods # {stat : modf}
-
 class Quality:
     __slots__=['quality','minimum','maximum']
     def __init__(self, quality=0, minimum=-2, maximum=2):
@@ -1315,28 +1292,50 @@ class Encumberance: # how encumbering it is. Multiplied by kg.
     def __init__(self, value):
         self.value=value
 
+class Moddable: # for weapons, etc. that can be upgraded using parts like silencers, bayonets, flashlights, magazines, scopes, straps, etc.
+    __slots__=['mods']
+    def __init__(self, mods): # {MOD_BAYONET : item,},
+        self.mods={} # current modifications -- value of None: no item in the slot.
+
+class Mod: # used to upgrade a Moddable entity
+    __slots__=['type','mods','ammotype']
+    def __init__(self, _typ, mods, ammotype=None):
+        self.type=_typ # MOD_ const
+        self.ammotype=ammotype # mod only works for weapons w/ this ammo type. None indicates no requirement (works for all ammo types).
+        self.mods=mods # {stat : modf} e.g. {'atk':2,'dmg':6,'pen':12,'asp':30,'reach':1,}
+
+class Ammo: # can be used as ammo
+    __slots__=['type','force','strReq','mods','func']
+    def __init__(self, typ, force=0, strReq=0, func=None, mods=None, n=1):
+        self.type=typ   # ammunition type (AMMO_ const)
+        self.strReq=strReq # strength required to shoot the ammo
+        self.force=force # added force the ammo provides (kick and knockback/stagger)
+        self.func=func   # function that runs when you shoot the ammo (makes noise, light, smoke, knocks you back, etc.)
+        self.nProjectiles=n # number of projectiles fired (>1 for shotgun spread shot, etc.)
+        if not mods:
+            self.mods={}
+        else:
+            self.mods=mods
+            
 class Shootable: # stats for ranged attack go in EquipableInHoldSlot mods
     __slots__=['ammoTypes','ammo','reloadTime','failChance','nShots',
-               'base_capacity','capacity',
-               'base_sights','sights',
-               'base_prone','prone',]
-    def __init__(self, ammotypes,
-                 rtime=0,jam=0,nshots=1,
-                 cap=0,sights=0,prone=0,
-                 func=None):
+               'stats',]
+    def __init__(
+        self, ammotypes,
+        rtime=0,jam=0,nshots=1,cap=0,sights=0,prone=0,func=None
+        ):
         self.ammoTypes=ammotypes # *set* of ammo types that can be used
         self.ammo=[] # ammo currently loaded in the weapon
         self.reloadTime=rtime # time to reload one shot or put/take mag
         self.failChance=jam # int in 1/100ths of a percent (10000==100%)
         self.nShots=nshots # 1==semi. >1 enables burst/auto fire.
-        # stats (modified)
-        self.capacity=cap  # maximum ammo capacity
-        self.sights=sights  # max. Acc bonus you can gain from aiming
-        self.prone=prone  # max. Acc bonus you can gain from lying prone
-        # base stats: w/o modular attachments
-        self.base_capacity=cap
-        self.base_sights=sights
-        self.base_prone=prone
+        self.stats={ # shooting-specific stats
+            'capacity':capacity, #Note: all gun stats represent fully unmodded version -- 1 mag capacity unless has a built-in mag or revolver chamber etc.
+            'sights':sights, #scopes only apply their Atk bonus when you aim at an enemy that is sufficiently far away depending on the weapon type. So at melee range, scopes don't help at all.
+            'prone':prone, #bonus to Atk while prone
+            'atk':0,
+            'noise':0,
+            }
 class Safety: # gun trigger safety mechanism
     __slots__=['status']
     def __init__(self, on=False):
@@ -2419,18 +2418,3 @@ WIELDABLE_BPS={
 
 # RESISTANCE TO THESE THINGS SHOULD BE STORED SEPARATELY. LIKE IN STATS?
 ##        self.res=res        # resistance to getting dirty (max: 100)
-
-
-
-##class Ammo:
-##    def __init__(self, ammoType=0):
-##        self.ammoType=ammoType
-##class UsesAmmo:
-##    __slots__=['ammoType','capacity','reloadTime','jamChance']
-##    def __init__(self, ammoType=0, capacity=1, reloadTime=1, jamChance=0):
-##        self.ammoType=ammoType
-##        self.capacity=capacity
-##        self.reloadTime=reloadTime
-##        self.jamChance=jamChance
-
-      

@@ -1720,7 +1720,7 @@ def missile_attack(
         if hitDie > 0:
             hit=True
             pens, armor = _calc_pens(pen, mpro, marm)
-            _dmg = dmg - armor
+            _dmg = max(0, dmg - armor)
             if _dmg > 0:
                 rog.collide(ent, 1, mon, _dmg, force)
                 # bp damage

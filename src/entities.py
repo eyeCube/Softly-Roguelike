@@ -282,6 +282,17 @@ def get_ranged_force(gData):     return gData[7][12]
 def get_ranged_skill(gData):     return gData[8]
 def get_ranged_script(gData):    return gData[9]
 def get_ranged_idtype(gData):    return gData[10]
+    # gun mods
+def get_mod_type(data):     return data[0]
+def get_mod_ammotype(data): return data[1]
+def get_mod_value(data):    return data[2]
+def get_mod_mass(data):     return data[3]
+def get_mod_enc(data):      return data[4]
+def get_mod_hp(data):       return data[5]
+def get_mod_mat(data):      return data[6]
+def get_mod_statmods(data): return data[7]
+def get_mod_script(data):   return data[8]
+def get_mod_idtype(data):   return data[9]
     # limb-weapons
 def get_limbweapon_name(data):          return data[0]
 def get_limbweapon_atk(data):           return data[1][0]
@@ -384,6 +395,12 @@ def _mod(item, _typ, mods):
         if k in MULTSTATS:
             mods[k] = mods[k] * MULT_STATS
     rog.world().add_component(item, cmp.Mod(_typ, mods))
+    
+def _moddable(item, mod_dict):
+    if Rogue.world.has_component(item, cmp.Moddable):
+        Rogue.world.component_for_entity(item, cmp.Moddable).mods.update(mod_dict)
+    else:
+        Rogue.world.add_component(item, cmp.Moddable(mod_dict))
     
 def _getDefaultAP(mass): # weapon AP cost to wield
     mass=mass//MULT_MASS
@@ -2585,17 +2602,43 @@ def _smg(item):
     _canThrow(item, acc=0, rng=6)
     _weapon(item, acc=1, dmg=6, pen=6, asp=-45)
     _length(item, 30)
+    _moddable(item, {
+        IMOD_SUPPRESSOR : None,
+        IMOD_MAGAZINE : None,
+    })
 def _smgSmall(item):
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=6)
     _weapon(item, acc=1, dmg=5, pen=6, asp=-24)
     _length(item, 20)
+    _moddable(item, {
+        IMOD_MAGAZINE : None,
+    })
+def _smgSmall1(item):
+    _smgSmall(item)
+    _moddable(item, {
+        IMOD_SCOPE : None,
+        IMOD_STRAP : None,
+        IMOD_LASER : None,
+        IMOD_FLASHLIGHT : None,
+        IMOD_SUPPRESSOR : None,
+        })
+def _smgSmall2(item):
+    _smgSmall(item)
+    _moddable(item, {
+        IMOD_STOCK : None,
+        IMOD_LASER : None,
+        IMOD_FLASHLIGHT : None,
+        IMOD_SUPPRESSOR : None,
+        })
 def _smgLarge(item):
     rog.make(item, TWOHANDS)
     rog.world().add_component(item, cmp.Tool_Hammer(1))
     _canThrow(item, acc=0, rng=5)
     _weapon(item, acc=1, dmg=8, pen=6, asp=-36)
     _length(item, 35)
+def _tommyGun(item):
+    _smgLarge(item)
 def _gluGun(item):
     _pistolTiny(item)
     _ambidextrous(item)
@@ -2627,6 +2670,22 @@ def _pLiberator(item):
     _liberator(item, dmg=2, pen=1, rng=12)
 def _mLiberator(item):
     _liberator(item, dmg=4, pen=5, rng=12)
+def _revolver(item):
+    _pistol(item)
+def _beretta(item):
+    _pistolSmall(item)
+    _moddable(item, {
+        IMOD_MAGAZINE : None,
+        IMOD_STOCK : None,
+        IMOD_SUPPRESSOR : None,
+        })
+def _handgun(item):
+    _pistol(item)
+    _moddable(item, {
+        IMOD_MAGAZINE : None,
+        IMOD_FLASHLIGHT : None,
+        IMOD_SUPPRESSOR : None,
+        })
 ##def _revolver(item):
 ##    _canThrow(item, acc=0, rng=10)
 ##    _weapon(item, acc=1, dmg=5, pen=3, asp=-18)
@@ -4935,7 +4994,7 @@ def create_weapon(name, x,y, condition=1) -> int:
 def create_ranged_weapon(name, x, y, condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
-
+    
     data = RANGEDWEAPONS[NAME]
     
     # get data
@@ -5017,6 +5076,55 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     if script: script(ent)
     return ent
 #
+
+# ranged weapon modifiers
+def create_ranged_mod(name, x,y, condition=1) -> int:
+    world = rog.world()
+    ent = world.create_entity()
+    # get weapon data from table
+    data = GUNMODS[name]
+    _type       = T_MISC
+    modtype     = get_mod_type(data)
+    value       = get_mod_value(data)
+    ammotype    = get_mod_ammotype(data)
+    mass        = get_mod_mass(data)
+    enc         = get_mod_enc(data)
+    hpmax       = get_mod_hp(data)
+    material    = get_mod_mat(data)
+    statmods    = get_mod_statmods(data)
+    script      = get_mod_script(data) # TODO: scripts for adding throwable components
+    idtype      = get_mod_idtype(data)
+    #
+    # color
+    fgcol = COL['accent'] #TODO: get color from somewhere else. Material?
+    bgcol = COL['deep']
+    # build entity
+    world.add_component(ent, cmp.Name(name, title=TITLE_THE))
+    world.add_component(ent, cmp.Identify(idtype))
+    world.add_component(ent, cmp.Draw(char=_type,fgcol=fgcol,bgcol=bgcol))
+    world.add_component(ent, cmp.Form(mat=material,val=value))
+    world.add_component(ent, cmp.Position(x, y))    
+    world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
+    world.add_component(ent, cmp.Meters())
+    # stats component
+    stats=cmp.Stats(
+        hp=hpmax,mp=0,mass=mass
+        )
+    stats.hp = rog.around(stats.hpmax * condition)
+    world.add_component(ent, stats)
+    
+    _setGenericData(ent, material=material)
+    _setGenericShape(ent, idtype)
+    
+    # equipable
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
+    world.add_component(ent, cmp.Mod(modtype, statmods, ammotype=ammotype))
+    # script
+    if script: script(ent)
+    return ent
+#
+
 
 # monsters
 def create_monster(_type, x, y, col=None, money=0) -> int:    
@@ -5691,7 +5799,7 @@ AMMUNITION={
 ##"incendiary cartridge"  :(A_CART,36, 0.04,1, (-2, 8,  16, -33,), _incendiary),
     }
 
-GUNMODS={ # TODO: make all gun stats represent fully unmodded version -- 1 mag capacity unless has a built-in mag or revolver chamber.
+GUNMODS={
 ##        Parameters:
 ##AMMO    ammo type (AMMO_ const)
 ##$$$$    cost
@@ -5708,65 +5816,66 @@ GUNMODS={ # TODO: make all gun stats represent fully unmodded version -- 1 mag c
     # In other words, not all modifications are mods of the Stats compo.
     # IDEA: use base_ stats in Shootable component that represent unmodded
     # stats.
-# magazines                     :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"magazine, .22 LR, micro"       :(M_MAG,A_22LR,4,   0.05, 0.2,80, METL,{'nshots':10}),
-"magazine, .22 LR, small"       :(M_MAG,A_22LR,6,   0.05, 0.3,80, METL,{'nshots':15}),
-"magazine, .22 LR"              :(M_MAG,A_22LR,10,  0.08, 0.5,60, METL,{'nshots':25}),
-"magazine, .22 LR, large"       :(M_MAG,A_22LR,15,  0.1,  0.6,50, METL,{'nshots':30}),
-"magazine, .22 LR, drum"        :(M_MAG,A_22LR,50,  0.3,  2,  20, METL,{'nshots':75}),
-"magazine, 9mm, small"          :(M_MAG,A_9MM, 25,  0.07, 0.2,100,METL,{'nshots':12}),
-"magazine, 9mm"                 :(M_MAG,A_9MM, 30,  0.1,  0.4,75, METL,{'nshots':15}),
-"magazine, 9mm, large"          :(M_MAG,A_9MM, 50,  0.2,  0.6,50, METL,{'nshots':30}),
-"magazine, 9mm, drum"           :(M_MAG,A_9MM, 150, 0.5,  2,  20, METL,{'nshots':100}),
-"magazine, 10mm, small"         :(M_MAG,A_10MM,35,  0.14, 0.2,120,METL,{'nshots':9}),
-"magazine, 10mm"                :(M_MAG,A_10MM,40,  0.18, 0.3,80, METL,{'nshots':15}),
-"magazine, 10mm, large"         :(M_MAG,A_10MM,60,  0.26, 0.6,60, METL,{'nshots':30}),
-"magazine, 10mm, drum"          :(M_MAG,A_10MM,180, 0.6,  2,  20, METL,{'nshots':100}),
-"magazine, .45 ACP, micro"      :(M_MAG,A_45,  45,  0.1,  0.2,150,METL,{'nshots':7}),
-"magazine, .45 ACP, small"      :(M_MAG,A_45,  40,  0.15, 0.3,120,METL,{'nshots':12}),
-"magazine, .45 ACP"             :(M_MAG,A_45,  60,  0.2,  0.6,90, METL,{'nshots':30}),
-"magazine, .45 ACP, large"      :(M_MAG,A_45,  80,  0.3,  1.0,45, METL,{'nshots':50}),
-"magazine, .45 ACP, drum"       :(M_MAG,A_45,  220, 0.66, 2.5,25, METL,{'nshots':100}),
-"magazine, .30 carbine, small"  :(M_MAG,A_30,  45,  0.15, 0.3,150,METL,{'nshots':10}),
-"magazine, .30 carbine"         :(M_MAG,A_30,  65,  0.2,  0.5,100,METL,{'nshots':15}),
-"magazine, .30 carbine, large"  :(M_MAG,A_30,  110, 0.3,  0.7,50, METL,{'nshots':30}),
-"magazine, 5.56x45mm, small"    :(M_MAG,A_556, 40,  0.08, 0.1,150,METL,{'nshots':5}),
-"magazine, 5.56x45mm"           :(M_MAG,A_556, 60,  0.17, 0.4,100,METL,{'nshots':20}),
-"magazine, 5.56x45mm, large"    :(M_MAG,A_556, 95,  0.3,  0.7,50, METL,{'nshots':35}),
-"magazine, 5.56x45mm, drum"     :(M_MAG,A_556, 245, 0.8,  2,  30, METL,{'nshots':100}),
-"magazine, 7.62x39mm, small"    :(M_MAG,A_762, 35,  0.1,  0.3,180,METL,{'nshots':15}),
-"magazine, 7.62x39mm"           :(M_MAG,A_762, 70,  0.2,  0.5,120,METL,{'nshots':25}),
-"magazine, 7.62x39mm, large"    :(M_MAG,A_762, 85,  0.25, 0.6,60, METL,{'nshots':30}),
-"magazine, 7.62x39mm, drum"     :(M_MAG,A_762, 260, 0.9,  2,  35, METL,{'nshots':100}),
-"magazine, .308, small"         :(M_MAG,A_308, 45,  0.06, 0.3,200,METL,{'nshots':4}),
-"magazine, .308"                :(M_MAG,A_308, 80,  0.1,  0.5,130,METL,{'nshots':8}),
-"magazine, .308, large"         :(M_MAG,A_308, 140, 0.16, 0.7,80, METL,{'nshots':16}),
-"magazine, .30-06, small"       :(M_MAG,A_3006,50,  0.09, 0.3,220,METL,{'nshots':4}),
-"magazine, .30-06"              :(M_MAG,A_3006,75,  0.12, 0.5,150,METL,{'nshots':6}),
-"magazine, .30-06, large"       :(M_MAG,A_3006,150, 0.15, 0.7,100,METL,{'nshots':12}),
+# magazines                     :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}, script, IDtype
+"magazine, .22 LR, micro"       :(M_MAG,A_22LR,4,   0.05, 0.2,80, METL,{'capacity':10},None,ID_GUNMAGAZINE,),
+"magazine, .22 LR, small"       :(M_MAG,A_22LR,6,   0.05, 0.3,80, METL,{'capacity':15},None,ID_GUNMAGAZINE,),
+"magazine, .22 LR"              :(M_MAG,A_22LR,10,  0.08, 0.5,60, METL,{'capacity':25},None,ID_GUNMAGAZINE,),
+"magazine, .22 LR, large"       :(M_MAG,A_22LR,15,  0.1,  0.6,50, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, .22 LR, drum"        :(M_MAG,A_22LR,50,  0.3,  2,  20, METL,{'capacity':75},None,ID_GUNMAGAZINE,),
+"magazine, 9mm, small"          :(M_MAG,A_9MM, 25,  0.07, 0.2,100,METL,{'capacity':12},None,ID_GUNMAGAZINE,),
+"magazine, 9mm"                 :(M_MAG,A_9MM, 30,  0.1,  0.4,75, METL,{'capacity':15},None,ID_GUNMAGAZINE,),
+"magazine, 9mm, large"          :(M_MAG,A_9MM, 50,  0.2,  0.6,50, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, 9mm, drum"           :(M_MAG,A_9MM, 150, 0.5,  2,  20, METL,{'capacity':100},None,ID_GUNMAGAZINE,),
+"magazine, 10mm, small"         :(M_MAG,A_10MM,35,  0.14, 0.2,120,METL,{'capacity':9},None,ID_GUNMAGAZINE,),
+"magazine, 10mm"                :(M_MAG,A_10MM,40,  0.18, 0.3,80, METL,{'capacity':15},None,ID_GUNMAGAZINE,),
+"magazine, 10mm, large"         :(M_MAG,A_10MM,60,  0.26, 0.6,60, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, 10mm, drum"          :(M_MAG,A_10MM,180, 0.6,  2,  20, METL,{'capacity':100},None,ID_GUNMAGAZINE,),
+"magazine, .45 ACP, micro"      :(M_MAG,A_45,  45,  0.1,  0.2,150,METL,{'capacity':7},None,ID_GUNMAGAZINE,),
+"magazine, .45 ACP, small"      :(M_MAG,A_45,  40,  0.15, 0.3,120,METL,{'capacity':12},None,ID_GUNMAGAZINE,),
+"magazine, .45 ACP"             :(M_MAG,A_45,  60,  0.2,  0.6,90, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, .45 ACP, large"      :(M_MAG,A_45,  80,  0.3,  1.0,45, METL,{'capacity':50},None,ID_GUNMAGAZINE,),
+"magazine, .45 ACP, drum"       :(M_MAG,A_45,  220, 0.66, 2.5,25, METL,{'capacity':100},None,ID_GUNMAGAZINE,),
+"magazine, .30 carbine, small"  :(M_MAG,A_30,  45,  0.15, 0.3,150,METL,{'capacity':10},None,ID_GUNMAGAZINE,),
+"magazine, .30 carbine"         :(M_MAG,A_30,  65,  0.2,  0.5,100,METL,{'capacity':15},None,ID_GUNMAGAZINE,),
+"magazine, .30 carbine, large"  :(M_MAG,A_30,  110, 0.3,  0.7,50, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, 5.56x45mm, small"    :(M_MAG,A_556, 40,  0.08, 0.1,150,METL,{'capacity':5},None,ID_GUNMAGAZINE,),
+"magazine, 5.56x45mm"           :(M_MAG,A_556, 60,  0.17, 0.4,100,METL,{'capacity':20},None,ID_GUNMAGAZINE,),
+"magazine, 5.56x45mm, large"    :(M_MAG,A_556, 95,  0.3,  0.7,50, METL,{'capacity':35},None,ID_GUNMAGAZINE,),
+"magazine, 5.56x45mm, drum"     :(M_MAG,A_556, 245, 0.8,  2,  30, METL,{'capacity':100},None,ID_GUNMAGAZINE,),
+"magazine, 7.62x39mm, small"    :(M_MAG,A_762, 35,  0.1,  0.3,180,METL,{'capacity':15},None,ID_GUNMAGAZINE,),
+"magazine, 7.62x39mm"           :(M_MAG,A_762, 70,  0.2,  0.5,120,METL,{'capacity':25},None,ID_GUNMAGAZINE,),
+"magazine, 7.62x39mm, large"    :(M_MAG,A_762, 85,  0.25, 0.6,60, METL,{'capacity':30},None,ID_GUNMAGAZINE,),
+"magazine, 7.62x39mm, drum"     :(M_MAG,A_762, 260, 0.9,  2,  35, METL,{'capacity':100},None,ID_GUNMAGAZINE,),
+"magazine, .308, small"         :(M_MAG,A_308, 45,  0.06, 0.3,200,METL,{'capacity':4},None,ID_GUNMAGAZINE,),
+"magazine, .308"                :(M_MAG,A_308, 80,  0.1,  0.5,130,METL,{'capacity':8},None,ID_GUNMAGAZINE,),
+"magazine, .308, large"         :(M_MAG,A_308, 140, 0.16, 0.7,80, METL,{'capacity':16},None,ID_GUNMAGAZINE,),
+"magazine, .30-06, small"       :(M_MAG,A_3006,50,  0.09, 0.3,220,METL,{'capacity':4},None,ID_GUNMAGAZINE,),
+"magazine, .30-06"              :(M_MAG,A_3006,75,  0.12, 0.5,150,METL,{'capacity':6},None,ID_GUNMAGAZINE,),
+"magazine, .30-06, large"       :(M_MAG,A_3006,150, 0.15, 0.7,100,METL,{'capacity':12},None,ID_GUNMAGAZINE,),
 ##"magazine, .300 magnum, small"  :
 ##"magazine, .300 magnum"         :
 ##"magazine, .300 magnum, large"  :
-"magazine, .50 BMG, small"      :(M_MAG,A_50,  260, 0.25, 0.3,300,METL,{'nshots':4}),
-"magazine, .50 BMG"             :(M_MAG,A_50,  320, 0.35, 0.6,200,METL,{'nshots':6}),
-"magazine, .50 BMG, large"      :(M_MAG,A_50,  395, 0.5,  1,  100,METL,{'nshots':9}),
+"magazine, .50 BMG, small"      :(M_MAG,A_50,  260, 0.25, 0.3,300,METL,{'capacity':4},None,ID_GUNMAGAZINE,),
+"magazine, .50 BMG"             :(M_MAG,A_50,  320, 0.35, 0.6,200,METL,{'capacity':6},None,ID_GUNMAGAZINE,),
+"magazine, .50 BMG, large"      :(M_MAG,A_50,  395, 0.5,  1,  100,METL,{'capacity':9},None,ID_GUNMAGAZINE,),
 # scopes                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"handgun scope, small"          :(M_PSC,None,  395, 0.3,  0.2,20, METL,{'sights':4,}),#scopes only apply their Atk bonus when you aim at an enemy that is sufficiently far away depending on the weapon type. So at melee range, scopes don't help at all.
-"handgun scope"                 :(M_PSC,None,  525, 0.6,  0.4,15, METL,{'sights':8,}),
-"rifle scope, small"            :(M_RSC,None,  510, 0.7,  0.6,15, METL,{'sights':4,}),
-"rifle scope"                   :(M_RSC,None,  665, 1.1,  0.8,10, METL,{'sights':8,}),
-"rifle scope, large"            :(M_RSC,None,  880, 1.5,  1,  5,  METL,{'sights':12,}),
+"handgun scope, small"          :(M_PSC,None,  395, 0.3,  0.2,20, METL,{'sights':4,},None,ID_SCOPE,),
+"handgun scope"                 :(M_PSC,None,  525, 0.6,  0.4,15, METL,{'sights':8,},None,ID_SCOPE,),
+"rifle scope, small"            :(M_RSC,None,  510, 0.7,  0.6,15, METL,{'sights':4,},None,ID_SCOPE,),
+"rifle scope"                   :(M_RSC,None,  665, 1.1,  0.8,10, METL,{'sights':8,},None,ID_SCOPE,),
+"rifle scope, large"            :(M_RSC,None,  880, 1.5,  1,  5,  METL,{'sights':12,},None,ID_SCOPE,),
 # straps                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"leather gun strap"             :(M_STR,None,  8,   0.2,  0,  20, LETH,{'enc':0.9,}),#enc multiplier
+"plastic gun strap"             :(M_STR,None,  0.5, 0.4, -0.5,10, PLAS,{},None,ID_GUNSTRAP,),
+"leather gun strap"             :(M_STR,None,  8,   0.2, -1.5,60, LETH,{},None,ID_GUNSTRAP,),
 # stocks                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"metal folding stock"           :(M_STO,None,  60,  0.6,  0.5,120,METL,{'atk':2,}),
-"wooden stock"                  :(M_STO,None,  8,   0.8,  1,  80, WOOD,{'atk':3,}),
+"metal folding stock"           :(M_STO,None,  60,  0.6,  0.5,120,METL,{'atk':2,},None,ID_GUNSTOCK,),
+"wooden stock"                  :(M_STO,None,  8,   0.8,  1,  80, WOOD,{'atk':3,},None,ID_GUNSTOCK,),
 # bipods                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"metal folding bipod"           :(M_BIP,None,  90,  0.55, 0.4,160,METL,{'prone':4,}),
+"metal folding bipod"           :(M_BIP,None,  90,  0.55, 0.4,160,METL,{'prone':4,},None,ID_BIPOD,),
 # lights                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"metal gun flashlight"          :(M_FLA,None,  22,  0.07, 0.1,30, METL,{}),#light is applied differently: adds a DirectedLight component; it automatically updates to face the direction of the wielder b/c of being a Child of the wielder.
+"metal gun flashlight"          :(M_FLA,None,  22,  0.07, 0.1,30, METL,{},None,ID_FLASHLIGHT,),#light is applied differently: adds a DirectedLight component; it automatically updates to face the direction of the wielder b/c of being a Child of the wielder.
 # suppressors                   :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"metal suppressor"              :(M_SUP,None,  625, 0.25, 0.2,75, METL,{'noise':0.2,}),
+"metal suppressor"              :(M_SUP,None,  625, 0.25, 0.2,75, METL,{},None,ID_SUPPRESSOR,),# suppressors applied differently (? Should they be??)
     }
 
 RANGEDWEAPONS={
@@ -5799,12 +5908,12 @@ RANGEDWEAPONS={
 "2ga shotgun"           :(A_2GA, 1100, 12.0,475,WOOD,36,2, (1, 1,160,1,  5,  18, 2, 50,0, -12,-96,13, 4000,),SKL_SHOTGUNS,_2GAshotgun,ID_SHOTGUN,),
     # pistols and revolvers (9mm, .45ACP, 10mm, .357 magnum, 22LR)
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
-"pea shooter"           :(A_22LR,90,   0.8, 60, METL,1, 5, (1, 1,100,950,1,  8,  6, 1, 6, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# double-barrel is a mod, adds .1KG and +1 Capacity
-"derringer"             :(A_22LR,135,  0.7, 90, METL,2, 7, (1, 1,100,300,1,  12, 4, 2, 4, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# double-barrel is a mod, adds .1KG and +1 Capacity
+"pea shooter"           :(A_22LR,90,   0.8, 60, METL,1, 5, (1, 1,100,950,1,  8,  6, 1, 6, 0,  -30,2,  10,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# can be double-barrel, adds .1KG and +1 Capacity
+"derringer"             :(A_22LR,135,  0.7, 90, METL,2, 7, (1, 1,100,300,1,  12, 4, 2, 4, 0,  0,  1.5,20,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),# can be double-barrel, adds .1KG and +1 Capacity
 "9mm glu gun"           :(A_9MM, 85,   0.4, 600,PLAS,10,10,(1, 1,700,1200,1, 6,  -6,0, 4, 0,  0,  1.5,50,),SKL_PISTOLS,_gluGun,ID_PISTOL,),
-"9mm revolver"          :(A_9MM, 740,  1.15,630,METL,8, 8, (6, 1,100,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_pistol,ID_PISTOL,),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
+"9mm revolver"          :(A_9MM, 740,  1.15,630,METL,8, 8, (6, 1,100,200,1,  24, 6, 3, 12,0,  15, 2,  200,),SKL_PISTOLS,_revolver,ID_PISTOL,),#can use 9mm ammo only; 357 magnum revolver can use .357 OR 9mm ammo.
 "9mm handgun"           :(A_9MM, 3750, 0.9, 520,METL,4, 5, (1, 1,100,50, 1,  46, 9, 4, 14,0,  45, 2,  100,),SKL_PISTOLS,_pistolSmall,ID_PISTOL,),
-".357 magnum revolver"  :(A_357, 2075, 1.25,700,METL,13,7, (6, 1,100,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_pistol,ID_PISTOL,),
+".357 magnum revolver"  :(A_357, 2075, 1.25,700,METL,13,7, (6, 1,100,100,1,  24, 4, 3, 11,0,  9,  2,  400,),SKL_PISTOLS,_revolver,ID_PISTOL,),
 "10mm handgun"          :(A_10MM,4475, 1.2, 560,METL,6, 5, (1, 1,100,20, 1,  42, 8, 5, 13,0,  36, 2,  100,),SKL_PISTOLS,_pistol,ID_PISTOL,),
 "plastic liberator"     :(A_45,  9,    0.5, 8,  PLAS,8, 4, (1, 1,200,999,1,  10, -2,0, 2, 0,  -12,2,  33,),SKL_PISTOLS,_pLiberator,ID_PISTOL,),
 "metal liberator"       :(A_45,  95,   0.6, 50, METL,9, 4, (1, 1,200,666,1,  20, 1, 2, 5, 0,  -6, 2,  50,),SKL_PISTOLS,_mLiberator,ID_PISTOL,),
@@ -5813,12 +5922,12 @@ RANGEDWEAPONS={
     # SMGs and machine pistols (9mm, 10mm, .45ACP)
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
 "mec-9"                 :(A_9MM, 260,  2.9, 90, METL,7, 10,(1, 3,100,450,1,  15,-2, 1, 6, -1, -6, 2,  30,),SKL_SMGS,_smg,ID_PISTOL,),#mac-10. Moddable w/ suppressor # made of stamped sheet metal.
-"machine pistol"        :(A_9MM, 11200,0.95,560,METL,8, 12,(1, 4,100,50, 1,  24, 1, 3, 10,0,  -6, 2,  50,),SKL_SMGS,_pistolSmall,ID_PISTOL,),#beretta. Moddable w/ stock, suppressor
-"UMP"                   :(A_9MM, 12960,1.7, 540,METL,5, 8, (1, 3,100,10, 1,  36, 5, 4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
-"10mm SMG"              :(A_10MM,18850,2.2, 520,METL,6, 5, (1, 3,100,20, 1,  30, 3, 5, 12,-1, 0,  4,  100,),SKL_SMGS,_smgSmall,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
+"machine pistol"        :(A_9MM, 11200,0.95,560,METL,8, 12,(1, 4,100,50, 1,  24, 1, 3, 10,0,  -6, 2,  50,),SKL_SMGS,_beretta,ID_PISTOL,),#beretta. Moddable w/ stock, suppressor
+"UMP"                   :(A_9MM, 12960,1.7, 540,METL,5, 8, (1, 3,100,10, 1,  36, 5, 4, 13,-1, 0,  3,  100,),SKL_SMGS,_smgSmall1,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
+"10mm SMG"              :(A_10MM,18850,2.2, 520,METL,6, 5, (1, 3,100,20, 1,  30, 3, 5, 12,-1, 0,  4,  100,),SKL_SMGS,_smgSmall1,ID_SMG,),#moddable w/ scope, strap, laser, flashlight, suppressor
 "grease gun"            :(A_45,  450,  3.3, 120,METL,8, 5, (1, 3,100,300,1,  18, 0, 3, 5, -2, -9, 4,  200,),SKL_SMGS,_smg,ID_SMG,),#MODABLE TO SHOOT 9MM # made of stamped sheet metal. Named so b/c it looks like a mechanic's grease gun.
-"tommy gun"             :(A_45,  1150, 4.0, 275,METL,10,5, (1, 5,100,150,1,  22, 4, 4, 7, -3, -9, 5,  250,),SKL_SMGS,_smgLarge,ID_SMG,),
-"uzi"                   :(A_45,  13650,1.6, 440,METL,7, 10,(1, 3,100,20, 1,  28, 2, 6, 9, -1, 0,  2,  150,),SKL_SMGS,_smgSmall,ID_SMG,),#moddable w/ stock, laser, flashlight, suppressor, 
+"tommy gun"             :(A_45,  1150, 4.0, 275,METL,10,5, (1, 5,100,150,1,  22, 4, 4, 7, -3, -9, 5,  250,),SKL_SMGS,_tommyGun,ID_SMG,),
+"uzi"                   :(A_45,  13650,1.6, 440,METL,7, 10,(1, 3,100,20, 1,  28, 2, 6, 9, -1, 0,  2,  150,),SKL_SMGS,_smgSmall2,ID_SMG,),#moddable w/ stock, laser, flashlight, suppressor, 
     # rifles, carbines, semi-auto and burst / full auto (22LR, 5.56x39mm, .30 carbine, .308, .30-06)
 # name                  :(AMMO,  $$$$, KG,  Dur,MAT, St,Dx,(Cp,n,Rt, jam,Min,Max,Ac,Dm,Pe,DV, Asp,Enc,For,),TYPE,script,ID,
 "pidgeon plinker"       :(A_22LR,240,  2.3, 110,WOOD,3, 3, (1, 1,100,50, 3,  50, 8, 3, 10,-1, -9, 5,  5,),SKL_RIFLES,_rifleSmall,ID_RIFLE,),#moddable w/ scope, strap, suppressor
