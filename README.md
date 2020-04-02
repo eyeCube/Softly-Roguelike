@@ -12,7 +12,7 @@ Jacob Wharton
 
 Email: eyecube1@protonmail.com
 
-Website: https://eyecube.github.io/blog.html
+Website: https://eyecube.github.io/index.html
 
 -- includes portfolio, resume, and developer blog
 
