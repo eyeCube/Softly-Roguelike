@@ -12,6 +12,10 @@ Jacob Wharton
 
 Email: eyecube1@protonmail.com
 
+Website: https://eyecube.github.io/blog.html
+
+-- includes portfolio, resume, and developer blog
+
 *How to play*
 
 NOTE: this game is a WIP (Work In Progress) and it is far from representing its final state. *The game is currently in an unplayable state as far as actual gameplay and is in a test-heavy (read: non-user friendly) version!!*
