@@ -2,7 +2,7 @@
 
 *Introduction*
 
-Softly Into the Night: a sci-fi, dystopian roguelike with Lovecraftian & survival elements, built from the ground up using Python 3/tcod/esper. Turn-based, grid-based, procedurally-generated, ASCII UI, w/ versatile Entity Component System. Currently in development by Jacob Wharton. 
+Softly Into the Night: a sci-fi, dystopian roguelike with Lovecraftian, survival, and RPG elements, built from the ground up using Python 3/tcod/esper. Turn-based, grid-based, procedurally-generated, ASCII UI, w/ versatile Entity Component System. Currently in development by Jacob Wharton. 
 
 Repository includes some of my modules that may be useful for roguelike devs, such as OrangIO, a user-interface system built on TCOD that supports complex key bindings, text input, dialogue boxes, menus, and more. *That said, I cannot guarantee the utility of any of the software presented here; it is shared solely for the purposes of education and recreation.*
 
@@ -11,6 +11,10 @@ Repository includes some of my modules that may be useful for roguelike devs, su
 Jacob Wharton
 
 Email: eyecube1@protonmail.com
+
+Website: https://eyecube.github.io/index.html
+
+-- includes portfolio, resume, and developer blog
 
 *How to play*
 
