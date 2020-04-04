@@ -1,0 +1,131 @@
+Softly Into the Night
+
+Python | libtcod | esper | github
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These past few weeks I have been very busy and haven't had much time to work on Softly. This week, though, I did manage to get some work done. Mostly I did a lot of thinking about the game, as I usually do, but I'll spare you all of my crazy ideas and briefly go over what I actually achieved so far.
+
+body parts:
+
+equipment for all slots now affects stats.
+
+Status of each bone, muscle, organ now affects stats.
+
+Hydration is now stored as the mass of water in grams * 1000, to provide a finer scale for how hydrated you are. So 1 million hydration units == 1 liter.
+
+Satiation points are also now stored as calories rather than Calories A.K.A. KiloCalories (scaled again by a factor of 1000), to provide a finer scale of how satiated you are. 1000 satiation points is now 1 Calorie.
+
+body fat is stored as a floating point value rather than an int, because we don't care about precision. bodyfat =~= how many g of fat in the body.
+
+added more statuses for body parts (e.g. "mangled," which means the body part is in utter ruin and is impossible to heal from).
+
+added a generic function to create humanoid body given a few parameters: mass, height, and a boolean: female?
+
+
+
+hunger/thirst:
+
+added homeostasis, digestion, metabolism functions
+
+Homeostasis regulates body temperature and induces shivering or sweating if necessary.
+
+Digestion converts food you have consumed into calories and hydration points, using a simple status effect that indicates how much food you have consumed.
+
+Metabolism consumes those satiation/hydration points and induces starving/dehydration if you have insufficient points.
+
+Starving causes you to lose body fat until you run out, at which point you begin losing strength in your muscles and suffering from other status effects.
+
+
+
+statuses:
+
+added sweat, shiver statuses, implemented them in the Status Processor / Homeostasis Processor
+
+
+
+resistances:
+
+made all resistances have the same scale: -99 to infinity. 0 is default where you take 100% damage. The formula for damage is dmg = 100/(100 + resistance). So at 100 res you take 50% damage, at 200 you take 33%, 400 res = 20% damage, etc. At -99 obviously you'd take 100x as much damage as usual but such a low resistance is difficult to achieve in most cases.
+
+
+
+tools:
+
+added 1-2 more levels of quality for most tools for finer levels of detail, removed cap on quality for all tools. There is no limit to how good a tool can potentially be.
+
+
+
+IO:
+
+added more commands - attack-prompt and move-prompt, which prompt the user for a direction in which to force-move or force-attack.
+
+Standard move command for directional input is now called context-dir which is like a generic context-sensitive directional input, which can of course result in several different actions like attacking a monster you bump into, or opening a door, or moving somewhere, or moving and then picking up some money lying on the floor, etc.
+
+
+
+chargen:
+
+working on a random character generator that requires very little input from user to roll a new character from scratch
+
+player generator updated to use new components and humanoid body gen function
+
+
+
+items:
+
+items now have encumberance stat instead of just draining your Movement Speed straight up. Encumberance is a stat that is dependent on mass in that the displayed value in-game is encumberance * mass.
+
+all weapons and armor updated with new encumberance values, removed old MSp values
+
+generally speaking, one-handed weapons are less encumbering than before, while two-handed weapons and large shields are more encumbering.
+
+
+
+bestiary:
+
+began moving monster data into an excel file for ease of access and updating as compared to the current method of storing the data in hard-coded Python dicts. May attempt something similar with items / weapons / armor, but for those I will have to write a script to do it automatically since there are so many items.
+
+
+
+rogue (glue file):
+
+moved functions out of rogue and into modules to reduce the amount of top-level functions (non-wrapper functions) in rogue.py
+
+
+
+weapons:
+
+changed the two-handed policy for weapons: now the bonus for wielding 1-h weapons in 2 hands is (edit: NOT) dependent on the skill class required to wield it.
+
+created a UI mockup for weapons display in the inventory (example here)
+
+
+
+attributes:
+
+3 attributes added to the current 3 (which are intelligence, strength, constitution): dexterity, endurance, and agility.
+
+Dexterity: ++ speed of attacking; ++ speed of doing anything with your hands. ++ throwing range. ++ grip, grappling, disarming. ++ crafting.
+
+Endurance: ++ stamina maximum, stamina regeneration. ++ resistances to physical, bleed, pain, heat, cold, bio.
+
+Agility: ++ movement speed, ++ attack speed with melee weapons, ++ DV (dodge value); -- penalty for moving on difficult terrain (makes it easier to traverse obstacles without losing speed).
+
+Also considering adding "luck" but maybe only for the player character.
+
+All attributes are now stored in-game as factors of 10x the displayed value, to provide a finer scale for changes in attributes. The displayed (and mechanically used) value is the floor of the stored value /10. The same change has been applied to most stats.
+
+
+
+NOTE: With the change in scale of stored stats, now equipping a hat that appears to give 0 protection might actually increase your displayed protection by 1. Higher intelligence may allow you to see the actual value as a decimal representation i.e. 125 stored Str == 12.5 displayed Str. But only each whole point actually makes any difference in the mechanics.
+
+NOTE: I felt that endurance should be separate from constitution which grants increased health and maximum encumberance. Otherwise the attribute would be far too OP if it upgraded all those stats -- all of them are going to be very important. Agility, too, seemed to need to be distinct from hand-agility or dexterity -- agility functions as your general / movement agility while dexterity is your hand-eye coordination, fine motor skills, etc.
+
+Edit: formatting
+
+
+
+EDIT 2:00pm EST
+
+status effect timers for all statuses, and stat mods for some of them; some new stat mods, new status effects e.g. "full" from overeating

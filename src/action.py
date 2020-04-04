@@ -203,51 +203,26 @@ def equipment_pc(pc):
     pcn = world.component_for_entity(pc, cmp.Name)
     x=0
     y=rog.view_port_y()
+    equipment = {} # {'torso' : {name : (slot,eq_const,),},}
     
-    
-    # BRO< THIS CODE IS HIDEOUS. HOW CAN WE MAKE BODY PART CODE LESS TRASH????
-    
-    
-    # equipment menu
-    '''
-    format of equipment dict:
-        {'arms' : {
-            'right arm' : Slot,
-            'right hand (w)' : Slot,
-            'right hand' : Slot,
-            'left arm' : Slot,
-            'left hand (w)' : Slot,
-            'left hand' : Slot,
-            '3rd arm' : Slot,
-            '3rd hand (w)' : Slot,
-            '3rd hand' : Slot,
-            }
-        }
-    keys for meta dict are for metamenu submenu distinctions.
-    keys for sub-dicts are for submenu keys.
-    '''
-    equipment = {
-        'heads':{},
-        'torso':{},
-        'arms':{},
-        'legs':{},
-        }
-    
-    # get core slots
+    # get core slots from body plan
     if body.plan==BODYPLAN_HUMANOID:
         # get all equipment from body
-        equipment['torso'].update( {
+        equipment['torso'] = {
             'front':(body.core.front.slot,EQ_FRONT,),
             'back':(body.core.back.slot,EQ_BACK,),
             'core':(body.core.core.slot,EQ_CORE,),
             'hips':(body.core.hips.slot,EQ_HIPS,),
             'about':(body.slot,EQ_ABOUT,),
-        } )
+        }
     else:
         raise Exception #TODO: logic for other body types
-    # parts (irrespective of body type)
+    
+    # get parts equipment
     for cls, part in body.parts.items():
+        # what type of BP Container is this?
         if type(part)==cmp.BPC_Arms:
+            equipment['arms'] = {}
             for i in range(len(part.arms)):
                 arm=part.arms[i]
                 n="{} ".format(BPINDEX[i])
@@ -256,8 +231,8 @@ def equipment_pc(pc):
                     '{}hand'.format(n)     : (arm.hand.slot,i+EQ_MAINHAND,),
                     '{}arm'.format(n)      : (arm.arm.slot, i+EQ_MAINARM,),
                 } )
-            # end for
         elif type(part)==cmp.BPC_Legs:
+            equipment['legs'] = {}
             for i in range(len(part.legs)):
                 leg=part.legs[i]
                 n="{} ".format(BPINDEX[i])
@@ -265,8 +240,8 @@ def equipment_pc(pc):
                     '{}foot'.format(n) : (leg.foot.slot,i+EQ_MAINFOOT,),
                     '{}leg'.format(n)  : (leg.leg.slot,i+EQ_MAINLEG,),
                 } )
-            # end for
         elif type(part)==cmp.BPC_Heads:
+            equipment['heads'] = {}
             for i in range(len(part.heads)):
                 head=part.heads[i]
                 n="{} ".format(rog.numberplace(i+1)) if i > 0 else ""
@@ -277,31 +252,81 @@ def equipment_pc(pc):
                     '{}eyes'.format(n) : (head.eyes.slot,i+EQ_MAINEYES,),
                     '{}ears'.format(n) : (head.ears.slot,i+EQ_MAINEARS,),
                 } )
-            # end for
     # end for
     
-    item=rog.menu("{}{}'s equipment".format(
-        pcn.title,pcn.name), x,y, equipment)
-    
-    # viewing equipment item
-    if item != -1:
-        itemn = world.component_for_entity(item, cmp.Name)
-        keysItems={
-            "u" : "use",
-            "r" : "remove",
-            "x" : "examine",
-            }
+    # init menu
+    _TABS="... "
+    data_i = 0
+    data={} # for getting info about equipment slot for equipping/removing
+    varia={}
+    for k,v in equipment.items():
+        varia["open_{}".format(k)] = False
+    # run menu
+    while True:
+        menu={"return" : "return"}
+        for k,v in equipment.items():
+            if not v: continue
+            if varia["open_{}".format(k)]:
+                menu["- {}".format(k)] = "close_{}".format(k)
+                for kk,vv in v.items():
+                    slot,eq_const = vv
+                    itemname = rog.getname(slot.item) if slot.item else "-"
+                    nkey = "{}{}: {}".format(_TABS,kk,itemname)
+                    nval = "item_{}" if slot.item else "equip_{}"
+                    nval = nval.format(data_i)
+                    menu[nkey] = nval
+                    data[data_i] = (slot, eq_const,)
+                    data_i += 1
+            else:
+                menu["+ {}".format(k)] = "open_{}".format(k)
+                
+        opt=rog.menu("{}{}'s equipment".format(
+            pcn.title,pcn.name), x,y, menu.keys())
         
-        opt=rog.menu(
-            "{}".format(itemn.name), x,y,
-            keysItems, autoItemize=False
-        )
-        #print(opt)
         if opt == -1: return
-        selected=keysItems[opt].lower()
-        if opt == "use":        rmg=True; use_pc(pc, item)
-        elif opt == "remove":   rmg=True; deequip_pc(pc, item)
-        elif opt == "examine":  rmg=True; examine_pc(pc, item)
+        selected=menu[opt]
+        if "return" == selected: return
+        # open / close submenus
+        elif "open_" == selected[:5]:
+            target = selected[5:]
+            varia["open_{}".format(target)] = True
+        elif "close_" == selected[:6]:
+            target = selected[6:]
+            varia["open_{}".format(target)] = False
+        # equip item
+        elif "equip_" == selected[:6]:
+            data_id = int(selected[6:])
+            slot, eq_const = data[data_id]
+            item = _inventory_pc(pc)
+            if item!=-1:
+                equip_pc(pc, item, eq_const)
+        # view item
+        elif "item_" == selected[:5]:
+            data_id = int(selected[5:])
+            slot, eq_const = data[data_id]
+            item = slot.item
+            itemn = world.component_for_entity(item, cmp.Name)
+            menu_viewItem={
+                "r" : "remove",
+                "x" : "examine",
+                }
+            if world.has_component(item, cmp.Throwable):
+                menu_viewItem['t'] = 'throw'
+            if world.has_component(item, cmp.Usable):
+                menu_viewItem['u'] = 'use'
+            opt2=rog.menu(
+                "{}".format(itemn.name), x,y,
+                menu_viewItem, autoItemize=False
+            )
+            if opt2 == -1: return
+            if opt2 == "use":
+                use_pc(pc, item)
+            elif opt2 == "remove":
+                deequip_pc(pc, item)
+            elif opt2 == "examine":
+                examine_pc(pc, item)
+            elif opt2 == "throw":
+                target_pc_throw_item(pc, item)
 # end def
 
 
@@ -309,34 +334,6 @@ def equipment_pc(pc):
 def abilities_pc(pc):
     pass
 
-# equipment menu
-def equipment_pc(pc):
-    Menu.open_core=False
-    Menu.open_arms=False
-    Menu.open_legs=False
-    Menu.open_heads=False
-    while True:
-        item=_equipment_menu(
-            pc,
-            Menu.open_core,
-            Menu.open_arms,
-            Menu.open_legs,
-            Menu.open_heads
-            )
-        if item:
-            _item_equip_submenu(pc, item)
-        else:
-            break
-# end def
-def _item_equip_submenu(pc, item):
-    menu=_getMenuItems_item(item)
-    menu.update({'a':'return'}) # cancel
-    menu.update({'r':'remove'}) # de-equip
-    name=rog.world().component_for_entity(item, cmp.Name)
-    opt=rog.menu("{}{}".format(name.title,name.name), x,y, menu.keys())
-    if opt==-1:
-        return
-    _process_selected_item_option(pc, opt, item)
 # end def
 def _process_selected_item_option(pc, selected, item, rmgcost=False):
     rmg=False
@@ -344,8 +341,7 @@ def _process_selected_item_option(pc, selected, item, rmgcost=False):
         return
     elif selected == "remove":
         rmg=True
-        eq_type=rog.world().component_for_entity(item,cmp.Equipped).equipType
-        deequip_pc(pc, eq_type)
+        deequip_pc(pc, item)
     elif selected == "drop":
         rmg=True
         drop_pc(pc, item)
@@ -375,143 +371,6 @@ def _process_selected_item_option(pc, selected, item, rmgcost=False):
     # 
     if (rmgcost and rmg):
         rog.spendAP(pc, NRG_RUMMAGE)
-# end def
-
-def _equipment_menu(ent,open_core,open_arms,open_legs,open_heads):
-    # init
-    world=rog.world()
-    body = world.component_for_entity(pc, cmp.Body)
-    name = world.component_for_entity(pc, cmp.Name)
-    x=rog.view_port_x()
-    y=rog.view_port_y()
-    #
-    
-    # menu loop
-    item=None
-    result=None
-    while True:
-        menu={'return':'return'}
-        
-            # create the menu #
-        
-        # core
-        if bodytype==BODYTYPE_HUMANOID:
-            if open_core:
-                menu['+ torso'] = 'open-core'
-            else:
-                menu['- torso'] = 'close-core'
-                menu['{}torso front {}'.format(tab,index)]
-                menu['{}torso back {}'.format(tab,index)]
-                menu['{}torso core {}'.format(tab,index)]
-                menu['{}torso hips {}'.format(tab,index)]
-        # end if
-        
-        # parts
-        for k,v in body.parts.items():
-            if k==cmp.BPC_Arms:
-                if open_arms:
-                    menu['+ arms'] = 'open-arms'
-                else:
-                    menu['- arms'] = 'close-arms'
-                    index=1
-                    for arms in v.arms:
-                        menu['{}arm {}'.format(tab,index)] = "arm{}".format(index)
-                        menu['{}hand {}'.format(tab,index)] = "hand{}".format(index)
-                        menu['{}hand (w) {}'.format(tab,index)] = "handw{}".format(index)
-                        index+=1
-            if k==cmp.BPC_Legs:
-                if open_legs:
-                    menu['+ legs'] = 'open-legs'
-                else:
-                    menu['- legs'] = 'close-legs'
-                    index=1
-                    for legs in v.legs:
-                        menu['{}leg {}'.format(tab,index)] = "leg{}".format(index)
-                        menu['{}foot {}'.format(tab,index)] = "foot{}".format(index)
-                        index+=1
-            if k==cmp.BPC_Heads:
-                if open_heads:
-                    menu['+ heads'] = 'open-heads'
-                else:
-                    menu['- heads'] = 'close-heads'
-                    index=1
-                    for heads in v.heads:
-                        menu['{}head {}'.format(tab,index)] = "head{}".format(index)
-                        menu['{}face {}'.format(tab,index)] = "face{}".format(index)
-                        menu['{}neck {}'.format(tab,index)] = "neck{}".format(index)
-                        menu['{}eyes {}'.format(tab,index)] = "eyes{}".format(index)
-                        menu['{}ears {}'.format(tab,index)] = "ears{}".format(index)
-                        menu['{}mouth {}'.format(tab,index)] = "mouth{}".format(index)
-                        index+=1
-        # end for
-        
-        # prompt user for menu option
-        opt=rog.menu("{}{}'s equipment".format(
-            name.title,name.name), x,y, menu.keys())
-        result=menu.get(opt, None)
-        
-        if result is None:
-            continue
-        if result=='return':
-            break
-        
-        isheld=False
-        loc=None
-        eq_type=None
-        if result=='open-core': open_core=True
-        elif result=='close-core': open_core=False
-        elif result=='open-arms': open_arms=True
-        elif result=='close-arms': open_arms=False
-        elif result=='open-legs': open_legs=True
-        elif result=='close-legs': open_legs=False
-        elif result=='open-heads': open_heads=True
-        elif result=='close-heads': open_heads=False
-        # body parts
-        elif result[:3]=='arm':
-            eq_type=EQ_MAINARM
-            loc=3
-        elif result[:3]=='leg':
-            eq_type=EQ_MAINLEG
-            loc=3
-        elif result[:4]=='hand':
-            eq_type=EQ_MAINHAND
-            loc=4
-        elif result[:4]=='foot':
-            eq_type=EQ_MAINFOOT
-            loc=4
-        elif result[:4]=='head':
-            eq_type=EQ_MAINHEAD
-            loc=4
-        elif result[:4]=='face':
-            eq_type=EQ_MAINFACE
-            loc=4
-        elif result[:4]=='neck':
-            eq_type=EQ_MAINNECK
-            loc=4
-        elif result[:4]=='eyes':
-            eq_type=EQ_MAINEYES
-            loc=4
-        elif result[:4]=='ears':
-            eq_type=EQ_MAINEARS
-            loc=4
-        elif result[:5]=='handw':
-            eq_type=EQ_MAINHANDW
-            loc=5
-        elif result[:5]=='mouth':
-            eq_type=EQ_MAINMOUTH
-            loc=5
-        # selection
-        if eq_type:
-            index = result[loc]
-            compo = rog._get_eq_compo(ent, eq_type + index)
-            if not compo:
-                rog.alert("You don't have that body part.")
-                return None
-            if isheld:
-                item = compo.held.item
-            else:
-                item = compo.slot.item
-    return item
 # end def
 
 # inventory menu
@@ -563,6 +422,12 @@ def _getMenuItems_item(item) -> dict:
     world = rog.world()
     keysItems={}
     #   get available actions for this item...
+    
+    if world.has_component(item, cmp.Equipped):
+        keysItems.update({"r":"remove_worn"})
+    elif world.has_component(item, cmp.Held):
+        keysItems.update({"r":"remove_wielded"})
+        
     if world.has_component(item, cmp.Edible):
         keysItems.update({"e":"eat"})
     if world.has_component(item, cmp.Quaffable):
@@ -578,9 +443,13 @@ def _getMenuItems_item(item) -> dict:
         keysItems.update({"u":"use"})
     if world.has_component(item, cmp.Openable):
         keysItems.update({"o":"open"})
+    
+    # generic
     keysItems.update({"x":"examine"})
     keysItems.update({"d":"drop"})
+    #
     return keysItems
+# end def
 
 def drop_pc(pc,item):
     itemname=rog.world().component_for_entity(item, cmp.Name).name
@@ -749,10 +618,15 @@ def equip_pc(pc, item, equipType):
             rog.alert("You are already {w}ing something in that {bp} slot.".format(w=str1, bp=str2))
 # end def
 
+def deequip_pc(pc, item):
+    rog.remove_equipment(pc, item)
+
 def examine_pc(pc, item):
-    itemname=rog.world().component_for_entity(item, cmp.Name).name
-    rog.spendAP(pc, NRG_EXAMINE)
-    rog.dbox(0,0,40,30, thing.DESCRIPTIONS[itemname])
+    if rog.world().has_component(item, cmp.Description):
+        descript=rog.world().component_for_entity(item, cmp.Description).description
+        rog.alert(0,0,40,30, DESCRIPTIONS[descript])
+    else:
+        rog.alert(0,0,40,30, "<MISSING DESCRIPTION>")
 
 def eat_pc(pc, item):
     result = eat(pc, item)
@@ -852,7 +726,7 @@ def _equip(ent, item, equipType):
         itemname = rog.world().component_for_entity(item, cmp.Name)
         rog.msg("{t}{n} {w}s {i} in {prn} {bp}".format(
             t=entname.title, n=entname.name, i=itemname.name, w="wield",
-            prn=gender.pronouns[0], bp="hand"))
+            prn=rog.get_pronoun_possessive(ent), bp="hand"))
         
     return result
 # end def
@@ -1929,6 +1803,144 @@ def craft(ent, recipe):
 
 
 
+'''
+def equipment_pc(ent):
+    # init
+    world=rog.world()
+    body = world.component_for_entity(pc, cmp.Body)
+    name = world.component_for_entity(pc, cmp.Name)
+    x=rog.view_port_x()
+    y=rog.view_port_y()
+    #
+    
+    # menu loop
+    item=None
+    result=None
+    while True:
+        menu={'return':'return'}
+        
+            # create the menu #
+        
+        # core
+        if bodytype==BODYTYPE_HUMANOID:
+            if open_core:
+                menu['+ torso'] = 'open-core'
+            else:
+                menu['- torso'] = 'close-core'
+                menu['{}torso front {}'.format(tab,index)]
+                menu['{}torso back {}'.format(tab,index)]
+                menu['{}torso core {}'.format(tab,index)]
+                menu['{}torso hips {}'.format(tab,index)]
+        # end if
+        
+        # parts
+        for k,v in body.parts.items():
+            if k==cmp.BPC_Arms:
+                if open_arms:
+                    menu['+ arms'] = 'open-arms'
+                else:
+                    menu['- arms'] = 'close-arms'
+                    index=1
+                    for arms in v.arms:
+                        menu['{}arm {}'.format(tab,index)] = "arm{}".format(index)
+                        menu['{}hand {}'.format(tab,index)] = "hand{}".format(index)
+                        menu['{}hand (w) {}'.format(tab,index)] = "handw{}".format(index)
+                        index+=1
+            if k==cmp.BPC_Legs:
+                if open_legs:
+                    menu['+ legs'] = 'open-legs'
+                else:
+                    menu['- legs'] = 'close-legs'
+                    index=1
+                    for legs in v.legs:
+                        menu['{}leg {}'.format(tab,index)] = "leg{}".format(index)
+                        menu['{}foot {}'.format(tab,index)] = "foot{}".format(index)
+                        index+=1
+            if k==cmp.BPC_Heads:
+                if open_heads:
+                    menu['+ heads'] = 'open-heads'
+                else:
+                    menu['- heads'] = 'close-heads'
+                    index=1
+                    for heads in v.heads:
+                        menu['{}head {}'.format(tab,index)] = "head{}".format(index)
+                        menu['{}face {}'.format(tab,index)] = "face{}".format(index)
+                        menu['{}neck {}'.format(tab,index)] = "neck{}".format(index)
+                        menu['{}eyes {}'.format(tab,index)] = "eyes{}".format(index)
+                        menu['{}ears {}'.format(tab,index)] = "ears{}".format(index)
+                        menu['{}mouth {}'.format(tab,index)] = "mouth{}".format(index)
+                        index+=1
+        # end for
+        
+        # prompt user for menu option
+        opt=rog.menu("{}{}'s equipment".format(
+            name.title,name.name), x,y, menu.keys())
+        result=menu.get(opt, None)
+        
+        if result is None:
+            continue
+        if result=='return':
+            break
+        
+        isheld=False
+        loc=None
+        eq_type=None
+        if result=='open-core': open_core=True
+        elif result=='close-core': open_core=False
+        elif result=='open-arms': open_arms=True
+        elif result=='close-arms': open_arms=False
+        elif result=='open-legs': open_legs=True
+        elif result=='close-legs': open_legs=False
+        elif result=='open-heads': open_heads=True
+        elif result=='close-heads': open_heads=False
+        # body parts
+        elif result[:3]=='arm':
+            eq_type=EQ_MAINARM
+            loc=3
+        elif result[:3]=='leg':
+            eq_type=EQ_MAINLEG
+            loc=3
+        elif result[:4]=='hand':
+            eq_type=EQ_MAINHAND
+            loc=4
+        elif result[:4]=='foot':
+            eq_type=EQ_MAINFOOT
+            loc=4
+        elif result[:4]=='head':
+            eq_type=EQ_MAINHEAD
+            loc=4
+        elif result[:4]=='face':
+            eq_type=EQ_MAINFACE
+            loc=4
+        elif result[:4]=='neck':
+            eq_type=EQ_MAINNECK
+            loc=4
+        elif result[:4]=='eyes':
+            eq_type=EQ_MAINEYES
+            loc=4
+        elif result[:4]=='ears':
+            eq_type=EQ_MAINEARS
+            loc=4
+        elif result[:5]=='handw':
+            eq_type=EQ_MAINHANDW
+            loc=5
+        elif result[:5]=='mouth':
+            eq_type=EQ_MAINMOUTH
+            loc=5
+        # selection
+        if eq_type:
+            index = result[loc]
+            compo = rog._get_eq_compo(ent, eq_type + index)
+            if not compo:
+                rog.alert("You don't have that body part.")
+                return None
+            if isheld:
+                item = compo.held.item
+            else:
+                item = compo.slot.item
+    return item
+# end def
+'''
 
 
 # other actions #

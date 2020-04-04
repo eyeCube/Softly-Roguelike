@@ -468,7 +468,9 @@ DURMOD_ASP = -50
     #  #equipment   #
     #---------------#
 
-FITTED_ENCMOD = 0.75
+FITTED_ENCMOD = 1 # multiplier
+FIT_HELD_MAX = 15   # maximum fit value for weapons fitted to your character
+FIT_ARMOR_MAX = 30  # maximum fit value for armor fitted to your character
 
 # 1-h / 2-h constants
 

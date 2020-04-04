@@ -402,7 +402,7 @@ def _get_reaction(
         reaction += 18
     else:
         reaction += 21
-
+    
         # ---- status reaction ---- #
     
     if world.has_component(ent, cmp.StatusAnnoyed):
@@ -424,12 +424,14 @@ def _get_reaction(
         else:
             reaction -= 20
     
-        # ---- intensity, default perception ---- #
+        # ---- intensity, default reactions ---- #
 
     # intensity of the conversation based on transaction value    
     intensity = 1
     speech_mod = 0.4
-    # intensity based on type of conversation / persuasion
+    # intensity, base reaction, random variation (size of dice), and
+    #   speech modifier (how much speech level affects reaction);
+    #   based on type of conversation / persuasion
     if persuasion_type==TALK_TORTURE:
         speech_mod = 1.25*speech_mod
         dice_size = 100
@@ -569,37 +571,46 @@ def _get_reaction(
     # likes and dislikes
     likes=_get_likes(personality)
     dislikes=_get_dislikes(personality)
-            # persuasion types
     if persuasion_type == likes[0]:
         reaction += ( 0.01*DMAX * speech_bonus_modf * mx ) * intensity
     elif persuasion_type == dislikes[0]:
         reaction -= ( 0.02*DMAX * speech_penalty_modf * mx ) * intensity
     
     # special cases #
-    if (personality==PERSON_NONCONFRONTATIONAL
-        and intensity >= 5
+    # intensity and energy level
+    if ((personality==PERSON_NONCONFRONTATIONAL
+         or personality==PERSON_LOWENERGY)
+        and intensity >= 3
         ):
-        reaction -= 20
+        reaction -= 0.01*DMAX
+    elif ((personality==ARGUMENTATIVE
+           or personality==PERSON_BUBBLY)
+         and intensity >= 3
+        ):
+        reaction += 0.01*DMAX
+    # never accepts bribes
     if (persuasion_type==TALK_BRIBERY
         and world.has_component(ent, cmp.NeverAcceptsBribes)
         ):
-        reaction = -0.05 * DMAX * mx
+        reaction = -0.05*DMAX * mx # set reaction
+    # diabetes from too much flattery
     if (persuasion_type==TALK_FLATTERY
         and world.has_component(ent, cmp.StatusDiabetes)
         ):
-        reaction = -0.075 * DMAX * mx
+        reaction = -0.075*DMAX * speech_penalty_modf * mx
+    # auxiliary likes/dislikes
     if (persuasion_type==TALK_BEG and personality==PERSON_PROUD):
-        reaction -= 0.05 * DMAX * mx
+        reaction -= 0.05*DMAX * mx
     elif (persuasion_type==TALK_INTERROGATE and personality==PERSON_RELAXED):
-        reaction -= 0.02 * DMAX * mx
+        reaction -= 0.02*DMAX * mx
     elif (persuasion_type==TALK_CHARM and personality==PERSON_LOWENERGY):
-        reaction -= 0.01 * DMAX * mx
+        reaction -= 0.01*DMAX * mx
     elif (persuasion_type==TALK_CHARM and personality==PERSON_BUBBLY):
-        reaction += 0.01 * DMAX * mx
+        reaction += 0.01*DMAX * mx
     elif (persuasion_type==TALK_BOAST and personality==PERSON_PROACTIVE):
-        reaction -= 0.01 * DMAX * mx
+        reaction -= 0.01*DMAX * mx
     elif (persuasion_type==TALK_BOAST and personality==PERSON_MOTIVATED):
-        reaction += 0.01 * DMAX * mx
+        reaction += 0.01*DMAX * mx
     
     # creeped out
     if (world.has_component(ent, cmp.StatusCreepedOut)
@@ -624,10 +635,12 @@ def _get_reaction(
         if world.has_component(ent, cmp.StatusCharmed):
             reaction = min(reaction - 100, -20)
     
-    # people who have a hard time learning to trust others
+    # people who have a hard time learning to like/trust others
     if (disposition >= 0.5*DMAX # lose reaction once disp crosses a threshold
         and world.has_component(ent, cmp.Untrusting)):
         reaction -= 20
+    if (world.has_component(ent, cmp.Antisocial)):
+        reaction -= 10
     
     return math.ceil(abs(reaction)) * rog.sign(reaction)
 # end def

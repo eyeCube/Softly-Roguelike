@@ -1,0 +1,91 @@
+Softly Into the Night
+
+Python | libtcod | esper | github
+
+Hello fellow RL devs. The past two weeks I've fixed up a bunch of things I've been putting off for a long time. There have also been some big changes.
+
+Progress
+
+menus now support menu sizes larger than the screen height, using arrow keys/PgUp/PgDn/Home/End to scroll through the options
+
+refactored git directory to be slightly better
+
+fixed a bunch of bugs
+
+finished implementing some old / small stuff that never got fixed in ECS version
+
+added gun mod data, some new components to support new mechanics
+
+Gun Mods
+
+Guns will be moddable with scopes, bipods, suppressors, straps, magazines, flashlights, lasers, grenade launchers, etc. I wrote stats for most of the basic moddable parts.
+
+New stats: camo, stealth, height.
+
+Height was a variable of the body component, but now it's also a stat. You can increase your height past its base body height by wearing shoes or high-heels, etc., and can lower your height by crouching or lying prone, etc.
+
+Camo influences your visibility. At 0 camo, you are fully visible as normal with no change. But each 1 camo point you have makes it so you are slightly less likely to be detected.
+
+There is now a formula that determines whether you see something or not, which involves the vision of the seer, the light level of the tile, the distance to the target, the target's camo, as well as a random dice roll. The random element means that, with poor vision / bad visibility conditions, you may have to stand around a while staring at something before you realize what it is. With very bad eyesight, even identifying something right in front of your face may be difficult. There are also varying levels of detection:
+
+At the lowest level you just see a '?' and perhaps a message about the generic shape/size of the object (e.g. cross, shiny thing, large creature).
+
+At the next level you can tell what type of thing it is (sword, gun, large humanoid). This is the best degree to which an NPC can identify anything (though they may still identify your faction).
+
+Then with even more visibility the PC can identify the exact type of object (cutlass, uzi, whipmaster).
+
+Finally with the highest visibility level, the PC can accurately identify the exact stats of this unique instance.
+
+Identification past the generic level also requires some degree of identification ability, which is related to intelligence. Identification is a stat / mechanic currently intended to be for the Player Character only (for simplicity), though camo and visibility will be for all entities with sight.
+
+Side note: An unintended effect of this new system is that identified items can be visible as the correct glyph in one turn, and then a '?' the next, if you fail the visibility roll on the next turn. So I need to take into account the memories of what the player has seen before. This is already stored, but not with very much detail -- just the glyph is stored, so I may have to improve the memory grid.
+
+Stealth influences your audibility. Like camo, but for hearing. Wearing heavy gear and/or carrying a lot of stuff will severely hinder your stealth.
+
+Currently, hearing in Softly works by a simple A* pathfind search to the source of the sound (where each terrain type has its own sound dampening value), and if the distance along the path is less than your hearing value, you can hear it. I may add a random mechanic to that as well, I haven't thought about it yet. Stealth would effectively reduce the hearing value of the listener for the purposes of calculating if they can hear you.
+
+continued in comments per Reddit's character limit...
+
+Reply
+Share
+Save
+Edit
+
+
+
+level 2
+Delicatebutterfly1
+3 points
+·
+1 month ago
+Dropping Weight
+
+Things have become rather complicated in my game. I believe this is what's called "scope creep." The short version of the story is that, in general I have decided my game is to be an RPG first, and a simulation second; so I believe I will remove some of the more complex mechanics in favor of a more transparent and less-realistic system.
+
+I will be sad to see the heat dispersion grid go, but go it must. That mechanic would disperse heat across the map in dynamic ways which produced organic fire-spreading that could react to changes in wind direction/speed in interesting and realistic-seeming ways. However, I felt limited in my options with this game moving forward, as a result of that mechanic putting such a big drain on the CPU when the map sizes increased past the standard 80x50. Even with the optimized scipy implementation, the dispersing of heat on large grids seems just too slow to be workable (my computer, I admit, is slow -- but I want the game to be able to run on old machines).
+
+Even without the speed issue, though, in many ways I feel that the heat dispersion thing is more work than it's worth for this project, which already has a lot of other things going for it. I wanted it to work. But alas, I feel more free relieving this burden and moving forward with large, diverse procedural maps. may do more with that idea in a future project.
+
+I will have to rethink and redesign everything having to do with heat/fire, and go for a simpler solution. I will use simple rules -- "if you sleep on a cold ground without a sleeping bag / fire nearby / some adequate heat source, then you die." Although there will be lots of such rules to implement, at least I won't have to worry about things like balancing the metabolism function to ensure warm-blooded creatures produce enough heat and are insulated well enough from their fat / surroundings to keep themselves alive at night (which I was legit doing).
+
+I'm excited though, about the prospect of being able to have large maps again. It was upsetting me, I think, feeling that I had to stick to small maps, so, I have already begun toying some with larger sized maps. That leads us to...
+
+Elevation
+
+With larger maps available to me now, I have been playing with the idea of having outdoor areas with diverse procedural terrain, which, in my mind, cannot exist without some indication of changes in elevation. But, I want this to be simple, and I'm not sure how exactly I'll implement it, but here's what I've been thinking.
+
+Each tile has an elevation value, which is independent of its terrain type. Moving onto a tile of higher elevation requires more Action Points and Stamina. Large changes in elevation across two tiles would indicate a steep hill or a sort of cliff in extreme cases. Cliffs, of course, would be exponentially harder to traverse than regular sized hills. I feel that this is all easy enough to figure out on my own.
+
+But the difficult part is how to deal with LOS. I would like for hills to block LOS like walls do, but then of course, when you climb the hill, it does not block your view but enhances it.
+
+I see two ways to do this right now. The first seems like a bad idea: it's to iterate over every tile in view, for every entity with sight, every time I want to update LOS, and compare the elevation of each tile to the elevation/height of the entity at its position, treating all tiles where the elevation is higher than you as walls. This seems like it would be extremely slow.
+
+The second idea is to store Tcod FOV objects, one for each level of elevation on the map, where all of the levels of elevation are already pre-calculated so we can just index the appropriate FOV map to use for the LOS calculation. This seems like a better solution. I have begun taking steps to implement this, including switching to a system where all entities access global FOV map(s) by simply passing in an integer value as an index (but right now it's not finished and all it does is return the primary global FOV map).
+
+Another difficulty in implementing elevation, of course, is displaying this information effectively using ASCII graphics. But I think, with the implementation where each tile has its own elevation value, we can simply use a gradient color where lighter values are higher up. One thing I really don't like is Dwarf Fortress's way of drawing elevation. My hills will be less steep than those, and will not cut the world into 3D slices, rather just provide a sort of illusion of some 3D depth. I'm far more concerned with the FOV issue than how I will display elevation.
+
+If I have to, I can always just make hills not block LOS at all (and if I go that route, hills will probably be scarce/less pronounced) but I think it would be such a neat feature and I think would incentivize me to make more interesting terrain.
+
+What are your thoughts on this? What have you or other devs done to implement elevation in Roguelikes? What do you think about the other changes?
+
+Thanks for reading! :)

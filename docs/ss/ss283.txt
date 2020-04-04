@@ -1,0 +1,53 @@
+Softly Into the Night
+
+This week I worked to get fires implemented using the new system which takes advantage of numpy / scipy to do quick operations like heat dispersion on a grid. I've got a few details to work out but the groundwork is laid and seems solid.
+
+Wind
+
+One thing I had an idea to implement is a global wind direction and strength that affects the heat dispersion; the way I chose to handle this is by creating a series of dispersion arrays for different strengths of wind, and then I figure out which one to use based on the wind strength, and rotate the array to face the proper wind direction. Then I apply that as my dispersion array to the heat map. I also had to have arrays for southeast (which, rotated, covers NE, NW, SW) because it seems I am only able to rotate by intervals of 90 degrees.
+
+Here are the ratios of a couple of the dispersion arrays; keep in mind that the resulting grid is divided by the sum of the values so that the end result is that all the values in the grid add up to 1.
+
+Regular dispersion array:
+
+[ [5, 7, 5],
+
+[7, 67, 7],
+
+[5, 7, 5], ],
+
+Strong wind (SE)
+
+[ [1, 3, 6],
+
+[3, 46, 17],
+
+[6, 17, 54], ],
+
+Slight wind (SE)
+
+[ [2, 4, 6],
+
+[4, 54, 16],
+
+[6, 16, 32], ],
+
+Strong wind (E)
+
+[ [3, 6, 16],
+
+[2, 50, 66],
+
+[3, 6, 16], ],
+
+So, as you can imagine, when the wind blows strongly, heat tends to flow away from the source and disperse in the direction of the wind, and heat barely disperses against the wind. This leads to interesting effects, like fires put themselves out if they aren't generating enough heat to handle the constant bombardment by the wind that's removing all of the heat from this tile. In addition, fires spread rather realistically as a log downwind from a fire will receive a lot of heat from that fire and eventually catch fire itself, while things upwind from the fire are far safer.
+
+As you can see, the general tendency for the regular dispersion array is to keep heat in its place and only slowly disperse away in a manner that each tile receives about the square root of the tiles' heat value, so fire doesn't spread extremely rapidly and uncontrollably, but more at a reasonable pace IMO.
+
+One problem I've encountered, for which I am at a loss to a solution, is the fact of walls. So, this dispersion works perfectly well for a flat, open plain that has no walls or ceilings, but in a cave or dungeon-like setting, I would expect the dispersion to behave differently. That is, the walls should behave as sort of heat sinks, absorbing a lot of the heat from the rooms, but they shouldn't be total blackboxes and should return a small portion of their accumulated heat back into the room. There doesn't seem to be any way to easily do this, though, because the dispersion with scipy.signal.convolve2d applies the same dispersion array to every cell in the grid.
+
+My idea so far is to only use wind dispersion arrays if I have some open areas, while the typical dungeon setting will not use this wind feature. I have also considered that I could simply remove all heat from all tiles containing a wall after each iteration of the heat dispersion, but this would lead to the walls absorbing heat far too rapidly and never returning any of that heat to the room.
+
+Generally, what I want is some way to have each tile have its own "insulation" value that determines how rapidly it can gain and lose heat. But this seems nontrivial and I'm not sure if it's really feasible. If anyone has any idea how I could implement something like this, I would really appreciate your input.
+
+Have a great day :)

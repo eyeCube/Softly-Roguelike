@@ -163,6 +163,14 @@ class GetsDiabetes: # can only take so much flattery in one sitting
     __slots__=['diabetes']
     def __init__(self):
         self.diabetes = 0 # buildup of diabetes
+class InLove: # in romantic love with entity entity
+    __slots__=['entity']
+    def __init__(self, entity):
+        self.entity=entity
+class InHate: # has a deep, profound hate for entity entity
+    __slots__=['entity']
+    def __init__(self, entity):
+        self.entity=entity
 class GetsCreepedOut: # can become creeped out
     __slots__=[]
     def __init__(self):
@@ -171,15 +179,7 @@ class Untrusting: # doesn't easily come to trust / love people
     __slots__=[]
     def __init__(self):
         pass
-class Taunted: # was taunted by PC recently
-    __slots__=[]
-    def __init__(self):
-        pass
-class SmallTalked: # has small talked to PC recently
-    __slots__=[]
-    def __init__(self):
-        pass
-class Introduced: # PC has had this person introduced to them.
+class Antisocial: # person inherently doesn't like people
     __slots__=[]
     def __init__(self):
         pass
@@ -196,6 +196,19 @@ class Taken: # has a lover already
     def __init__(self):
         pass
 class Ascetic: # doesn't easily partake in sinful behavior
+    __slots__=[]
+    def __init__(self):
+        pass
+# pseudo-statuses
+class Taunted: # was taunted by PC recently
+    __slots__=[]
+    def __init__(self):
+        pass
+class SmallTalked: # has small talked to PC recently
+    __slots__=[]
+    def __init__(self):
+        pass
+class Introduced: # PC has had this person introduced to them.
     __slots__=[]
     def __init__(self):
         pass
@@ -541,12 +554,12 @@ class ReactsWithElectricity: # / powered by electricity
     #--------------#
 
 class Slot:
-    __slots__=['item','fit','covers']
+    __slots__=['item','fit','covers','covered']
     def __init__(self, item=None, fit=0, covers=()):
         self.item=item
         self.fit=fit        # how well this item is secured in its slot currently
         self.covers=covers  # tuple of additional component instances
-                            # covered by the item in this slot
+        self.covered=False  # covered by the item in this slot
 
 class Body:
     '''
@@ -565,7 +578,8 @@ class Body:
     sleep       int, units of sleep satisfaction / maximum
     '''
     __slots__=[
-        'plan','slot','core','parts','height','position',
+        'plan','slot','covered',
+        'core','parts','height','position',
         'blood','bloodMax','bodyfat',
         'hydration','hydrationMax',
         'satiation','satiationMax',
@@ -689,75 +703,67 @@ class BPM_Hearts:
        
 '''
     Body Parts (BP)
-    usually contain a slot, covered bool, and optional BPP sub-components
+    usually contain a slot, and optional BPP sub-components
     DO NOT have a STATUS
 '''
 class BP_TorsoCore: # abdomen
-    __slots__=['slot','artery','muscle','skin','guts','covered']
+    __slots__=['slot','artery','muscle','skin','guts']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle() # abs
         self.skin=BPP_Skin()
         self.guts=BPP_Guts()
-        self.covered=False
 class BP_TorsoFront: # thorax front
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','bone','artery','muscle','skin']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # ribs
         self.muscle=BPP_Muscle() # pecs
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_TorsoBack: # thorax back
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','bone','artery','muscle','skin']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # spine
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_Hips:
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','bone','artery','muscle','skin']
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
         self.bone=BPP_Bone() # pelvis
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_Cell:
-    __slots__=['slot','covered']
+    __slots__=['slot']
     def __init__(self):
         self.slot=Slot()
-        self.covered=False
 class BP_Head:
-    __slots__=['slot','bone','brain','skin','hair','covered']
+    __slots__=['slot','bone','brain','skin','hair']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone() # skull
         self.brain=BPP_Brain()
         self.skin=BPP_Skin()
         self.hair=BPP_Hair()
-        self.covered=False
 class BP_Neck:
-    __slots__=['slot','artery','bone','muscle','skin','covered']
+    __slots__=['slot','artery','bone','muscle','skin']
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
         self.artery=BPP_Artery()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_Face:
-    __slots__=['slot','features','skin','covered']
+    __slots__=['slot','features','skin']
     def __init__(self):
         self.slot=Slot()
         self.features=BPP_FacialFeatures()
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_Mouth:
     __slots__=['held','bone','muscle','teeth','gustatorySystem','weapon']
     def __init__(self, taste=20): # quality of taste system
@@ -768,24 +774,21 @@ class BP_Mouth:
         self.weapon=LIMBWPN_TEETH
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
 class BP_Eyes:
-    __slots__=['slot','visualSystem','covered','open']
+    __slots__=['slot','visualSystem','open']
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
-        self.covered=False
         self.open=True #eyelids open or closed?
 class BP_Ears:
-    __slots__=['slot','auditorySystem','covered']
+    __slots__=['slot','auditorySystem']
     def __init__(self, quantity=2, quality=60):
         self.slot=Slot()        # earplugs, for protecting ears
         self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
-        self.covered=False
 class BP_Nose:
-    __slots__=['bone','olfactorySystem','covered']
+    __slots__=['bone','olfactorySystem']
     def __init__(self, quality=10):
         self.bone=BPP_Bone()
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
-        self.covered=False
 class BP_Arm: # upper / middle arm and shoulder
     __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
@@ -794,10 +797,9 @@ class BP_Arm: # upper / middle arm and shoulder
         self.bone=BPP_Bone()
         self.muscle=BPP_Muscle()
         self.skin=BPP_Skin()
-        self.covered=False
 class BP_Hand: # hand and lower forearm
     __slots__=['slot','held','bone','artery','muscle','skin',
-               'covered','holding','grip','weapon']
+               'grip','weapon']
     def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
@@ -807,8 +809,6 @@ class BP_Hand: # hand and lower forearm
         self.skin=BPP_Skin()
         self.weapon=LIMBWPN_HAND # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.grip=grip # grip your bare hand has
-        self.covered=False
-        self.holding=False # holding something?
 class BP_Leg: # thigh and knee
     __slots__=['slot','bone','artery','muscle','skin','covered']
     def __init__(self):
@@ -1219,6 +1219,10 @@ class EquipableInLegSlot:
     # Functions / Uses #
     #------------------#
 
+class Description:
+    __slots__=['description']
+    def __init__(self, description):
+        self.description=description # DESC_ const
 
 class Usable:
     __slots__=['funcPC','funcNPC','usableFromWorld']

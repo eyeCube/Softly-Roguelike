@@ -1,0 +1,23 @@
+My game has a very simple combat system for now. There are four relevant combat stats that come into play during a fight: Hit, Power, Dodge, and Armor.
+
+When a creature attacks another creature, it takes its Atk or Hit value, adds a dice roll of 20, and the defender does the same with its Dfn or Dodge Value. Whichever roll is higher determines if the attack is dodged or not. Then if the attack goes through, the damage is Attacker.Power - Defender.Armor. unless of course this comes out to be negative.
+
+There is no strength or dexterity or any other generic attributes in the game; if you want to increase Attack or Damage, get a better weapon or find some other way to enhance your combat power. No leveling up, either, so what you see is what you get for the combat stats.
+
+I was thinking of tying in a critical hit chance based on how much more attack the attacker has than the defender has defense. That way a rogue-ish character with high hit value is very effective vs. slow monsters with low dodge, without needing to pump his damage. I was also thinking of implementing some form of close-quarters combat or wrestling that makes more use of strength and mass.
+
+Strong characters and more rogue-ish characters alike will both benefit from increasing their hit or their power, though specializing would be rewarded by the above systems, I think.
+
+Oh, I almost forgot about the calculation of how long it takes a creature to perform an attack. By default most attacks take twice as long as a typical movement turn would take. This means you can't simply use hit-and-run tactics without having very high attack speed. There are three speed attributes for now: General Speed, Attack Speed, and Move Speed. General Speed indicates how many action points you regain per turn. Attack and Move Speed indicate how many action points it actually takes to perform that action. If you have 200% Attack Speed, you now attack fast enough to negate the double-time penalty of attacking.
+
+The reason I split up Move Speed (MSP) and Attack Speed (ASP) is because I wanted to have creatures that were very slow at moving, but very deadly as melee range, for instance. Or, a creature who is very fast, but becomes vulnerable when it attacks because it has to recover its AP before it can move to safety again. A general speed attribute is still needed because other actions that take AP are not affected by MSP or ASP.
+
+A creature with high Speed would be something like a creature under the effects of a powerful haste spell.
+
+A creature with low Speed would be something like a zombie, slow at everything it does.
+
+A creature with high MSP would be like a nimble fairy, and low MSP would be like having your legs crippled or being overburdened.
+
+A creature with high ASP would be like a centaur that attacks with multiple limbs/ body parts, or a highly trained martial artist; while a creature with low ASP would be like a weak character trying to swing a very heavy weapon.
+
+I wanted to keep my combat system simple, and so I have scrapped hundreds of ideas for it, but I decided to keep the three-speed system even though I have never seen it before in any roguelike or any game before. It will be interesting to see how well it turns out.

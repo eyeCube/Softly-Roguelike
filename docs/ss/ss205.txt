@@ -1,0 +1,71 @@
+Untitled dark fantasy / sci-fi roguelike.
+
+With final exams out of the way I have had lots of time to work on my (very much still incomplete) game these past few days. The theme is not set in stone but I am picturing a scenario involving being transported in space/time to an alien world, and the goal is to return home. There is an emphasis on supernatural horror especially involving the creatures/aliens, and with recent updates there is a real dark-souls like feel just in that you want to stay close by the fires, because that's where light is.
+
+Sorry if this log is rather out of context, since I have never posted before. I thank you for your interest if you read it. I will give you just a little more context before sharing the recent changelog.
+
+I have done a lot of work to get things running behind the scenes in a very adaptable way. The player has a good bit of options already to change the gaming experience, such as by swapping the tileset out for a custom one, changing any of the colors in the game (the RGB values for the colors), key bindings with any combination of ctrl, alt, and shift, you get the picture. On to more interesting aspects: the mechanics.
+
+I have a simple combat system based on the following stats: High energy, low energy, hit, power, dodge, armor, and speed (divided into general speed, movement speed, and attack speed).
+
+High energy is like MP, low energy is like HP. More on that in the log.
+
+The speed system is an energy system in which actors take turns expending their energy until they have 0 or less. The more general speed they have, the more action points they gain per turn. Actions have fixed costs or costs dependent on a formula.
+
+Hit is rolled against dodge to determine if the attack goes through. The values are basically modifiers that are added to a roll of 20. Armor subtracts from the damage dealt by Power, and the resulting damage is done to the Low Energy or HP stat.
+
+I have a basic AI working that listens for events nearby, and looks all around it to see what is there, and works out where it wants to go the most by a desire system. It is very basic so far, but there is a lot that can be done just with this. If the actor moves into a creature it doesn't like, such as the player, it attacks. There is probably going to be some form of diplomacy system in which certain species have certain tastes for each other species. Monster interaction will definitely be a thing.
+
+There is a lot of other things I have done but I won't bore you with all the details, since this post is already going to be long.
+
+Just today I made a retrospective changelog for some of the progress I've made in the past few days (so this log is quite incomplete). A bunch of horrible glitches (bad mistakes on my part) have kept me from being more productive, but I am glad with the progress as my game is coming more together (especially now with fire! And multiple light sources! :D )
+
+5-2-18 -Updated rendering system with new lighting map to allow "patches" of light from various light sources, with light radius and sight radius being separate. Adds a very nice dark feel, where you want to stay close to the light sources so you can see further. Walking into the dark without a torch is very foolish...
+
+-Night vision, a boolean variable which, if toggled on, allows the creature to see even in 0 light level.
+
+5-3-18 -Made colors changeable by settings.txt
+
+-Updated the HUD to be adaptive to screen size changes. No more HP bars.
+
+-Redesigned HP/MP system. "Lo" and "Hi" Energy are the primary stats. They have no hard maximum. Low energy is like HP, and is replenished by eating. It is damaged by physical attacks. It is like your gross physical body and physical health. High energy is like mental or spiritual health, and can be damaged by certain foes. It is replenished by drinking or bathing in water. It may be used to cast spells.
+
+-Added the two primary status effect types: fire and biological damage, and resistances for each thing in the game.
+
+5-4-18
+
+-Sounds are now implemented and listened for by all creatures.
+
+-Events happening may be seen or heard by the player, or neither, in which case no text appears in the message log.
+
+-Silhouettes of monsters backlit by lit-up tiles are now visible as question marks "?".
+
+-Added corpses
+
+-Greatly improved flow of rendering function
+
+-Implementing fires...
+
+-Fixed horrible bugs!
+
+Edit: here are some pictures. The sound system is working now!
+
+pic1 pic2 pic3
+
+Mirror (Imgur): pics
+
+This is just a little test area. The terrain is randomly generated using a custom modified drunken walk algorithm. There is a campfire nearby the starting area and a few monsters with basic AIs.
+
+As you can see, the sound system still needs work. I don't want it to say "the fire, the fire, the fire" when you hear the fire 3 times because you did an action which took 3 turns, or you happened to hear the fires of 3 separate fires all in the same general direction. Right now the sounds are grouped according to their direction, but I also am going to group them based on the type of sound. If you hear 3 fires in the west, it will just add their volume together to make it sound like a louder fire.
+
+Notes on the interface: The perceived volume of the sound is indicated by the letters in parentheses, e.g. (p). That stands for piano. The perceived general direction of the sound is indicated in brackets like <NW>. The direction the sound appears to be coming from varies as the sound moves around walls simply using the A* algorithm. The perceived volume when the sound reaches an entity is the actual volume minus the energy lost from the path the A* algorithm finds. Sounds could go through walls if they were very loud.
+
+Black tiles are unexplored. Darkened tiles shown are what the player remembers seeing. It does not reflect what is actually there now. This is a feature I am very proud of designing. I think it slows the game a tiny bit but I have done a lot to try and optimize it. The view around the player takes into account the light level of the tiles and the player's sight. You can have a larger sight radius than your light radius or vice versa. Here in the pics we can see distant light that is outside of the player's lantern light. It is caused by a campfire, the object with the orange-yellow background. It is "the fire" referenced in the message log.
+
+This is all very much a work in progress; I just designed it this morning. Let me know what you think! Thanks :D
+
+Edit2: by the way, also, the text received by the player for the sounds played depend on whether the player can see the source of the sound or not. You can't see that here, but if the fire were out of view, it would say "a fire cackling" instead of "the fire." This is a touch I just added right before posting ;)
+
+Right now the log reports all kinds of super obvious sounds like the sounds of combat that the player is engaged in. I am thinking of having an option that is enabled by default, to ignore such obvious sounds in the log. The log could still report everything but it only shows what the player wants to know about by choosing what to "ignore."
+
+Edit3: added mirror to imgur pics. Thanks for the suggestion, hope you guys can see them now.

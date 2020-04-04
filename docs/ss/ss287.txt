@@ -1,0 +1,39 @@
+Softly Into the Night
+
+Python / tcod / esper
+
+GitHub repo
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+My improved design of the level generation algorithm has been fully implemented. It's a solid base, I think, from which to continue and create some really interesting, unique maps. Being my own design, and 100% my own code, I feel that my algorithm generates levels that have a style reminiscent of traditional roguelikes while also appearing somewhat distinguished in its own way.
+
+Pictures:
+
+Testing new "Cross" rooms: https://ibb.co/TWcz3gC
+
+Rectangle rooms only: https://ibb.co/4fWR4DN
+
+With LOS: https://ibb.co/cCLQQsK
+
+
+
+I will now briefly describe how the algorithm works. It implements a binary tree in which each room is a node and has 0-2 children. It recursively generates the room starting from an origin room placed somewhere in the middle of the map, then rolls for how many children it will have, and repeatedly tries (a certain number of times) to place those rooms within a certain distance from the parent room.
+
+It makes sure the new room is not overlapping any existing rooms, and then it tries to dig a corridor to connect the parent to the new child. If it fails to dig the corridor a certain number of times, like if the digger keeps running into existing room(s), then it gives up on placing this room. After failing to place a room enough times it moves on.
+
+While placing rooms and corridors, it also places doors. If a room is placed adjacent to an existing room, it tries to place up to 1 door on a random tile of the shared wall between the rooms. The corridor digger also adds a door on the first and last tiles in the corridor.
+
+The cleanup phase comes next. Iterating over every tile in the map, we check for dead-ends, and for useless doors which are not placed in between two walls. Such useless doors are replaced by floor tiles. Dead ends are found by checking the number of adjacent walls in the 4 cardinal directions; a floor tile with 3 adjacent walls is a dead end, and then we add all 4 neighbors back into the list to iterate over again, so that whole dead-end hallways will be filled in with walls without the need for iterating over the entire map repeatedly.
+
+While my previous brute-force method of level generation was slow and took a couple seconds to make a (crappy) map, this algorithm is lightning-fast generating my tiny maps (80x50, which is about the limit due to my heat-grid system exploding in performance requirements exponentially based on the room size). It is also much cleaner-looking and more fun to explore.
+
+Other perhaps interesting info: the sizes of rooms and the distances between rooms is random between two values, but you may have noticed there is a small chance to add extra width or height or distance, so that there is the rare exception of a larger-than-usual room or a longer-than-usual corridor.
+
+Next up is to add more connections between the rooms. As you can see, the rooms sometimes connect back on each other at random, but I also want to introduce some connections that span across multiple levels of the tree; as long as two rooms are close by, it doesn't matter how distantly "related" they are. There is still a weird bug with the cross-shaped rooms so I have to fix that before I move on to making other styles of rooms, but I plan to have much more than just rectangles. I think a donut-shaped room would be cool as a rare choice, etc. -- basically just far more variety.
+
+My goal with this level generator is to produce a unique-feeling dungeon layout, so from the start I decided I'd write my own code from scratch, even coming up with my own algorithms when it seems feasible and/or worth it. Because I wanted to do things on my own, I have been a little overwhelmed, though, and I feel like I've taken way too much time working on certain areas of my game for very little tangible gain. But at the end of the day I'm happy with what I've accomplished so far, and proud of myself for getting this far into such a daunting project -- I've definitely put more work into this game than any other I've ever made.
+
+I did a lot of thinking about many areas of the game, and planning for improvements to the combat and other mechanics, but as far as tangible work I've completed, that about covers it. I have a million good ideas for the game but it will take me so long to implement it all, haha. Oh well, I just hope I don't get burnt out again and I can continue to enjoy hammering away at this project.
+
+Thanks for reading! :)

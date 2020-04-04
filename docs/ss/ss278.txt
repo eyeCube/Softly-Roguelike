@@ -1,0 +1,32 @@
+Softly Into the Night
+
+This week I actually worked a lot on the conceptual side of things, figuring out how bits of my combat system will work. I plan to add wrestling to the game in a similar fashion to Dwarf Fortress albeit with probably a simpler simulation, not including a whole anatomy lesson in each humanoid entity.
+
+Instead of being purely a "skill" though, in Softly grappling is a stat which all fighters are expected to have, in various degrees. Grappling allows you to gain an advantage over your foe by knocking them prone and mounting them or getting them in an armlock, etc. Then you gain an advantage to penetration while they receive offensive and defensive penalties. While pinned, the primary stat other than strength is grappling, so if you are weak and bad at grappling, you better make sure you keep your distance from any foes who are stronger or better wrestlers than you are.
+
+Another added stat: Counter or riposte. Unlike a parry/riposte skill, this is more a literal counter-attack skill, as it does not allow you to negate any incoming attacks, it simply allows you a chance to retaliate (once per turn) when you are attacked. So if you don't dodge the incoming blow (dodges abstract away parrys, blocks, etc.) you might both skewer each other and kill each other in the same move. This makes counter a scary stat that makes you think harder about attacking a foe willy-nilly, but it also does not allow you as the player to ignore all other stats and just be a countering machine because if you do that you have virtually no defensive capability to keep yourself alive.
+
+Stamina as a stat is also now planned, to replace the MP stat as I don't think this game is going to have spells or the like, but stamina is increasingly becoming a seemingly needed stat.
+
+New status effects planned:
+
+Bleed (damage over time-- makes bladed weapons more deadly)
+
+Pain (gained by grappling skills, certain weapon strikes -- a bullwhip hurts but a sword, you may not even feel running you through). Pain will disable you if you acquire too much.
+
+I also culled a few overcomplications, for instance there were 5 throwing skills that I condensed down to just 1 skill in throwing. Grappling was originally planned to be 2 stats -- grappling attack (GrA) and grappling defense (GrD), where GrD would be the primary offensive stat while you are pinned or otherwise in a disadvantageous grappling position. Though it seemed like an interesting idea, I decided it was just overly complicated. There are already defensive stats like DV which can apply vs. the grappling stat.
+
+Further, I worked on the beginnings of the implementation of a lot of these new features as well as continuing to implement other features I haven't yet finished. I tweaked some data around too, changed the stat values of some weapons; in general everything is more encumbering now, but there will be a Constitution attribute that allows you to reduce the encumberance that gear gives you.
+
+Oh, by the way: Attributes! For the longest time in this game I planned to go without attributes (stats that affect other derived stats), but I finally see an absolute need for at least a few attributes, which are the following:
+
+Strength: allows you to overcome better grapplers than you if you are sufficiently strong, allows you to carry heavier equipment, basically anything that requires strength
+
+Constitution: increases your fitness / ability to carry more things and may increase your HP / stamina / speed. Most importantly, this increases the number of physical augmentations you can acquire. These would be cyborg limbs, artificial organs, etc. to increase your physical prowess.
+
+Intelligence: Increases your ability to identify monsters and items, allows you to get better prices in shops, increases your persuasion ability, etc. Most importantly, this increases the number of mental augmentations you can acquire. These would be cyborg brain chips that increase your skills in some area or grant you extra perception or vision etc.
+
+I did a lot of design work this week and I'm loving the direction this game is going. The mental/physical augmentations idea came from my friend when I told him about my game and I love the idea, I'm definitely going to do that. I already planned to do something similar but the idea of con/int directly determining how many augmentations of each kind you can acquire is a very interesting idea to me and I think it will work well.
+
+I've really got my work cut out for me with this game. But working on it is an absolute fucking blast. Thanks for reading :) I welcome any comments or questions or suggestions :)
+

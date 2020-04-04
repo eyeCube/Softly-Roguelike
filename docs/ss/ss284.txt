@@ -1,0 +1,9 @@
+Softly Into the Night
+
+Fires and their lights are now working with ECS. There were so many bugs introduced in the switch from object-oriented to ECS style programming, that I'm not sure if it will ever end.
+
+I wish I could say I got more done this week, but there isn't much more to tell. I have been in debugging mode for a long time now, I need to get myself back in the headspace of developing the game.
+
+Something I've been meaning to get back to working on these past weeks is procedural content generation. So far, my game is really lacking on that front, as it's simply something I've brushed aside to focus on other features. But the lack of procedural content is really starting to be more and more of a problem, and I really do want to get this game into a playable state ASAP, so I think that's my next big goal.
+
+I probably won't be happy with the procedural generation for a really long time, but I think I need to get something done so I can have at least a few levels to playtest and start to get a feel for how the levels will be.

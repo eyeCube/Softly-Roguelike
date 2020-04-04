@@ -2086,9 +2086,9 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         return (-1,None,) # item can't be equipped in this slot
     if not eqcompo: # component selected. Does this component exist?
         return (-2,None,) # something weird happened
-    if ( not holdtype and eqcompo.covered ):
+    if ( not holdtype and eqcompo.slot.covered ):
         return (-3,None,) # already have something covering that slot
-    if ( holdtype and eqcompo.holding ):
+    if ( holdtype and eqcompo.slot.covered ):
         return (-4,None,) # reject held item if already holding something
     if ( equipType==EQ_OFFHANDW and on(item, TWOHANDS)):
         return (-5,None,) # reject 2-h weapons not equipped in mainhand.
@@ -2104,7 +2104,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     # figure out what additional slots the equipment covers, if any
     def __cov(ent, clis, flis, eqtype, cls): # cover additional body part
         for _com in findbps(ent, cls): # temporary
-            if _com.covered: # make sure you can't equip something if ...
+            if _com.slot.covered: # make sure you can't equip something if ...
                 flis.append(_com) # ... any required slots are occupied.
             else:
                 clis.append(_com)
@@ -2145,14 +2145,14 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     if world.has_component(item, cmp.Fitted):
         fitted=world.component_for_entity(item, cmp.Fitted)
         if fitted.entity==ent:
-            armorfit = 30
-            heldfit = 10
+            armorfit = FIT_ARMOR_MAX
+            heldfit = FIT_HELD_MAX
         else:
-            diff = abs(fitted.height - getbase(ent,'height'))//4
-            armorfit = 17 - diff
-            heldfit = 2 - diff
+            diff = abs(fitted.height - getbase(ent,'height'))
+            armorfit = 0.75*FIT_ARMOR_MAX - diff
+            heldfit = 0.75*FIT_HELD_MAX - diff*(FIT_ARMOR_MAX/FIT_HELD_MAX)
     else:
-        armorfit = 15
+        armorfit = 0
         heldfit = 0
     
     # put it in the right slot (held or worn?)
@@ -2160,11 +2160,11 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         eqcompo.held.item = item
         eqcompo.held.fit = heldfit
 # todo: function that adds these values to get how well you're gripping something.
-        eqcompo.holding = True # cover this BP
+        eqcompo.slot.covered = True # cover this BP
     else: # worn
         eqcompo.slot.item = item
         eqcompo.slot.fit = armorfit
-        eqcompo.covered = True # cover this BP
+        eqcompo.slot.covered = True # cover this BP
     
     if ( (equipType==EQ_MAINLEG or equipType==EQ_OFFLEG)
          and equipable.coversBoth
@@ -2177,11 +2177,11 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     eqcompo.slot.covers = tuple(clis)
     # cover the BPs
     for _com in clis:
-        _com.covered=True
+        _com.slot.covered=True
     #
     
     make(ent, DIRTY_STATS)
-    return (1,eqcompo,) # yey success
+    return (1,equipable,) # yey success
     
 # end def
 
@@ -2189,10 +2189,10 @@ def remove_equipment(ent, item):
     ''' dewield or deequip (context sensitive) '''
     if world().has_component(item, cmp.Equipped):
         equipType=world().component_for_entity(item,cmp.Equipped).equipType
-        deequip(item, equipType)
+        deequip(ent, equipType)
     elif world().has_component(item, cmp.Held):
         equipType=world().component_for_entity(item,cmp.Held).equipType
-        dewield(item, equipType)
+        dewield(ent, equipType)
         
 def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
     body = Rogue.world.component_for_entity(ent, cmp.Body)
@@ -2235,7 +2235,6 @@ def deequip(ent,equipType):
     compo = _get_eq_compo(ent, equipType)
     if not compo:
         return None
-
     return _deequip(ent, compo)
 # end def
 def _deequip(ent, compo):
@@ -2243,8 +2242,8 @@ def _deequip(ent, compo):
         consider coverage of other slots that may be affected
     '''
     # uncover the covered slot(s)
-    for compo in compo.slot.covers:
-        compo.covered = False
+    for cc in compo.slot.covers:
+        cc.slot.covered = False
     compo.slot.covers = ()
     
     return _deequipSlot(ent, compo.slot)
@@ -2263,7 +2262,8 @@ def _deequipSlot(ent, slot):
     slot.item = None
     slot.covered = False
     slot.fit = 0
-             
+    give(ent, item) # put item in inventory
+    
     make(ent, DIRTY_STATS)
     return item
 # end def
@@ -2282,7 +2282,7 @@ def _dewield(ent, compo):
     
     world.remove_component(item, cmp.Child)
     world.remove_component(item, cmp.Held)
-    compo.holding = False
+    compo.held.covered = False
     compo.held.item = None
     compo.held.fit = 0
     

@@ -1,0 +1,53 @@
+Softly Into the Night
+
+Python | libtcod | esper | github
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Again, for the past few weeks I haven't made much visible progress, but under the hood a lot of things are coming along real nicely. This game has exploded in complexity vastly beyond its original scope, despite my best efforts to contain it, though I'm not complaining. Anyway, I'm sure I can still share -- I'll talk about some more mechanics that I've implemented which I haven't discussed before.
+
+2-handed weapons
+Weapons (AKA entities with an "EquipableInHoldSlot" component, meaning it can be held) sometimes have the TWOHANDS flag. For now, I have some basic rules that mostly apply to humans (with two arms). The boring obvious ones include:
+
+2-h weapons can only be equipped in the dominant hand
+
+2-h weapons set the boolean "holding" to True for both the mainhand and the offhand, meaning both hands are occupied (obvious -- but for hands there is also a slot for armor, i.e. gloves, gauntlets, etc. which has a corresponding separate variable "covered")
+
+Necessary rules like you can't equip a 2-h weapon if your offhand is holding something (actually the holding/covered vars have allowed for generally any gear that covers multiple slots to make sure all its necessary slots are available before equipping)
+
+Some more interesting rules are what happens when you wield a one-handed weapon with a free offhand. In this case, you are automatically considered to be wielding the weapon in two hands (or somehow otherwise utilizing your free hand in offensive combination with your primary weapon), which grants you a modest bonus to your offensive stats.
+
+I was considering not granting additional damage here, but instead doing something like: you are able to add the force of the strength of both arms when wielding with two hands, which means the damage bonus you gain from strength is increased. I may still do that, but for now, I just multiply the weapon's damage bonus by 1.2. Note this does not apply for weapons which are only able to be wielded in two hands -- as far as the stats for those go, you get what you see.
+
+Strength / Dexterity Requirements
+Strength and Dexterity being things (which is now seemingly totally necessary and justified), it follows that equipment should have some requirements for them. Really, things like armor and shoes with laces should require some amount of dexterity to equip, but for now, only weapons have a dexterity requirement. All gear, however, can require some amount of strength to effectively use. Notice I said "effectively." In Softly, gear can be equipped and used without the proper attribute requirements; what's stopping you? The only thing is -- you will suffer a penalty for every point you're missing in both Str and Dex, which becomes very steep when that deficit gets wider. Still, if you are in combat wielding a weapon which you have just enough strength to wield, and then you lose a point of strength due to a status debuff, you aren't going to instantly drop your weapon or become completely useless in combat. You'll just see a noticeable drop in your effectiveness.
+
+A lot of debuffs in Softly are not, all by themselves, really all that terrible (at least, that's the idea) -- but when you accumulate a large amount of them, you start to really suffer and need to address them. Thing is, there are dozens, if not hundreds of ways you can be debuffed, from getting cuts and scrapes, bruises and broken bones and losing limbs to getting drunk, getting a concussion, being sick, tired, hungry, over-encumbered, poisoned, irradiated, etc., etc. You've got to watch yourself if you're going to survive in this world.
+
+Reach
+This is a mechanic I haven't fully implemented yet, but I have a good idea of exactly how, mechanics-wise, it will work. Reach is a stat that (as far as the player is concerned) is measured in intervals of 0.5. Default humans typically have 1 Reach. Weapons can add reach to that base reach, allowing you to attacking tiles farther away -- to put it simply, it works similarly to range with ranged weapons but it is a little different.
+
+The reason the user-visible stat is divided into intervals of 0.5 -- instead of 1 like pretty much every other stat in the game -- is because every 0.5 reach increases your reach a little bit. Here is a diagram showing how reach affects your melee attack coverage:
+
+      8 8 8
+    7 7 6 7 7
+  7 6 5 4 5 6 7
+8 7 5 3 2 3 5 7 8
+8 6 4 2 @ 2 4 6 8
+8 7 5 3 2 3 5 7 8
+  7 6 5 4 5 6 7
+    7 7 6 7 7
+      8 8 8
+From the center (the @), each number represents a tile and the amount of reach you need (multiplied by 2) in order to attack that tile with your melee weapon. It's divided by 2 so that the end result is a number divisible by 0.5 and so that each "1 reach" is effectively 1 meter of extra reach since tiles==1x1m. So notice how, if you gain 0.5 reach from 1 reach, you can now hit the diagonals around you so that all 8 adjacent tiles are now within reach.
+
+So as you can obviously imagine, having a weapon with higher reach is a huge advantage, solely based on the fact that they can hit the opponent while they can't be hit. The more reach advantage you have, the easier it is to get in that sweet spot where you can hit and can't be hit. Of course, things are much more complicated than that, in the context of all the other mechanics, but that's a different story.
+
+This further distinguishes grappling (a mechanic that is also unfinished) from weapon combat, as you have to be within arms' reach to grab a foe with your hand, which means you have to first get past their weapon in a literal sense.
+
+It always kind of frustrated me in games when weapons didn't have proper reach. Like if I equip a spear, I still have to bump into the enemy at the same range as if I was bare-handed, and that's rather silly.
+
+The bump-to-attack mechanic is still present, and will be a big feature of wrestling-centric characters. But there will be a dedicated attack button that will auto-aim towards a suitable target, the same way the ranged weapon aiming system will work.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Thank you very much for reading and for your interest in Softly; I look forward to any comments you may have! Hope you have a wonderful day!

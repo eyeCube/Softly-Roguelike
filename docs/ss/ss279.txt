@@ -1,0 +1,104 @@
+Softly Into the Night
+
+This week I did a lot of conceptual / design work, specifically on how the combat system will work incorporating fully modeled limbs, and how to go about modeling the body system within the code.
+
+So far, here is how I have decided the system will work:
+
+A Body component is a component of all entities that have multi-part bodies. This component consists of a plan, an int. const. that corresponds to a specific pre-defined dict that contains info about what body parts are expected and in what quantities. For example, the humanoid plan has a torso, 1 head, 2 arms, and 2 legs; the animal plan has a torso, 1 head, 4 legs, and a tail. Each part of the body (arms, legs, heads, etc.) are stored as components with the prefix "BPC_" for Body Part Container.
+
+The BPC_ objects contain BP_ (Body Part) objects like BP_Arm, BP_Leg, etc. So the BPC_Arms sub-component has a list that contains each BP_Arm sub-component and also each BP_Hand sub-component. Further, each BP_ sub-component contains additional BPP_ objects (Body Part Pieces) like BPP_Artery, BPP_Bone, BPP_Muscle, etc. which are shared between all BP_ objects. Finally each BP_ object contains a Slot that allows it to equip an item that fits that particular slot (not shown in the diagram below). So in this way there is a hierarchy of components which can be summarized using the following:
+
+Body
+
+BPC_Arms
+
+BP_Arm
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Arm
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Hand
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Hand
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BPC_Legs
+
+BP_Leg
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Leg
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Foot
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BP_Foot
+
+BPP_Muscle, BPP_Artery, BPP_Bone
+
+BPC_Heads
+
+BP_Head
+
+BPP_Bone (skull)
+
+BP_Face
+
+BPP_Bone (jaw)
+
+BP_Eyes
+
+quantity, quality
+
+BP_Neck
+
+BPP_Bone, BPP_Muscle, BPP_Artery
+
+BPC_Torso (core)
+
+BP_TorsoCore
+
+BPP_Muscle (abs), BPP_Artery, BPP_Guts, BPP_Lungs, BPP_Hearts
+
+BP_TorsoFront
+
+BPP_Muscle (pecs), BPP_Artery, BPP_Bone (ribs)
+
+BP_TorsoBack
+
+BPP_Muscle, BPP_Artery, BPP_Bone (spine)
+
+BP_Hips
+
+BPP_Muscle, BPP_Artery, BPP_Bone (pelvis)
+
+
+
+This hierarchy will hopefully keep things organized enough in this rather complex modeling system. The only thing I'm concerned with right now is that there may be a need for yet another level of abstraction to contain each Head in the BPC_Heads sub-component so that each head is not split into data about the face, eyes, neck, etc. This would make it easier to tell which neck belongs to which head, etc. But I'm not sure what's the best way to model this, which is one of the reasons I haven't gotten much work done this week. Still trying to figure out this hierarchy as far as the code goes. For the sake of organization and simplicity, I may have settled on using too many objects to represent one entity, after all each BPP_Muscle, etc. is its own instance (itself containing info like strength, status of the muscle, fatigue, mass and material (e.g. you can get robot muscles)), so currently this model takes up a lot of memory. Fortunately it's not nearly as bad as it would be since I'm using Python's slots syntax. Still, I'm wondering if there's a better way to handle this.
+
+Thanks for reading :) like many others here, the Sharing Saturdays motivate me to keep moving forward and improving my game. Thanks to all the fellow RL devs for being an inspiration.
+
+EDIT: I forgot, I also did some work on the combat system. See, I want to have a relatively complex system but one that is easy to understand, so here is what I decided so far:
+
+When you attack, there are several binary flags that you can add to the attack command. By default these are all false, but by holding Ctrl, Shift, and/or Alt before pressing the Attack command key, you can toggle these flags which are: multi-target, offensive, and strong attack. By default the attack is single-target, defensive, and a normal strength attack. Breaking these down:
+
+Single / Multi-target: if you choose multi-target you gain minor AOE damage to adjacent foes when you strike. However, you incur a penalty to Penetration, meaning each attack you do is much less likely to get through the opponent's armor. This simulates a defensive slash which, though effective against unarmored flesh, and can keep multiple foes at bay, does not work well against armored foes.
+
+Defensive / Offensive: Defensive is default, which only engages the muscles in the arm(s) wielding the weapons instead of engaging the whole body in the attack. This is like a simple strike vs. a downward strike, or the difference between a stab using the arm and a thrust using the legs and torso as well. Offensive, using the whole body, adds more muscle strength since it uses muscles in the whole body but it leaves you open to attack because those limbs cannot be used to protect you this turn (they provide no Armor, no Dodge Value, no Protection, etc. -- only the attacking arm(s) provide defense). So if you want your shield in your offhand to protect you while you strike with your mainhand weapon, you had better choose the default Defensive option to attack. Offensive of course would be reserved for when you just want to do a lot of damage and don't care about defending yourself after the blow-- maybe you're confident you will kill them with one blow.
+
+Normal / Strong Attack: Normal attacks do not fatigue your muscles, but do not use them to their full strength capacity. Strong attacks use your muscles closer to their limits, which increases destructive power but requires much more stamina and fatigues your muscles. So if you use your arms muscles too often using Strong Attacks, that muscle will be too weak to do any more strong attacks and even your normal attacks may suffer in power if your muscles are too fatigued.
+
+Despite all these options, though, the player can simply bump into a foe as usual for RLs and what will happen is you will simply perform a single-target, defensive, normal attack. This is the default type of attack for RLs but now you have the option to engage more muscles or use more strength or to fend off many foes with one strike, whereas these options are not available in traditional RLs I have played. Further, I think that you will also be able to press the Attack command to bring up a menu that allows you to toggle each settle simply by pressing Shift, Alt or Ctrl and the UI will show you which settings are toggled on. Then you choose a direction and unleash the attack. So ideally this allows much more complex options in each attack while hopefully not cluttering up the UI too much since these options are all completely optional; further, to perform a complex command like a full-body, multi-target, strong attack, you can get away with only two real key inputs: Shift-Ctrl-Alt A to being the attack, then the directional input for where you want to attack. Or you can just bump into the enemy as usual, as I said, and do a typical unaltered attack with only one key input.
+
+Of course none of this is set in stone. Just some ideas I had this week I thought were worth sharing. :) I welcome any questions/comments/suggestions.
+

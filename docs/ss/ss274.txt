@@ -1,0 +1,29 @@
+Softly Into the Night
+
+It's been a long time since I've posted here about this game. However, despite my silence, Softly has undergone some absolutely massive changes over the past months.
+
+ECS
+
+One of the big changes was an overhaul of the entire codebase from using an object-oriented style of programming to a more elegant Entity-Component System, which will allow for much more flexibility and ultimately will makes things easier, and though it has taken a very long time to convert all the code and I still have not finished 100%, I'm very close to getting a stable version again. This has taken the longest time of any change to this game, but I am looking forward to seeing it work with the new, more versatile system.
+
+Penetration and Protection
+
+Somewhat recently, I overhauled the combat system to include two new stats: penetration and protection. In combat, the attacker's penetration rolls against the target's protection for a chance to reduce the target's armor value (AV). A successful roll cuts AV in half, and then the attacker rolls again with a penalty to penetration, and if successful again, the target's AV is cut to 0 and the attacker deals full damage as if the target was not wearing armor.
+
+This penetration/protection dynamic simulates the ability of weapons to bypass body armor by sheer blunt impact or targeted thrusts to slip between the chinks or between the rings of a chainmail shirt. Weapons with high damage but low penetration are effective against unarmored or lightly armored foes, while weapons with low damage but high penetration are effective against more heavily armored foes. It will work for guns, too, though; musket-like guns will be the high-damage, low-penetration category while modern firearms have extremely high penetration.
+
+Crafting
+
+Survival will play a key role in Softly. In practice, I think the player will have to make decisions about how to make the best use of their environment and the things / creatures in it. Plenty of materials will be made available to the player. The difficulty will come from choosing what to make and when to make it, as well as what to carry with you on your journey. The player will have to learn how the world functions as its own living entity and how best to interact with it, not just memorize some recipes.
+
+In fact, even recipes in Softly are fluid; components can be substituted in, which might change the mass, value, durability, and/or primary material composition of the resulting object. In addition, tools of certain qualities are required for certain crafting jobs, like hammers and chisels, cutting implements, etc. Like C:DDA (which was a big inspiration for the crafting system in Softly), tools can also be substituted and any item can possess tool components, meaning items like a bone can be simultaneously: 1) a crafting ingredient, 2) a weapon, 3) a level 2 hammer. A higher quality hammer than a bone is needed for jobs like blacksmithing, but a bone will work just fine for driving nails or a chisel for working wood.
+
+This prestigious system is obviously a lot of work to implement, and will take a long time. But so far I have already got a lot of work done, including over a hundred recipes and corresponding items. There is a large variety already, with 16 different material types, and 25 tool types.
+
+In the end I hope to make this into a fully fledged crafting system that allows you to build things from all ages of human history, from stone spears to muskets to computer chips. I'm starting with the prehistoric era and moving up, so I'm not sure if any recipes for modern technology will exist in the game, but the recipes will cover the vast majority of human history (the setting is an apocalyptic, dystopian future in which most of society has regressed hundreds of years in technological capability while the elite few have laser guns, mind powers and immortality).
+
+Conclusion
+
+Softly Into the Night has undergone huge changes recently, and I will have some really major updates coming up before too long. I plan to actually get a stable version running and then work on the core gameplay to begin pushing to get this game playable ASAP so I can start receiving some feedback for all the countless hours of work I've put into this game over the past couple of years.
+
+So look out for more updates coming in the near future, and look forward to playing Softly Into the Night (hopefully) later on this year!

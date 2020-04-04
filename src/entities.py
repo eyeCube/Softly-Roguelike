@@ -3294,10 +3294,8 @@ def rollstats(stats, DEV=3, HDEV=6, MDEV=0.05):
 # ADD DICT MULTIPLIER FUNCTIONS (dadd)
 
 # fitted bonus
-def fittedBonus(world,ent,item,eqdadd):
-    if ( world.has_component(item, cmp.Fitted)
-         and ent==world.component_for_entity(item, cmp.Fitted).entity ):
-        _apply_fittedBonus(eqdadd)
+def fittedBonus(world,slot,eqdadd):
+    eqdadd['enc'] = eqdadd['enc'] * (100 - FITTED_ENCMOD*slot.fit)/100
 # armor skill bonus
 def armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov):
     if not world.has_component(item, cmp.Clothes):
@@ -3592,15 +3590,16 @@ def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
     cov = getcov(BP_ARM)
     
     # equipment
-    if arm.slot.item:
-        item=arm.slot.item
+    slot = arm.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInArmSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3643,15 +3642,16 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
     # equipment
     
     # armor
-    if hand.slot.item:
-        item=hand.slot.item
+    slot = hand.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHandSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3665,9 +3665,10 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
         _apply_skillBonus_unarmored(dadd, unarmored, cov)
     
     # held item (weapon)
-    if hand.held.item:
+    slot = hand.held
+    if slot.item:
+        item=slot.item
         weapClass=None
-        item=hand.held.item
         equipable=world.component_for_entity(item, cmp.EquipableInHoldSlot)
         
         eqdadd=get_addmods(world,item,equipable)
@@ -3682,7 +3683,7 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
                 _apply_skillBonus_weapon(eqdadd, skillLv, weapClass)
         # end if
         
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         # mainhand / offhand - specific stats
         if ismainhand:
@@ -3790,15 +3791,16 @@ def _update_from_bp_leg(ent, leg, armorSkill, unarmored):
     cov = getcov(BP_LEG)
     
     # equipment
-    if leg.slot.item:
-        item=leg.slot.item
+    slot = leg.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInLegSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3832,13 +3834,14 @@ def _update_from_bp_foot(ent, foot, armorSkill, unarmored):
     eqdmul={}
 
     # equipment
-    if foot.slot.item:
-        item=foot.slot.item
+    slot = foot.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFootSlot)
         
         eqdadd=get_addmods(world,item,equipable)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3872,8 +3875,9 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
     cov = getcov(BP_HEAD)
     
     # equipment
-    if head.slot.item:
-        item=head.slot.item
+    slot = head.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHeadSlot)
         
         eqdadd=get_addmods(world,item,equipable)
@@ -3889,7 +3893,7 @@ def _update_from_bp_head(ent, head, armorSkill, unarmored):
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3924,8 +3928,9 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
     eqdmul={}
 
     # equipment
-    if face.slot.item:
-        item=face.slot.item
+    slot = face.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFaceSlot)
         
         eqdadd=get_addmods(world,item,equipable)
@@ -3934,7 +3939,7 @@ def _update_from_bp_face(ent, face, armorSkill, unarmored):
             dmul['sight'] = eqdadd['sight']
             del eqdadd['sight']
         
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -3963,13 +3968,14 @@ def _update_from_bp_neck(ent, neck, armorSkill, unarmored):
     eqdmul={}
 
     # equipment
-    if neck.slot.item:
-        item=neck.slot.item
+    slot = neck.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInNeckSlot)
         
         eqdadd=get_addmods(world,item,equipable)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4001,8 +4007,9 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
     eqdmul={}
 
     # equipment
-    if eyes.slot.item:
-        item=eyes.slot.item
+    slot = eyes.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInEyesSlot)
         
         eqdadd=get_addmods(world,item,equipable)
@@ -4011,7 +4018,7 @@ def _update_from_bp_eyes(ent, eyes, armorSkill, unarmored):
             dmul['sight'] = eqdadd['sight']
             del eqdadd['sight']
         
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4038,8 +4045,9 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
     eqdadd={}
     eqdmul={}
     # equipment (earplugs, earbuds, etc.)
-    if ears.slot.item:
-        item=ears.slot.item
+    slot = ears.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInEarsSlot)
         
         eqdadd=get_addmods(world,item,equipable)
@@ -4048,7 +4056,7 @@ def _update_from_bp_ears(ent, ears, armorSkill, unarmored):
             dmul['hearing'] = eqdadd['hearing']
             del eqdadd['hearing']
         
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4105,15 +4113,16 @@ def _update_from_bp_torsoCore(ent, core, armorSkill, unarmored):
     cov = getcov(BP_CORE)
     
     # equipment
-    if core.slot.item:
-        item=core.slot.item
+    slot = core.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInCoreSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4149,15 +4158,16 @@ def _update_from_bp_torsoFront(ent, front, armorSkill, unarmored):
     cov += 0.1 * len(front.slot.covers)
     
     # equipment
-    if front.slot.item:
-        item=front.slot.item
+    slot = front.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInFrontSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4193,15 +4203,16 @@ def _update_from_bp_torsoBack(ent, back, armorSkill, unarmored):
     cov = getcov(BP_BACK)
     
     # equipment
-    if back.slot.item:
-        item=back.slot.item
+    slot = back.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInBackSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -4237,15 +4248,16 @@ def _update_from_bp_hips(ent, hips, armorSkill, unarmored):
     cov = getcov(BP_HIPS)
     
     # equipment
-    if hips.slot.item:
-        item=hips.slot.item
+    slot = hips.slot
+    if slot.item:
+        item=slot.item
         equipable=world.component_for_entity(item, cmp.EquipableInHipsSlot)
         
         eqdadd=get_addmods(world,item,equipable)
         
         armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
 
-        fittedBonus(world,ent,item,eqdadd)
+        fittedBonus(world,slot,eqdadd)
         
         apply_penalties_armor(eqdadd, item)
         
@@ -5859,11 +5871,11 @@ GUNMODS={
 "magazine, .50 BMG"             :(M_MAG,A_50,  320, 0.35, 0.6,200,METL,{'capacity':6},None,ID_GUNMAGAZINE,),
 "magazine, .50 BMG, large"      :(M_MAG,A_50,  395, 0.5,  1,  100,METL,{'capacity':9},None,ID_GUNMAGAZINE,),
 # scopes                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
-"handgun scope, small"          :(M_PSC,None,  395, 0.3,  0.2,20, METL,{'sights':4,},None,ID_SCOPE,),
-"handgun scope"                 :(M_PSC,None,  525, 0.6,  0.4,15, METL,{'sights':8,},None,ID_SCOPE,),
-"rifle scope, small"            :(M_RSC,None,  510, 0.7,  0.6,15, METL,{'sights':4,},None,ID_SCOPE,),
-"rifle scope"                   :(M_RSC,None,  665, 1.1,  0.8,10, METL,{'sights':8,},None,ID_SCOPE,),
-"rifle scope, large"            :(M_RSC,None,  880, 1.5,  1,  5,  METL,{'sights':12,},None,ID_SCOPE,),
+"handgun scope, small"          :(M_PSC,None,  395, 0.3,  0.2,20, METL,{'sights':4,},None,ID_GUNSCOPE,),
+"handgun scope"                 :(M_PSC,None,  525, 0.6,  0.4,15, METL,{'sights':8,},None,ID_GUNSCOPE,),
+"rifle scope, small"            :(M_RSC,None,  510, 0.7,  0.6,15, METL,{'sights':4,},None,ID_GUNSCOPE,),
+"rifle scope"                   :(M_RSC,None,  665, 1.1,  0.8,10, METL,{'sights':8,},None,ID_GUNSCOPE,),
+"rifle scope, large"            :(M_RSC,None,  880, 1.5,  1,  5,  METL,{'sights':12,},None,ID_GUNSCOPE,),
 # straps                        :(type, AMMO,  $$$, KG,   Enc,Dur,MAT, {mods}
 "plastic gun strap"             :(M_STR,None,  0.5, 0.4, -0.5,10, PLAS,{},None,ID_GUNSTRAP,),
 "leather gun strap"             :(M_STR,None,  8,   0.2, -1.5,60, LETH,{},None,ID_GUNSTRAP,),
