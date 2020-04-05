@@ -135,6 +135,8 @@ def main():
     weap=rog.create_weapon("metal halberd", 0,0)
 ##    rog.damage(weap, 200)
 ##    rog.fitgear(weap, rog.pc())
+    print(rog.pc())
+    print(rog.world().has_component(rog.pc(), cmp.Inventory))
     print(rog.equip(
         rog.pc(),weap,EQ_MAINHANDW
         ))

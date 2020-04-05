@@ -2326,7 +2326,10 @@ RECIPES={
 'wooden gear':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,25,), (SKL_WOOD,20,),),
+    'skills'    : (
+        (SKL_ARMORSMITH,25,), (SKL_WOOD,20,),
+        (SKL_LEATHER,10,),(SKL_SEWING,5,),
+        ),
     'construct' : 864,
     'components': (
         [ ('parcel of wood', 60,), ],
@@ -2338,8 +2341,8 @@ RECIPES={
         [ (cmp.Tool_Saw, 2,), ],
         [ (cmp.Tool_Hammer, 2,), ],
         [ (cmp.Tool_Drill, 2,), ],
-        [ (cmp.Tool_Sew, 2,), ],
         [ (cmp.Tool_Chisel, 1,), ],
+        [ (cmp.Tool_Sew, 1,), ],
         ),
     'using'     : (),
     'byproducts': ( ('scrap wood', 5,), ),
@@ -2349,7 +2352,10 @@ RECIPES={
 'bone gear':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,30,), (SKL_BONE,40,),),
+    'skills'    : (
+        (SKL_ARMORSMITH,30,), (SKL_BONE,40,),
+        (SKL_LEATHER,15,),(SKL_SEWING,5,),
+        ),
     'construct' : 1008,
     'components': (
         [ ('parcel of bone', 120,), ],
@@ -2361,8 +2367,8 @@ RECIPES={
         [ (cmp.Tool_Saw, 3,), ],
         [ (cmp.Tool_Hammer, 2,), ],
         [ (cmp.Tool_Drill, 2,), ],
-        [ (cmp.Tool_Sew, 2,), ],
         [ (cmp.Tool_Chisel, 1,), ],
+        [ (cmp.Tool_Sew, 1,), ],
         ),
     'using'     : (),
     'byproducts': ( ('scrap bone', 5,), ),
@@ -2370,7 +2376,10 @@ RECIPES={
 'bone armor':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,20,), (SKL_BONE,20,),),
+    'skills'    : (
+        (SKL_ARMORSMITH,20,),(SKL_BONE,20,),
+        (SKL_LEATHER,10,),(SKL_SEWING,10,),
+        ),
     'construct' : 576,
     'components': (
         [ ('piece of bone', 32,), ('bone', 64,), ],
@@ -2392,7 +2401,7 @@ RECIPES={
 'pop tab mail vest':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,10,),),
+    'skills'    : ((SKL_ARMORSMITH,10,),(SKL_LEATHER,5,),),
     'construct' : 88,
     'components': (
         [ ('pop tab mail ring', 768,), ],
@@ -2406,7 +2415,7 @@ RECIPES={
 'pop tab mail shirt':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,10,),),
+    'skills'    : ((SKL_ARMORSMITH,10,),(SKL_LEATHER,5,),),
     'construct' : 72,
     'components': (
         [ ('pop tab mail vest', 1,), ],
@@ -2420,7 +2429,7 @@ RECIPES={
 'metal mail vest':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,25,),),
+    'skills'    : ((SKL_ARMORSMITH,25,),(SKL_LEATHER,10,),),
     'construct' : 144,
     'components': (
         [ ('mail ring, riveted', 320,), ('mail ring, welded', 320,), ],
@@ -2434,7 +2443,7 @@ RECIPES={
 'metal mail shirt':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,25,),),
+    'skills'    : ((SKL_ARMORSMITH,25,),(SKL_LEATHER,10,),),
     'construct' : 120,
     'components': (
         [ ('metal mail vest', 1,), ],
@@ -2448,7 +2457,7 @@ RECIPES={
 'metal cap':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,10,), (SKL_METAL,15,),),
+    'skills'    : ((SKL_ARMORSMITH,10,), (SKL_METAL,15,),(SKL_SEWING,10,),),
     'sound'     : 120,
     'construct' : 80,
     'components': (
@@ -2461,6 +2470,7 @@ RECIPES={
         [ (cmp.Tool_Crucible, 2,), ],
         [ (cmp.Tool_Furnace, 2,), ],
         [ (cmp.Tool_Tongs, 2,), ],
+        [ (cmp.Tool_Sew, 2,), ],
         ),
     'using'     : (),
     'byproducts': (),
@@ -2468,7 +2478,7 @@ RECIPES={
 'metal mask':({
     'quantity'  : 1,
     'table'     : CRT_ARMOR,
-    'skills'    : ((SKL_ARMORSMITH,15,), (SKL_METAL,25,),),
+    'skills'    : ((SKL_ARMORSMITH,15,),(SKL_METAL,25,),(SKL_LEATHER,10,),),
     'sound'     : 120,
     'construct' : 240,
     'components': (

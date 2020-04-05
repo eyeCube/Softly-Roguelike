@@ -206,20 +206,6 @@ RENDERER:
             return False
         return True
 
-    def visibility(self, sight, plight, camo, dist) -> int: # calculate visibility level
-        '''
-        Parameters:
-            sight  : vision stat of viewer
-            plight : perceived light level
-            camo   : camoflauge of the target to see
-            dist   : distance from viewer to target
-
-            TODO: test this function's output
-                (function logic has been altered)
-        '''
-##        _sx = 4 if rog.on(rog.pc(), NVISION) else 1
-        return int( math.log2(plight)*0.5 + ( 40+sight - (dice.roll(20)+camo+dist) )//20)
-    
     def COPY(self, tilemap):
         ''' copy another TileMap object into this object '''
         for k,v in tilemap.__dict__.items():
@@ -446,7 +432,7 @@ Reason: entity has no position component.'''.format(ent))
     def _draw_what_player_sees(self, pc, sight):
         world=rog.world()
         pos=world.component_for_entity(pc, cmp.Position)
-
+        
         for     x in range( max(0, pos.x-sight), min(self.w, pos.x+sight+1) ):
             for y in range( max(0, pos.y-sight), min(self.h, pos.y+sight+1) ):
 ##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))

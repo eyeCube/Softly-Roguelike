@@ -304,12 +304,7 @@ def get_actual_light_value(x,y):
     return Rogue.map.get_light_value(x,y)
 def get_perceived_light_value(x,y):
     return Rogue.map.get_perceived_light_value(x,y)
-##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
-def identify_symbol_at(x,y):
-    asci = libtcod.console_get_char(0, getx(x),gety(y))
-    char = "{} ".format(chr(asci)) if (asci < 128 and not asci==32) else ""
-    desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
-    return "{}{}".format(char, desc)
+
 def grid_remove(ent): #remove thing from grid of things
     return Rogue.map.remove_thing(ent)
 def grid_insert(ent): #add thing to the grid of things
@@ -620,6 +615,8 @@ def getdir(ent):
     return Rogue.world.component_for_entity(ent, cmp.Direction)
 def getname(ent):
     return Rogue.world.component_for_entity(ent, cmp.Name).name
+def getinv(ent):
+    return Rogue.world.component_for_entity(ent, cmp.Inventory).data
 def get_value(ent):
     return Rogue.world.component_for_entity(ent, cmp.Form).value
 def get_personality(ent):
@@ -953,6 +950,30 @@ def push(ent, _dir, n=1):
         if not result:
             return False
     return True
+# end def
+
+# identifying
+##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
+def look_identify_at(x,y):
+    if in_view(pc(),x,y):
+        pass
+    desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
+    return "{}{}".format(char, desc)
+
+def visibility(ent, sight, plight, camo, dist) -> int: # calculate visibility level
+    '''
+    Parameters:
+        ent    : viewer
+        sight  : vision stat of viewer
+        plight : perceived light level
+        camo   : camoflauge of the target to see
+        dist   : distance from viewer to target
+
+        TODO: test this function's output
+            (function logic has been altered)
+    '''
+    _sx = 4 if rog.on(ent, NVISION) else 1
+    return int( math.log2(plight)*0.5 + ( 40+sight - (dice.roll(20)+camo+dist) )//20)
 # end def
 
     
@@ -2086,10 +2107,8 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         return (-1,None,) # item can't be equipped in this slot
     if not eqcompo: # component selected. Does this component exist?
         return (-2,None,) # something weird happened
-    if ( not holdtype and eqcompo.slot.covered ):
+    if eqcompo.slot.covered:
         return (-3,None,) # already have something covering that slot
-    if ( holdtype and eqcompo.slot.covered ):
-        return (-4,None,) # reject held item if already holding something
     if ( equipType==EQ_OFFHANDW and on(item, TWOHANDS)):
         return (-5,None,) # reject 2-h weapons not equipped in mainhand.
     equipable = world.component_for_entity(item, equipableConst)
@@ -2133,9 +2152,12 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         #-------------------------#
         # success! Equip the item #
         #-------------------------#
+        
     
-    # remove item from the map
+    # remove item from the map and from agent's inventory if applicable
     grid_remove(item)
+    if item in getinv(ent):
+        take(ent, item)
     # indicate that the item is equipped using components
     world.add_component(item, cmp.Child(ent))
     if holdtype:
@@ -2148,9 +2170,9 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
             armorfit = FIT_ARMOR_MAX
             heldfit = FIT_HELD_MAX
         else:
-            diff = abs(fitted.height - getbase(ent,'height'))
-            armorfit = 0.75*FIT_ARMOR_MAX - diff
-            heldfit = 0.75*FIT_HELD_MAX - diff*(FIT_ARMOR_MAX/FIT_HELD_MAX)
+            armorfit = 0
+            diff = abs(fitted.height - getbase(ent,'height'))//2
+            heldfit = 0.5*FIT_HELD_MAX - diff*(FIT_HELD_MAX/FIT_ARMOR_MAX)
     else:
         armorfit = 0
         heldfit = 0
@@ -2160,11 +2182,11 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         eqcompo.held.item = item
         eqcompo.held.fit = heldfit
 # todo: function that adds these values to get how well you're gripping something.
-        eqcompo.slot.covered = True # cover this BP
     else: # worn
         eqcompo.slot.item = item
         eqcompo.slot.fit = armorfit
-        eqcompo.slot.covered = True # cover this BP
+    
+    eqcompo.slot.covered = True # cover this BP
     
     if ( (equipType==EQ_MAINLEG or equipType==EQ_OFFLEG)
          and equipable.coversBoth
@@ -2285,6 +2307,7 @@ def _dewield(ent, compo):
     compo.held.covered = False
     compo.held.item = None
     compo.held.fit = 0
+    give(ent, item) # put item in inventory
     
     make(ent, DIRTY_STATS)
     return item

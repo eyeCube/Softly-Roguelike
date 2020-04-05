@@ -544,8 +544,8 @@ def chargen(sx, sy):
         Chargen._className = _className
         
         #add specific class skills
-        for sk_id in _jobskills:
-            rog.setskill(Chargen.pc, sk_id, SKILL_LEVELS_JOB)
+        for sk_id,sk_lv in _jobskills.items():
+            rog.setskill(Chargen.pc, sk_id, sk_lv)
         
         # print char data so far
         _printChargenData()
@@ -961,12 +961,12 @@ def _chargen_skills():
             {"- skills (pts: {})".format(Chargen.skillPts) : "close-skills",})
         Chargen.skilldict={}
         sortdict = {k:v for k,v in sorted(
-            SKILLS.items(), key=lambda item: item[1][1].lower())}
+            SKILLS.items(), key=lambda item: item[1][SKILL_I_NAME].lower())}
         for k, sk in sortdict.items(): # Python 3.6+ remembers dict ordering so skills are already ordered
             skilllv = rog.getskill(pc, k)
             x = skilllv // SKILL_INCREQ
-            cost = "({})".format(sk[0] + x) if skilllv < 100 else "<MAX>"
-            string = "... {} {}".format(cost, sk[1])
+            cost = "({})".format(sk[SKILL_I_COST] + x) if skilllv < 100 else "<MAX>"
+            string = "... {} {}".format(cost, sk[SKILL_I_NAME])
             Chargen.skilldict.update({string : k})
         
         for k,v in Chargen.skilldict.items():

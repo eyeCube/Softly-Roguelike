@@ -3104,7 +3104,8 @@ SKL_AXES        =i;i+=1; #combat skill: 1-h axes
 SKL_GREATAXES   =i;i+=1; #combat skill: 2-h axes
 SKL_HAMMERS     =i;i+=1; #combat skill: 1-h hammers
 SKL_MALLETS     =i;i+=1; #combat skill: 2-h hammers
-SKL_STAVES      =i;i+=1; #combat skill: 2-h staves
+SKL_STAVES      =i;i+=1; #combat skill: bo staves, short staves
+SKL_LONGSTAVES  =i;i+=1; #combat skill: quarterstaves and longstaves
 SKL_BULLWHIPS   =i;i+=1; #combat skill: bullwhips
 SKL_PUSHDAGGERS =i;i+=1; #combat skill: push daggers
 # throwing
@@ -3132,7 +3133,7 @@ SKL_HEAVY       =i;i+=1; #guns skill: missiles, chem/bio/flame weapons, launcher
 SKL_ENERGY      =i;i+=1; #guns skill: lasers, masers, sonic
 # Physical / Technical
 SKL_ATHLETE     =i;i+=1; #enables sprinting, jumping, climbing, Msp+ while crouched, prone, supine, on tough terrain (penalty to Msp is reduced, you don't actually GAIN Msp)
-SKL_STEALTH     =i;i+=1; #enables sneaking (Msp cut to 50%, make less sound when you move)
+SKL_STEALTH     =i;i+=1; #hiding/sneaking (Msp cut to 50%, +stealth, +camo)
 SKL_COMPUTERS   =i;i+=1; #technology skill (hacking, programming, etc.)
 SKL_PILOT       =i;i+=1; #operating vehicles
 SKL_PERSUASION  =i;i+=1; #speech skill, manipulating people
@@ -3223,7 +3224,11 @@ CHARACTERPOINTS = 4
 SKILL_LEVELS_PER_SELECTION = 10
 SKILL_LEVELS_JOB = 30 # starting skill level for given job
 SKILL_INCREQ = 25   # how many skill levels before the skill costs 1 more skill point.
-    
+
+SKILL_I_COST = 0    # tuple indices for following dict values
+SKILL_I_RATE = 1
+SKILL_I_NAME = 2
+
 SKILLS={ # ID : (SP, Learn_rate, name,)
     # SP = skill points required to learn (in chargen)
 SKL_ARMOR       :(3,1.0,'armored combat',),
@@ -3239,11 +3244,12 @@ SKL_JAVELINS    :(1,3.0,'spears, one-handed',),
 SKL_SPEARS      :(1,4.0,'spears, two-handed',),
 SKL_SWORDS      :(2,1.0,'swords, one-handed',),
 SKL_LONGSWORDS  :(3,1.0,'swords, two-handed',),
+SKL_STAVES      :(1,2.0,'bo staves',),
+SKL_LONGSTAVES  :(1,1.5,'quarterstaves',),
 SKL_POLEARMS    :(2,2.0,'polearms',),
 SKL_GREATSWORDS :(3,1.0,'greatswords',),
 SKL_KNIVES      :(2,1.0,'knives',),
 SKL_BLUDGEONS   :(1,4.0,'bludgeons',),
-SKL_STAVES      :(1,2.0,'staves',),
 SKL_BULLWHIPS   :(1,1.0,'bullwhips',),
 SKL_THROWING    :(1,2.0,'throwing',),
 SKL_IEDS        :(4,2.0,'explosives',), # crafting and diffusing
@@ -3781,6 +3787,9 @@ CLS_DOCTOR      =i;i+=1;
 CLS_PROGRAMMER  =i;i+=1;
 CLS_MONK        =i;i+=1;
 CLS_BOUNTYHUNTER=i;i+=1;
+CLS_ARMORSMITH  =i;i+=1;
+CLS_MECHANIC    =i;i+=1;
+CLS_BLADESMITH  =i;i+=1;
 
 CLASSES={ # colloquial names (not true titles)
 CLS_ENGINEER    : "Engineer",

@@ -94,6 +94,7 @@ EQ_MAINMOUTH    : (wear_mouth_main, "wear", "mouth",),
 
     # PC-specific actions first #
 
+
 # dialogue | talking | speaking | speech
 def chat_context(pc):
     world = rog.world()
@@ -1786,6 +1787,69 @@ def craft(ent, recipe):
 # end def
 
 
+# TODO: use this instead of old tilemap _draw_what_... func.
+# this will also be used by AI function instead of existing code.
+# returns a dict of all visible entities and how visible they are.
+# from there we must remember those entities and, if an AI, choose
+# what to do about it, or, if the player, identify the visible things.
+# then for the player, draw the terrain around them and then draw the
+# visible entities on top (better way to do this?)
+def _get_entities_in_view(viewer, sight):
+    ''' get a list of the entities the viewer can see with sight sight '''
+    world=rog.world()
+    pos=world.component_for_entity(viewer, cmp.Position)
+    w=rog.window_w()
+    h=rog.window_h()
+    seenlist={} # {entity : visibility,}
+                #   visible entities can be identified by sight
+                #   if unidentified and barely visible, you see a '?'
+                #   if unidentified and visible, you can see their shape
+                #   if partially identified, you can see their generic ID
+                #   if identified, you can see their name
+                #   if fully identified, you can see their stats
+    
+    for     x in range( max(0, pos.x-sight), min(w, pos.x+sight+1) ):
+        for y in range( max(0, pos.y-sight), min(h, pos.y+sight+1) ):
+##                print("tile at {} {} has light level {}".format(x ,y, self.get_light_value(x,y)))
+            if (x==pos.x and y==pos.y):
+                continue
+            if not rog.can_see(viewer, x, y, sight):
+                continue
+            
+            # get return data from rog.can_see
+            ret=rog.fetchglobalreturn()
+            if ret: # unpack
+                dist, plight = ret
+            
+            ents=self.thingsat(x, y)
+            
+            if ents:
+                charDiscover = None
+                entDrawn = False
+                
+                for ent in ents:
+                    # calculate visibility
+                    camo = rog.getms(ent, 'camo')
+                    visibility=rog.visibility(viewer,sight,plight,camo,dist)
+##                    print('visibility: ',visibility)
+##                    print('stats: s{}, l{}, c{}, d{}'.format(sight, plight, camo, dist))
+                    
+                    seen.update({ent : visibility})
+                # end for
+        # end for
+    # end for
+# end def
+
+##if visibility<=0: continue
+##if visibility<=1:
+##    seen.update({0 : 1})
+##    continue
+##if visibility<=2:
+##    shape=rog.component_for_entity(ent,cmp.Form).shape
+##    seen.update({-shape : 2})
+##    continue
+##seen.update({ent : visibility})
+##rog.remember(x,y, ent)
 
 
 

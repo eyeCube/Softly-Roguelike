@@ -555,7 +555,8 @@ class Manager_Look(Manager_SelectTile):
 
         if (self.result and not self.result == "exit"):
             x,y = self.result
-            rog.alert( rog.identify_symbol_at(x,y) )
+            rog.look_identify_at(x,y)
+            rog.alert( rog.identity(items) )
 
         
 
@@ -881,8 +882,10 @@ class Manager_AimFindTarget(GameStateManager):
         self.set_pos(rog.getx(xs), rog.gety(ys))
         self.view       = view
         self.con        = con
-
-        self.select_hiscore(rog.pc())
+        self.targets=None # [(entity, distance,),]
+        self.targeted_index=0
+        self.create_targetList(rog.pc())
+        self.select_hiscore()
     
     def run(self, pcAct):
         super(Manager_AimFindTarget, self).run(pcAct)
@@ -895,6 +898,8 @@ class Manager_AimFindTarget(GameStateManager):
             elif act=='lclick': self.lclick(arg)
             elif act=='select': self.select()
             elif act=="exit":   self.set_result('exit')
+            elif act=='shoot-prompt':
+                self.index_inc()
     
     def close(self):
         super(Manager_AimFindTarget, self).close()
@@ -970,24 +975,33 @@ class Manager_AimFindTarget(GameStateManager):
                              rog.view_port_x(), rog.view_port_y())
         rog.refresh()
 
-    def select_hiscore(self, ent, *args):
-        world=rog.world()
-        pos = world.component_for_entity(ent, cmp.Position)
+    def create_targetList(self, ent, **kwargs):
+        pos = rog.world().component_for_entity(ent, cmp.Position)
         sight = rog.getms(ent, 'sight')
         radius = sight
         interesting=[]
-        for mon,(tgt,monpos,) in world.get_components(
+        for mon,(tgt,monpos,) in rog.world().get_components(
             cmp.Targetable, cmp.Position ):
             dist=((pos.x-monpos.x)**2 + (pos.y-monpos.y)**2)**0.5
             if dist < radius:
                 interesting.append((mon, dist,))
-        if not interesting:
+        self.targets = sorted(interesting, key=lambda x: x[1])
+    
+    def select_hiscore(self):
+        self.targeted_index = 0
+        self.target_at_index(self.targeted_index)
+
+    def target_at_index(self, index:int):
+        if not self.targets:
             return None
-        mostinteresting = sorted(interesting, key=lambda x: x[1])
-        targeted = mostinteresting[0][0]
-        tpos = world.component_for_entity(targeted, cmp.Position)
+        targeted = self.targets[index][0]
+        tpos = rog.world().component_for_entity(targeted, cmp.Position)
         self.port((rog.getx(tpos.x), rog.gety(tpos.y), 0,))
         return targeted
+
+    def index_inc(self):
+        self.targeted_index += 1
+        self.target_at_index(self.targeted_index)
 #
     
 #

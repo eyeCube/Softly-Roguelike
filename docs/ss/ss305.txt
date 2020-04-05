@@ -1,0 +1,50 @@
+
+Missiles
+
+Recently I sat down to hammer out a missile function that allowed me to implement throwing items/weapons. It will soon be applied to ranged weapons as well. The function works by drawing a Bresenham thin-cover line from the shooter to the target, checking each tile along the way. If something is in the way of the target, i.e. the line touches some other monster before reaching the target, it can collide with that monster instead of the intended target. 
+
+I plan in the future to add functionality for the missiles to ricochet off walls and continue along its trajectory for a while if it misses its target. Ranged weapons are more complicated than throwing because I plan to have modifications for ranged weapons like scopes, bayonets, etc. And ranged weapons will be able to store ammo in their magazines, etc. But, the basic missile function is the same.
+
+There is also an auto-target command that allows you to select a target for throwing / shooting / attacking (melee attacks now have reach, allowing them to hit multiple tiles away if you have enough reach). This auto-targets the closest viable target but then allows you to move the cursor around to select a different target if you choose.
+
+Equipment
+
+I finally got an equipment menu working, which allows you to equip and remove gear into/from specific slots. The menu is organized in a hierarchical fashion where you can expand or collapse sections like the torso, which includes the core, hips, chest, and back. 
+
+Equipment can be usually worn in only one slot, and it may or may not take up additional slots as well. For example, a breastplate is worn on the chest, but it also covers the back and core, meaning you cannot wear anything on the back or core if you are wearing a breastplate. And likewise, you cannot equip a breastplate if the back and/or core is covered.
+
+Due to the highly flexible ECS system, however, it is possible for gear to be equippable in multiple different slots, and to have different bonuses for those different slots. This is sort of unrelated, but a lot of headwear can double as a makeshift throwing weapon, too.
+
+As a reminder: the way stats are calculated in Softly is as follows: any time something that affects stats is changed in the player's components, a dirty_stats flag is set. Then when we access the stats, we check if that flag is on. If it is on, we first calculate all our stats based on all the components the entity has. This system allows me to easily ensure that glitches from equipping / deequipping items in particular orders and such are never an issue. It honestly makes dealing with modified stats so much easier. A user on this subreddit recommended this system and I can't thank them enough for the excellent suggestion.
+
+Fitted Gear
+
+Gear and weapons can be "fitted" to an entity, making it fit them a lot better, which reduces the amount of encumberance the gear gives you while worn/wielded. To get a piece of gear fitted you can fit it yourself, which requires a certain level of armorsmithing skill and material-specific crafting skill (e.g. metalcraft for metal armors), or you can have it fitted to you by an NPC armorsmith. Fitting is implemented, but crafting fitted items / purchasing fitted service is not yet implemented.
+
+Crafting
+
+I've begun work on the crafting system, which is loosely inspired by C:DDA. Recipes require certain components in certain quantities, though sometimes substitution ingredients can be used. They also require certain tools at certain quality levels, and require that you have adequate crafting skill in the specific skills required for that recipe.
+
+Crafting recipes are based on real life methods for crafting. For instance, making a metal sword is a labor intensive process involving several different steps. First, you must make a sword blade, then sharpen it; make a sword hilt, and connect them together. Making the sword blade involves a furnace, hammer, anvil, grinder, sharpener, crucible, tongs, and a sword blade mold. It also takes a long time in-game -- at least several minutes and up to a few days (this varies widely based on a lot of factors, and this is subject to change if necessary).
+
+Crafting items will not be easy, but it will be worthwhile as you will be capable of creating high-quality equipment that would be very difficult to find or buy.
+
+The crafting function itself is coming along nicely, but one thing I've been meaning to do for a long time, which applies to all of these changes, is what I call "delayed actions."
+
+Delayed Actions
+
+In Roguelikes, typically most actions occur instantaneously, like at the same instant you decide to shoot someone, you pull the trigger, and the bullet hits its target instantly. And then you have some recovery period where you build up your action points again before you can have another turn. This is currently how all actions work in Softly, but I plan for a lot of actions to become "delayed actions."
+
+These would be actions that you command the player to begin, and then they slowly chip away at the job each turn, until the job is finished. The difference is: you can be interrupted in the middle of a delayed action, and choose to continue or stop the current job. Like if a monster suddenly pops into your FOV or you suddenly get attacked from somewhere, the job will be halted and a prompt will come up, telling the player what changed and asking the player if they want to keep crafting or w/e, or if they want to stop.
+
+If you stop a job halfway through, it seems like you should be able to pick up where you left off though, once the threat is dealt with. So I plan to have partially-finished components on crafted jobs that tell how much work is left to do on the job. This seems essential given that crafting jobs can take a long time to complete, as otherwise you'd be a sitting duck and you'd likely die anytime you started a long crafting job with any monsters nearby.
+
+I was wondering if attacks should be delayed actions, too. That way you could feasibly see an enemy rearing up an attack and move out of their range or kill them before they have a chance to actually connect the blow. I think this might be too much though, for every attack to be handled this way. So what I might do is have the option to "charge up" an attack, which turns the attack into a delayed action and takes more Action Points / stamina / etc., and is much more powerful, but can be evaded by literally moving out of the way or interrupting the attack somehow. I think this would be interesting and fun if done in a conservative way.
+
+The main framework for delayed actions is implemented; I just have yet to finish and test it.
+
+Next week
+
+By next week I hope to have ranged weapons working in some capacity, and hopefully I'll also have delayed actions working. With delayed actions I will then be able to start working on some things I've been putting off for a while.
+
+Thanks for reading!
