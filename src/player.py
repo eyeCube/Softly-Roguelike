@@ -357,6 +357,13 @@ def __init__Chargen():
     Chargen._cmMult=0
     Chargen._kg=0
     Chargen._kgMult=0
+    Chargen._classID=0
+    Chargen._className=""
+    Chargen._jobstats={}
+    Chargen._jobskills={}
+    Chargen._jobmoney=0
+    Chargen._jobitems=()
+    Chargen._jobmass=0
     Chargen.statsCompo=None
     Chargen.skillsCompo=None
     Chargen.flags=None
@@ -507,103 +514,8 @@ def chargen(sx, sy):
         _select_height()
         _select_mass()
         
-        
-            #-------#
-            # class #
-            #-------#
-        
-        rog.dbox(Chargen.x1,Chargen.y1+Chargen.iy,Chargen.ww,3,text="what is your profession?",
-            wrap=True,border=None,con=rog.con_final(),disp='mono')
-        rog.refresh()
-        _classList={} #stores {className : (classChar, classID,)} #all classes
-        #create menu options
-        _menuList={} #stores {classChar : className} #all playable classes
-        _randList=[] #for random selection.
-        for k,v in entities.getJobs().items(): # k=ID v=charType
-##            if v not in rog.playableJobs(): continue #can't play as this class yet
-            ID=k        # get ID of the class
-            typ=v       # get chartype of the class
-            name=entities.getJobName(ID)
-            _classList.update({name:(typ,ID,)})
-            _menuList.update({typ:name})
-            _randList.append(ID)
-        _menuList.update({'*':'random'})
-
-        classSelected = False
-        while not classSelected:
-            #user selects a class
-            _className = rog.menu("class select",Chargen.xx,Chargen.yy+Chargen.iy,_menuList,autoItemize=False)
-            #random
-            if (_className == 'random' or _className == -1):
-                _classID = random.choice(_randList)
-                _className = entities.JOBS[_classID][1]
-            #get the relevant data
-            _type = _classList[_className][0] # get the class Char value
-            _mask = _type
-            _classID = _classList[_className][1]
-            _mass = entities.getJobMass(_classID)
-            _jobstats = entities.getJobStats(_classID).items()
-            _jobskills = entities.getJobSkills(_classID)
-            _jobmoney = entities.getJobMoney(_classID)
-            _jobitems = entities.getJobItems(_classID)
-            
-            # for display by confirmation prompt
-            _classDescription = entities.getJobDescription(_classID) #TODO: make
-            # create class stats info
-            _classStats=""
-            if _jobstats:
-                for k,v in _jobstats:
-                    _classStats += "{}: {}, ".format(STATS[k],v)
-                _classStats=_classStats[:-2]
-            # create class items info
-            _classItems = ""
-            if _jobitems:
-                for tupl in _jobitems:
-                    name,table,quantity = tupl
-                    _classItems += "{}, x{}, ".format(name,quantity)
-                _classItems=_classItems[:-2]
-            
-            # info about class && confirmation
-            while True:
-                ans=rog.prompt(
-                    0,0,rog.window_w(),10,
-                    q='''Class: {name}. Mass: {kg} KG.
-Starts with ( ${money}, {items} ).
-[ {stats} ]
-{desc}
-Choose this character?'''.format(
-                        name=_className,
-                        kg=_mass,
-                        money=_jobmoney,
-                        items=_classItems,
-                        desc=_classDescription,
-                        stats=_classStats
-                        ),
-                    mode="wait",wrap=False
-                    )
-                if ans=='y':
-                    classSelected=True
-                    break
-                elif ans=='n':
-                    break
-                else:
-                    continue
-            # end while
-        # end while
-        
-        # confirmed class selection
-        Chargen._classID = _classID
-        Chargen._className = _className
-        
-        #add specific class skills
-        for sk_id,sk_lv in _jobskills.items():
-            rog.setskill(Chargen.pc, sk_id, sk_lv)
-        
-        # print char data so far
-        _printChargenData()
-        rog.refresh()
-        print("class chosen: ", _className)
-        #
+        # class
+        _select_class()
         
         
         #----------------------------------#
@@ -637,7 +549,7 @@ Choose this character?'''.format(
             beauty=BASE_BEAUTY # + FEM_BEA if female else 0
             )
         #add specific class stats
-        for stat, val in _jobstats:
+        for stat, val in Chargen._jobstats:
             value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
             Chargen.statsCompo.__dict__[stat] += value
         #
@@ -669,7 +581,7 @@ Choose this character?'''.format(
         
             # calculate some stats
         cm = int(height_default * Chargen._cmMult * Chargen.mcm)
-        kg = int((_mass + Chargen.mass) * Chargen._kgMult * Chargen.mmass)
+        kg = int((Chargen._jobmass + Chargen.mass) * Chargen._kgMult * Chargen.mmass)
         
             # mass stat mods
         fatratio=DEFAULT_BODYFAT_HUMAN
@@ -708,7 +620,7 @@ Choose this character?'''.format(
         Chargen.iy=0
         Chargen.iy=_printElement("name: {}".format(Chargen._name), Chargen.iy)
         Chargen.iy=_printElement("gender: {}".format(Chargen._genderName), Chargen.iy)
-        Chargen.iy=_printElement("class: {} ({})".format(Chargen._className, _type), Chargen.iy)
+        Chargen.iy=_printElement("class: {} ({})".format(Chargen._className, Chargen._type), Chargen.iy)
         Chargen.iy=_printElement("height: {} cm ({} / 9)".format(cm, Chargen._cm), Chargen.iy)
         Chargen.iy=_printElement("mass: {} kg ({} / 9)".format(kg, Chargen._kg), Chargen.iy)
         _drawskills(rog.con_final())
@@ -788,12 +700,14 @@ Choose this character?'''.format(
     return pc
 #
 
-def _printChargenData():
-    _printElement("name: {}".format(Chargen._name), Chargen.iy-4)
-    _printElement("gender: {}".format(Chargen._genderName), Chargen.iy-3)
-    _printElement("height: {} / 9".format(Chargen._cm), Chargen.iy-2)
-    _printElement("mass: {} / 9".format(Chargen._kg), Chargen.iy-1)
-    _printElement("class: {}".format(Chargen._className), Chargen.iy)
+def _printChargenData(showclass=True):
+    iy = Chargen.iy
+    _printElement("name: {}".format(Chargen._name), iy-4)
+    _printElement("gender: {}".format(Chargen._genderName), iy-3)
+    _printElement("height: {} / 9".format(Chargen._cm), iy-2)
+    _printElement("mass: {} / 9".format(Chargen._kg), iy-1)
+    if showclass:
+        _printElement("class: {}".format(Chargen._className), iy)
 
 def _select_gender():
     Chargen.ww=rog.window_w()
@@ -878,6 +792,120 @@ def _select_mass():
     Chargen.iy=_printElement("mass: {} / 9".format(Chargen._kg), Chargen.iy)
     print("mass chosen: ", Chargen._kg)
 # end def
+
+def _select_class():
+    _classList={} #stores {className : (classChar, classID,)} #all classes
+    #create menu options
+    _menuList={} #stores {classChar : className} #all playable classes
+    _randList=[] #for random selection.
+    for k,v in entities.getJobs().items(): # k=ID v=charType
+##        if v not in rog.playableJobs(): continue #can't play as this class yet
+        ID=k        # get ID of the class
+        typ=v       # get chartype of the class
+        name=entities.getJobName(ID)
+        _classList.update({name:(typ,ID,)})
+        _menuList.update({typ:name})
+        _randList.append(ID)
+    _menuList.update({'*':'random'})
+
+    classSelected = False
+    while not classSelected:
+        _printChargenData(showclass=False)
+        rog.dbox(
+            Chargen.x1,Chargen.y1+Chargen.iy,Chargen.ww,3,
+            text="what is your profession?",
+            wrap=True,border=None,con=rog.con_final(),disp='mono'
+            )
+        rog.refresh()
+        #user selects a class
+        _className = rog.menu(
+            "class select",Chargen.xx,Chargen.yy+Chargen.iy,_menuList,
+            autoItemize=False
+            )
+        #random
+        if (_className == 'random' or _className == -1):
+            _classID = random.choice(_randList)
+            _className = entities.JOBS[_classID][1]
+        #get the relevant data
+        _type = _classList[_className][0] # get the class Char value
+        _mask = _type
+        _classID = _classList[_className][1]
+        _mass = entities.getJobMass(_classID)
+        _jobstats = entities.getJobStats(_classID).items()
+        _jobskills = entities.getJobSkills(_classID)
+        _jobmoney = entities.getJobMoney(_classID)
+        _jobitems = entities.getJobItems(_classID)
+        
+        # for display by confirmation prompt
+        _classDescription = entities.getJobDescription(_classID) #TODO: make
+        # create class stats info
+        _classStats=""
+        if _jobstats:
+            for k,v in _jobstats:
+                _classStats += "{}: {}, ".format(STATS[k],v)
+            _classStats=_classStats[:-2]
+        # create class items info
+        _classItems = ""
+        if _jobitems:
+            for tupl in _jobitems:
+                name,table,quantity = tupl
+                _classItems += "{}, x{}; ".format(name,quantity)
+            _classItems=_classItems[:-2]
+        
+        # info about class && confirmation
+        while True:
+            ph=4
+            text = '''Class: {name}.
+{desc}
+Mass: {kg} KG.
+Starts with ( ${money}, {items} ).
+[ {stats} ]'''.format(
+                name=_className,
+                kg=_mass,
+                money=_jobmoney,
+                items=_classItems,
+                desc=_classDescription,
+                stats=_classStats
+                )
+            rog.dbox(
+                0,0,rog.msgs_w(),12,text,
+                wrap=False,border=1,con=rog.con_final()
+                )
+            ans=rog.prompt(
+                0,rog.window_h()-ph,rog.window_w(),ph,
+                q='''Choose this class? y/n''',
+                mode="wait",default='n',wrap=False
+                )
+            if ans=='y':
+                classSelected=True
+                break
+            elif ans=='n':
+                libtcod.console_clear(rog.con_final())
+                rog.refresh()
+                break
+            else:
+                continue
+        # end while
+    # end while
+    
+    # confirmed class selection
+    Chargen._classID = _classID
+    Chargen._className = _className
+    Chargen._jobstats = _jobstats
+    Chargen._jobskills = _jobskills
+    Chargen._jobmoney = _jobmoney
+    Chargen._jobitems = _jobitems
+    Chargen._jobmass = _mass
+    
+    #add specific class skills
+    for sk_id,sk_lv in Chargen._jobskills.items():
+        rog.setskill(Chargen.pc, sk_id, sk_lv)
+    
+    # print char data so far
+    _printChargenData()
+    rog.refresh()
+    print("class chosen: ", _className)
+    #
 
 def _chargen_attributes():
     if Chargen.open_attributes:

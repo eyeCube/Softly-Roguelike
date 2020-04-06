@@ -6406,7 +6406,7 @@ WEAPONS={ #melee weapons
 # TOOLS #
 
 # misc                    $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
-'scalpel'               :(30,   0.02,10,  METL,1, 10,(0,  3,  12, 0,  0,  0,  0,  2,  -9, 0,  4,  0,  -20,2, 0,),SKL_MEDICINE,_scalpel,ID_SCALPEL,),
+'scalpel'               :(30,   0.02,10,  METL,1, 10,(0,  3,  12, 0,  0,  0,  0,  2,  -9, 0,  4,  0,  -20,2, 0,),SKL_SURGERY,_scalpel,ID_SCALPEL,),
 "sharpening stone"      :(10,   2.5, 200, STON,24,8, (0,  3,  3,  0,  0,  0,  -60,3,  -12,0,  24, 0,  0,  0, 0,),None,_sChunk,ID_WHETSTONE,),
 # scissors                $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
 'scissors'              :(11,   0.16,140, METL,1, 8, (0,  4,  5,  0,  0,  0,  0,  2,  -9, 0,  8,  0,  -6, 2, 0,),None,_scissors,ID_SCISSORS,),

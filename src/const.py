@@ -3385,7 +3385,7 @@ SKLMOD_ATK   = { # melee attack accuracy
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
-    SKL_MEDICINE    : DEFAULT_SKLMOD_ATK*0.1,
+    SKL_SURGERY     : DEFAULT_SKLMOD_ATK*0.1,
     }
 
 SKLMOD_DFN   = { # Dodge Value
@@ -3408,7 +3408,7 @@ SKLMOD_DFN   = { # Dodge Value
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_DFN*0.1,
     SKL_HEAVY       : DEFAULT_SKLMOD_DFN*0.1,
     SKL_ENERGY      : DEFAULT_SKLMOD_DFN*0.1,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     }
 
 SKLMOD_PEN   = { # melee penetration
@@ -3438,7 +3438,7 @@ SKLMOD_PEN   = { # melee penetration
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
-    SKL_MEDICINE    : DEFAULT_SKLMOD_PEN*0.25,
+    SKL_SURGERY     : DEFAULT_SKLMOD_PEN*0.25,
     }
 
 SKLMOD_PRO   = { # protection
@@ -3458,7 +3458,7 @@ SKLMOD_PRO   = { # protection
     SKL_HEAVY       : DEFAULT_SKLMOD_PRO*0.25,
     SKL_ENERGY      : DEFAULT_SKLMOD_PRO*0.05,
     SKL_SLINGS      : DEFAULT_SKLMOD_PRO*0.05,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     }
 
 SKLMOD_DMG   = { # melee damage
@@ -3479,7 +3479,7 @@ SKLMOD_DMG   = { # melee damage
     SKL_MACHINEGUNS : 0,
     SKL_HEAVY       : DEFAULT_SKLMOD_DMG*0.25,
     SKL_ENERGY      : 0,
-    SKL_MEDICINE    : DEFAULT_SKLMOD_DMG*0.25,
+    SKL_SURGERY     : DEFAULT_SKLMOD_DMG*0.25,
     }
 
 SKLMOD_ARM   = { # Armor Value
@@ -3500,7 +3500,7 @@ SKLMOD_ARM   = { # Armor Value
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_ARM*0.25,
     SKL_HEAVY       : DEFAULT_SKLMOD_ARM*0.25,
     SKL_ENERGY      : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     }
 
 SKLMOD_ASP   = { # melee attack speed
@@ -3519,7 +3519,7 @@ SKLMOD_ASP   = { # melee attack speed
     SKL_MACHINEGUNS : DEFAULT_SKLMOD_ASP*0.5,
     SKL_HEAVY       : DEFAULT_SKLMOD_ASP*0.5,
     SKL_ENERGY      : DEFAULT_SKLMOD_ASP*0.5,
-    SKL_MEDICINE    : DEFAULT_SKLMOD_ASP*0.25,
+    SKL_SURGERY     : DEFAULT_SKLMOD_ASP*0.25,
     }
 
 SKLMOD_GRA   = { # grappling
@@ -3546,7 +3546,7 @@ SKLMOD_GRA   = { # grappling
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
     SKL_SLINGS      : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     }
 
 SKLMOD_CTR   = { # counter-attack
@@ -3568,7 +3568,7 @@ SKLMOD_CTR   = { # counter-attack
     SKL_HEAVY       : 0,
     SKL_ENERGY      : 0,
     SKL_SLINGS      : 0,
-    SKL_MEDICINE    : DEFAULT_SKLMOD_CTR*0.1,
+    SKL_SURGERY     : DEFAULT_SKLMOD_CTR*0.1,
     }
 
 SKLMOD_RASP={ # ranged attack speed
@@ -3592,7 +3592,7 @@ SKLMOD_RASP={ # ranged attack speed
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RASP*1.2, # slings have very low base Asp
     SKL_BOWS        : DEFAULT_SKLMOD_RASP*1,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RASP*0.75,
@@ -3627,7 +3627,7 @@ DEFAULT_SKLMOD_RNG={ # max range
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RNG*1.3333334,
     SKL_BOWS        : DEFAULT_SKLMOD_RNG*1.3333334,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RNG*0.9,
@@ -3662,7 +3662,7 @@ SKLMOD_RATK={ # ranged accuracy
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RATK*1.3333334,
     SKL_BOWS        : DEFAULT_SKLMOD_RATK*1.25,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RATK*0.9,
@@ -3697,7 +3697,7 @@ DEFAULT_SKLMOD_RDMG={ # ranged damage
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RDMG*1.1,
     SKL_BOWS        : DEFAULT_SKLMOD_RDMG*1.1,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RDMG*0.9,
@@ -3732,7 +3732,7 @@ DEFAULT_SKLMOD_RPEN={ # ranged penetration
     SKL_STAVES      : 0,
     SKL_BULLWHIPS   : 0,
     SKL_PUSHDAGGERS : 0,
-    SKL_MEDICINE    : 0,
+    SKL_SURGERY     : 0,
     SKL_SLINGS      : DEFAULT_SKLMOD_RPEN*0.75,
     SKL_BOWS        : DEFAULT_SKLMOD_RPEN*1.05,
     SKL_CROSSBOWS   : DEFAULT_SKLMOD_RPEN*0.9,
@@ -3750,7 +3750,7 @@ COMBATSKILLS=set((
     SKL_COMBAT,SKL_SHIELDS,SKL_BOXING,SKL_WRESTLING,SKL_BLUDGEONS,
     SKL_JAVELINS,SKL_SPEARS,SKL_POLEARMS,SKL_KNIVES,SKL_SWORDS,
     SKL_LONGSWORDS,SKL_GREATSWORDS,SKL_AXES,SKL_GREATAXES,SKL_HAMMERS,
-    SKL_MALLETS,SKL_STAVES,SKL_BULLWHIPS,SKL_PUSHDAGGERS,SKL_MEDICINE,
+    SKL_MALLETS,SKL_STAVES,SKL_BULLWHIPS,SKL_PUSHDAGGERS,SKL_SURGERY,
     ))
 RANGEDSKILLS=set((
     SKL_SLINGS,SKL_BOWS,SKL_CROSSBOWS,SKL_CANNONS,SKL_PISTOLS,
@@ -3864,7 +3864,7 @@ CLS_BLADESMITH  : "Bladesmithy",
 JOBDESCRIPTIONS={
 CLS_TECHNICIAN  : "Computer technician, skilled in machine building and repair.",
 CLS_SECURITY    : "A security officer, trained to subdue with nonlethal force.",
-CLS_ATHLETE     : "Talented athlete, extremely well-toned and naturally swift.",
+CLS_ATHLETE     : "Gold medal winner. Extremely well-toned and naturally swift.",
 CLS_PILOT       : "A seasoned pilot with over 10,000 hours in the air.",
 CLS_SMUGGLER    : "Smooth-talking scoundrel. Skilled pilot and gunslinger.",
 CLS_CHEMIST     : "A master chemist, brilliant and hardworking in their field.",
@@ -3875,7 +3875,7 @@ CLS_DEPRIVED    : "Wretched, lacking creature, born into filth and poverty.",
 CLS_SOLDIER     : "Hardened marine. Skilled in heavy rifle combat.",
 CLS_THIEF       : "Skilled burglar. Can easily manage heavy loads.",
 CLS_WRESTLER    : "A grappler by profession with a promising career.",
-CLS_DOCTOR      : "Medical student. Skilled in medicine and surgery.",
+CLS_DOCTOR      : "Ph.D in medicine. Also skilled in surgery.",
 CLS_PROGRAMMER  : "Hacker. Programmer. Geek. Computer wizard.",
 CLS_MONK        : "Highly perceptive and courageous. A master of unarmored, nonlethal combat.",
 CLS_BOUNTYHUNTER: "Makes a living killing outlaws. Skilled in the hunting art.",

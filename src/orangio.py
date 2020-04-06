@@ -679,7 +679,7 @@ class TextInputManager(managers.Manager): #Manager_Input | ManagerInput
         self.y=y
         self.h=h
         self.mode=mode
-        self.text=default
+        self.text="" if mode=="wait" else default
         self.default=default
         
         self.keyInput=''
@@ -757,7 +757,11 @@ class TextInputManager(managers.Manager): #Manager_Input | ManagerInput
         
         if self.keyInput:
 
-            if self.mode == "wait": self.set_result(self.keyInput)
+            if self.mode == "wait": # CHANGED. Was just self.set_result(self.keyInput). Test that all Input() uses are still working properly using "wait" mode.
+                if (ord(self.keyInput) == K_ESCAPE):
+                    self.set_result(self.default)
+                else:
+                    self.set_result(self.keyInput)
 
             self.redraw_cursor=True
             self.cursor_blinkOn()
