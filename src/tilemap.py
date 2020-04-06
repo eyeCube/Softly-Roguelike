@@ -457,7 +457,8 @@ Reason: entity has no position component.'''.format(ent))
                             visibility=10 #VISIBILITY_MAX
                         else:
                             camo = rog.getms(ent, 'camo')
-                            visibility=self.visibility(sight,plight,camo,dist)
+                            visibility=rog.visibility(
+                                pc,sight,plight,camo,dist)
 ##                            print('visibility: ',visibility)
 ##                            print('stats: s{}, l{}, c{}, d{}'.format(sight, plight, camo, dist))
                         

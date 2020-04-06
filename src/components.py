@@ -51,6 +51,34 @@ class Name:
     def __init__(self, name: str, title=0):
         self.name = name
         self.title = title
+    def __eq__(self, other):
+        return (self.name==other.name)
+    def __hash__(self):
+        return self.name
+    def __repr__(self):
+        return "{}{}".format(TITLES[self.title],self.name)
+
+
+class Position:
+    __slots__=['x','y']
+    def __init__(self, x=-1, y=-1):
+        self.x = int(x)
+        self.y = int(y)
+    def __eq__(self, other):
+        return (self.x==other.x and self.y==other.y)
+    def __hash__(self):
+        return self.x*rog.window_w() + self.y
+    def __repr__(self):
+        return "Position: ({}, {})".format(self.x,self.y)
+    
+class Direction:
+    __slots__=['dir']
+    def __init__(self, _dir):
+        self.dir = int(_dir) # 0-7
+    def __eq__(self, other): return (self.dir==other.dir)
+    def __hash__(self): return self.dir
+    def __repr__(self):
+        return "Direction: ({}, {})".format(self.dir[0],self.dir[1])
 
 class Form: #physical makeup of the object
     __slots__=['material','value','length','phase','shape']
@@ -65,17 +93,6 @@ class Form: #physical makeup of the object
         #   phase-PHASE_FLUID
         #   material is a FL_ constant
         #   mass indicates volume depending on density
-
-
-class Position:
-    __slots__=['x','y']
-    def __init__(self, x=-1, y=-1):
-        self.x = int(x)
-        self.y = int(y)
-class Direction:
-    __slots__=['dir']
-    def __init__(self, _dir):
-        self.dir = int(_dir) # 0-7
 
 class AI:
     __slots__=['func']

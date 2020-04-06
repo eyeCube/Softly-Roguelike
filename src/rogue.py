@@ -972,7 +972,7 @@ def visibility(ent, sight, plight, camo, dist) -> int: # calculate visibility le
         TODO: test this function's output
             (function logic has been altered)
     '''
-    _sx = 4 if rog.on(ent, NVISION) else 1
+    _sx = 4 if on(ent, NVISION) else 1
     return int( math.log2(plight)*0.5 + ( 40+sight - (dice.roll(20)+camo+dist) )//20)
 # end def
 
@@ -3651,10 +3651,10 @@ def get_direction():
 #   mode:       'text' or 'wait'
 #   insert:     whether to begin in Insert mode for the response
 #   border:     border style of the dbox
-def prompt(x,y, w,h, maxw=1, q='', default='',mode='text',insert=False,border=0):
+def prompt(x,y, w,h, maxw=1, q='', default='',mode='text',insert=False,border=0,wrap=True):
     #libtcod.console_clear(con_final())
     dbox(x,y,w,h,text=q,
-        wrap=True,border=border,con=con_final(),disp='mono')
+        wrap=wrap,border=border,con=con_final(),disp='mono')
     result=""
     while (result==""):
         refresh()

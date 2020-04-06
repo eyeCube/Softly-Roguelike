@@ -528,19 +528,71 @@ def chargen(sx, sy):
             _menuList.update({typ:name})
             _randList.append(ID)
         _menuList.update({'*':'random'})
-        #user selects a class
-        _className = rog.menu("class select",Chargen.xx,Chargen.yy+Chargen.iy,_menuList,autoItemize=False)
-        #random
-        if (_className == 'random' or _className == -1):
-            _classID = random.choice(_randList)
-            _className = entities.JOBS[_classID][1]
-        #get the relevant data
-        _type = _classList[_className][0] # get the class Char value
-        _mask = _type
-        Chargen._classID = _classList[_className][1]
-        _mass = entities.getJobMass(Chargen._classID)
-        _jobstats = entities.getJobStats(Chargen._classID).items()
-        _jobskills = entities.getJobSkills(Chargen._classID)
+
+        classSelected = False
+        while not classSelected:
+            #user selects a class
+            _className = rog.menu("class select",Chargen.xx,Chargen.yy+Chargen.iy,_menuList,autoItemize=False)
+            #random
+            if (_className == 'random' or _className == -1):
+                _classID = random.choice(_randList)
+                _className = entities.JOBS[_classID][1]
+            #get the relevant data
+            _type = _classList[_className][0] # get the class Char value
+            _mask = _type
+            _classID = _classList[_className][1]
+            _mass = entities.getJobMass(_classID)
+            _jobstats = entities.getJobStats(_classID).items()
+            _jobskills = entities.getJobSkills(_classID)
+            _jobmoney = entities.getJobMoney(_classID)
+            _jobitems = entities.getJobItems(_classID)
+            
+            # for display by confirmation prompt
+            _classDescription = entities.getJobDescription(_classID) #TODO: make
+            # create class stats info
+            _classStats=""
+            if _jobstats:
+                for k,v in _jobstats:
+                    _classStats += "{}: {}, ".format(STATS[k],v)
+                _classStats=_classStats[:-2]
+            # create class items info
+            _classItems = ""
+            if _jobitems:
+                for tupl in _jobitems:
+                    name,table,quantity = tupl
+                    _classItems += "{}, x{}, ".format(name,quantity)
+                _classItems=_classItems[:-2]
+            
+            # info about class && confirmation
+            while True:
+                ans=rog.prompt(
+                    0,0,rog.window_w(),10,
+                    q='''Class: {name}. Mass: {kg} KG.
+Starts with ( ${money}, {items} ).
+[ {stats} ]
+{desc}
+Choose this character?'''.format(
+                        name=_className,
+                        kg=_mass,
+                        money=_jobmoney,
+                        items=_classItems,
+                        desc=_classDescription,
+                        stats=_classStats
+                        ),
+                    mode="wait",wrap=False
+                    )
+                if ans=='y':
+                    classSelected=True
+                    break
+                elif ans=='n':
+                    break
+                else:
+                    continue
+            # end while
+        # end while
+        
+        # confirmed class selection
+        Chargen._classID = _classID
         Chargen._className = _className
         
         #add specific class skills

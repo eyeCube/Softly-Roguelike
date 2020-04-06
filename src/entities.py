@@ -353,6 +353,10 @@ def getJobStats(jobID) -> dict:
     return JOBS[jobID][6]
 def getJobSkills(jobID) -> tuple:
     return JOBS[jobID][7]
+def getJobItems(jobID) -> tuple:
+    return JOBS[jobID][8]
+def getJobDescription(jobID) -> str:
+    return JOBDESCRIPTIONS.get(jobID, "<NO DESCRIPTION FOR THIS CLASS>")
 
 # MONSTERS
 def getMonName(_char):      return BESTIARY[_char][0]
@@ -3677,10 +3681,16 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
         if world.has_component(item, cmp.WeaponSkill):
             weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
+            if skillLv in COMBATSKILLS:
+                combatLv = rog._getskill(skillsCompo.skills.get(SKL_COMBAT, 0))
+            elif skillLv in RANGEDSKILLS:
+                rangedLv = rog._getskill(skillsCompo.skills.get(SKL_RANGED, 0))
             if ( (ismainhand and skillLv and weapClass!=SKL_SHIELDS)
                  or (not ismainhand and skillLv and weapClass==SKL_SHIELDS)
                  ):
                 _apply_skillBonus_weapon(eqdadd, skillLv, weapClass)
+                _apply_skillBonus_weapon(eqdadd, combatLv, SKL_COMBAT)
+                _apply_skillBonus_weapon(eqdadd, rangedLv, SKL_RANGED)
         # end if
         
         fittedBonus(world,slot,eqdadd)
@@ -3756,18 +3766,25 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
     else: # unarmed combat
         wield=None
         if ismainhand:
-            # unarmed combat (hand-to-hand combat)
-            boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
-            _apply_skillBonus_weapon(dadd, boxLv, SKL_BOXING, enc=False)
-            # wrestling unarmed
-            wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
-            wreLv = wreLv * 0.66666667 # most from mainhand, rest from offhand
-            _apply_skillBonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+            _boxm = 0.6666667
+            _wrem = 0.6666667
+            _comm = 0.6666667
         else: # offhand
-            # wrestling unarmed (offhand)
-            wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
-            wreLv = wreLv * 0.33333334
-            _apply_skillBonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+            _boxm = 0.3333334
+            _wrem = 0.3333334
+            _comm = 0.3333334
+        # unarmed combat (hand-to-hand combat)
+        boxLv = rog._getskill(skillsCompo.skills.get(SKL_BOXING, 0))
+        boxLv = boxLv * _boxm
+        _apply_skillBonus_weapon(dadd, boxLv, SKL_BOXING, enc=False)
+        # wrestling unarmed
+        wreLv = rog._getskill(skillsCompo.skills.get(SKL_WRESTLING, 0))
+        wreLv = wreLv * _wrem
+        _apply_skillBonus_weapon(dadd, wreLv, SKL_WRESTLING, enc=False)
+        # melee combat skill bonus
+        combatLv = rog._getskill(skillsCompo.skills.get(SKL_COMBAT, 0))
+        combatLv = combatLv * _comm
+        _apply_skillBonus_weapon(eqdadd, combatLv, SKL_COMBAT)
     # end if
         
     # examine body part
@@ -6987,11 +7004,12 @@ CLS_ARMORSMITH  : ("A", "armorsmith",     90, 2000, 0,'',
         SKL_LEATHER     :_JOURNEYMAN,
         SKL_BONE        :_JOURNEYMAN,
         SKL_ASSEMBLY    :_JOURNEYMAN,
+        SKL_COMBAT      :_JOURNEYMAN,
     },
     (),
     ),
 CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
-    {'con':2,'agi':4,'end':8,'int':-4,'msp':10,'bea':4,},
+    {'con':2,'agi':4,'end':12,'int':-4,'msp':10,'bea':4,},
     {
         SKL_ATHLETE     :_GRANDMASTER,
         SKL_UNARMORED   :_JOURNEYMAN,
@@ -7034,6 +7052,7 @@ CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
     {
         SKL_SURVIVAL    :_INTERMEDIATE,
         SKL_ASSEMBLY    :_JOURNEYMAN,
+        SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
         ('wooden club', WEAPONS, 1,),
@@ -7042,11 +7061,12 @@ CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
 CLS_BOUNTYHUNTER : ("H", "bounty hunter",80, 2000, 0,'',
     {'con':2,'dex':4,'agi':4,'end':4,'str':2,'int':2,},
     {
-        SKL_PISTOLS:_INTERMEDIATE,
-        SKL_RIFLES:_JOURNEYMAN,
-        SKL_SHOTGUNS:_JOURNEYMAN,
-        SKL_SURVIVAL:_JOURNEYMAN,
-        SKL_WRESTLING:_JOURNEYMAN,
+        SKL_PISTOLS     :_INTERMEDIATE,
+        SKL_RIFLES      :_JOURNEYMAN,
+        SKL_SHOTGUNS    :_JOURNEYMAN,
+        SKL_SURVIVAL    :_JOURNEYMAN,
+        SKL_WRESTLING   :_JOURNEYMAN,
+        SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
         ('9mm revolver', RANGEDWEAPONS, 1,),
@@ -7071,6 +7091,7 @@ CLS_MONK        : ("m", "monk",     60, 100, 0,'',
     {
         SKL_UNARMORED   :_MASTER,
         SKL_STAVES      :_INTERMEDIATE,
+        SKL_PERCEPTION  :_INTERMEDIATE,
         SKL_LONGSTAVES  :_JOURNEYMAN,
     },
     (),
@@ -7081,6 +7102,7 @@ CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
         SKL_ENERGY      :_INTERMEDIATE,
         SKL_BLUDGEONS   :_JOURNEYMAN,
         SKL_WRESTLING   :_JOURNEYMAN,
+        SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
         ('metal baton', WEAPONS, 1,),
@@ -7108,6 +7130,7 @@ CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
     {'sight':40,'int':2,'dex':4,'agi':-4,'end':-2,},
     {
         SKL_PILOT       :_GRANDMASTER,
+        SKL_PERCEPTION  :_INTERMEDIATE,
     },
     (),
     ),
@@ -7133,13 +7156,14 @@ CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
     {
         SKL_RIFLES      :_INTERMEDIATE,
         SKL_ARMOR       :_INTERMEDIATE,
+        SKL_PERCEPTION  :_INTERMEDIATE,
         SKL_PISTOLS     :_JOURNEYMAN,
         SKL_SMGS        :_JOURNEYMAN,
         SKL_ATHLETE     :_JOURNEYMAN,
     },
     (),
     ),
-CLS_TECHNICIAN  : ("T", "technician",65, 300, 1,'',
+CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
     {'int':2,'dex':2,'end':-2,'agi':-2,},
     {
         SKL_HARDWARE:_MASTER,
@@ -7154,6 +7178,7 @@ CLS_THIEF       : ("t", "thief",     70, 5000,0,'',
         SKL_KNIVES      :_JOURNEYMAN,
         SKL_PERSUASION  :_JOURNEYMAN,
         SKL_ATHLETE     :_JOURNEYMAN,
+        SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (),
     ),
@@ -7162,6 +7187,8 @@ CLS_SMUGGLER    : ("u", "smuggler",  75, 5000,0,'',
     {
         SKL_PERSUASION  :_INTERMEDIATE,
         SKL_PISTOLS     :_INTERMEDIATE,
+        SKL_PILOT       :_INTERMEDIATE,
+        SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (),
     ),

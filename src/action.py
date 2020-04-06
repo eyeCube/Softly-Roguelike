@@ -1793,20 +1793,22 @@ def craft(ent, recipe):
 # from there we must remember those entities and, if an AI, choose
 # what to do about it, or, if the player, identify the visible things.
 # then for the player, draw the terrain around them and then draw the
-# visible entities on top (better way to do this?)
+# visible entities on top.
 def _get_entities_in_view(viewer, sight):
-    ''' get a list of the entities the viewer can see with sight sight '''
+    ''' get a list of the entities the viewer can see with sight sight
+        Returns: {cmp.Position() : {entity : visibility}}
+    '''
     world=rog.world()
     pos=world.component_for_entity(viewer, cmp.Position)
     w=rog.window_w()
     h=rog.window_h()
-    seenlist={} # {entity : visibility,}
-                #   visible entities can be identified by sight
-                #   if unidentified and barely visible, you see a '?'
-                #   if unidentified and visible, you can see their shape
-                #   if partially identified, you can see their generic ID
-                #   if identified, you can see their name
-                #   if fully identified, you can see their stats
+    seen={}
+    #   visible entities can be identified by sight
+    #   if unidentified and barely visible, you see a '?'
+    #   if unidentified and visible, you can see their shape
+    #   if partially identified, you can see their generic ID
+    #   if identified, you can see their name
+    #   if fully identified, you can see their stats
     
     for     x in range( max(0, pos.x-sight), min(w, pos.x+sight+1) ):
         for y in range( max(0, pos.y-sight), min(h, pos.y+sight+1) ):
@@ -1833,11 +1835,15 @@ def _get_entities_in_view(viewer, sight):
                     visibility=rog.visibility(viewer,sight,plight,camo,dist)
 ##                    print('visibility: ',visibility)
 ##                    print('stats: s{}, l{}, c{}, d{}'.format(sight, plight, camo, dist))
-                    
-                    seen.update({ent : visibility})
+
+                    if seen.get(Position(x,y), None):
+                        seen[Position(x,y)].update({ent : visibility})
+                    else:
+                        seen.update({Position(x,y): {ent : visibility}})
                 # end for
         # end for
     # end for
+    return seen
 # end def
 
 ##if visibility<=0: continue

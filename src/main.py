@@ -127,8 +127,8 @@ def main():
 
 ##    for x in range(20):
 ##        rog.create_monster("L", 1+x*5,1)
-
-
+    
+    
     # TODO: re-test all encumberance values (changed system to use Encumberance component instead of direct stat modifiers)
     # TODO: implement Encumberance component with inventory system
     

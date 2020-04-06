@@ -899,6 +899,7 @@ class Manager_AimFindTarget(GameStateManager):
             elif act=='select': self.select()
             elif act=="exit":   self.set_result('exit')
             elif act=='shoot-prompt':
+                print("HI!BITCH!")
                 self.index_inc()
     
     def close(self):
