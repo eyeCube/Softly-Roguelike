@@ -75,7 +75,7 @@ TILES={
     BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 400,200,False,1,),
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen', 900,300,False,2,),
     JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen', 900,300,False,2,),
-    WALL        : Tile(WALL,      'dkred', 'orange',    0,  100,True, 50,),
+    WALL        : Tile(WALL,      'dkred', 'orange',    100,  100,False, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',   100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',   100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',    100,0,  False,1,),

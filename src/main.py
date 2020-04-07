@@ -132,6 +132,7 @@ def main():
     # TODO: re-test all encumberance values (changed system to use Encumberance component instead of direct stat modifiers)
     # TODO: implement Encumberance component with inventory system
     
+    rog.alts(rog.pc(), 'sight', 50)
     weap=rog.create_weapon("metal halberd", 0,0)
 ##    rog.damage(weap, 200)
 ##    rog.fitgear(weap, rog.pc())

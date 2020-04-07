@@ -418,8 +418,8 @@ VOLUME_DEAFEN       = 500
     #  #Gameplay Constants   #
     #------------------------#
 
-ROOMW       = 300       # max dungeon level size, width
-ROOMH       = 300       # ", height
+ROOMW       = 160       # max dungeon level size, width
+ROOMH       = 100       # ", height
 MAXLEVEL    = 20        # deepest dungeon level
 STARTING_TIME = 25200   # turns elapsed at start of game (beginning time of day)
 CRAFT_CONSTRUCT_MULTIPLIER = 2  # construction time multiplier for all crafting recipes

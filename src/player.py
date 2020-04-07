@@ -357,6 +357,7 @@ def __init__Chargen():
     Chargen._cmMult=0
     Chargen._kg=0
     Chargen._kgMult=0
+    Chargen._type=''
     Chargen._classID=0
     Chargen._className=""
     Chargen._jobstats={}
@@ -889,6 +890,7 @@ Starts with ( ${money}, {items} ).
     # end while
     
     # confirmed class selection
+    Chargen._type = _type
     Chargen._classID = _classID
     Chargen._className = _className
     Chargen._jobstats = _jobstats

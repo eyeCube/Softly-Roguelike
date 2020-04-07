@@ -41,7 +41,7 @@ SLIDE_Y = 5
 class GlobalData:
     __N = 0
     __i = 0
-    usedareas = set()
+    usedareas = [] #set()
 
 class Room:
     def __init__(
@@ -67,15 +67,14 @@ class LGD:
 
 ##class RoomTree:
 ##    def __init__(self, rootData):
-##        self.root = BinNode(rootData) # root node
+##        self.root = Node(rootData) # root node
 ##    def add(self, data):
 ##        
     
-class BinNode:
-    def __init__(self, data, left=None, right=None):
+class Node:
+    def __init__(self, data):
         self.data = data
-        self.left = left
-        self.right = right
+        self.child = [None,None,None,None,None,None,]
             
 def dig(
     xstart=-1,ystart=-1, xend=-1,yend=-1,
@@ -364,7 +363,7 @@ def _get_area(room):
     return (x1,y1,x2,y2,)
 
 def _add_usedarea(room):
-    GlobalData.usedareas.add(_get_area(room))
+    GlobalData.usedareas.append(_get_area(room))
 
 def _areas_overlapping(area1, area2):
     ax1,ay1,ax2,ay2 = area1
@@ -381,7 +380,10 @@ def _areas_overlapping(area1, area2):
     else:
         return False
 
-def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
+def _try_build_next_room(
+    node, width, height, rooms,
+    mindist=10, maxdist=32, pos=None
+    ):
     # pick a size and location for the next room; make the room
     borders = 5
 
@@ -389,13 +391,17 @@ def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
     room = _generate_room()
     
     # offset position
-    while (room.x_offset == 0 or # unmoved from default pos?
-           max(abs(room.x_offset - node.data.x_offset),
-               abs(room.y_offset - node.data.y_offset)) < mindist): # not too close -- ensure distance exceeds certain value
-        room.x_offset = min(width-borders, max(borders,
-            node.data.x_offset - maxdist + int((1 + 2*maxdist)*random.random()) ))
-        room.y_offset = min(height-borders, max(borders,
-            node.data.y_offset - maxdist + int((1 + 2*maxdist)*random.random()) ))
+    if pos:
+        room.x_offset = pos[0]
+        room.y_offset = pos[1]
+    else:
+        while (room.x_offset == 0 or # unmoved from default pos?
+               max(abs(room.x_offset - node.data.x_offset),
+                   abs(room.y_offset - node.data.y_offset)) < mindist): # not too close -- ensure distance exceeds certain value
+            room.x_offset = min(width-borders, max(borders,
+                node.data.x_offset - maxdist + int((1 + 2*maxdist)*random.random()*random.random()) ))
+            room.y_offset = min(height-borders, max(borders,
+                node.data.y_offset - maxdist + int((1 + 2*maxdist)*random.random()*random.random()) ))
     
     # make sure it fits
 ##    print("Trying to fit room at {}, {}".format(room.x_offset,room.y_offset))
@@ -404,14 +410,29 @@ def _try_build_next_room(node, width, height, rooms, mindist=10, maxdist=32):
     # room is now done being created. Do not modify room from here on out.
     
     # check for overlap with existing rooms : NOT WORKING PROPERLY...
-    area = _get_area(room)
-    
-    for usedarea in GlobalData.usedareas:
-        if _areas_overlapping(area, usedarea):
-##            print("FAILURE")
-##            print(area)
-##            print(usedarea)
-            return None # failure
+
+    tries=0
+    while True:
+        tries += 1
+        area = _get_area(room)
+        if tries > 10:
+            return None
+        _continue=False
+        for usedarea in GlobalData.usedareas:
+            if _areas_overlapping(area, usedarea): # failure
+                # slide like "cellophane" away from parent
+                xx = node.data.x_offset
+                yy = node.data.y_offset
+                dx = room.x_offset - xx
+                dy = room.y_offset - yy
+                room.x_offset += rog.sign(dx)
+                room.y_offset += rog.sign(dy)
+                _continue=True
+                break
+        # end for
+        if _continue: continue
+        break
+    # end while
     
 ##    print("Fit room at {}, {}.".format(room.x_offset,room.y_offset))
     
@@ -529,80 +550,46 @@ def _genRecursive(node, rooms, width, height, z, nMin, nMax, maxi):
         return
     
     GlobalData.__i += 1 # number of iterations
-    numTries = 50 # number tries to create a child room before it gives up
-    mind = 6 # minimum distance a room can be from parent room
+    numTries = 60 # number tries to create a child room before it gives up
+    mind = 2 # minimum distance a room can be from parent room
     
-    # NOTE: FIRST, figure out if we are going to have a left/right child
-    #   BEFORE we create the children, so that GlobalData.__N 
-    #   is the right value and we branch from origin more often
-                    # left
-    if GlobalData.__N < nMin:
-        randval = 1
-    else:
-        randval = 0.25
-    if (random.random() < randval and node.left==None):
-        tryLeft = True
-    else: tryLeft = False
-    lmaxd = 4 + int(random.random()*9)
-    if random.random() < 0.05:
-        lmaxd += 8
-    lmaxd += max(node.data.boundw, node.data.boundh)//2
-                    # right
-    if GlobalData.__N < nMin:
-        randval = 1
-    else:
-        randval = 0.25
-    if ((random.random() < randval) and node.right==None):
-        tryRight = True
-    else: tryRight = False
-    rmaxd = 4 + int(random.random()*9)
-    if random.random() < 0.05:
-        rmaxd += 8
-    rmaxd += max(node.data.boundw, node.data.boundh)//2
-    
-    # NOW (possibly) create the children.
-    
-    # left child
-    if tryLeft:
+    for ii in range(5):
+        
+        # NOTE: FIRST, figure out if we are going to have a left/right child
+        #   BEFORE we create the children, so that GlobalData.__N 
+        #   is the right value and we branch from origin more often
+                        # 1
+        if GlobalData.__N < nMin:
+            randval = 1 - ii*0.1
+        else:
+            randval = 0.25
+        if (random.random() < randval and node.child[ii]==None):
+            pass
+        else:
+            continue
+        maxd = 2 + int(random.random()*random.random()*(4+ii*2))
+        
+        # NOW (possibly) create the child
+        
         for _ in range(numTries):
             room = _try_build_next_room(
                 node, width, height, rooms,
-                mindist=mind, maxdist=lmaxd
+                mindist=mind, maxdist=maxd
                 )
             if room:
                 rooms.append(room)
                 # add a node to the tree
-                node.left = BinNode(room)
+                node.child[ii] = Node(room)
                 # possibly dig extra connecting corridors to adjacent rooms TODO
                 # possibly add some child nodes/rooms to this room.
                 _genRecursive(
-                    node.left, rooms,
-                    width, height, z,
-                    nMin, nMax, maxi
-                    )
-                break
-    
-    # right child
-    if tryRight:
-        for _ in range(numTries):
-            room = _try_build_next_room(
-                node, width, height, rooms,
-                mindist=mind, maxdist=rmaxd
-                )
-            if room:
-                rooms.append(room)
-                # add a node to the tree
-                node.right = BinNode(room)
-                # possibly dig extra connecting corridors to adjacent rooms TODO
-                # possibly add some child nodes/rooms to this room.
-                _genRecursive(
-                    node.right, rooms,
+                    node.child[ii], rooms,
                     width, height, z,
                     nMin, nMax, maxi
                     )
                 break
 
-def _generate_level_tree(width, height, z, density=100, maxDensity=200):
+def _generate_level_tree(width, height, z, density=400, maxDensity=2000):
     '''
         generate a floor using recursive binary tree descent
             build the tree of room nodes at the same time we dig out the map
@@ -612,7 +599,7 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
             
     GlobalData.__N = 1
     GlobalData.__i = 0
-    GlobalData.usedareas=set()
+    GlobalData.usedareas=[]
     
     rooms = []
     print("Generating level {}...".format(z))
@@ -620,7 +607,7 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
     # origin room is created somewhere in the middle of the map
     origin = create_origin_room(width, height) 
     rooms.append(origin)
-    root = BinNode(origin)
+    root = Node(origin)
     _add_usedarea(origin)
     for tile in origin.area:
         xx = tile[0] + origin.x_offset
@@ -630,10 +617,10 @@ def _generate_level_tree(width, height, z, density=100, maxDensity=200):
         rog.getmap(z).tile_change(xx, yy, FLOOR)
         
     # create other rooms
-    _genRecursive(
+    _genRecursive( # TODO: BIAS TOWARDS MIDDLE OF MAP!!!!
         root, rooms,
         width, height, z,
-        density, maxDensity, 5000
+        density, maxDensity, 40000
         )
     
     # modify rooms, add extra connectors(?)

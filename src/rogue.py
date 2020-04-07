@@ -1354,7 +1354,7 @@ def can_hear(ent, x,y, volume):
     pos = world.component_for_entity(ent, cmp.Position)
     senseHearing = world.component_for_entity(ent, cmp.SenseHearing)
     dist=maths.dist(pos.x, pos.y, x, y)
-    maxHearDist = volume * senseHearing.hearing / AVG_HEARING
+    maxHearDist = volume * getms(ent,'hearing') / AVG_HEARING
     if (pos.x == x and pos.y == y): return (0,0,maxHearDist,)
     if dist > maxHearDist: return False
     # calculate a path

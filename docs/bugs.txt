@@ -16,6 +16,7 @@ NOTES:
 	
 	
 BAD BUGS: 
+	occassionally become blind for 1 turn (WTF??)
 
 glitches:
 	- throw from inventory: didn't remove item from inventory but did "throw" it
