@@ -364,6 +364,7 @@ def __init__Chargen():
     Chargen._jobskills={}
     Chargen._jobmoney=0
     Chargen._jobitems=()
+    Chargen._jobkeys=''
     Chargen._jobmass=0
     Chargen.statsCompo=None
     Chargen.skillsCompo=None
@@ -698,8 +699,19 @@ def chargen(sx, sy):
     rog.grid_insert(pc)
     rog.update_fov(pc)
     init(pc)
+
+    # give items
+    for itemdata in Chargen._jobitems:
+        name, func, quantity, eq_const, script = itemdata
+        for _ in range(quantity):
+            item = func(name, sx,sy)
+            if script: script(item)
+            if eq_const: rog.equip(pc, item, eq_const)
+            give(pc, item)
+    # end for
+    
     return pc
-#
+# end def
 
 def _printChargenData(showclass=True):
     iy = Chargen.iy
@@ -836,6 +848,7 @@ def _select_class():
         _jobskills = entities.getJobSkills(_classID)
         _jobmoney = entities.getJobMoney(_classID)
         _jobitems = entities.getJobItems(_classID)
+        _jobkeys = entities.getJobClearance(_classID)
         
         # for display by confirmation prompt
         _classDescription = entities.getJobDescription(_classID) #TODO: make
@@ -897,6 +910,7 @@ Starts with ( ${money}, {items} ).
     Chargen._jobskills = _jobskills
     Chargen._jobmoney = _jobmoney
     Chargen._jobitems = _jobitems
+    Chargen._jobkeys = _jobkeys
     Chargen._jobmass = _mass
     
     #add specific class skills

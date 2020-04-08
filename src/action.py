@@ -271,7 +271,12 @@ def equipment_pc(pc):
                 menu["- {}".format(k)] = "close_{}".format(k)
                 for kk,vv in v.items():
                     slot,eq_const = vv
-                    itemname = rog.getname(slot.item) if slot.item else "-"
+                    if slot.item:
+                        itemname = rog.getname(slot.item)
+                    elif slot.covered:
+                        itemname = "X"
+                    else:
+                        itemname = "-"
                     nkey = "{}{}: {}".format(_TABS,kk,itemname)
                     nval = "item_{}" if slot.item else "equip_{}"
                     nval = nval.format(data_i)
@@ -282,7 +287,7 @@ def equipment_pc(pc):
                 menu["+ {}".format(k)] = "open_{}".format(k)
                 
         opt=rog.menu("{}{}'s equipment".format(
-            pcn.title,pcn.name), x,y, menu.keys())
+            TITLES[pcn.title],pcn.name), x,y, menu.keys())
         
         if opt == -1: return
         selected=menu[opt]

@@ -129,35 +129,32 @@ def main():
 ##        rog.create_monster("L", 1+x*5,1)
     
     
-    # TODO: re-test all encumberance values (changed system to use Encumberance component instead of direct stat modifiers)
-    # TODO: implement Encumberance component with inventory system
-    
-    rog.alts(rog.pc(), 'sight', 50)
-    weap=rog.create_weapon("metal halberd", 0,0)
-##    rog.damage(weap, 200)
-##    rog.fitgear(weap, rog.pc())
-    print(rog.pc())
-    print(rog.world().has_component(rog.pc(), cmp.Inventory))
-    print(rog.equip(
-        rog.pc(),weap,EQ_MAINHANDW
-        ))
-##    print("QWWQ")
-    rog.create_weapon("wooden club", pos.x,pos.y)
-    rog.create_weapon("estoc", pos.x-1,pos.y)
-##    shield=rog.create_weapon("metal shield", 0,0)
+##    rog.alts(rog.pc(), 'sight', 50)
+##    weap=rog.create_weapon("metal halberd", 0,0)
+####    rog.damage(weap, 200)
+####    rog.fitgear(weap, rog.pc())
+##    print(rog.pc())
+##    print(rog.world().has_component(rog.pc(), cmp.Inventory))
+##    print(rog.equip(
+##        rog.pc(),weap,EQ_MAINHANDW
+##        ))
+####    print("QWWQ")
+##    rog.create_weapon("wooden club", pos.x,pos.y)
+##    rog.create_weapon("estoc", pos.x-1,pos.y)
+####    shield=rog.create_weapon("metal shield", 0,0)
+####    rog.equip(
+####        rog.pc(),shield,EQ_OFFHAND
+####        )
+####    rog.fitgear(shield, rog.pc())
+##    armor=rog.create_armor("metal gear", 0,0)
 ##    rog.equip(
-##        rog.pc(),shield,EQ_OFFHAND
+##        rog.pc(),armor,EQ_FRONT
 ##        )
-##    rog.fitgear(shield, rog.pc())
-    armor=rog.create_armor("metal gear", 0,0)
-    rog.equip(
-        rog.pc(),armor,EQ_FRONT
-        )
-##    rog.fitgear(armor, rog.pc())
-    helm=rog.create_headwear("metal helm", 0,0)
-    rog.equip(
-        rog.pc(),helm,EQ_MAINHEAD
-        )
+####    rog.fitgear(armor, rog.pc())
+##    helm=rog.create_headwear("metal helm", 0,0)
+##    rog.equip(
+##        rog.pc(),helm,EQ_MAINHEAD
+##        )
 ##    rog.fitgear(helm, rog.pc())
 ##    leg1=rog.create_legwear("metal mail legging", 0,0)
 ##    rog.equip(

@@ -1523,6 +1523,14 @@ class Tool_Screwdriver:
     __slots__=['quality']
     def __init__(self, quality: int):
         self.quality=quality
+class Tool_AllenWrench:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
+class Tool_Wrench:
+    __slots__=['quality']
+    def __init__(self, quality: int):
+        self.quality=quality
 class Tool_Brush: # all kinds of brushes; quality distinguishes types. e.g. quality of 1==toothbrush, 2==hair brush, 3==coarse brush, 4==paint brush, 5==cleaning brush, 6==rough brush for industrial cleaning, cleaning tool files, etc.
     __slots__=['quality'] # if quality is too high for intended use, cannot be used for that purpose. This way we don't need several different brush tool types
     def __init__(self, quality: int):

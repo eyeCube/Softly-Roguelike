@@ -487,6 +487,13 @@ def fullname_gear(ent):
         fullname = "fitted {}".format(fullname)
     return fullname
 # end def
+def add_prefix(ent, prefix):
+    if Rogue.world.has_component(ent, cmp.Prefixes):
+        compo = Rogue.world.component_for_entity(ent, cmp.Prefixes)
+        compo.prefixes.append(prefix)
+    else:
+        Rogue.world.add_component(ent, cmp.Prefixes(prefix))
+# end def
 def fullname(ent):
     '''
         get the full name with any prefixes, suffixes, etc.
@@ -531,7 +538,7 @@ def fullname(ent):
     
     if world.has_component(ent, cmp.Prefixes):
         compo = world.component_for_entity(ent, cmp.Prefixes)
-        for prefix in compo.strings:
+        for prefix in compo.prefixes:
             fullname = "{} {}".format(PREFIXES[prefix], fullname)
             
     if world.has_component(ent, cmp.StatusRusted):
@@ -841,12 +848,14 @@ def give(ent,item):
         cooldown(item)
     
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
-    Rogue.world.add_component(ent, cmp.Carried(ent))
+    Rogue.world.add_component(item, cmp.Carried(ent))
+    Rogue.world.add_component(item, cmp.Child(ent))
 # end def
 
 def take(ent,item):
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.remove(item)
-    Rogue.world.remove_component(ent, cmp.Carried)
+    Rogue.world.remove_component(item, cmp.Carried)
+    Rogue.world.remove_component(item, cmp.Child)
 
 def mutate(ent):
     # TODO: do mutation
@@ -896,7 +905,6 @@ def pocket(ent, item):
     grid_remove(item)
     give(ent, item)
     spendAP(ent, NRG_POCKET)
-    world.add_component(item, cmp.Child(ent)) # item is Child of Entity carrying the item
     if world.has_component(item, cmp.Position):
         world.remove_component(item, cmp.Position)
     
@@ -904,7 +912,6 @@ def drop(ent,item,dx=0,dy=0):   #remove item from ent's inventory, place it on g
     world=Rogue.world
     make(ent, DIRTY_STATS)
     take(ent,item)
-    world.remove_component(item, cmp.Child)
     entpos=world.component_for_entity(ent, cmp.Position)
     world.add_component(item, cmp.Position(entpos.x + dx, entpos.y + dy))
     grid_insert(item)
@@ -1198,6 +1205,10 @@ def dist(x1,y1,x2,y2): return misc.dist(x1,y1,x2,y2)
 def fitgear(gear, ent):
     Rogue.world.add_component(gear, cmp.Fitted(ent))
 
+def _get_encsp(enc:int,encmax:int,spregen:int) -> int:
+    ''' max SP modifier from encumberance % '''
+    encrat = max(0, 1 - (enc / max(1,encmax)))
+    return int(max(0, (SPREGEN_MIN + SPREGEN_D*(encrat**2)) * spregen))
 
 
     #----------------------#
@@ -3108,8 +3119,8 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     
     # Ratio of encumberance
     encpc = max(0, 1 - (modded.enc / max(1,modded.encmax)))
-    # SP Regen acts differently -- smooth linear scaling relative to encumberance
-    modded.mpregen = max(0,modded.mpregen) * (SPREGEN_MIN + SPREGEN_D*encpc)
+    # SP Regen acts differently -- inverse quadratic scaling relative to encumberance
+    modded.mpregen = _get_encsp(modded.enc, modded.encmax, modded.mpregen)
     # Breakpoint stats -- gotten from ENCUMBERANCE_MODIFIERS dict
     encbp = get_encumberance_breakpoint(modded.enc, modded.encmax)
     if encbp > 0:

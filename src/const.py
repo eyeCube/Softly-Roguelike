@@ -435,7 +435,7 @@ RNG_ATK_PENALTY = 1     # Atk penalty per tile of distance
 # the displayed integer value in-game and in the code is the same
 #   but in-engine, the actual value is always an integer.
 MULT_VALUE          = 12    # 12 pence == 1 pound. multiplier for value of all things
-MULT_MASS           = 100000  # @1000, smallest mass unit == 1/100 gram. multiplier for mass of all things (to make it stored as an integer by Python)
+MULT_MASS           = 100000  # @1000, smallest mass unit == 1 gram. @100000, 1/100 gram. multiplier for mass of all things (to make it stored as an integer by Python)
 MULT_STATS          = 10    # finer scale for Atk/DV/AV/dmg/pen/pro/Gra/Ctr/Bal but only each 10 makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_ATT            = MULT_STATS    # finer scale for Attributes but only each 10 (assuming the value is 10) makes any difference. Shows up /10 without the decimal in-game and functions the same way by the mechanics.
 MULT_HYD            = 1000  # finer scale for hydration control
@@ -548,7 +548,7 @@ MAXGRIND_METAL      = 5
 BASE_HP         = 2
 BASE_MP         = 40
 BASE_MPREGEN    = 1
-BASE_ENCMAX     = 100
+BASE_ENCMAX     = 60
 BASE_REACH      = 2
 BASE_STR        = 12 # strength
 BASE_CON        = 12 # constitution
@@ -606,8 +606,8 @@ MAS_COU = 8
 ##    }
 
 # other stat consts
-SPREGEN_MIN = 0.5
-SPREGEN_D   = 1
+SPREGEN_MIN = 0.25
+SPREGEN_D   = 1.75
 MASS_GRIP   = 0.1       # bonus feet grip gained from mass
 
 # attributes
@@ -618,7 +618,7 @@ ATT_STR_DMG             = 0.3333334 # melee/thrown damage
 ATT_STR_ATK             = 0.15 # melee/thrown accuracy -- less than Dex bonus
 ATT_STR_PEN             = 0.2 # melee/thrown penetration -- less than Dex bonus
 ATT_STR_AV              = 0.15 # armor from strength -- less than Con bonus
-ATT_STR_ENCMAX          = 3 # strength gives some carrying capacity -- less than Con bonus
+ATT_STR_ENCMAX          = 2.5 # strength gives some carrying capacity -- less than Con bonus
 ATT_STR_GRA             = 1 # grappling / wrestling, grip, climbing
 ATT_STR_SCARY           = 1 # intimidation +
 ATT_STR_FORCEMULT       = 0.0833334 # ratio extra force for every strength point
@@ -662,7 +662,7 @@ ATT_INT_IDENTIFY        = 1 # identify ability
 ATT_CON_AUGS            = 0.25 # physical augmentations
 ATT_CON_AV              = 0.2   # armor value
 ATT_CON_HP              = 1.5   # life
-ATT_CON_ENCMAX          = 6     # encumberance maximum -- more than Str bonus
+ATT_CON_ENCMAX          = 5     # encumberance maximum -- more than Str bonus
 ATT_CON_RESELEC         = 2     # consitution grants some resistances
 ATT_CON_RESBIO          = 2 
 ATT_CON_RESBLEED        = 2
@@ -756,9 +756,6 @@ AVG_MASS            = 75  #KG
 
 
 # ENCUMBERANCE
-
-ENC_SPREGEN_MIN = 0.1
-ENC_SPREGEN_D = 1
 
 ENC_BP_1    = 0.25
 ENC_BP_2    = 0.50
@@ -2398,7 +2395,8 @@ MAXLEGS=4
 MAXILEGS=8
 MAXHEADS=2
 MAXIHEADS=1
-i=1;
+i=0;
+EQ_NONE     =i;i+=1; # NULL value
 EQ_ABOUT    =i;i+=1; # about the body (e.g. a cloak)
 EQ_MAINHANDW=i;i+=1; # W == WIELDED
 EQ_OFFHANDW =i;i+=1;
@@ -3874,7 +3872,7 @@ CLS_JANITOR     : "A lowly janitor. No outstanding qualities.",
 CLS_DEPRIVED    : "Wretched, lacking creature, born into filth and poverty.",
 CLS_SOLDIER     : "Hardened marine. Skilled in heavy rifle combat.",
 CLS_THIEF       : "Skilled burglar. Can easily manage heavy loads.",
-CLS_WRESTLER    : "A grappler by profession with a promising career.",
+CLS_WRESTLER    : "A professional grappler with a promising career.",
 CLS_DOCTOR      : "Ph.D in medicine. Also skilled in surgery.",
 CLS_PROGRAMMER  : "Hacker. Programmer. Geek. Computer wizard.",
 CLS_MONK        : "Highly perceptive and courageous. A master of unarmored, nonlethal combat.",
@@ -4165,6 +4163,7 @@ SHAPE_CREATURE      =i;i+=1;
 SHAPE_BEAST         =i;i+=1;
 SHAPE_MACHINE       =i;i+=1;
 SHAPE_ORGANIC       =i;i+=1;
+SHAPE_ARTIFICIAL    =i;i+=1;
 SHAPE_DEVICE        =i;i+=1;
 SHAPE_TOOL          =i;i+=1;
 SHAPE_GUN           =i;i+=1;
@@ -4196,6 +4195,8 @@ SHAPE_INDISTINCT    =i;i+=1;
 SHAPE_AMORPHOUS     =i;i+=1;
 SHAPE_LOAF          =i;i+=1;
 SHAPE_FORK          =i;i+=1;
+SHAPE_PAPER         =i;i+=1; # paper-thin
+SHAPE_PILE          =i;i+=1;
 # names of shapes, for identification purposes
 SHAPES={
 SHAPE_WALL          : "wall",
@@ -4203,7 +4204,8 @@ SHAPE_FIGURE        : "figure",
 SHAPE_CREATURE      : "creature",
 SHAPE_BEAST         : "beast",
 SHAPE_MACHINE       : "machine",
-SHAPE_ORGANIC       : "organic-looking object",
+SHAPE_ORGANIC       : "organic object",
+SHAPE_ARTIFICIAL    : "artificial object",
 SHAPE_DEVICE        : "device",
 SHAPE_TOOL          : "tool",
 SHAPE_GUN           : "gun",
@@ -4235,6 +4237,8 @@ SHAPE_INDISTINCT    : "indistinct object",
 SHAPE_AMORPHOUS     : "amorphous blob",
 SHAPE_LOAF          : "loaf",
 SHAPE_FORK          : "forked object",
+SHAPE_PAPER         : "paper-like object",
+SHAPE_PILE          : "pile of something",
     }
     
 
@@ -4319,6 +4323,7 @@ ID_PADDEDLEGGING    =i;i+=1; # leg
 ID_MAILLEGGING      =i;i+=1;
 ID_GREAVE           =i;i+=1;
 ID_PANTS            =i;i+=1;
+ID_SHORTS           =i;i+=1; 
 ID_PJS              =i;i+=1;
 ID_BOOT             =i;i+=1; # feet
 ID_SHOE             =i;i+=1;
@@ -4342,6 +4347,21 @@ ID_GAUNTLET         =i;i+=1;
 ID_CLOAK            =i;i+=1; # about
 
 # misc. items
+ID_MONEY            =i;i+=1;
+ID_TRASH            =i;i+=1;
+ID_ELECTRONICS      =i;i+=1;
+ID_FIREPIT          =i;i+=1;
+ID_LIGHTER          =i;i+=1;
+ID_MOBILEDEVICE     =i;i+=1; # phone / PDA / geiger counter / calculator / etc.
+ID_BOX              =i;i+=1;
+ID_LOCKBOX          =i;i+=1; # tough looking box e.g. safe
+ID_BARREL           =i;i+=1;
+ID_STILL            =i;i+=1;
+ID_POT              =i;i+=1;
+ID_GRAVE            =i;i+=1;
+ID_GRAVESLAB        =i;i+=1;
+ID_TORCH            =i;i+=1;
+ID_FLUIDTANK        =i;i+=1; # compressed air or liquid tank e.g. helium, oxygen tanks, propane, extinguishers, etc.
 ID_BAG              =i;i+=1;
 ID_RAG              =i;i+=1;
 ID_RAGS             =i;i+=1; # big rag / cloth
@@ -4349,6 +4369,8 @@ ID_BANDAGE          =i;i+=1;
 ID_RUBBERBAND       =i;i+=1;
 ID_FLESH            =i;i+=1;
 ID_FUNGUS           =i;i+=1;
+ID_FOLIAGE          =i;i+=1; #
+ID_FLOWER           =i;i+=1; #
 ID_PLANT            =i;i+=1;
 ID_SEEDNUT          =i;i+=1;
 ID_ROOT             =i;i+=1;
@@ -4389,6 +4411,7 @@ ID_ROCK             =i;i+=1;
 ID_TARP             =i;i+=1;
 ID_CLOTH            =i;i+=1;
 ID_BONE             =i;i+=1;
+ID_BONEPILE         =i;i+=1;
 ID_GLASS            =i;i+=1;
 ID_CHUNK            =i;i+=1;
 ID_SLAB             =i;i+=1;
@@ -4519,6 +4542,21 @@ ID_GAUNTLET         : ("gauntlet",SHAPE_INDISTINCT,),
 ID_CLOAK            : ("cloak",SHAPE_AMORPHOUS,),
 
 # misc. items
+ID_MONEY            : ("money",SHAPE_PAPER,),
+ID_TRASH            : ("garbage",SHAPE_INDISTINCT,),
+ID_ELECTRONICS      : ("electronic",SHAPE_ARTIFICIAL,),
+ID_FIREPIT          : ("fire pit",SHAPE_PILE,),
+ID_LIGHTER          : ("lighter",SHAPE_TOOL,),
+ID_MOBILEDEVICE     : ("mobile device",SHAPE_DEVICE,),
+ID_BOX              : ("box",SHAPE_BLOCK,),
+ID_LOCKBOX          : ("lockbox",SHAPE_BLOCK,),
+ID_BARREL           : ("barrel",SHAPE_CYLINDER,),
+ID_STILL            : ("still",SHAPE_CYLINDER,),
+ID_POT              : ("pot",SHAPE_CYLINDER,),
+ID_GRAVE            : ("grave",SHAPE_BLOCK,),
+ID_GRAVESLAB        : ("grave",SHAPE_SLAB,),
+ID_TORCH            : ("torch",SHAPE_STICK,),
+ID_FLUIDTANK        : ("fluid tank",SHAPE_CYLINDER,),
 ID_BAG              : ("bag",SHAPE_AMORPHOUS,),
 ID_RAG              : ("rag",SHAPE_AMORPHOUS,),
 ID_RAGS             : ("rags",SHAPE_AMORPHOUS,),
@@ -4526,6 +4564,8 @@ ID_BANDAGE          : ("bandage",SHAPE_AMORPHOUS,),
 ID_RUBBERBAND       : ("rubber band",SHAPE_INDISTINCT,),
 ID_FLESH            : ("cut of flesh",SHAPE_ORGANIC,),
 ID_FUNGUS           : ("fungus",SHAPE_ORGANIC,),
+ID_FOLIAGE          : ("foliage",SHAPE_ORGANIC,),
+ID_FLOWER           : ("flower",SHAPE_ORGANIC,),
 ID_PLANT            : ("plant",SHAPE_ORGANIC,),
 ID_SEEDNUT          : ("nut",SHAPE_ROUND,),
 ID_ROOT             : ("root",SHAPE_ORGANIC,),
@@ -4565,6 +4605,7 @@ ID_ROCK             : ("rock",SHAPE_ROCK,),
 ID_TARP             : ("tarp",SHAPE_AMORPHOUS,),
 ID_CLOTH            : ("cloth",SHAPE_AMORPHOUS,),
 ID_BONE             : ("bone",SHAPE_INDISTINCT,),
+ID_BONEPILE         : ("bones",SHAPE_INDISTINCT,),
 ID_GLASS            : ("glass",SHAPE_INDISTINCT,),
 ID_CHUNK            : ("chunk",SHAPE_INDISTINCT,),
 ID_SLAB             : ("slab",SHAPE_SLAB,),

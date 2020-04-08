@@ -665,7 +665,7 @@ def _get_encumberance_mods(pc):
     encbp = rog.get_encumberance_breakpoint(enc, encmax)
     if encbp > 0:
         index = encbp - 1
-        mods += "SPR {}%, ".format(int(50 + max(0, 100*(1 - (enc/max(1,encmax)))) ))
+        mods += "SPR {}% ".format(rog._get_encsp(enc,encmax,100))
         mods += "MSP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['msp'][index]))
         mods += "ASP {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['asp'][index]))
         mods += "ATK {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['atk'][index]))
@@ -674,7 +674,7 @@ def _get_encumberance_mods(pc):
         mods += "GRA {}%, ".format(int(100*ENCUMBERANCE_MODIFIERS['gra'][index]))
         mods += "BAL {}% ".format(int(100*ENCUMBERANCE_MODIFIERS['bal'][index]))
     else:
-        mods += "SPR {}% ".format(int(50 + 50*(1 - (enc/max(1,encmax))) ))
+        mods += "SPR {}% ".format(rog._get_encsp(enc,encmax,100))
     mods += "]"
     return mods
 
@@ -892,8 +892,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         cm=int(_get('height')),bcm=int(_getheight()),
         hp=_getb('hp'),hpmax=_get('hpmax'),
         sp=_getb('mp'),spmax=_get('mpmax'),
-        hppc=(_getb('hp')/_get('hpmax')*100),
-        sppc=(_getb('mp')/_get('mpmax')*100),
+        hppc=int(_getb('hp')/_get('hpmax')*100),
+        sppc=int(_getb('mp')/_get('mpmax')*100),
         # attributes
         _str=_geta('str'),_agi=_geta('agi'),_dex=_geta('dex'),
         _end=_geta('end'),_int=_geta('int'),_con=_geta('con'),
