@@ -1,9 +1,2 @@
-
-Note: if any of the requirements in this document are incorrect, please send an email to eyecube1@protonmail.com
-
-Requirements to run Softly Into the Night:
-	python 3.7 or greater
-	scipy.signal
-	numpy
-	tcod python
-	esper (included)
+python >= 3.7
+numpy >= 1.17.0
