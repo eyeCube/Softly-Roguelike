@@ -3365,8 +3365,8 @@ def _mult(dmul, modDict):
 def _apply_fittedBonus(dadd):
     dadd['enc']=dadd['enc']*FITTED_ENCMOD
 def _getenc(dadd, item): # get Encumberance stat modifier from Encumberance component
-    dadd['enc']=dadd.get('enc',0)+rog.getms(item,'mass')/MULT_MASS*rog.world().component_for_entity(
-        item, cmp.Encumberance).value
+    ev = rog.world().component_for_entity(item, cmp.Encumberance).value
+    dadd['enc'] = dadd.get('enc',0) + rog.getms(item,'mass') /MULT_MASS*ev
 def _apply_durabilityPenalty_weapon(dadd, item):
     hp = rog.getms(item, 'hp')
     hpMax = rog.getms(item, 'hpmax')
@@ -3812,7 +3812,7 @@ def _update_from_bp_hand(ent, hand, armorSkill, unarmored,
         # melee combat skill bonus
         combatLv = rog._getskill(skillsCompo.skills.get(SKL_COMBAT, 0))
         combatLv = combatLv * _comm
-        _apply_skillBonus_weapon(eqdadd, combatLv, SKL_COMBAT)
+        _apply_skillBonus_weapon(eqdadd, combatLv, SKL_COMBAT, enc=False)
     # end if
         
     # examine body part

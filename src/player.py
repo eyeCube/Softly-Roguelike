@@ -707,7 +707,7 @@ def chargen(sx, sy):
             item = func(name, sx,sy)
             if script: script(item)
             if eq_const: rog.equip(pc, item, eq_const)
-            give(pc, item)
+            rog.give(pc, item)
     # end for
     
     return pc
@@ -862,7 +862,7 @@ def _select_class():
         _classItems = ""
         if _jobitems:
             for tupl in _jobitems:
-                name,table,quantity = tupl
+                name,table,quantity,slot,script = tupl
                 _classItems += "{}, x{}; ".format(name,quantity)
             _classItems=_classItems[:-2]
         

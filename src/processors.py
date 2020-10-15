@@ -20,7 +20,7 @@
 ##from dataclasses import dataclass
 import tcod as libtcod
 import numpy as np
-import scipy.signal
+##import scipy.signal
 import esper
 import time
 import math

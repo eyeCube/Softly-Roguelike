@@ -528,6 +528,7 @@ MOD_1HANDPENALTY_PRO  = -2      # protection you lose
 
 # maximum + quality upgrade
 MAXGRIND_GRAPHENE   = 1
+MAXGRIND_CLOTH      = 2
 MAXGRIND_GLASS      = 2
 MAXGRIND_CERAMIC    = 2
 MAXGRIND_PLASTIC    = 3
@@ -2773,6 +2774,7 @@ MAT_STONE       : MAXGRIND_STONE,
 MAT_BONE        : MAXGRIND_BONE,
 MAT_GLASS       : MAXGRIND_GLASS,
 MAT_CERAMIC     : MAXGRIND_CERAMIC,
+MAT_CLOTH       : MAXGRIND_CLOTH,
     }
 
 # Boiling, Melting, flash (Ignition) Points
@@ -4259,6 +4261,7 @@ ID_8ARMS            =i;i+=1;
 ID_ANDROID          =i;i+=1;
 ID_ROBOT            =i;i+=1;
 ID_MACHINE          =i;i+=1;
+##print("end creatures: ", ID_MACHINE)
 
 # weapon-type items
 ID_CLUB             =i;i+=1;
@@ -4299,6 +4302,7 @@ ID_CROSSBOW         =i;i+=1;
 ID_CANNON           =i;i+=1;
 ID_ENERGYWEAPON     =i;i+=1;
 ID_BLOWGUN          =i;i+=1;
+##print("end weapon: ", ID_BLOWGUN)
 
 # clothing / armor
 ID_VEST             =i;i+=1; # torso clothes
@@ -4345,6 +4349,7 @@ ID_HELM             =i;i+=1; # half to full helm
 ID_GLOVE            =i;i+=1; # hand armor
 ID_GAUNTLET         =i;i+=1;
 ID_CLOAK            =i;i+=1; # about
+##print("end clothing: ", ID_CLOAK)
 
 # misc. items
 ID_MONEY            =i;i+=1;
@@ -4371,10 +4376,8 @@ ID_FLESH            =i;i+=1;
 ID_FUNGUS           =i;i+=1;
 ID_FOLIAGE          =i;i+=1; #
 ID_FLOWER           =i;i+=1; #
-ID_PLANT            =i;i+=1;
 ID_SEEDNUT          =i;i+=1;
 ID_ROOT             =i;i+=1;
-ID_LEAF             =i;i+=1;
 ID_BREAD            =i;i+=1;
 ID_FRUIT            =i;i+=1;
 ID_MRE              =i;i+=1;
@@ -4387,9 +4390,10 @@ ID_FLASHLIGHT       =i;i+=1;
 ID_LASER            =i;i+=1;
 ID_SUPPRESSOR       =i;i+=1;
 ID_BIPOD            =i;i+=1;
-ID_           =i;i+=1;
+##print("end misc.: ", ID_BIPOD)
 
 # tools
+ID_TOOL             =i;i+=1;
 ID_SCALPEL          =i;i+=1;
 ID_SCISSORS         =i;i+=1;
 ID_PLIERS           =i;i+=1;
@@ -4397,6 +4401,7 @@ ID_SCREWDRIVER      =i;i+=1;
 ID_WHETSTONE        =i;i+=1;
 ID_SHOVEL           =i;i+=1;
 ID_PICKAXE          =i;i+=1;
+##print("end tools: ", ID_PICKAXE)
 
 # raw mats
 ID_STRING           =i;i+=1;
@@ -4441,6 +4446,7 @@ ID_LENS             =i;i+=1;
 ID_SPRING           =i;i+=1;
 ID_CHAIN            =i;i+=1;
 ID_ROPE             =i;i+=1;
+##print("end rawmats: ", ID_ROPE)
 NUMIDS = i - 1
 
 IDENTIFICATION={
@@ -4519,6 +4525,7 @@ ID_PADDEDLEGGING    : ("padded legging",SHAPE_SILKY,),
 ID_MAILLEGGING      : ("mail legging",SHAPE_AMORPHOUS,),
 ID_GREAVE           : ("greave",SHAPE_INDISTINCT,),
 ID_PANTS            : ("pants",SHAPE_SILKY,),
+ID_SHORTS           : ("shorts",SHAPE_SILKY,),
 ID_PJS              : ("P-Js",SHAPE_AMORPHOUS,),
 ID_BOOT             : ("boot",SHAPE_INDISTINCT,),
 ID_SHOE             : ("shoe",SHAPE_INDISTINCT,),
@@ -4566,10 +4573,8 @@ ID_FLESH            : ("cut of flesh",SHAPE_ORGANIC,),
 ID_FUNGUS           : ("fungus",SHAPE_ORGANIC,),
 ID_FOLIAGE          : ("foliage",SHAPE_ORGANIC,),
 ID_FLOWER           : ("flower",SHAPE_ORGANIC,),
-ID_PLANT            : ("plant",SHAPE_ORGANIC,),
 ID_SEEDNUT          : ("nut",SHAPE_ROUND,),
 ID_ROOT             : ("root",SHAPE_ORGANIC,),
-ID_LEAF             : ("leaf",SHAPE_ORGANIC,),
 ID_BREAD            : ("bread",SHAPE_LOAF,),
 ID_FRUIT            : ("fruit",SHAPE_ORGANIC,),
 ID_MRE              : ("MRE",SHAPE_BLOCK,),
@@ -4584,6 +4589,7 @@ ID_LASER            : ("laser pointer",SHAPE_CYLINDER,),
 ID_BIPOD            : ("bipod",SHAPE_FORK,),
 
 # tools
+ID_TOOL             : ("tool",SHAPE_TOOL,),
 ID_SCALPEL          : ("scalpel",SHAPE_TOOL,),
 ID_SCISSORS         : ("scissors",SHAPE_TOOL,),
 ID_PLIERS           : ("pliers",SHAPE_TOOL,),
