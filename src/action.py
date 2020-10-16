@@ -430,9 +430,9 @@ def _getMenuItems_item(item) -> dict:
     #   get available actions for this item...
     
     if world.has_component(item, cmp.Equipped):
-        keysItems.update({"r":"remove_worn"})
+        keysItems.update({"r":"remove"})
     elif world.has_component(item, cmp.Held):
-        keysItems.update({"r":"remove_wielded"})
+        keysItems.update({"r":"remove"})
         
     if world.has_component(item, cmp.Edible):
         keysItems.update({"e":"eat"})
@@ -625,6 +625,7 @@ def equip_pc(pc, item, equipType):
 # end def
 
 def deequip_pc(pc, item):
+    # TODO: AP action costs
     rog.remove_equipment(pc, item)
 
 def examine_pc(pc, item):

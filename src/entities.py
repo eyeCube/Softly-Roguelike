@@ -4590,11 +4590,14 @@ def create_armor(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4658,11 +4661,14 @@ def create_headwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4724,11 +4730,14 @@ def create_facewear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4787,11 +4796,14 @@ def create_handwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4849,11 +4861,14 @@ def create_armwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4912,11 +4927,14 @@ def create_legwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -4977,11 +4995,14 @@ def create_footwear(name,x,y,condition=1) -> int:
     world.add_component(ent, cmp.Form(mat=material, val=value))
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
+    if enc==0: enc=1
+    world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=hpmax,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -5045,10 +5066,11 @@ def create_weapon(name, x,y, condition=1) -> int:
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=0,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -5089,7 +5111,7 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     world = rog.world()
     ent = world.create_entity()
     
-    data = RANGEDWEAPONS[NAME]
+    data = RANGEDWEAPONS[name]
     
     # get data
     ammotype    = get_ranged_ammotype(data)
@@ -5134,10 +5156,11 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=0,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -5203,10 +5226,11 @@ def create_ranged_mod(name, x,y, condition=1) -> int:
     world.add_component(ent, cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN))
     world.add_component(ent, cmp.Meters())
     # stats component
-    stats=cmp.Stats(
-        hp=hpmax,mp=0,mass=mass
+    stats = cmp.Stats(
+        hp = rog.around(hpmax * condition),
+        mp = hpmax,
+        mass = mass
         )
-    stats.hp = rog.around(stats.hpmax * condition)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)

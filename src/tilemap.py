@@ -69,13 +69,13 @@ TILES={
 
 # unique const  :      char,      fgcol,     bgcol, enter,leave,opaque,damp
     FLOOR       : Tile(FLOOR,     'neutral', 'deep',    100,0,  False,1,),
-    PIT         : Tile(PIT,       'purple', 'deep',    100,200,  False,1,),
+    PIT         : Tile(PIT,       'purple', 'deep',     200,300,False,1,),
     ROUGH       : Tile(FLOOR,     'dkgreen', 'blue',    150,50, False,1,),
     SHRUB       : Tile(SHRUB,     'green',  'vdkgreen', 200,100,False,1,),
     BRAMBLE     : Tile(BRAMBLE,   'green',  'vdkgreen', 400,200,False,1,),
     JUNGLE      : Tile(JUNGLE,    'dkgreen','vdkgreen', 900,300,False,2,),
     JUNGLE2     : Tile(JUNGLE2,   'dkgreen','vdkgreen', 900,300,False,2,),
-    WALL        : Tile(WALL,      'dkred', 'orange',    100,  100,False, 50,),
+    WALL        : Tile(WALL,      'dkred', 'orange',    0,  100,True, 50,),
     STAIRDOWN   : Tile(STAIRDOWN, 'accent', 'purple',   100,0,  False,1,),
     STAIRUP     : Tile(STAIRUP,   'accent', 'purple',   100,0,  False,1,),
     DOOROPEN    : Tile(DOOROPEN,  'yellow', 'brown',    100,0,  False,1,),
