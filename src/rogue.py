@@ -864,7 +864,7 @@ def give(ent,item):
 # end def
 
 def take(ent,item):
-    print("taken!")
+##    print("taken!")
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.remove(item)
     Rogue.world.remove_component(item, cmp.Carried)
     Rogue.world.remove_component(item, cmp.Child)
@@ -2125,7 +2125,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
 ##                #TODO: add special effects; light, etc. How to??
             light: make the light a Child of the equipper
     '''
-    print("trying to equip {} to {}".format(getname(item), getname(ent)))
+##    print("trying to equip {} to {}".format(getname(item), getname(ent)))
 # init and failure checking #
     # first check that the entity can equip the item in the indicated slot.
     world = Rogue.world
@@ -2185,13 +2185,13 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         # success! Equip the item #
         #-------------------------#
         
-    print("successfully equipped {} to {}".format(getname(item), getname(ent)))
+##    print("successfully equipped {} to {}".format(getname(item), getname(ent)))
 
     # remove item from the map and from agent's inventory if applicable
     grid_remove(item)
     if item in getinv(ent):
-        print("taken {} from {}".format(getname(item), getname(ent)))
         take(ent, item)
+##        print("taken {} from {}".format(getname(item), getname(ent)))
     # indicate that the item is equipped using components
     world.add_component(item, cmp.Child(ent))
     if holdtype:

@@ -30,4 +30,3 @@ def restrict(val,_min,_max): # restrict value to a domain
     return val
 def sign(val):      return 1 if val >= 0 else -1
     
-print(iseven(5))

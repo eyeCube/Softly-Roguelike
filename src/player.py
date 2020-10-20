@@ -579,7 +579,7 @@ def chargen(sx, sy):
 
         # choose a personality
         personality = random.choice(MAIN_PERSONALITIES)
-        print(personality)
+##        print("personality: ", personality)
         
         
         # continue creating player entity #
@@ -596,7 +596,7 @@ def chargen(sx, sy):
             fatratio -= fatratio*(3-Chargen._kg)/3
         fatratio += Chargen.bodyfat/100
         fatratio *= Chargen.mbodyfat
-        print("bodyfat: ", fatratio)
+##        print("bodyfat: ", fatratio)
         
             # height stat mods
         reachMult = 1 + (Chargen._cm-5)/20 #/10
