@@ -4611,7 +4611,7 @@ def create_armor(name,x,y,condition=1) -> int:
     
     # quality
     minGrind=-2
-    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    maxGrind=MAXGRIND_FROM_MATERIAL.get(material, 0)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -6660,7 +6660,7 @@ ARMOR={ # torso armor
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,Bal,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script,ID,
 "t-shirt"               :(5,     0.15, 10,  100,  CLTH,0, (0,  0,  0.1,5,  0,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),_clothes,ID_SHIRT,),
 "shirt"                 :(10,    0.25, 40,  200,  CLTH,0, (0,  0.1,0.2,5,  0,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),_clothes,ID_SHIRT,),
-"hoody"                 :(14,    0.8,  20,  300,  CLTH,0, (0,  0.2,0.5,4,  0,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),_clothes,ID_HOODY,),
+"hoody"                 :(14,    0.8,  20,  300,  CLTH,0, (0,  1,0.5,4,  0,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),_clothes,ID_HOODY,),
 "cloth vest"            :(19,    1.0,  60,  200,  CLTH,0, (1,  0.4,1,  2,  0,  -12,6,  3,  0,  0,  3, ),(1,0,0,0,),None,ID_VEST,),
 "wool jacket"           :(69,    2.0,  160, 300,  CLTH,1, (1,  1,  3,  3,  0,  -36,36, 6,  2,  0,  6, ),(1,1,0,0,),None,ID_JACKET,),
 "padded vest"           :(28,    1.6,  120, 300,  CLTH,1 ,(2,  1,  2,  2,  0,  -6, 12, 3,  1,  0,  3, ),(1,0,0,0,),None,ID_PADDEDSHIRT),

@@ -725,6 +725,8 @@ class BPM_Hearts:
 '''
 class BP_TorsoCore: # abdomen
     __slots__=['slot','artery','muscle','skin','guts']
+    WEAR_TYPE = EQ_CORE
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -733,6 +735,8 @@ class BP_TorsoCore: # abdomen
         self.guts=BPP_Guts()
 class BP_TorsoFront: # thorax front
     __slots__=['slot','bone','artery','muscle','skin']
+    WEAR_TYPE = EQ_FRONT
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -741,6 +745,8 @@ class BP_TorsoFront: # thorax front
         self.skin=BPP_Skin()
 class BP_TorsoBack: # thorax back
     __slots__=['slot','bone','artery','muscle','skin']
+    WEAR_TYPE = EQ_BACK
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -749,6 +755,8 @@ class BP_TorsoBack: # thorax back
         self.skin=BPP_Skin()
 class BP_Hips:
     __slots__=['slot','bone','artery','muscle','skin']
+    WEAR_TYPE = EQ_HIPS
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -757,10 +765,14 @@ class BP_Hips:
         self.skin=BPP_Skin()
 class BP_Cell:
     __slots__=['slot']
+    WEAR_TYPE = EQ_CELL
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
 class BP_Head:
     __slots__=['slot','bone','brain','skin','hair']
+    WEAR_TYPE = EQ_MAINHEAD
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone() # skull
@@ -769,6 +781,8 @@ class BP_Head:
         self.hair=BPP_Hair()
 class BP_Neck:
     __slots__=['slot','artery','bone','muscle','skin']
+    WEAR_TYPE = EQ_MAINNECK
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
@@ -777,12 +791,16 @@ class BP_Neck:
         self.skin=BPP_Skin()
 class BP_Face:
     __slots__=['slot','features','skin']
+    WEAR_TYPE = EQ_MAINFACE
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.features=BPP_FacialFeatures()
         self.skin=BPP_Skin()
 class BP_Mouth:
     __slots__=['held','bone','muscle','teeth','gustatorySystem','weapon']
+    WEAR_TYPE = EQ_NONE
+    HOLD_TYPE = EQ_MAINMOUTH
     def __init__(self, taste=20): # quality of taste system
         self.held=Slot() # grabbed slot (weapon equip, etc.) (TODO: mouth holding / equipping items/weapons)
         self.bone=BPP_Bone()
@@ -792,22 +810,30 @@ class BP_Mouth:
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
 class BP_Eyes:
     __slots__=['slot','visualSystem','open']
+    WEAR_TYPE = EQ_MAINEYES
+    HOLD_TYPE = EQ_NONE
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
         self.open=True #eyelids open or closed?
 class BP_Ears:
     __slots__=['slot','auditorySystem']
+    WEAR_TYPE = EQ_MAINEARS
+    HOLD_TYPE = EQ_NONE
     def __init__(self, quantity=2, quality=60):
         self.slot=Slot()        # earplugs, for protecting ears
         self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
 class BP_Nose:
     __slots__=['bone','olfactorySystem']
+    WEAR_TYPE = EQ_NONE
+    HOLD_TYPE = EQ_NONE
     def __init__(self, quality=10):
         self.bone=BPP_Bone()
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
 class BP_Arm: # upper / middle arm and shoulder
     __slots__=['slot','bone','artery','muscle','skin','covered']
+    WEAR_TYPE = EQ_MAINARM
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -817,6 +843,8 @@ class BP_Arm: # upper / middle arm and shoulder
 class BP_Hand: # hand and lower forearm
     __slots__=['slot','held','bone','artery','muscle','skin',
                'grip','weapon']
+    WEAR_TYPE = EQ_MAINHAND
+    HOLD_TYPE = EQ_MAINHANDW
     def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
@@ -828,6 +856,8 @@ class BP_Hand: # hand and lower forearm
         self.grip=grip # grip your bare hand has
 class BP_Leg: # thigh and knee
     __slots__=['slot','bone','artery','muscle','skin','covered']
+    WEAR_TYPE = EQ_MAINLEG
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -837,6 +867,8 @@ class BP_Leg: # thigh and knee
         self.covered=False
 class BP_Foot: # foot, ankle and lower leg
     __slots__=['slot','bone','artery','muscle','skin','covered','grip']
+    WEAR_TYPE = EQ_MAINFOOT
+    HOLD_TYPE = EQ_NONE
     def __init__(self, grip=10):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -847,6 +879,8 @@ class BP_Foot: # foot, ankle and lower leg
         self.covered=False
 class BP_InsectThorax:
     __slots__=['slot','exoskeleton','muscle','covered']
+    WEAR_TYPE = EQ_ITHORAX
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.muscle=BPP_Muscle()
@@ -854,6 +888,8 @@ class BP_InsectThorax:
         self.covered=False
 class BP_InsectAbdomen:
     __slots__=['slot','exoskeleton','heart','guts','covered']
+    WEAR_TYPE = EQ_IABDOMEN
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.heart=BPP_Heart()
@@ -863,6 +899,8 @@ class BP_InsectAbdomen:
 class BP_InsectHead:
     __slots__=['slot','exoskeleton','brain','antennae','visualSystem',
                'covered']
+    WEAR_TYPE = EQ_IHEAD
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.exoskeleton=BPP_Exoskeleton()
@@ -872,6 +910,8 @@ class BP_InsectHead:
         self.covered=False
 class BP_Mandible:
     __slots__=['held','exoskeleton','muscle','holding','weapon']
+    WEAR_TYPE = EQ_IMANDIBLE
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.held=Slot()
         self.exoskeleton=BPP_Exoskeleton()
@@ -880,6 +920,8 @@ class BP_Mandible:
         self.holding=False
 class BP_InsectLeg:
     __slots__=['slot','exoskeleton','muscle','covered']
+    WEAR_TYPE = EQ_IMAINLEG
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.muscle=BPP_Muscle()
@@ -888,6 +930,8 @@ class BP_InsectLeg:
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
     __slots__=['slot','held','artery','muscle','skin','stickies',
                'covered','holding','weapon']
+    WEAR_TYPE = EQ_1TENTACLE
+    HOLD_TYPE = EQ_1TENTACLEW
     def __init__(self, stickies=0):
         self.slot=Slot()
         self.held=Slot()
@@ -900,18 +944,24 @@ class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
         self.holding=False
 class BP_Pseudopod:
     __slots__=['slot','covered','weapon']
+    WEAR_TYPE = EQ_NONE
+    HOLD_TYPE = EQ_PSEUDOPOD
     def __init__(self):
         self.slot=Slot()
         self.weapon=LIMBWPN_PSEUDOPOD # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.covered=False
 class BP_Ameboid:
     __slots__=['slot','nucleus','covered']
+    WEAR_TYPE = EQ_AMEBOID
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.nucleus=BPP_Nucleus()
         self.covered=False
 class BP_Wing:
     __slots__=['slot','bone','muscle','skin','covered']
+    WEAR_TYPE = EQ_MAINWING
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.bone=BPP_Bone()
@@ -920,6 +970,8 @@ class BP_Wing:
         self.covered=False
 class BP_Tail:
     __slots__=['slot','bone','artery','muscle','skin','covered']
+    WEAR_TYPE = EQ_1TAIL
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
         self.artery=BPP_Artery()
@@ -929,11 +981,15 @@ class BP_Tail:
         self.covered=False
 class BP_Genitals:
     __slots__=['genitals','covered']
+    WEAR_TYPE = EQ_GENITALS
+    HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.genitals=BPP_Genitals()
         self.covered=False
 class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
     __slots__=['kind','covered']
+    WEAR_TYPE = EQ_NONE
+    HOLD_TYPE = EQ_NONE
     def __init__(self, kind):
         self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
         self.covered=False
@@ -2129,6 +2185,9 @@ BP_Hand         : "hand",
 BP_Leg          : "leg",
 BP_Foot         : "foot",
     }
+BPNAMES_TO_CLASSES={} # body part names (reversed)}
+for k,v in BPNAMES.items():
+    BPNAMES_TO_CLASSES.update({v:k})
 
 STATUSES={ # dict of statuses that have a timer
     # component : string that appears when you have the status
@@ -2345,10 +2404,10 @@ WEARABLE_COMPONENTS={
     EquipableInArmSlot      : 'arm',
     EquipableInFootSlot     : 'foot',
     EquipableInLegSlot      : 'leg',
-    EquipableInFrontSlot    : 'torso (front)',
-    EquipableInCoreSlot     : 'torso (core)',
-    EquipableInBackSlot     : 'torso (back)',
-    EquipableInHipsSlot     : 'torso (hips)',
+    EquipableInFrontSlot    : 'chest',
+    EquipableInCoreSlot     : 'core',
+    EquipableInBackSlot     : 'back',
+    EquipableInHipsSlot     : 'hips',
     EquipableInAboutSlot    : 'about person',
     EquipableInHeadSlot     : 'head',
     EquipableInFaceSlot     : 'face',

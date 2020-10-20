@@ -2396,6 +2396,9 @@ MAXLEGS=4
 MAXILEGS=8
 MAXHEADS=2
 MAXIHEADS=1
+MAXTENTACLES=8
+MAXWINGS=2
+MAXTAILS=1
 i=0;
 EQ_NONE     =i;i+=1; # NULL value
 EQ_ABOUT    =i;i+=1; # about the body (e.g. a cloak)
@@ -2449,7 +2452,9 @@ EQ_OFFEARS  =i;i+=1;
 EQ_MAINMOUTH=i;i+=1;
 EQ_OFFMOUTH =i;i+=1;
 EQ_AMMO     =i;i+=1;
+EQ_GENITALS =i;i+=1;
 EQ_IHEAD    =i;i+=1; # insect parts (beginning w/ "I")
+EQ_IMANDIBLE=i;i+=1;
 EQ_ITHORAX  =i;i+=1;
 EQ_IABDOMEN =i;i+=1;
 EQ_IMAINLEG =i;i+=1;
@@ -2460,6 +2465,119 @@ EQ_I5LEG    =i;i+=1;
 EQ_I6LEG    =i;i+=1;
 EQ_I7LEG    =i;i+=1;
 EQ_I8LEG    =i;i+=1;
+EQ_1TENTACLE=i;i+=1; # tentacles
+EQ_2TENTACLE=i;i+=1;
+EQ_3TENTACLE=i;i+=1;
+EQ_4TENTACLE=i;i+=1;
+EQ_5TENTACLE=i;i+=1;
+EQ_6TENTACLE=i;i+=1;
+EQ_7TENTACLE=i;i+=1;
+EQ_8TENTACLE=i;i+=1;
+EQ_1TENTACLEW=i;i+=1; # held by tentacles
+EQ_2TENTACLEW=i;i+=1;
+EQ_3TENTACLEW=i;i+=1;
+EQ_4TENTACLEW=i;i+=1;
+EQ_5TENTACLEW=i;i+=1;
+EQ_6TENTACLEW=i;i+=1;
+EQ_7TENTACLEW=i;i+=1;
+EQ_8TENTACLEW=i;i+=1;
+EQ_MAINWING =i;i+=1; # wings
+EQ_OFFWING  =i;i+=1;
+EQ_CELL     =i;i+=1; # other
+EQ_AMEBOID  =i;i+=1;
+EQ_PSEUDOPOD=i;i+=1;
+EQ_1TAIL    =i;i+=1;
+
+EQ_TYPE_STRINGS={ # used for messages
+# EQ_ const :('wear/wield','preposition','generic noun','descriptive noun')
+EQ_NONE     :('EQ_NONE','EQ_NONE','EQ_NONE','EQ_NONE',),
+EQ_ABOUT    :('wear','about','self','self',),
+EQ_MAINHANDW:('wield','in','hand','main hand',),
+EQ_OFFHANDW :('wield','in','hand','off hand',),
+EQ_3HANDW   :('wield','in','hand','3rd hand',),
+EQ_4HANDW   :('wield','in','hand','4th hand',),
+EQ_5HANDW   :('wield','in','hand','5th hand',),
+EQ_6HANDW   :('wield','in','hand','6th hand',),
+EQ_7HANDW   :('wield','in','hand','7th hand',),
+EQ_8HANDW   :('wield','in','hand','8th hand',),
+EQ_MAINHAND :('wear','on','hand','main hand',),
+EQ_OFFHAND  :('wear','on','hand','off hand',),
+EQ_3HAND    :('wear','on','hand','3rd hand',),
+EQ_4HAND    :('wear','on','hand','4th hand',),
+EQ_5HAND    :('wear','on','hand','5th hand',),
+EQ_6HAND    :('wear','on','hand','6th hand',),
+EQ_7HAND    :('wear','on','hand','7th hand',),
+EQ_8HAND    :('wear','on','hand','8th hand',),
+EQ_MAINARM  :('wear','on','hand','main arm',),
+EQ_OFFARM   :('wear','on','arm','off arm',),
+EQ_3ARM     :('wear','on','arm','3rd arm',),
+EQ_4ARM     :('wear','on','arm','4th arm',),
+EQ_5ARM     :('wear','on','arm','5th arm',),
+EQ_6ARM     :('wear','on','arm','6th arm',),
+EQ_7ARM     :('wear','on','arm','7th arm',),
+EQ_8ARM     :('wear','on','arm','8th arm',),
+EQ_MAINFOOT :('wear','on','foot','main foot',),
+EQ_OFFFOOT  :('wear','on','foot','off foot',),
+EQ_3FOOT    :('wear','on','foot','3rd foot',),
+EQ_4FOOT    :('wear','on','foot','4th foot',),
+EQ_MAINLEG  :('wear','on','leg','main leg',),
+EQ_OFFLEG   :('wear','on','leg','off leg',),
+EQ_3LEG     :('wear','on','leg','3rd leg',),
+EQ_4LEG     :('wear','on','leg','4th leg',),
+EQ_FRONT    :('wear','on','torso','chest',),
+EQ_BACK     :('wear','on','torso','back',),
+EQ_HIPS     :('wear','on','torso','hips',),
+EQ_CORE     :('wear','on','torso','core',),
+EQ_ABDOMEN  :('wear','on','abdomen','abdomen',),
+EQ_MAINHEAD :('wear','on','head','main head',),
+EQ_OFFHEAD  :('wear','on','head','off head',),
+EQ_MAINFACE :('wear','on','face','main face',),
+EQ_OFFFACE  :('wear','on','face','off face',),
+EQ_MAINNECK :('wear','on','neck','main neck',),
+EQ_OFFNECK  :('wear','on','neck','off neck',),
+EQ_MAINEYES :('wear','on','eyes','main eyes',),
+EQ_OFFEYES  :('wear','on','eyes','off eyes',),
+EQ_MAINEARS :('wear','on','ears','main ears',),
+EQ_OFFEARS  :('wear','on','ears','off ears',),
+EQ_MAINMOUTH:('hold','in','mouth','main mouth',),
+EQ_OFFMOUTH :('hold','in','mouth','off mouth',),
+EQ_AMMO     :('wear','on','belt','ammo pouch',),
+EQ_GENITALS :('wear','on','belt','genitals',),
+EQ_IHEAD    :('wear','on','head','insect head',),
+EQ_IMANDIBLE:('hold','in','mandible','insect mandible',),
+EQ_ITHORAX  :('wear','on','thorax','insect thorax',),
+EQ_IABDOMEN :('wear','on','abdomen','insect abdomen',),
+EQ_IMAINLEG :('wear','on','leg','main leg',),
+EQ_IOFFLEG  :('wear','on','leg','off leg',),
+EQ_I3LEG    :('wear','on','leg','3rd leg',),
+EQ_I4LEG    :('wear','on','leg','4th leg',),
+EQ_I5LEG    :('wear','on','leg','5th leg',),
+EQ_I6LEG    :('wear','on','leg','6th leg',),
+EQ_I7LEG    :('wear','on','leg','7th leg',),
+EQ_I8LEG    :('wear','on','leg','8th leg',),
+EQ_1TENTACLE:('wear','on','tentacle','main tentacle',),
+EQ_2TENTACLE:('wear','on','tentacle','off tentacle',),
+EQ_3TENTACLE:('wear','on','tentacle','3rd tentacle',),
+EQ_4TENTACLE:('wear','on','tentacle','4th tentacle',),
+EQ_5TENTACLE:('wear','on','tentacle','5th tentacle',),
+EQ_6TENTACLE:('wear','on','tentacle','6th tentacle',),
+EQ_7TENTACLE:('wear','on','tentacle','7th tentacle',),
+EQ_8TENTACLE:('wear','on','tentacle','8th tentacle',),
+EQ_1TENTACLEW:('wield','in','tentacle','main tentacle',),
+EQ_2TENTACLEW:('wield','in','tentacle','off tentacle',),
+EQ_3TENTACLEW:('wield','in','tentacle','3rd tentacle',),
+EQ_4TENTACLEW:('wield','in','tentacle','4th tentacle',),
+EQ_5TENTACLEW:('wield','in','tentacle','5th tentacle',),
+EQ_6TENTACLEW:('wield','in','tentacle','6th tentacle',),
+EQ_7TENTACLEW:('wield','in','tentacle','7th tentacle',),
+EQ_8TENTACLEW:('wield','in','tentacle','8th tentacle',),
+EQ_MAINWING :('wear','on','wing','1st wing',),
+EQ_OFFWING  :('wear','on','wing','2nd wing',),
+EQ_CELL     :('wear','on','ameboid','cellular body',),
+EQ_AMEBOID  :('wear','on','ameboid','ameboid',),
+EQ_PSEUDOPOD:('hold','in','pseudopod','pseudopod',),
+EQ_1TAIL    :('wear','on','tail','1st tail',),
+}
 
 # names of limbs based on index (ordering of EQ_ consts)
 #   [MAINARM is first, then OFFARM, then 3ARM, etc.]

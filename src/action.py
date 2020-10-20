@@ -262,6 +262,8 @@ def equipment_pc(pc):
     varia={}
     for k,v in equipment.items():
         varia["open_{}".format(k)] = False
+    
+##    rog.Rogue.pause_menu_key_listener()
     # run menu
     while True:
         menu={"return" : "return"}
@@ -289,9 +291,9 @@ def equipment_pc(pc):
         opt=rog.menu("{}{}'s equipment".format(
             TITLES[pcn.title],pcn.name), x,y, menu.keys())
         
-        if opt == -1: return
+        if opt == -1: break
         selected=menu[opt]
-        if "return" == selected: return
+        if "return" == selected: break
         # open / close submenus
         elif "open_" == selected[:5]:
             target = selected[5:]
@@ -304,6 +306,9 @@ def equipment_pc(pc):
             data_id = int(selected[6:])
             slot, eq_const = data[data_id]
             item = _inventory_pc(pc)
+            if slot.covered:
+                alert("That slot is covered up by another piece of equipment!")
+                break
             if item!=-1:
                 equip_pc(pc, item, eq_const)
         # view item
@@ -324,7 +329,7 @@ def equipment_pc(pc):
                 "{}".format(itemn.name), x,y,
                 menu_viewItem, autoItemize=False
             )
-            if opt2 == -1: return
+            if opt2 == -1: break
             if opt2 == "use":
                 use_pc(pc, item)
             elif opt2 == "remove":
@@ -333,6 +338,8 @@ def equipment_pc(pc):
                 examine_pc(pc, item)
             elif opt2 == "throw":
                 target_pc_throw_item(pc, item)
+    # end while
+##    rog.Rogue.resume_menu_key_listener()
 # end def
 
 
@@ -353,11 +360,11 @@ def _process_selected_item_option(pc, selected, item, rmgcost=False):
         drop_pc(pc, item)
     elif selected == "wear":
         rmg=True
-        eq_type=rog.get_wear_type(item) # TODO: make this func
+        eq_type=rog.get_wear_type(pc, item)
         equip_pc(pc, item, eq_type)
     elif selected == "wield":
         rmg=True
-        eq_type=rog.get_wield_type(item) # TODO: make this func
+        eq_type=rog.get_wield_type(pc, item) # TODO: make this func
         equip_pc(pc, item, eq_type)
     elif selected == "throw":
         rmg=True
@@ -605,6 +612,7 @@ def examine_self_pc(pc):
         pcn.title,pcn.name), x,y, choices))
 
 def equip_pc(pc, item, equipType):
+    print("equipType: ", equipType)
     func, str1, str2 = _get_eq_data(equipType)
 
     # TODO: convert this to a queued action / get queued actions working!!
@@ -613,7 +621,9 @@ def equip_pc(pc, item, equipType):
     
     # messages / alerts
     if result == 1:
-        pass
+        rog.update_hud()
+        rog.update_final()
+        rog.game_update()
     else:
         prep = "in" if str1=="wield" else "on" # preposition
         if result == -100:
@@ -627,6 +637,9 @@ def equip_pc(pc, item, equipType):
 def deequip_pc(pc, item):
     # TODO: AP action costs
     rog.remove_equipment(pc, item)
+    rog.update_hud()
+    rog.update_final()
+    rog.game_update()
 
 def examine_pc(pc, item):
     if rog.world().has_component(item, cmp.Description):
@@ -726,14 +739,15 @@ def _equip(ent, item, equipType):
     result, compo = rog.equip(ent, item, equipType)
     if result == 1: # successfully equipped
         rog.spendAP(ent, compo.ap)
-
-        # TODO: message
-            # w and bp should be gotten from the type of equip function used, but how?
+        w = EQ_TYPE_STRINGS[equipType][0]
+        prep = EQ_TYPE_STRINGS[equipType][1]
+        bp = EQ_TYPE_STRINGS[equipType][2]
         entname = rog.world().component_for_entity(ent, cmp.Name)
         itemname = rog.world().component_for_entity(item, cmp.Name)
-        rog.msg("{t}{n} {w}s {i} in {prn} {bp}".format(
-            t=entname.title, n=entname.name, i=itemname.name, w="wield",
-            prn=rog.get_pronoun_possessive(ent), bp="hand"))
+        # example: "the hobgoblin wields plastic knife in his mainhand"
+        rog.msg("{t}{n} {w}s {i} {pre} {prn} {bp}".format(
+            t=entname.title, n=entname.name, i=itemname.name, w=w,
+            prn=rog.get_pronoun_possessive(ent), pre=prep, bp=bp))
         
     return result
 # end def

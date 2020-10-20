@@ -82,6 +82,17 @@ class Rogue:
     fov_maps = []
     # boolean flags
     allow_warning_msp = True    # for warning prompt for very slow move speed
+    _pause_menu_key_listener = False
+
+    @classmethod
+    def pause_menu_key_listener(cls):
+        cls._pause_menu_key_listener = True
+    @classmethod
+    def resume_menu_key_listener(cls):
+        cls._pause_menu_key_listener = False
+    @classmethod
+    def menu_key_listener_is_paused(cls):
+        return cls._pause_menu_key_listener
     
     @classmethod
     def run_endTurn_managers(cls, pc):
@@ -2121,6 +2132,9 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
     equipableConst = EQUIPABLE_CONSTS[equipType]
     eqcompo = _get_eq_compo(ent, equipType)
     holdtype=(equipType in cmp.EQ_BPS_HOLD) # holding type or armor type?
+
+    if equipType==EQ_NONE:
+        return (-100,None,) # NULL value for equip type
     if not world.has_component(item, equipableConst):
         return (-1,None,) # item can't be equipped in this slot
     if not eqcompo: # component selected. Does this component exist?
@@ -3707,15 +3721,49 @@ def menu(name, x,y, keysItems, autoItemize=True):
 def adjacent_directions(_dir):
     return ADJACENT_DIRECTIONS.get(_dir, ((0,0,0,),(0,0,0,),) )
     
-def get_wear_type(ent): #TEST!
+def get_wear_type(ent, item): #TEST!
+    '''
+        using menus, get BP (e.g. hand 2) and convert into the actual component object
+            to be used to equip entity item to entity ent, then get/return EQ_ const
+        1. pick the category of equipping from possible equip types the item has
+        2. for the entity ent (return e.g. a BP_Hand component)
+            for each bp the entity ent has that matches the type chosen*,
+                store "name #" where # is the bp index starting from 1.
+                Increment the WEAR_TYPE of the matching component with i
+                (the index) in order to get the appropriate EQ_ const value.
+            *This works because the values are consecutive in const.py.
+        return EQ_ const
+    '''
+    #
+    # 1. choose a BP name (hand, head, leg, etc.)
+    #   that matches a valid equippable type for item item
     _menu={}
-    for compo in get_wearable_components(ent):
-        name = cmp.WEARABLE_COMPONENTS[compo]
-        _menu[name] = compo
-    opt=menu("wear it where?", 0,0,_menu.keys())
-    result=_menu[opt]
+    for equippableCompo in get_wearable_components(item):
+        name = cmp.WEARABLE_COMPONENTS[equippableCompo]
+        _menu[name] = equippableCompo
+    if len(_menu.keys()) == 0: # cannot be equipped anywhere
+        alert("This {} cannot be equipped.".format(getname(item)))
+        return EQ_NONE
+    opt = menu("wear it where?", 0,0,_menu.keys())
+    bpname = opt
+    #
+    # 2. get the BP object from list of BPs
+    #   from entity ent that match the chosen name
+    # TODO: handle "about" slot differently. Goes in Body slot. Just put an "if" statement.
+    _menu={}
+    i = 0
+    bps = findbps(ent, cmp.BPNAMES_TO_CLASSES[bpname])
+    for compo in bps:
+        _menu["{} {}".format(bpname, i+1)] = compo.WEAR_TYPE + i
+        i += 1
+    if len(_menu.keys()) == 0: # cannot be equipped to entity
+        alert("You cannot equip this {}.".format(getname(item)))
+        return EQ_NONE
+    opt = menu("which {}?".format(bpname), 0,0,_menu.keys())
+    result = _menu[opt]
+    #
     return result
-
+# end def
 
 
 

@@ -29,7 +29,7 @@ import rogue    as rog
 import components as cmp
 import action
 import debug
-import dice
+##import dice
 import entities
 import misc
 
@@ -64,6 +64,8 @@ def commands_const(pc, pcAct):
         elif act == "quit game":rog.end()
 
 def commands_pages(pc, pcAct):
+    if rog.Rogue.menu_key_listener_is_paused():
+        return
     for act,arg in pcAct:
         if act == "message history" :
             rog.routine_print_msgHistory()
@@ -72,6 +74,7 @@ def commands_pages(pc, pcAct):
             rog.routine_print_charPage()
             return
         if act == "inventory" :
+            print("inventory accessed!! Status: ", rog.Rogue.menu_key_listener_is_paused())
             action.inventory_pc(pc)
             return
         if act == "equipment" :

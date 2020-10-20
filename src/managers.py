@@ -304,12 +304,12 @@ class Manager_SoundsHeard(Manager):
             if vol > VOLUME_DEAFEN:
                 rog.set_status(pc, DEAF)
             #super hearing
-            if SKL_SUPERHEARING in skills.skills:
-                volTxt=self.get_volume_name(vol)
-                dirStr=DIRECTIONS_TERSE[k]
-                if not dirStr == "self":
-                    text += "<{d}>".format(d=dirStr)
-                text += "({v}) ".format(v=volTxt)
+##            if SKL_SUPERHEARING in skills.skills:
+##                volTxt=self.get_volume_name(vol)
+##                dirStr=DIRECTIONS_TERSE[k]
+##                if not dirStr == "self":
+##                    text += "<{d}>".format(d=dirStr)
+##                text += "({v}) ".format(v=volTxt)
             #combine strings with commas
             for strng in lis:
                 text += "{s}, ".format(s=strng)

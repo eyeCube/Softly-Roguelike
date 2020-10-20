@@ -452,7 +452,7 @@ class Update:
 ##            print('updating game')
         if self.updates[Update.U_HUD]:
             rog.render_hud(rog.pc());
-##            print('updating hud')
+            print('updating hud')
         if self.updates[Update.U_MSG]:
             rog.logNewEntry();
             clearMsg=True;
