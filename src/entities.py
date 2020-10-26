@@ -5136,7 +5136,7 @@ def create_ranged_weapon(name, x, y, condition=1) -> int:
     force       = get_ranged_force(data)
     skill       = get_ranged_skill(data)
     script      = get_ranged_script(data)
-    idtype      = get_ranged_idtype(gData)
+    idtype      = get_ranged_idtype(data)
     
     # AP cost to equip (TODO: get based on mass of weapon / weapon type?)
     wieldAP     = NRG_WIELD
@@ -5253,17 +5253,18 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
     
     monData = BESTIARY[_type]
     name = getMonName(_type)
-    kg = round(getMonKG(_type)*MULT_MASS)
+    kg = getMonKG(_type)
     cm = getMonCM(_type)
     mat = getMonMat(_type)
     bodyplan = getMonBodyPlan(_type)
     flags = getMonFlags(_type)
     script = getMonScript(_type)
-    stats = getMonStats(_type)
+    statData = getMonStats(_type)
     idtype = getMonID(_type)
     
-    sight=round(BASE_SIGHT*stats.get('sight',1))
-    hear=round(BASE_HEARING*stats.get('hearing',1))
+    sight=round(BASE_SIGHT*statData.get('sight',1))
+    hear=round(BASE_HEARING*statData.get('hearing',1))
+    smell=round(BASE_SMELLING*statData.get('smelling',1))
     
     female=False #temporary
     if bodyplan==BODYPLAN_HUMANOID:
@@ -5275,44 +5276,44 @@ def create_monster(_type, x, y, col=None, money=0) -> int:
     
     stats=cmp.Stats(
         mass=basemass,
-        encmax=BASE_ENCMAX+stats.get('encmax',0),
-        hp=BASE_HP+stats.get('hp',0),
-        mp=BASE_MP+stats.get('mp',0),
-        mpregen=(BASE_MPREGEN+stats.get('mpregen',0))*MULT_STATS,
-        reach=(BASE_REACH+stats.get('reach',0))*MULT_STATS,
-        resfire=BASE_RESFIRE+stats.get('resfire',0),
-        resbio=BASE_RESBIO+stats.get('resbio',0),
-        reselec=BASE_RESELEC+stats.get('reselec',0),
-        resphys=BASE_RESPHYS+stats.get('resphys',0),
-        rescold=BASE_RESCOLD+stats.get('rescold',0),
-        resbleed=BASE_RESBLEED+stats.get('resbleed',0),
-        respain=BASE_RESPAIN+stats.get('respain',0),
-        resrust=BASE_RESRUST+stats.get('resrust',0),
-        resrot=BASE_RESROT+stats.get('resrot',0),
-        reswet=BASE_RESWET+stats.get('reswet',0),
-        reslight=BASE_RESLIGHT+stats.get('reslight',0),
-        ressound=BASE_RESSOUND+stats.get('ressound',0),
-        spd=BASE_SPD+stats.get('spd',0),
-        asp=BASE_ASP+stats.get('asp',0),
-        msp=BASE_MSP+stats.get('msp',0),
-        _str=(BASE_STR+stats.get('str',0))*MULT_ATT,
-        _con=(BASE_CON+stats.get('con',0))*MULT_ATT,
-        _int=(BASE_INT+stats.get('int',0))*MULT_ATT,
-        _dex=(BASE_DEX+stats.get('dex',0))*MULT_ATT,
-        _agi=(BASE_AGI+stats.get('agi',0))*MULT_ATT,
-        _end=(BASE_END+stats.get('end',0))*MULT_ATT,
-        atk=(BASE_ATK+stats.get('atk',0))*MULT_STATS,
-        dmg=(BASE_DMG+stats.get('dmg',0))*MULT_STATS,
-        dfn=(BASE_DFN+stats.get('dv',0))*MULT_STATS,
-        arm=(BASE_ARM+stats.get('av',0))*MULT_STATS,
-        pen=(BASE_PEN+stats.get('pen',0))*MULT_STATS,
-        pro=(BASE_PRO+stats.get('pro',0))*MULT_STATS,
-        bal=(BASE_BAL+stats.get('bal',0))*MULT_STATS,
-        ctr=(BASE_CTR+stats.get('ctr',0))*MULT_STATS,
-        gra=(BASE_GRA+stats.get('gra',0))*MULT_STATS,
-        courage=BASE_COURAGE+stats.get('cou',0),
-        scary=BASE_SCARY+stats.get('idn',0),
-        beauty=BASE_BEAUTY+stats.get('bea',0)
+        encmax=BASE_ENCMAX+statData.get('encmax',0),
+        hp=BASE_HP+statData.get('hp',0),
+        mp=BASE_MP+statData.get('mp',0),
+        mpregen=(BASE_MPREGEN+statData.get('mpregen',0))*MULT_STATS,
+        reach=(BASE_REACH+statData.get('reach',0))*MULT_STATS,
+        resfire=BASE_RESFIRE+statData.get('resfire',0),
+        resbio=BASE_RESBIO+statData.get('resbio',0),
+        reselec=BASE_RESELEC+statData.get('reselec',0),
+        resphys=BASE_RESPHYS+statData.get('resphys',0),
+        rescold=BASE_RESCOLD+statData.get('rescold',0),
+        resbleed=BASE_RESBLEED+statData.get('resbleed',0),
+        respain=BASE_RESPAIN+statData.get('respain',0),
+        resrust=BASE_RESRUST+statData.get('resrust',0),
+        resrot=BASE_RESROT+statData.get('resrot',0),
+        reswet=BASE_RESWET+statData.get('reswet',0),
+        reslight=BASE_RESLIGHT+statData.get('reslight',0),
+        ressound=BASE_RESSOUND+statData.get('ressound',0),
+        spd=BASE_SPD+statData.get('spd',0),
+        asp=BASE_ASP+statData.get('asp',0),
+        msp=BASE_MSP+statData.get('msp',0),
+        _str=(BASE_STR+statData.get('str',0))*MULT_ATT,
+        _con=(BASE_CON+statData.get('con',0))*MULT_ATT,
+        _int=(BASE_INT+statData.get('int',0))*MULT_ATT,
+        _dex=(BASE_DEX+statData.get('dex',0))*MULT_ATT,
+        _agi=(BASE_AGI+statData.get('agi',0))*MULT_ATT,
+        _end=(BASE_END+statData.get('end',0))*MULT_ATT,
+        atk=(BASE_ATK+statData.get('atk',0))*MULT_STATS,
+        dmg=(BASE_DMG+statData.get('dmg',0))*MULT_STATS,
+        dfn=(BASE_DFN+statData.get('dv',0))*MULT_STATS,
+        arm=(BASE_ARM+statData.get('av',0))*MULT_STATS,
+        pen=(BASE_PEN+statData.get('pen',0))*MULT_STATS,
+        pro=(BASE_PRO+statData.get('pro',0))*MULT_STATS,
+        bal=(BASE_BAL+statData.get('bal',0))*MULT_STATS,
+        ctr=(BASE_CTR+statData.get('ctr',0))*MULT_STATS,
+        gra=(BASE_GRA+statData.get('gra',0))*MULT_STATS,
+        courage=BASE_COURAGE+statData.get('cou',0),
+        scary=BASE_SCARY+statData.get('idn',0),
+        beauty=BASE_BEAUTY+statData.get('bea',0)
         )
 ##    rollstats(stats, DEV=3) # TODO: test this function
     
@@ -5650,16 +5651,16 @@ BESTIARY={
      'msp':20,'idn':72,'cou':32,'bea':-256,
      'resbio':50,'sight':0.25,'hearing':0,},),
 'd':('dog',             45, 60,  MAT_FLESH, FLEGS, (), None, ID_4LEGBEAST, # wolf build; to create a dog, make a wolf and make it non mean, and dull its sight, -2 Str, half the mass.
-    {'str':-2,'end':-2,'dex':-12,'int':-6,'con':-4,'agi':8,
-     'msp':40,'sight':1,'hearing':2,'smelling':1024,}, ),
+    {'str':-2,'end':-2,'dex':-8,'int':-4,'con':-4,'agi':8,
+     'msp':40,'sight':1,'hearing':2,'smelling':64,}, ),
 'L':('raving lunatic',  70, 165, MAT_FLESH, HUMAN, (MEAN,), None, ID_HOMINID,
     {'str':6,'end':6,'int':-6,'dex':-6,
      'idn':32,'cou':64,'bea':-32,'sight':-60,'resbio':40,'reselec':60,}, ),
 'm':('monkey',          15, 70,  MAT_FLESH, HUMAN, (), None, ID_HOMINID,
-    {'str':12,'end':-4,'dex':-2,'int':-2,'con':-6,'agi':24,
+    {'str':12,'end':-4,'dex':2,'int':-2,'con':-6,'agi':24,
      'bea':-16,'cou':-32,'gra':8,}, ),
 'o':('orangutan',       55, 120, MAT_FLESH, HUMAN, (), None, ID_HOMINID,
-    {'str':48,'end':-4,'dex':-2,'int':-2,'con':-2,'agi':12,
+    {'str':48,'end':-4,'agi':12,
      'idn':16,'cou':-16,'bea':-16,'gra':8,}, ),
 'r':('ravaged',         35, 150, MAT_FLESH, HUMAN, (), None, ID_HOMINID,
     {'str':-4,'end':-6,'dex':-2,'int':-6,'con':-4,'agi':-6,
@@ -5669,13 +5670,13 @@ BESTIARY={
      'sight':0.75,'hearing':0,'pen':6,'msp':-40,'idn':40,'bea':-32,
      'resfire':-40,'rescold':-40,'reselec':-40,'resbio':60,}, ),
 's':('snake',           5,  5,   MAT_FLESH, SNAKE, (MEAN,), None, ID_HOMINID,
-    {'str':-10,'end':-8,'dex':-12,'int':-12,'con':-8,'agi':6,
+    {'str':-6,'end':-8,'dex':-8,'int':-12,'con':-8,'agi':6,
      'gra':-10,'cou':-32,'idn':16,'sight':0.5,'hearing':0,}, ),
 'S':('obese scrupula',  190,190, MAT_FLESH, HUMAN, (), None, ID_HUMANOID,
     {'str':4,'end':-10,'dex':-6,'int':-4,'con':24,'agi':-10,
      'idn':48,'cou':64,'bea':-128,'sight':0.5,'hearing':0,}, ),
 'W':('whipmaster',      85, 220, MAT_FLESH, HUMAN, (MEAN,), _whipmaster, ID_HUMANOID,
-    {'str':12,'end':-4,'dex':4,'int':-10,'con':12,'agi':4,
+    {'str':12,'end':-4,'dex':8,'int':-10,'con':12,'agi':4,
      'bal':4,'idn':64,'cou':96,'bea':-64,'sight':2,'hearing':1,}, ),
 'z':('zomb',            50, 160, MAT_FLESH, HUMAN, (MEAN,), None, ID_HOMINID,
     {'str':4,'end':-8,'dex':-4,'int':-12,'con':-8,'agi':-10,
@@ -6660,7 +6661,7 @@ ARMOR={ # torso armor
 #--Name-------------------$$$$$, KG,   Dur, AP,   Mat, S, (DV, AV, Pro,Enc,Bal,FIR,ICE,BIO,ELE,PHS,BLD),(B,C,H,A,),script,ID,
 "t-shirt"               :(5,     0.15, 10,  100,  CLTH,0, (0,  0,  0.1,5,  0,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),_clothes,ID_SHIRT,),
 "shirt"                 :(10,    0.25, 40,  200,  CLTH,0, (0,  0.1,0.2,5,  0,  -9, 3,  3,  0,  0,  1, ),(0,0,0,0,),_clothes,ID_SHIRT,),
-"hoody"                 :(14,    0.8,  20,  300,  CLTH,0, (0,  1,0.5,4,  0,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),_clothes,ID_HOODY,),
+"hoody"                 :(14,    0.8,  20,  300,  CLTH,0, (0,  0.2,0.5,4,  0,  -24,9,  6,  0,  0,  2, ),(0,0,0,0,),_clothes,ID_HOODY,),
 "cloth vest"            :(19,    1.0,  60,  200,  CLTH,0, (1,  0.4,1,  2,  0,  -12,6,  3,  0,  0,  3, ),(1,0,0,0,),None,ID_VEST,),
 "wool jacket"           :(69,    2.0,  160, 300,  CLTH,1, (1,  1,  3,  3,  0,  -36,36, 6,  2,  0,  6, ),(1,1,0,0,),None,ID_JACKET,),
 "padded vest"           :(28,    1.6,  120, 300,  CLTH,1 ,(2,  1,  2,  2,  0,  -6, 12, 3,  1,  0,  3, ),(1,0,0,0,),None,ID_PADDEDSHIRT),

@@ -1475,12 +1475,12 @@ def harvest(item, tool=None, quality=1):
 
     #  creature/monsters  #
 
-def create_monster(typ,x,y,col=None): #init from entities.py
+def create_monster(typ,x,y,color=None): #init from entities.py
     ''' create a monster from the bestiary and initialize it '''
     if monat(x,y):
         return None #tile is occupied by a creature already.
-    if col:
-        ent = entities.create_monster(typ,x,y,col)
+    if color:
+        ent = entities.create_monster(typ,x,y,color)
     else:
         ent = entities.create_monster(typ,x,y)
     register_entity(ent)
