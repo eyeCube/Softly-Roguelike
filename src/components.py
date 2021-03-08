@@ -139,6 +139,10 @@ class Targetable:
     def __init__(self, kind=0):
         self.kind = kind
 
+class ItemByQuantity: # item has a quantity value and can stack / stackable
+    __slots__=['quantity']
+    def __init__(self, quantity=1):
+        self.quantity=quantity
 
 
     #-------------------------#
@@ -297,6 +301,10 @@ class Stats: #base stats
     # the actual in-game displayed value / value used for calculations
     # is equal to the stat divided by a multiplier (MULT_STATS) for most
     # stats, but not resistances, life, mass, etc.
+    # Some pseudo-stats are stats of the ModdedStats component but not
+    # stats of this component. They have no base stat and are instead
+    # derived from gear and other sources. Examples are ratk, rpen, tatk.
+    #
     def __init__(self, hp=1,mp=1,mpregen=1,hpregen=0, mass=1,height=0,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
@@ -433,18 +441,21 @@ class DelayedAction:
 # Queued Actions / Delayed Actions / multi-turn actions / queued jobs / queued tasks / action queue / ActionQueueProcessor
 # Actions that take multiple turns to complete use these components
 # to keep track of the progress and to finish up the task when complete
-# (func) or cancelled (cancelfunc). Interrupted means task is cancelled
+# (func) or cancelled (cancelfunc). Cancelled means task is cancelled
 # and is pending its cancellation being processed by ActionQueueProcessor.
+# Interrogate
     __slots__=['ap','apMax','func','data','cancelfunc',
-               'interrupted','elapsed' ]
+               'cancelled','interrupted','elapsed']
     def __init__(self, jobtype, totalAP, func, cancelfunc):
         self.ap=totalAP
         self.apmax=totalAP
         self.func=func # function that runs when action completed. Two parameters: ent, which is the entity calling the function, and data, which is special data about the job e.g. the item being crafted.
         self.jobtype=jobtype # JOB_ const: what type of job?
-        self.cancelfunc = cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
-        self.elapsed=0 # number of turns elapsed since the job began
-        self.interrupted=False # set to True when/if action is interrupted
+        self.cancelfunc=cancelfunc # function that runs when action cancelled. 3 params: ent, data, and AP remaining in the job. The AP remaining might influence what happens when the job is cancelled (might come out half-finished and be able to be resumed later etc.)
+            # IS THERE A BETTER WAY TO DO THIS?
+        self.elapsed=0 # number of turns elapsed since the job began (for timing so you know how long it's taken)
+        self.cancelled=False # set to True to cause task to end early (entity cannot continue the action without restarting).
+        self.interrupted=False # set to True if something notable happens that might cause the entity to reassess its strategy / change tasks.
 class PausedAction: # QueuedAction that has been put on pause
 # PausedAction - given to entity doing the queued action
     __slots__=['ap','func','data','cancelfunc','elapsed']
@@ -479,6 +490,11 @@ class Prefixes:
         self.prefixes=[] # PREFIX_ consts to add to the prefix of the name
         for arg in args:
             self.prefixes.append(arg)
+
+class MaterialPrefix: # TODO: add this to all items that can be created with multiple materials.
+    __slots__=[]
+    def __init__(self):
+        pass
 
 class CountersRemaining:
     __slots__=['quantity']
@@ -562,6 +578,39 @@ class ReactsWithElectricity: # / powered by electricity
     __slots__=['func']
     def __init__(self, func):
         self.func=func  # params: (entity, powerInput)
+    
+class Rots: # thing is susceptible to rotting
+    __slots__=[]
+    def __init__(self):
+        pass
+class Rusts: # thing is susceptible to rusting
+    __slots__=[]
+    def __init__(self):
+        pass
+class Wets: # gets wet
+    __slots__=[]
+    def __init__(self):
+        pass
+class Dirties: # gets dirty
+    __slots__=[]
+    def __init__(self):
+        pass
+class Bleeds: # can bleed
+    __slots__=[]
+    def __init__(self):
+        pass
+class FeelsPain: # sucsceptible to pain
+    __slots__=[]
+    def __init__(self):
+        pass
+class FeelsFear: # sucsceptible to fear
+    __slots__=[]
+    def __init__(self):
+        pass
+class GetsSick: # sucsceptible to getting sick
+    __slots__=[]
+    def __init__(self):
+        pass
         
 
 
@@ -720,334 +769,356 @@ class BPM_Hearts:
        
 '''
     Body Parts (BP)
-    usually contain a slot, and optional BPP sub-components
-    DO NOT have a STATUS
+    - All BPs have HP (health) and SP (stamina) values.
+    - Usually contain a slot
+    - Has optional BPP sub-components
+    - DO NOT have a STATUS
+
+    static constants:
+    SOFT_TARGET  - if yes, blunt / sharp damage inverted mostly
+    HAS_ORGANS   - if yes, can deal organ wounds
+    HAS_BRAINS   - if yes, can deal brain wounds
+    WEAR_TYPE    - EQ_ const (equipped item: armor, clothing, etc.)
+    HOLD_TYPE    - EQ_ const (held item: weapons, etc.)
 '''
 class BP_TorsoCore: # abdomen
-    __slots__=['slot','artery','muscle','skin','guts']
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_CORE
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.muscle=BPP_Muscle() # abs
-        self.skin=BPP_Skin()
-        self.guts=BPP_Guts()
-class BP_TorsoFront: # thorax front
-    __slots__=['slot','bone','artery','muscle','skin']
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
+class BP_TorsoFront: # thorax front (chest)
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_FRONT
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone() # ribs
-        self.muscle=BPP_Muscle() # pecs
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
 class BP_TorsoBack: # thorax back
-    __slots__=['slot','bone','artery','muscle','skin']
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_BACK
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone() # spine
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
-class BP_Hips:
-    __slots__=['slot','bone','artery','muscle','skin']
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
+class BP_Hips: # pelvic region
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_HIPS
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone() # pelvis
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
 class BP_Cell:
     __slots__=['slot']
+    SOFT_TARGET = True
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_CELL
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
 class BP_Head:
-    __slots__=['slot','bone','brain','skin','hair']
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = True
     WEAR_TYPE = EQ_MAINHEAD
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.bone=BPP_Bone() # skull
-        self.brain=BPP_Brain()
-        self.skin=BPP_Skin()
-        self.hair=BPP_Hair()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
 class BP_Neck:
-    __slots__=['slot','artery','bone','muscle','skin']
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINNECK
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.bone=BPP_Bone()
-        self.artery=BPP_Artery()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
 class BP_Face:
-    __slots__=['slot','features','skin']
+    __slots__=['slot','hp','sp']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = True
     WEAR_TYPE = EQ_MAINFACE
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.features=BPP_FacialFeatures()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
 class BP_Mouth:
-    __slots__=['held','bone','muscle','teeth','gustatorySystem','weapon']
+    __slots__=['held','gustatorySystem','hp','sp','weapon']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_NONE
     HOLD_TYPE = EQ_MAINMOUTH
     def __init__(self, taste=20): # quality of taste system
         self.held=Slot() # grabbed slot (weapon equip, etc.) (TODO: mouth holding / equipping items/weapons)
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.teeth=BPP_Teeth()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.weapon=LIMBWPN_TEETH
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
 class BP_Eyes:
-    __slots__=['slot','visualSystem','open']
+    __slots__=['slot','visualSystem','open','hp','sp']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINEYES
     HOLD_TYPE = EQ_NONE
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
-        self.open=True #eyelids open or closed?
+        self.open=True #eyelids open or closed? (affects resistance to chemical / light / dust damage etc.)
 class BP_Ears:
-    __slots__=['slot','auditorySystem']
+    __slots__=['slot','auditorySystem','hp','sp']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINEARS
     HOLD_TYPE = EQ_NONE
     def __init__(self, quantity=2, quality=60):
         self.slot=Slot()        # earplugs, for protecting ears
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
 class BP_Nose:
-    __slots__=['bone','olfactorySystem']
+    __slots__=['olfactorySystem','hp','sp']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_NONE
     HOLD_TYPE = EQ_NONE
     def __init__(self, quality=10):
-        self.bone=BPP_Bone()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
 class BP_Arm: # upper / middle arm and shoulder
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINARM
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
+        self.covered=False
 class BP_Hand: # hand and lower forearm
-    __slots__=['slot','held','bone','artery','muscle','skin',
-               'grip','weapon']
+    __slots__=['slot','held','hp','sp','grip','weapon']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINHAND
     HOLD_TYPE = EQ_MAINHANDW
     def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.weapon=LIMBWPN_HAND # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.grip=grip # grip your bare hand has
 class BP_Leg: # thigh and knee
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINLEG
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Foot: # foot, ankle and lower leg
-    __slots__=['slot','bone','artery','muscle','skin','covered','grip']
+    __slots__=['slot','hp','sp','covered','grip']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINFOOT
     HOLD_TYPE = EQ_NONE
     def __init__(self, grip=10):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.grip=grip # grip your bare foot has
         self.covered=False
 class BP_InsectThorax:
-    __slots__=['slot','exoskeleton','muscle','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_ITHORAX
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.muscle=BPP_Muscle()
-        self.exoskeleton=BPP_Exoskeleton()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_InsectAbdomen:
-    __slots__=['slot','exoskeleton','heart','guts','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = True
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_IABDOMEN
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.heart=BPP_Heart()
-        self.guts=BPP_Guts()
-        self.exoskeleton=BPP_Exoskeleton()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_InsectHead:
-    __slots__=['slot','exoskeleton','brain','antennae','visualSystem',
-               'covered']
+    __slots__=['slot','hp','sp','visualSystem','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = True
     WEAR_TYPE = EQ_IHEAD
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.exoskeleton=BPP_Exoskeleton()
-        self.brain=BPP_Brain()
-        self.antennae=BPP_Antennae()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.visualSystem=BPP_VisualSystem()
         self.covered=False
 class BP_Mandible:
-    __slots__=['held','exoskeleton','muscle','holding','weapon']
+    __slots__=['held','hp','sp','holding','weapon']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_IMANDIBLE
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.held=Slot()
-        self.exoskeleton=BPP_Exoskeleton()
-        self.muscle=BPP_Muscle()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.weapon=LIMBWPN_PINCER # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.holding=False
 class BP_InsectLeg:
-    __slots__=['slot','exoskeleton','muscle','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_IMAINLEG
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.muscle=BPP_Muscle()
-        self.exoskeleton=BPP_Exoskeleton()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
-    __slots__=['slot','held','artery','muscle','skin','stickies',
-               'covered','holding','weapon']
+    __slots__=['slot','held','hp','sp','stickies','covered','holding','weapon']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_1TENTACLE
     HOLD_TYPE = EQ_1TENTACLEW
     def __init__(self, stickies=0):
         self.slot=Slot()
         self.held=Slot()
-        self.artery=BPP_Artery()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.weapon=LIMBWPN_TENTACLE # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
         self.covered=False
         self.holding=False
 class BP_Pseudopod:
-    __slots__=['slot','covered','weapon']
+    __slots__=['slot','hp','sp','covered','weapon']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_NONE
     HOLD_TYPE = EQ_PSEUDOPOD
     def __init__(self):
         self.slot=Slot()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.weapon=LIMBWPN_PSEUDOPOD # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.covered=False
 class BP_Ameboid:
-    __slots__=['slot','nucleus','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = True
+    HAS_ORGANS = True
+    HAS_BRAINS = True
     WEAR_TYPE = EQ_AMEBOID
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.nucleus=BPP_Nucleus()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Wing:
-    __slots__=['slot','bone','muscle','skin','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_MAINWING
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Tail:
-    __slots__=['slot','bone','artery','muscle','skin','covered']
+    __slots__=['slot','hp','sp','covered']
+    SOFT_TARGET = False
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_1TAIL
     HOLD_TYPE = EQ_NONE
     def __init__(self):
         self.slot=Slot()
-        self.artery=BPP_Artery()
-        self.bone=BPP_Bone()
-        self.muscle=BPP_Muscle()
-        self.skin=BPP_Skin()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Genitals:
-    __slots__=['genitals','covered']
+    __slots__=['hp','sp','covered']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_GENITALS
     HOLD_TYPE = EQ_NONE
     def __init__(self):
-        self.genitals=BPP_Genitals()
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
-    __slots__=['kind','covered']
+    __slots__=['kind','hp','sp','covered']
+    SOFT_TARGET = True
+    HAS_ORGANS = False
+    HAS_BRAINS = False
     WEAR_TYPE = EQ_NONE
     HOLD_TYPE = EQ_NONE
     def __init__(self, kind):
         self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
+        self.hp=BP_HEALTH_MAX
+        self.sp=BP_STAMINA_MAX
         self.covered=False
 
-'''
-    Body Parts Piece (BPP)
-    piece of body parts, sub-components of BP_ objects
-    do NOT contain slots
-    contain a STATUS
-'''
-class BPP_Skin: # 16% of total body mass
-    __slots__=['status','material','flags']
-    def __init__(self, mat=-1):
-        if mat==-1: mat=MAT_FLESH
-        self.material=mat
-        self.status=0
-        self.flags=bytes(0)
-class BPP_Hair:
-    __slots__=['status','length','flags']
-    def __init__(self, length=1):
-        self.status=0
-        self.length=length
-        self.flags=bytes(0)
-class BPP_Artery:
-    __slots__=['status']
-    def __init__(self):
-        self.status=0
-class BPP_Bone:
-    __slots__=['material','status','flags']
-    def __init__(self, mat=-1):
-        if mat==-1: mat=MAT_BONE
-        self.material=mat # determines Strength of the bone
-        self.status=0
-        self.flags=bytes(0)
-class BPP_Exoskeleton:
-    __slots__=['material','status']
-    def __init__(self, mat=-1):
-        if mat==-1: mat=MAT_CHITIN
-        self.material=mat
-        self.status=0
-class BPP_Shell: # chitinous shell
-    __slots__=['material','status']
-    def __init__(self, mat=-1):
-        if mat==-1: mat=MAT_CHITIN
-        self.material=mat
-        self.status=0
-class BPP_Muscle:
-    __slots__=['status','str','flags']#,'fatigue','fatigueMax'
-    def __init__(self, _str=1000):
-        self.str=_str # strength of muscle (as a ratio 0 to 1000?)
-        self.status=0
-        self.flags=bytes(0)
-class BPP_Brain:
-    __slots__=['status','quality','flags']
-    def __init__(self, quality=1):
-        self.status=0
-        self.quality=quality
-        self.flags=bytes(0)
+''' BPP components (Body part component's subcomponents) ''' 
 class BPP_VisualSystem:
     __slots__=['quantity','quality']
     def __init__(self, quantity=2, quality=20):
@@ -1066,47 +1137,7 @@ class BPP_GustatorySystem:
     __slots__=['quality']
     def __init__(self, quality=20):
         self.quality=quality
-class BPP_FacialFeatures:
-    __slots__=['beauty','scary']
-    def __init__(self, beauty=32, scary=32):
-        self.beauty=beauty
-        self.scary=scary
-class BPP_Teeth:
-    __slots__=['quantity','quality','material']
-    def __init__(self, quantity=26, quality=2, mat=-1):
-        if mat==-1: mat=MAT_BONE
-        self.quantity=quantity
-        self.quality=quality
-        self.material=mat
-class BPP_Heart:
-    __slots__=['status','str']
-    def __init__(self, _str=1):
-        self.str=_str
-        self.status=0
-class BPP_Lung:
-    __slots__=['status','capacity']
-    def __init__(self, cap=1):
-        self.capacity=cap
-        self.status=0
-class BPP_Guts:
-    __slots__=['status']
-    def __init__(self):
-        self.status=0
-class BPP_Genitals:
-    __slots__=['status']
-    def __init__(self):
-        self.status=0
-class BPP_Nucleus:
-    __slots__=['status']
-    def __init__(self):
-        self.status=0
-##        self.dna=(2,1,3, 2,3,1, 0,0,2, 0,0,2, 0,1,1,)
-##class BPP_Fat:
-##    __slots__=['mass','status']
-##    def __init__(self, mass=1):
-##        self.mass=mass
-##        self.status=0
-   
+
 '''
     Equippable components
 
@@ -1243,7 +1274,7 @@ class EquipableInHoldSlot: #melee weapon/ ranged weapon/ shield
         self.stamina=sta # stamina cost of attacking with this weapon
         self.mods=mods
         self.grip=grip # how easily you can get a grip on it.
-        self.force=force # force multiplier
+        self.force=force # force multiplier (float) (basically constant)
         self.strReq=strReq
         self.dexReq=dexReq
 class EquipableInArmSlot:
@@ -1321,7 +1352,7 @@ class Edible:
 
 class Quaffable:
     __slots__=['func','hydration','taste','apCost']
-    def __init__(self, func=None, hyd=0, taste=0, ap=1):
+    def __init__(self, func=None, hyd=0, taste=0, ap=100):
         self.func=func
         self.hydration=hyd
         self.taste=taste
@@ -1464,15 +1495,16 @@ class HacksOffLimbs: # can amputate opponent's limbs in combat (melee attacks)
     def __init__(self, val):
         self.value=val
 
-class Harvestable: # Can harvest raw materials # 8-16-2019: Should we use this, or some other method to handle objects turning into raw mats based on their material or some shit??
+class Harvestable: # Can harvest raw materials
+        '''
+            mats -- {MATERIAL : quantity}
+            tools -- {Component : quality}
+        '''
     __slots__=['energy','mats','tools']
     def __init__(self, energy: int, mats: dict, tools: dict):
-        # mats = {MATERIAL : quantity}
-        # tools = {Component : quality}
         self.energy=energy # energy required to harvest
         self.mats=mats # raw materials that are harvested, and the amount
         self.tools=tools # tools needed, and the quality needed to harvest
-    
         
     #-----------------------#
     #       Tools           #
@@ -2052,6 +2084,43 @@ class StatusBPos_CQB:   # body position: CQB (close-quarters battle) stance
         pass
 
 # quality statuses
+# wound statuses
+class StatusWound_Rash:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Cut:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Puncture:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Gunshot:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Muscle:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Organ:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+class StatusWound_Brain:
+    __slots__=['timer','quality']
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+# other quality statuses
 class StatusAdrenaline: # adrenaline boosts fight/flight capability
     # boosts resistance to pain, and physical res.
     # also raises heart rate / breathing rate
@@ -2378,22 +2447,32 @@ Tool_ChoppingBlock      : 'cutting board',
 }
 
 # BP -> list of BPPs
-BP_BPPS={ # TODO: add all BP_ classes to this dict
-BP_Arm          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_Hand         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_Leg          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_Foot         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_TorsoCore    : (BPP_SKIN, BPP_MUSCLE, BPP_ARTERY, BPP_GUTS,),
-BP_TorsoFront   : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_TorsoBack    : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_Hips         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
-BP_Head         : (BPP_SKIN, BPP_BONE, BPP_BRAIN, BPP_HAIR,),
-BP_Face         : (BPP_SKIN, BPP_FACE,),
-BP_Eyes         : (BPP_VISUAL,),
-BP_Nose         : (BPP_OLFACTORY,),
-BP_Mouth        : (BPP_GUSTATORY, BPP_TEETH, BPP_MUSCLE),
-BP_Ears         : (BPP_AUDITORY,),
-BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_BPPS={ # TODO: add all BP_ classes to this dict
+##BP_Arm          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_Hand         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_Leg          : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_Foot         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_TorsoCore    : (BPP_SKIN, BPP_MUSCLE, BPP_ARTERY, BPP_GUTS,),
+##BP_TorsoFront   : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_TorsoBack    : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_Hips         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##BP_Head         : (BPP_SKIN, BPP_BONE, BPP_BRAIN, BPP_HAIR,),
+##BP_Face         : (BPP_SKIN, BPP_FACE,),
+##BP_Eyes         : (BPP_VISUAL,),
+##BP_Nose         : (BPP_OLFACTORY,),
+##BP_Mouth        : (BPP_GUSTATORY, BPP_TEETH, BPP_MUSCLE),
+##BP_Ears         : (BPP_AUDITORY,),
+##BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
+##    }
+
+WOUND_TYPE_TO_STATUS={ # connect WOUND_ const type to status component
+WOUND_CUT       : StatusWound_Cut,
+WOUND_RASH      : StatusWound_Rash,
+WOUND_PUNCTURE  : StatusWound_Puncture,
+WOUND_MUSCLE    : StatusWound_Muscle,
+WOUND_GUNSHOT   : StatusWound_Gunshot,
+WOUND_ORGAN     : StatusWound_Organ,
+WOUND_BRAIN     : StatusWound_Brain,
     }
 
 EQ_BPS_HOLD=(EQ_MAINHANDW, EQ_OFFHANDW,)
@@ -2424,7 +2503,36 @@ WIELDABLE_BPS={
 
 
 
+'''
 
+BP_TorsoCore
+BP_TorsoFront
+BP_TorsoBack
+BP_Hips
+BP_Cell
+BP_Head
+BP_Neck
+BP_Mouth
+BP_Eyes
+BP_Ears
+BP_Nose
+BP_Arm
+BP_Hand
+BP_Leg
+BP_Foot
+BP_InsectThorax
+BP_InsectAbdomen
+BP_InsectHead
+BP_Mandible
+BP_InsectLeg
+BP_Tentacle
+BP_Pseudopod
+BP_Ameboid
+BP_Wing
+BP_Tail
+BP_Genitals
+BP_Appendage
+'''
 
 
 
@@ -2487,22 +2595,6 @@ WIELDABLE_BPS={
 ##        self.ID=_id
 ##        self.volume=vol
 
-##class Rots: # thing is susceptible to rotting
-##    __slots__=['rot']
-##    def __init__(self, rot=0):
-##        self.rot=rot    # amount of rot (0-1000)
-##class Rusts: # thing is susceptible to rusting
-##    __slots__=['rust']
-##    def __init__(self, rust=0):
-##        self.rust=rust  # amount of rust (0-1000)
-##class Wets:
-##    __slots__=['wetness']
-##    def __init__(self, val=0):
-##        self.wetness=val    # how wet is it? Amount == mass of water
-##class Dirties:
-##    __slots__=['dirtiness']
-##    def __init__(self, val=0):
-##        self.dirtiness=val  # how dirty is it? Amount == mass of dirt
 
 # RESISTANCE TO THESE THINGS SHOULD BE STORED SEPARATELY. LIKE IN STATS?
 ##        self.res=res        # resistance to getting dirty (max: 100)

@@ -190,26 +190,28 @@ def craft(
             ti=TITLES[itemn.title],ni=itemn.name))
         return False
 
-    # info
-    if _info=='auto':
+    # info designates the way the recipe is created
+    if job.info=='auto': # generated automatically, doesn't busy the crafter
         pass
-    elif _info=='quantity-approximate':
+    elif job.info=='quantity-approximate': # components +/- 10%
         pass
-    elif _info=='quantity-lenient':
+    elif job.info=='quantity-lenient': # component quantity +/- 200%
         pass
-    elif _info=='components-by-mass"':
+    elif job.info=='components-by-mass"': # components quantitied by KG
         pass
-    elif _info=='byproducts-by-mass':
+    elif job.info=='byproducts-by-mass': # byproducts quantified by KG
         pass
-    elif _info=='ratios':
+    elif job.info=='ratios': # components measured in terms of ratios, not absolute amounts
         pass
-    elif _info=='turn-up-the-heat':
+    elif job.info=='turn-up-the-heat': # increasing heat -> faster yield
         pass
     
     ap_cost_upfront = job.overhead
 
+    def fn_craft_done
+
     world.add_component(ent, cmp.DelayedAction(
-        JOB_CRAFTING, job.construct, craft_done, craft_interrupt
+        JOB_CRAFTING, job.construct, craft_done, craft_cancel
         ))
     
     '''
@@ -229,11 +231,11 @@ def craft(
     return True # success if we made it this far
 # end def
 
-def craft_interrupt(ent):
-    ''' craft failure / stopped / interrupted before we could finish '''
+def craft_cancel(ent):
+    ''' craft failure / stopped before we could finish '''
     compo = world.component_for_entity(ent, cmp.DelayedAction)
     ratio = compo.ap / compo.apmax
-    craft_done(ent, ratio_finished=ratio)
+    fn_craft_done(ent, ratio_finished=ratio)
 
 def craft_done(ent, ratio_finished=1):
     ''' success function -- create finished product, byproducts,
@@ -243,6 +245,7 @@ def craft_done(ent, ratio_finished=1):
             Don't make the finished item, instead make a portion of
             byproducts and make either an "unfinished version" of the
             item or return the components, possibly losing some of them
+            (TODO: implement this!)
             
     '''
     compo = world.component_for_entity(first_component,cmp.Crafting)

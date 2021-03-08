@@ -1,0 +1,29 @@
+
+TODO:
+	add Rots, Rusts, etc. components to entities
+		Creatures get all but Rots/Rusts
+		corpses get Rots
+	do the same thing we did to weapons to armor and ranged weapons
+		(material type changes stats)
+		
+SIMPLIFY:
+	body parts
+		remove organs. Just have status effects for organ damage.
+		Each BP has two stats: Health and stamina
+
+
+Quantity component for by-quantity items like liquids and powders.
+	ItemByQuantity() component allows any objects to stack simply by deleting the extra one and increasing the Quantity.quantity value (must ensure that the two objects are actually the same before stacking). Do this whenever adding an item with a Quantity component to an inventory -- check first if that item already exists, and if so, just modify the quantity. If not add the item as usual.
+		This also goes for stacking on the ground. One tile == one inventory essentially. Only one "water" object can exist per tile.
+	Stacking can also be done at the UI level, where two different objects are stacked together because the PC cannot tell them apart. In that case though, the two objects are actually distinct.
+	Remove components-by-mass and byproducts-by-mass, as these are no longer necessary. Instead, check if the components/byproducts have a Quantity component, and if so, treat them as if they are by mass (Create only one instance and change quantity value).
+	Change all by-quantity items to have a mass of 1 (the lowest possible value).
+	For by-quantity items, the value is calculated instead of set in stone. The value indicates the value per kg. Thus, the actual value is (value * MULT_VALUE) * (Quantity.quantity / MULT_MASS)
+	Update recipes to consider e.g. 0.100kg water as 0.1*MULT_MASS
+	
+
+
+
+
+
+
