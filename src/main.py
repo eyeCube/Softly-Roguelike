@@ -115,7 +115,7 @@ def main():
     rog.init_person(w)
     #
     w2=rog.create_monster('W',pos.x,pos.y+1)
-    w3=rog.create_monster('W',pos.x,pos.y+2)    
+    w3=rog.create_monster('W',pos.x,pos.y+2)
     
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
     rog.setskill(rog.pc(), SKL_PERSUASION, 0)

@@ -19,6 +19,12 @@
     This file glues everything together.
 '''
 
+'''
+    TODO: pickle to save state
+    TODO: reproduceable pseudo random generator (state saved using pickle)
+        https://stackoverflow.com/questions/5012560/how-to-query-seed-used-by-random-random
+'''
+
 import esper
 import tcod as libtcod
 import math
@@ -487,9 +493,20 @@ def asserte(ent, condition, errorstring=""): # "ASSERT Entity"
 # end def
 
 
+# Identification functions
+
+def identify_get_name(idtype):
+    return IDENTIFICATION[idtype][0]
+def identify_entity(ent, quality): # only PC can Identify things
+    world=Rogue.world
+    if world.has_component(ent, cmp.Identified):
+        compo = world.component_for_entity(ent, cmp.Identified)
+        compo.quality = max(0, compo.quality, quality)
+    else:
+        world.add_component(ent, cmp.Identified(quality))
+
 # Name functions
 
-def identify(idtype): return IDENTIFICATION[idtype][0]
 def fullname_gear(ent):
     world=Rogue.world
     fullname = world.component_for_entity(ent, cmp.Name).name
@@ -498,7 +515,7 @@ def fullname_gear(ent):
         fullname = "fitted {}".format(fullname)
     return fullname
 # end def
-def add_prefix(ent, prefix):
+def add_prefix(ent, prefix): # add a prefix to an entity
     if Rogue.world.has_component(ent, cmp.Prefixes):
         compo = Rogue.world.component_for_entity(ent, cmp.Prefixes)
         compo.prefixes.append(prefix)
@@ -507,7 +524,9 @@ def add_prefix(ent, prefix):
 # end def
 def fullname(ent):
     '''
-        get the full name with any prefixes, suffixes, etc.
+        # UNFINISHED!!!!! TEST REQUIRED!!!!!!!
+        
+        get the full name of entity ent with all prefixes, suffixes, etc.
          (but do not add the title)
         this depends on the level of identification the player has
          for the entity -- at anything less than max level ID, the actual
@@ -515,38 +534,58 @@ def fullname(ent):
          some vague fashion e.g. "club" instead of "metal cudgel"
     '''
     world=Rogue.world
-    fullname = world.component_for_entity(ent, cmp.Name).name
+    shapeOnly = False
+
+    '''
+    # TODO: before getting this working / tested, we need to
+    # set up Identification properly using identify_entity(...)
+    # whenever the PC interacts with or sees something
     
-    if world.has_component(ent, cmp.Identified):
+    if not world.has_component(ent, cmp.Identified):
+        shapeOnly = True
+    else:
         quality = world.component_for_entity(ent, cmp.Identified).quality
-        assert(quality>0)
-        
+
+        if quality<=0:
+            shapeOnly = True
+            
         # LOW-LEVEL ID (type of thing) (identify basic type)
-        if quality==1:
+        elif quality==1:
             idtype = world.component_for_entity(ent, cmp.Identify).generic
-            fullname = "{} {}".format(UNID, identify(idtype))
+            fullname = "{} {}".format(UNID, identify_get_name(idtype))
             return fullname
         
         # LOW-LEVEL ID (+ MATERIAL) (identify make-up)
         elif quality==2: 
             idtype = world.component_for_entity(ent, cmp.Identify).generic
-            mat = world.component_for_entity(ent, cmp.Form).material
-            fullname = "{} {} {}".format(UNID, mat, identify(idtype))
+            if world.has_component(ent, cmp.MaterialPrefix):
+                mat = world.component_for_entity(ent, cmp.Form).material
+            fullname = "{} {} {}".format(
+                UNID, MATERIALS[mat][0], identify_get_name(idtype)
+                )
             return fullname
 
         # IDEA: mid-level Identification: identify skill required,
         #  uses, etc. (identify the purpose of the item)
 
-        elif quality==3: # FULL IDENTIFICATION OF UNIQUE INSTANCE
+        else: # FULL IDENTIFICATION OF UNIQUE INSTANCE
             pass # continue with full identification
         
-    else: # SHAPE ONLY
+    if shapeOnly:
         # we can only identify it by its vague form
         shape = world.component_for_entity(ent, cmp.Form).shape
         return "{} {}".format(UNID, SHAPES[shape])
+    '''
     
     # full identification #
+    # if we made it this far, return a full name #
+
+    fullname = world.component_for_entity(ent, cmp.Name).name
     
+    if world.has_component(ent, cmp.MaterialPrefix):
+        mat = world.component_for_entity(ent, cmp.Form).material
+        fullname = "{} {}".format(MATERIALS[mat][0], fullname)
+            
     if world.has_component(ent, cmp.Prefixes):
         compo = world.component_for_entity(ent, cmp.Prefixes)
         for prefix in compo.prefixes:
@@ -782,7 +821,7 @@ def train(ent, skill, pts): # train (improve) skill
     if Rogue.world.has_component(ent, cmp.FastLearner):
         pts = pts * FASTLEARNER_EXPMOD
     # intelligence bonus to experience
-    pts += around( getms(ent,'int')//MULT_STATS*pts*EXP_INT_BONUS )
+    pts += around( getms(ent,'int')//MULT_STATS*pts*ATT_INT_EXPBONUS )
     # diminishing returns on skill gainz
     pts = around( pts - level*EXP_DIMINISH_RATE )
     # points calculated; try to apply experience
@@ -1092,14 +1131,14 @@ def scratch(ent1, ent2, force):
 def calcwork(force):
     return force*2
 def exercise(ent, bp, work: int):
-    ''' exercise cmp.BPP_Muscle object muscle by amount work
+    ''' exercise body part's muscle by amount work
         return True if muscle was not fatigued, else False
     '''
 ##    if bp.bone.status
     fatigue = work // (getms(ent, 'str')//MULT_STATS)
-    if fatigue: bp.muscle.str -= fatigue
-    if bp.muscle.str <= 0:
-        bp.muscle.str = 0
+    if fatigue: bp.sp -= fatigue
+    if bp.sp <= 0:
+        bp.sp = 0
         return False # ran out of gas
     return True # still cookin' with gas
 
@@ -1652,7 +1691,8 @@ def get_fit(ent, eq_type):
     return compo.slot.fit # (doesn't get fit for held items...)
 # grip
 def get_grip(ent, eq_type):
-    ''' get grip of entity ent for bp indicated by EQ_ const eq_type
+    ''' UNFINISHED / UNTESTED / NOT WELL THOUGHT OUT
+get grip of entity ent for bp indicated by EQ_ const eq_type
     Grip is not a stat. To get grip of a grabbing appendage,
         look at the body part. If armor equipped, look at armor grip value
         which is a variable of the equipable component.
@@ -1661,22 +1701,27 @@ def get_grip(ent, eq_type):
     '''
     
     # **TODO**:
+    # FINISH IMPLEMENTATION
     #   DO NOT: factor in grip of the held item (calculated separately??)
     #   figure out in general how to handle grip/fit, and write it all down.
     # should we use _get_eq_compo here? No. We need to do different things w/ different BP types.
     
     body = Rogue.world.component_for_entity(ent, cmp.Body)
-    for i in range(MAXARMS): # for all EQ_ consts following EQ_MAINHAND...
-        if (eq_type==(i + EQ_MAINHAND) or eq_type==(i + EQ_MAINHANDW)):
-            _strmod = getms(ent, 'str')//MULT_STATS * ATT_STR_GRIP
-            _dexmod = getms(ent, 'dex')//MULT_STATS * ATT_DEX_GRIP
-            return around( _strmod + _dexmod + get_grip_hand(
-                body.parts[ent,cmp.BPC_Arms].arms[i].hand ) )
-    for i in range(MAXLEGS):
-        if eq_type==(i + EQ_MAINFOOT):
-            _kgmod = getms(ent, 'mass')//MULT_MASS * MASS_GRIP
-            return around( _kgmod + get_grip_foot(
-                body.parts[ent,cmp.BPC_Legs].legs[i].foot ) )
+    # find which one we want to check (match correct body part to eq_type)
+    if (eq_type >= EQ_MAINHAND and eq_type < EQ_MAINHAND + MAXARMS):
+        for i in range(MAXARMS): # for all EQ_ consts following EQ_MAINHAND...
+            if (eq_type==(i + EQ_MAINHAND) or eq_type==(i + EQ_MAINHANDW)):
+                _strmod = getms(ent, 'str')//MULT_STATS * ATT_STR_GRIP
+                _dexmod = getms(ent, 'dex')//MULT_STATS * ATT_DEX_GRIP
+                return around( _strmod + _dexmod + get_grip_hand(
+                    body.parts[ent,cmp.BPC_Arms].arms[i].hand ) )
+    elif (eq_type >= EQ_MAINFOOT and eq_type < EQ_MAINFOOT + MAXLEGS):
+        for i in range(MAXLEGS):
+            if eq_type==(i + EQ_MAINFOOT):
+                _kgmod = getms(ent, 'mass')//MULT_MASS * MASS_GRIP
+                _agimod = getms(ent, 'agi')//MULT_STATS * ATT_AGI_GRIP
+                return around( _kgmod + _agimod + get_grip_foot(
+                    body.parts[ent,cmp.BPC_Legs].legs[i].foot ) )
 # end def
 def get_grip_hand(bp):
     return _get_grip_bp(bp, cmp.EquipableInHandSlot)
@@ -1694,261 +1739,213 @@ def _get_grip_bp(bp, cls):
 def get_arm_length(bodyplan, height): #temporary solution to get arm length based on body type
     if bodyplan==BODYPLAN_HUMANOID:
         return around(height / 2.66667)
-# body part piece damage & healing (inflict / remove BPP status)
-def curebpp(bpp): #<flags> cure BPP status clear BPP status bpp_clear_status clear_bpp_status clear bpp status bpp clear status
-    bpp.status = 0 # revert to normal status
-def healbpp(bpp, bpptype, quality=1): #<flags> heal BPP object
-    pass #TODO
-def damagebpp(bpp, bpptype, status): #<flags> damage BPP object inflict BPP status BPP set status set_bpp_status bpp_set_status bpp set status set bpp status
-    '''
-        * Try to inflict a status on a BPP (body part piece) object
-            (A BPP is a sub-component of a BP (body part)
-             such as a muscle, bone, etc.)
-        * Possibly inflict a higher level status if the intended status
-            and the current status are equal.
-        * Do not overwrite higher-priority statuses (the higher the
-            integer value of the status constant, the higher priority).
-        
-        # return whether the BPP was damaged
-        # Parameters:
-        #   bpp     : the BPP_ component to be damaged
-        #   bpptype : BPP_ const
-        #   status  : the status you want to set on the BPP --
-        #               indicates the type of damage to be dealt
-    '''
-    # progressive damage:
-    # two applications of same status => next status up in priority (if of the same type of damage)
-    if bpptype == BPP_MUSCLE:
-        if (status == MUSCLESTATUS_SORE and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_KNOTTED
-            return True
-        if (status == MUSCLESTATUS_KNOTTED and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_CONTUSION
-            return True
-        if (status == MUSCLESTATUS_CONTUSION and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_STRAINED
-            return True
-        if (status == MUSCLESTATUS_STRAINED and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_TORN
-            return True
-        if (status == MUSCLESTATUS_TORN and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_RIPPED
-            return True
-        if (status == MUSCLESTATUS_RIPPED and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_RUPTURED
-            return True
-        if (status == MUSCLESTATUS_RUPTURED and bpp.status == status ):
-            bpp.status = MUSCLESTATUS_MANGLED
-            return True
-    elif bpptype == BPP_BONE:
-        if (status == BONESTATUS_DAMAGED and bpp.status == status ):
-            bpp.status = BONESTATUS_FRACTURED
-            return True
-        if (status == BONESTATUS_FRACTURED and bpp.status == status ):
-            bpp.status = BONESTATUS_CRACKED
-            return True
-        if (status == BONESTATUS_CRACKED and bpp.status == status ):
-            bpp.status = BONESTATUS_BROKEN
-            return True
-        if (status == BONESTATUS_BROKEN and bpp.status == status ):
-            bpp.status = BONESTATUS_MULTIBREAKS
-            return True
-        if (status == BONESTATUS_MULTIBREAKS and bpp.status == status ):
-            bpp.status = BONESTATUS_SHATTERED
-            return True
-        if (status == BONESTATUS_SHATTERED and bpp.status == status ):
-            bpp.status = BONESTATUS_MANGLED
-            return True
-    elif bpptype == BPP_SKIN:
-        if (status == SKINSTATUS_RASH and bpp.status == status ):
-            bpp.status = SKINSTATUS_BLISTER
-            return True
-        if (status == SKINSTATUS_BLISTER and bpp.status == status ):
-            bpp.status = SKINSTATUS_SCRAPED
-            return True
-        if (status == SKINSTATUS_SCRAPED and bpp.status == status ):
-            bpp.status = SKINSTATUS_MINORABRASION
-            return True
-        if (status == SKINSTATUS_MINORABRASION and bpp.status == status ):
-            bpp.status = SKINSTATUS_MAJORABRASION
-            return True
-        if (status == SKINSTATUS_MAJORABRASION and bpp.status == status ):
-            bpp.status = SKINSTATUS_SKINNED
-            return True
-        if (status == SKINSTATUS_SKINNED and bpp.status == status ):
-            bpp.status = SKINSTATUS_FULLYSKINNED
-            return True
-        if (status == SKINSTATUS_FULLYSKINNED and bpp.status == status ):
-            bpp.status = SKINSTATUS_MANGLED
-            return True
-        if (status == SKINSTATUS_BURNED and bpp.status == status ):
-            bpp.status = SKINSTATUS_DEEPBURNED
-            return True
-        if (status == SKINSTATUS_DEEPBURNED and bpp.status == status ):
-            bpp.status = SKINSTATUS_MANGLED
-            return True
-        if (status == SKINSTATUS_CUT and bpp.status == status ):
-            bpp.status = SKINSTATUS_DEEPCUT
-            return True
-        if (status == SKINSTATUS_DEEPCUT and bpp.status == status ):
-            bpp.status = SKINSTATUS_MULTIDEEPCUTS
-            return True
-        if (status == SKINSTATUS_MULTIDEEPCUTS and bpp.status == status ):
-            bpp.status = SKINSTATUS_MANGLED
-            return True
-    
-    # default
-    if bpp.status >= status: 
-        return False # don't overwrite lower priority statuses.
-    # do exactly what the parameters intended
-    bpp.status = status # just set the status
-    return True
-# end def
 
-# damage body part (potentially call damagebpp multiple times)
-def damagebp(bptarget, dmgtype, hitpp):
+
+# inflict injury / wound / damage body part
+def wound(ent: int, woundtype: int, quality: int) -> bool:
     '''
+        (Try to) inflict a wound status upon an entity
+        Since only one wound of each wound type can exist on one entity,
+        we will ignore any wounds that are less significant than any
+        existing wounds of that type.
+
+        Return whether the entity was significantly wounded (quality of 
+        wound increased or new wound status applied)
+    '''
+    world=Rogue.world
+    if quality <= 0:
+        return False
+    woundcls = cmp.WOUND_TYPE_TO_STATUS[woundtype] # get StatusWound class corresponding to the wound type
+    degrees = WOUNDS[woundtype]['degrees']
+    wounded = False
+    if world.has_component(ent, woundcls):
+        # edit existing Wound status
+        compo = world.component_for_entity(ent, woundcls)
+        if (compo.quality == quality and compo.quality < degrees):
+            compo.quality += 1
+            wounded = True
+        if (compo.quality < quality):
+            compo.quality = min(quality, degrees)
+            wounded = True
+        wounded = False # compo.quality > quality, so ignore the wound
+    else:
+        # create a new Wound status
+        world.add_component(ent, woundcls(quality))
+        wounded = True
+    if wounded:
+        # message
+        pass
+    return wounded
+    
+def __damagebp(bptarget, damage) -> int:
+    ''' return int signifying if BP was
+        crippled (1), dismembered (2), or neither (0) '''
+    if damage <= 0:
+        return 0
+    bptarget.hp -= damage
+    if bptarget.hp <= -20:
+        return 2
+    if bptarget.hp <= 0:
+        bptarget.hp = 0 # padding for dismemberment
+        return 1
+    return 0
+def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int):
+    '''
+        ent        entity who owns the bp being targeted
         bptarget   BP_ (Body Part) component object instance to damage
         dmgtype    DMGTYPE_ const
-        hitpp      0 to 3: damage value -- how high of a priority of
-                    status is inflicted? 3 is most severe, 0 least severe.
-    '''
-        
-    # abrasions
-    if dmgtype==DMGTYPE_ABRASION:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_ABRASION[hitpp])
-            # deep skin abrasions may result in muscle abrasion
-            if ( BPP_MUSCLE in cd and
-                 bptarget.skin.status >= SKINSTATUS_MAJORABRASION ):
-                damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_ABRASION[hitpp])
-    # burns
-    elif dmgtype==DMGTYPE_BURN:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_BURN[hitpp])
-            # deep skin burns may result in muscle burns
-            if ( BPP_MUSCLE in cd and
-                 bptarget.skin.status >= SKINSTATUS_DEEPBURNED ):
-                damagebpp(
-                    bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BURN[hitpp])
-    # lacerations
-    elif dmgtype==DMGTYPE_CUT:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_CUT[hitpp])
-        if BPP_MUSCLE in cd:
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_CUT[hitpp])
-    # puncture wounds
-    elif dmgtype==DMGTYPE_PIERCE:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_PUNCTURE[hitpp])
-        if BPP_MUSCLE in cd:
+        quality    >=1: damage value -- how high of a priority of
+                    status is inflicted? 1 is least severe
+                    Quality might be altered for effective weapon
+                    pairing i.e. blunt vs. bony BP or cut vs. fleshy BP.
 
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_PUNCTURE[hitpp])
-        # organ damage is handled separately.
-    # hacking / picking damage
-    elif dmgtype==DMGTYPE_HACK:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUS_DEEPCUT)
-        if BPP_MUSCLE in cd:
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUS_STRAINED)
-        if BPP_BONE in cd:
-            damagebpp(
-                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
-    # blunt / crushing damage
+        Damage the body part and possibly inflict a wound
+    '''
+    
+    woundtype = None
+    softTarget = bptarget.SOFT_TARGET
+    
+    if dmgtype==DMGTYPE_ABRASION: # rash
+        woundtype = WOUND_RASH
+        dmg = dmg*1.5 if softTarget else dmg*0.2
+    elif dmgtype==DMGTYPE_BURN: # burn
+        woundtype = WOUND_RASH
+        dmg = dmg*1 if softTarget else 0
+    elif dmgtype==DMGTYPE_CUT: # cut
+        woundtype = WOUND_CUT
+        if softTarget:
+            quality += 1
+            dmg = dmg*3
+        else:
+            dmg*0.5
+    elif dmgtype==DMGTYPE_PIERCE: # pierce
+        woundtype = WOUND_PUNCTURE
+        if softTarget:
+            quality += 1
+            dmg = dmg*4
+        else:
+            dmg = 0
+    elif dmgtype==DMGTYPE_HACK: # hack - axes
+        dmg = dmg*2 if softTarget else dmg*4
+        quality += 1 # hack damage is very wounding
+        if dice.roll(6) % 2 == 0: # cut damage
+            if softTarget: quality += 1
+            woundtype = WOUND_CUT
+        else: # bruise damage
+            if not softTarget: quality += 2
+            woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_BLUNT:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_MUSCLE in cd:
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
-        if BPP_BONE in cd:
-            damagebpp(
-                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
-    # mace-like weapons
-    elif dmgtype==DMGTYPE_SPUDS:            
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_SPUDS[hitpp])
-        if BPP_MUSCLE in cd:
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
-        if BPP_BONE in cd:
-            damagebpp(
-                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
-    # morning-star like long-spiked weapons
+        dmg = dmg*0.5 if softTarget else dmg*3
+        woundtype = WOUND_MUSCLE
+        if not softTarget: quality += 2
+    elif dmgtype==DMGTYPE_STUDS:
+        dmg = dmg*1 if softTarget else dmg*3
+        if dice.roll(6) == 1: # cut damage
+            if softTarget: quality += 1
+            woundtype = WOUND_CUT
+        else: # bruise damage
+            if not softTarget: quality += 2
+            woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_SPIKES:
-        cd=cmp.BP_BPPS[type(bptarget)]
-        if BPP_SKIN in cd:
-            damagebpp(
-                bptarget.skin, BPP_SKIN, SKINSTATUSES_SPIKES[hitpp])
-        if BPP_MUSCLE in cd:
-            damagebpp(
-                bptarget.muscle, BPP_MUSCLE, MUSCLESTATUSES_BLUNT[hitpp])
-        if BPP_BONE in cd:
-            damagebpp(
-                bptarget.bone, BPP_BONE, BONESTATUSES_BLUNT[hitpp])
+        dmg = dmg*2 if softTarget else dmg*1.5
+        if dice.roll(6) % 2 == 0: # puncture damage
+            if softTarget: quality += 1
+            woundtype = WOUND_PUNCTURE
+        else: # bruise damage
+            if not softTarget: quality += 2
+            woundtype = WOUND_MUSCLE
+    elif dmgtype==DMGTYPE_GUNSHOT:
+        dmg = dmg*2 if softTarget else dmg*0.5
+        woundtype = WOUND_GUNSHOT
+
+    # deal HP damage
+    dmg *= BP_DAMAGE_MULTIPLIER
+    crippled = __damagebp(bptarget, around(dmg))
+    if crippled:
+##        if crippled==1: # crippled
+##        if crippled==2: # dismembered
+#           TODO: message like "yooo shit entity's BP fell off!!"
+#           AND logic to consider the body part as dismembered (not here)
+        pass
+
+    # generic wound
+    wound(ent, woundtype, quality)
+    
+    # organ and brain damage
+    if dmgIndex >= 3:
+        if bptarget.HAS_ORGANS:
+            wound(ent, WOUND_ORGAN, dmgIndex - 2)
+    if dmgIndex >= 2:
+        if bptarget.HAS_BRAINS:
+            wound(ent, WOUND_BRAIN, dmgIndex - 1)
 # end def
 
 def attackbp(
-    attkr:int,bptarget:int,weap:int,dmgIndex:int,skill_type:int,dmgtype=-1
+    attkr:int,dfndr:int,bptarget:int,weap:int,dmg:int,skill_type:int,dmgtype=-1
     ):
-    ''' entity attkr attacks bp bptarget with weapon weap '''
+    ''' entity attkr attacks dfndr's bp bptarget with weapon weap
+        using skill skill_type and damage type dmgtype if !=-1 '''
     world=Rogue.world
-    if dmgtype!=-1: # force a damage type
-        if (not weap or not world.has_component(weap, cmp.DamageTypeMelee)):
-            return False
-        compo = world.component_for_entity(weap, cmp.DamageTypeMelee)
-        if dmgtype not in compo.types:
-            return False
-        dmgIndex += compo.types[dmgtype]
-    else: # get damage type
-        dmgtype = get_dmgtype(attkr,weap,skill_type)
-        if (weap and world.has_component(weap, cmp.DamageTypeMelee)):
-            compo = world.component_for_entity(weap, cmp.DamageTypeMelee)
+    dmgIndex = 1
+
+    # TODO: add randomness to dmgIndex
+    
+    if dmgtype==-1: # get damage type
+        if (weap and world.has_component(weap, cmp.DamageTypeMelee)): # custom?
+            compo=world.component_for_entity(weap, cmp.DamageTypeMelee)
             dmgIndex += compo.types[dmgtype]
+            dmgtype = compo.default
+        else: # damage type based on skill of the weapon by default
+            if skill_type:
+                dmgtype = DMGTYPES[skill_type]
+                # increase based on skill level
+                skill_lv = getskill(ent, skill_type)
+                dmgIndex += 1 + skill_lv*SKILL_LV_WOUND_MODIFIER
+            else: # no skill involved
+                if weap: # default to blunt damage
+                    dmgtype = DMGTYPE_BLUNT
+                else: # use body damage type
+                    if (attkr and world.has_component(attkr, cmp.DamageTypeMelee)):
+                        compo=world.component_for_entity(attkr, cmp.DamageTypeMelee)
+                        dmgtype = compo.default
+                        dmgIndex += compo.types[dmgtype]
+                    else: # default to blunt damage
+                        dmgtype = DMGTYPE_BLUNT
+    else: # force a damage type
+        if (not weap or not world.has_component(weap, cmp.DamageTypeMelee)):
+            dmgtype=DMGTYPE_BLUNT # default to blunt damage
+        else: # make sure this weapon can use this damage type
+            compo = world.component_for_entity(weap, cmp.DamageTypeMelee)
+            if dmgtype in compo.types:
+                dmgIndex += compo.types[dmgtype]
+            else: # default to blunt damage
+                dmgtype=DMGTYPE_BLUNT
+            
     # end get damage type
+
+    # increase damage index in cases of higher damage
     
     #  TESTING
     print("dmgIndex is ",dmgIndex)
     #
     
-    if dmgIndex < 0:
-        return False
-    
     # deal body damage
     damagebp(bptarget, dmgtype, dmgIndex)
     
-    # organ damage (TODO) # how should this be done..?
-    # criticals only?
-    return True
 # end if
 
 # component getters / finders
 def has_wearable_component(ent):
     ''' does entity have any "wearable" equipable components? '''
     for compo in cmp.WEARABLE_COMPONENTS:
-        if world().has_component(ent, compo):
+        if Rogue.world.has_component(ent, compo):
             return True
     return False
 def get_wearable_components(ent):
     ''' which "wearable" equipable components does the entity have? '''
     lis=set()
     for compo in cmp.WEARABLE_COMPONENTS.keys():
-        if world().has_component(ent, compo):
+        if Rogue.world.has_component(ent, compo):
             lis.add(compo)
     return lis
 def _get_eq_compo(ent, equipType):
@@ -2052,27 +2049,6 @@ def findbps(ent, cls): # ent + cls -> list of BP component objects
         return tuple([(leg.leg if leg else None) for leg in body.parts[cmp.BPC_Legs].legs])
     if cls is cmp.BP_Foot:
         return tuple([(leg.foot if leg else None) for leg in body.parts[cmp.BPC_Legs].legs])
-# end def
-
-def get_dmgtype(attkr=0, weap=0, skill_type=0):
-    ''' get damage type for given attacker/weapon combo where skill_type
-        is the skill class of the weapon being used if applicable.
-        Leave attkr==0 if no creature attacker is relevant,
-        or leave weap==0 if no weapon is being used.
-    '''
-    world=Rogue.world
-    if (weap and world.has_component(weap, cmp.DamageTypeMelee)): # custom?
-        compo=world.component_for_entity(weap, cmp.DamageTypeMelee)
-        return compo.default
-    else: # damage type based on skill of the weapon by default
-        if skill_type:
-            return DMGTYPES[skill_type]
-        else: # no skill involved, use body damage type
-            if (attkr and world.has_component(attkr, cmp.DamageTypeMelee)):
-                compo=world.component_for_entity(attkr, cmp.DamageTypeMelee)
-                return compo.default
-            else: # default to blunt damage
-                return DMGTYPE_BLUNT
 # end def
 
     #-----------------#
@@ -2243,11 +2219,12 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
 
 def remove_equipment(ent, item):
     ''' dewield or deequip (context sensitive) '''
-    if world().has_component(item, cmp.Equipped):
-        equipType=world().component_for_entity(item,cmp.Equipped).equipType
+    world = Rogue.world
+    if world.has_component(item, cmp.Equipped):
+        equipType=world.component_for_entity(item,cmp.Equipped).equipType
         deequip(ent, equipType)
-    elif world().has_component(item, cmp.Held):
-        equipType=world().component_for_entity(item,cmp.Held).equipType
+    elif world.has_component(item, cmp.Held):
+        equipType=world.component_for_entity(item,cmp.Held).equipType
         dewield(ent, equipType)
         
 def deequip_all(ent): # TODO: test this (and thus all deequip funcs)
@@ -2744,7 +2721,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 ##        if meters.temp > bodytemp
 
         # pain
-        if not on(ent, IMMUNEPAIN):
+        if (not on(ent, IMMUNEPAIN) and world.has_component(ent, cmp.FeelsPain)):
             q=0
             for _q, dec in PAIN_QUALITIES.items():
                 if meters.pain >= MAX_PAIN*dec:
@@ -2752,37 +2729,40 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
             overwrite_status(ent, cmp.StatusPain, q=q)
         
         # bleed
-        if not on(ent, IMMUNEBLEED):
+        if (not on(ent, IMMUNEBLEED) and world.has_component(ent, cmp.Bleeds)):
             q = meters.bleed // (0.5*basekg)
             overwrite_status(ent, cmp.StatusBleed, q=q)
         
         # dirty
-        q=0
-        for _q, dec in DIRT_QUALITIES.items():
-            if meters.dirt >= MAX_DIRT*dec:
-                q=_q
-        overwrite_status(ent, cmp.StatusDirty, q=q)
+        if world.has_component(ent, cmp.Dirties):
+            q=0
+            for _q, dec in DIRT_QUALITIES.items():
+                if meters.dirt >= MAX_DIRT*dec:
+                    q=_q
+            overwrite_status(ent, cmp.StatusDirty, q=q)
         
         # wet
-        if not on(ent, IMMUNEWATER):
+        if (not on(ent, IMMUNEWATER) and world.has_component(ent, cmp.Wets)):
             q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
             overwrite_status(ent, cmp.StatusWet, q=q)
         
         # rust
             # TODO: rust status affecting stats
-        q=0
-        for _q, dec in RUST_QUALITIES.items():
-            if meters.rust >= MAX_RUST*dec:
-                q=_q
-        overwrite_status(ent, cmp.StatusRusted, q=q)
+        if world.has_component(ent, cmp.Rusts):
+            q=0
+            for _q, dec in RUST_QUALITIES.items():
+                if meters.rust >= MAX_RUST*dec:
+                    q=_q
+            overwrite_status(ent, cmp.StatusRusted, q=q)
         
         # rot
             # TODO: rot status affecting stats
-        q=0
-        for _q, dec in ROT_QUALITIES.items():
-            if meters.rot >= MAX_ROT*dec:
-                q=_q
-        overwrite_status(ent, cmp.StatusRotted, q=q)
+        if world.has_component(ent, cmp.Rots):
+            q=0
+            for _q, dec in ROT_QUALITIES.items():
+                if meters.rot >= MAX_ROT*dec:
+                    q=_q
+            overwrite_status(ent, cmp.StatusRotted, q=q)
     # end if
     
     
@@ -2850,6 +2830,68 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     # prone
     if world.has_component(ent, cmp.StatusBPos_Prone):
         modded.agi = modded.agi * PRONE_AGIMOD
+
+        # wounds #
+        # These are general wounds that affect stats in a generic way.
+        #   For specific injury to body parts / bones, see the section
+        #   titled "Get Body Data / Equips"
+    # rash wounds
+    if world.has_component(ent, cmp.StatusWound_Rash):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Rash)
+        data = WOUNDS[WOUND_RASH][compo.quality]
+        modded.resbio += data.get('resbio',0)
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+        modded.resfire += data.get('resfire',0)
+        modded.rescold += data.get('rescold',0)
+    # cut wounds
+    if world.has_component(ent, cmp.StatusWound_Cut):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Cut)
+        data = WOUNDS[WOUND_CUT][compo.quality]
+        modded.resbio += data.get('resbio',0)
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+        modded.gra += data.get('gra',0)*MULT_STATS
+    # puncture wounds
+    if world.has_component(ent, cmp.StatusWound_Puncture):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Puncture)
+        data = WOUNDS[WOUND_PUNCTURE][compo.quality]
+        modded.resbio += data.get('resbio',0)
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+    # gunshot wounds
+    if world.has_component(ent, cmp.StatusWound_Gunshot):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Gunshot)
+        data = WOUNDS[WOUND_GUNSHOT][compo.quality]
+        modded.resbio += data.get('resbio',0)
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+    # muscle wounds (bruises, strains, tears, etc.)
+    if world.has_component(ent, cmp.StatusWound_Muscle):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Muscle)
+        data = WOUNDS[WOUND_MUSCLE][compo.quality]
+        modded.atk += data.get('atk',0)*MULT_STATS
+        modded.dfn += data.get('dfn',0)*MULT_STATS
+        modded.gra += data.get('gra',0)*MULT_STATS
+        modded.respain += data.get('respain',0)
+        modded.msp *= data.get('msp',0) # multipliers
+        modded.asp *= data.get('asp',0)
+    # organ wounds (internal organ damage or failure)
+    if world.has_component(ent, cmp.StatusWound_Organ):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Organ)
+        data = WOUNDS[WOUND_ORGAN][compo.quality]
+        modded.end += data.get('end',0)*MULT_ATT
+        modded.con += data.get('con',0)*MULT_ATT
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+    # brain injury / brain damage
+    if world.has_component(ent, cmp.StatusWound_Brain):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Brain)
+        data = WOUNDS[WOUND_BRAIN][compo.quality]
+        modded.int *= data.get('int',0) # multipliers
+        modded.bal *= data.get('bal',0)
+        modded.agi *= data.get('agi',0)
+        modded.dex *= data.get('dex',0)
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #&&&&''''^^^^````....,,,,----OOOO&&&&''''^^^^````....,,,,----OOOO&&&&''#
@@ -2926,6 +2968,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.resbleed += _con * ATT_CON_RESBLEED
         modded.respain += _con * ATT_CON_RESPAIN
         modded.resbio += _con * ATT_CON_RESBIO
+        modded.cou += _con * ATT_CON_COURAGE
 
     
 #~~~~~~~~~~~#------------------------#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

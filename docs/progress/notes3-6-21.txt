@@ -1,0 +1,85 @@
+In the past few days, I've gotten back to work on Softly Into the Night with a fresh mind and the conviction to simplify and finish this game. There are several areas that I want to focus on specifically, which are the most complication features of the game. I want the game to be complicated, but not to the degree that it's so overwhelming for both me as the developer, and the players trying to learn how to navigate the complexity.
+
+As of now, the focus areas are as follows:
+
+(1) cut down the number of gear items by removing (somewhat redundant) variations on gear with different materials. There is now one generic weapon like "sword" which can be modified by giving it a certain material, to become "metal sword," "wood sword," etc. This is accomplished by changing the Form component's material, and then by modifying the Stats component in-game using a table which specifies how each material affects each stat for each category of weapon. I created this categorization to simplify it further, so that each weapon type falls into either blade, knife, hacking, blunt, stick, shield, pole weapons, or other.
+
+So for example, swords, longswords, and greatswords all have the same modifications under the blade category for any given material. This was done in part because there definitely are trends in the differences of stats across materials in these different categories -- but more broadly speaking, plastic is the cheapest and weakest; wood, stone, and bone are stronger but more expensive; metal is the default, with solid all-around stats; steel is an upgrade from there, with increase strength but is 5 times the cost of metal.
+
+Further, not all weapon stereotype can be made out of any material -- especially blade weapons; you won't ever find a plastic greatsword. Plastic is simply too weak to create a big sword. So, each generic weapon also has a dict of materials that it can be used to create, with the values being the respective scripts to call for the creation of each material for that stereotype. Scripts are still necessary for special features of an item, like its Tool components' properties.
+
+(2) Greatly simplify the body parts system by removing the simulation of individual organs. Rather than having several objects for the skin, arteries, bones, muscles, and internal organs of each creature in the game, we are going to try to maintain some of the functionality this offered while changing each body part to only have two stats: Health, and Stamina (these stats are separate from the entity's overall Health and Stamina stats). Health indicates the BP's bone health, with a maximum of 100. Stamina indicates the BP's muscle fatigue, with 100 indicating no fatigue.
+
+If a body part is damaged, its health will decrease, but blunt damage does the most damage to the body parts because the health now mostly signifies the bone health. The type of damage, however, might result in a status effect being applied or updated on the entity to which the body part is attached. Since body part health indicates bone status, there is no need for any bone damage status effects. This makes it so we can simulate e.g. a broken leg in your left leg without a specific status like BrokenLeftLeg. Health values from 1-99 indicate damage to the BP; value of 100 is at full capacity; value of 0 is crippled (broken bone); negative values indicate a dismembered body part.
+
+The stamina of a body part decreases when an action exerts strength using that body part. For now, there is no mapping of actions to body parts, but that will be a relatively simple, albeit time consuming, task.
+
+Stamina of body parts will regenerate over time, the way the strength value of a BPP_Muscle would have. Both Health and Stamina can be restored using medicine.
+
+On Status Effects: many of the statuses of BPP objects can remain in the game using overall status effects, as mentioned prior. For example, strained leg can be a status, that reduces movement speed. These statuses should have simple effects, 1 or 2 stat changes, maybe 3 at maximum. Brain damage and other organ damage can also be easily simulated, but injuries to the skin are more difficult. To keep it simple we can have a cut skin and burned skin status, and these statuses can have varying degrees of intensity, which can ramp up if the same injury is repeated.
+
+Loss of Health and Stamina of body parts can cause stat penalties.
+
+Thus, while maintaining basically the same feel, we also greatly simplify the codebase and the gameplay (by reducing the number of statuses and respective effects you have to worry about). I think this will be a positive change, so I'm going to go ahead and start implementing this now.
+
+~~~~~~~~~~~~~~
+
+In addition to these simplifications, I plan to flesh out some other aspects that I haven't given enough attention. These are as follows:
+
+(1) enemy AI.
+
+(2) map generation.
+
+(3) grappling.
+
+~~~~~~~~~~~~~~~
+
+Additionally, I'm going to make a few little tweaks in order to make this experience just a little bit more unique.
+
+Health and Stamina are now stats of body parts, so I decided to change the names for the HP/HPmax and SP/SPmax values of entities to Will/Willpower and Vigor/Vitality abbreviated WIL/WLP, VGR/VIT
+
+The name Will for HP has a lot of implications, but I think they are entirely positive. For instance, it begins to make a little more sense that someone could have, like, a million Will vs. a million HP. So that person just won't stay down no matter how many times you knock him down. Another implication is that, while you can continue to increase your maximum willpower basically indefinitely, you cannot really increase your max amount of blood in your body, nor your maximum health of your body parts. These become bigger targets later in the game when willpower values are higher.
+
+So therefore, you can still kill someone bypassing the Will stat entirely, just by targeting something else like bleeding them out (since blood is a different stat); literally scaring to death (or at least into unconsciousness -- fear can cause Will damage); or by doing a one-hit kill with a new skill: the Assassin skill.
+
+Assassin allows you to instantly kill any living thing, as long as you succeed the roll. The roll is dependent on many factors, including your Assassin skill, your offensive stats (Atk, Pen, Dmg) and the target's defensive stats (Dfn, Arm, Pro). Note that Will is not factored in. Stats are weighed differently than with combat. Damage and armor barely matter, but penetration and protection are king. Thus, if you get your target in a disadvantageous position, such as by knocking them prone, or you are able to attack from stealth, then your chances of insta-killing them will be increased. A failed attempt to kill a target with the Assassin skill will result in you dealing a regular attack, with a big penalty to your advantage. Thus, it is not advisable to try to Slay a target until you have a big advantage over them.
+
+~~~~~~~~~~~~~~~~
+
+Finally, I'm fleshing out other aspects of the game that have yet to be detailed, such as the dismembering feature.
+
+On dismembering: dismembered body parts are signified by having a negative value for their health. The stat penalties are the same as that of having a crippled body part (0 health). Dismembered or crippled body parts cannot be used in any action. However, dismembered body parts also may cause severe bleeding when they occur; healing the dismembered body part requires vast surgical knowledge and resources and can be basically impossible to achieve for most players (and also requires you to keep the dismembered part, or find a transplant).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

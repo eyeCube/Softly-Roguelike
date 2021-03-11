@@ -1303,7 +1303,53 @@ def create_monster(typ, pos):
 
 
 
+'''
 
+
+def _update_from_bp_arm(ent, arm, armorSkill, unarmored):
+    world = rog.world()
+    dadd={}
+    dmul={}
+    eqdadd={}
+    eqdmul={}
+    
+    cov = getcov(BP_ARM)
+    
+    # equipment
+    slot = arm.slot
+    if slot.item:
+        item=slot.item
+        equipable=world.component_for_entity(item, cmp.EquipableInArmSlot)
+        
+        eqdadd=get_addmods(world,item,equipable)
+        
+        armor_skillBonus(world,item,eqdadd,armorSkill,unarmored,cov)
+
+        fittedBonus(world,slot,eqdadd)
+        
+        apply_penalties_armor(eqdadd, item)
+        
+        equip=__EQ(
+            eqdadd['enc'], equipable.strReq, 0,
+            eqdadd, eqdmul,
+            BP_ARM
+            )
+    else: # unarmored combat
+        equip=None
+        _apply_skillBonus_unarmored(dadd, unarmored, cov)
+        
+    # examine body part (TODO: IMPLEMENT NEW SYSTEM)
+            
+##    get_statmods_from_bp(ent, arm, dadd, dmul) # NEW SYSTEM
+    if arm.bone.status:
+        _add(dadd, ADDMODS_BPP_ARM_BONESTATUS.get(arm.bone.status, {}))
+    if arm.muscle.status:
+        _add(dadd, ADDMODS_BPP_ARM_MUSCLESTATUS.get(arm.muscle.status, {}))
+    if arm.skin.status:
+        _add(dadd, ADDMODS_BPP_SKINSTATUS.get(arm.skin.status, {}))
+    return __BPS(dadd,dmul, equip)
+
+    '''
 
 
 

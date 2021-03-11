@@ -993,9 +993,9 @@ def sprint(ent):
     #   COMBAT   #
     #------------#
 
-def _calc_bpdmg(pens,bonus,dmg,hpmax):
-    bpdmg = dice.roll(6) - 6 + pens + bonus + (8*dmg//hpmax)
-    return max(0, min( BODY_DMG_PEN_BPS, bpdmg )) # constraints
+##def _calc_bpdmg(pens,bonus,dmg,hpmax):
+##    bpdmg = dice.roll(6) - 6 + pens + bonus + (8*dmg//hpmax)
+##    return max(0, min( BODY_DMG_PEN_BPS, bpdmg )) # constraints
 
 def _calc_pens(pen, prot, arm):
     ''' calculate number of penetrations and the armor value '''
@@ -1215,14 +1215,10 @@ def _strike(attkr,dfndr,aweap,dweap,
             bptarget = rog.findbps(dfndr, cmp.BP_TorsoFront)[0]  # TEMPORARY
         # end if
         
-        # body damage #
-        # calculate damage dealt to body parts
-        bpdmg=_calc_bpdmg(pens,(hitDie//10),trueDmg,dhpmax)
-
-        #
-        # damage body part (inflict status)
+        # body damage
+        # damage body part (and possibly inflict status)
         if (bpdmg > 0):
-            rog.attackbp(attkr, bptarget, aweap, bpdmg-1, skill)
+            rog.attackbp(attkr, dfndr, bptarget, aweap, trueDmg, skill)
         
         # gear damage #
         gearitem = bptarget.slot.item
@@ -1618,19 +1614,19 @@ def missile_attack(
             _dmg = max(0, dmg - armor)
             if _dmg > 0:
                 rog.collide(ent, 1, mon, _dmg, force)
-                # bp damage
-                if world.has_component(mon, cmp.Body):
-                    body = world.component_for_entity(mon, cmp.Body)
-                    bptarget = rog.randombp(body)
-                    skilltype = world.component_for_entity(
-                        ent, cmp.WeaponSkill).skill
-                    bpdmg = _calc_bpdmg(pens, 0, _dmg, mhpmax)
-                    dmgtype = rog.get_dmgtype(0, ent, skilltype)
-                    if world.has_component(ent, cmp.DamageTypeMelee):
-                        dtcompo=world.component_for_entity(ent,cmp.DamageTypeMelee)
-                        bpdmg += dtcompo.types[dmgtype]
-                    if bpdmg > 0:
-                        rog.damagebp(bptarget, dmgtype, bpdmg-1)
+                # bp damage (TODO: REFACTOR!!!)
+##                if world.has_component(mon, cmp.Body):
+##                    body = world.component_for_entity(mon, cmp.Body)
+##                    bptarget = rog.randombp(body)
+##                    skilltype = world.component_for_entity(
+##                        ent, cmp.WeaponSkill).skill
+##                    bpdmg = _calc_bpdmg(pens, 0, _dmg, mhpmax)
+##                    dmgtype = rog.get_dmgtype(0, ent, skilltype)
+##                    if world.has_component(ent, cmp.DamageTypeMelee):
+##                        dtcompo=world.component_for_entity(ent,cmp.DamageTypeMelee)
+##                        bpdmg += dtcompo.types[dmgtype]
+##                    if bpdmg > 0:
+##                        rog.damagebp(bptarget, dmgtype, bpdmg-1)
             # stick into target (TODO)
             break
         # end if

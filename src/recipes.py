@@ -39,6 +39,8 @@ data of nested recipe dict:
     using      : tools that will contain the product throughout the construction
                     e.g. a furnace which contains food that's cooking.
                     These tools have a quality as well as a quantity (capacity).
+                    These entities become busied while in use -- cannot be used for
+                    anything else during the duration of the construction. 
     byproducts : raw materials that are created in addition to the result (all are from the table RAWMATS, so table is not specified)
 special additional data that can be provided:
         (if not provided, the default will be assumed)
@@ -50,7 +52,8 @@ special additional data that can be provided:
                     product at the moment of completion (celsius)
     info       : extra information for the recipe (default, none)
                     * "auto" -- the recipe makes itself; only AP cost
-                        for the PC is the overhead.
+                        for the PC is the overhead. PC is not busied,
+                        but the "using" tools are.
                     * "quantity-approximate" -- quantities of components
                         can be more or less than reported amounts. +/- 10%
                     * "quantity-lenient" -- like quantity-approximate,
