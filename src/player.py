@@ -705,9 +705,9 @@ def chargen(sx, sy):
 
     # give items
     for itemdata in Chargen._jobitems:
-        name, func, quantity, eq_const, script = itemdata
+        name, func, quantity, eq_const, material, script = itemdata
         for _ in range(quantity):
-            item = func(name, sx,sy)
+            item = func(name, sx,sy, mat=material)
             rog._initThing(item) # register (init stats), fill HP, 
             rog.give(pc, item)
             if script: script(item)

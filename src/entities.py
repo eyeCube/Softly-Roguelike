@@ -3620,11 +3620,10 @@ def _update_from_bpc_torso(lis, ent, bpc, armorSkill, unarmored):
 # BP
 def get_statmods_from_bp(ent, bp, bpType, dadd, dmul):
     compo = rog.world().component_for_entity(ent, cmp.ModdedStats)
-    for ratio,tupl in BP_HEALTH_STATMODS[bpType].items():
-        addMods, multMods = tupl
-        if (bp.health <= ratio*BP_HEALTH_MAX):
-            _add(dadd, addMods)
-            _mult(dmul, multMods)
+    for ratio,data in BP_HEALTH_STATMODS[bpType].items():
+        if (bp.hp <= ratio*BP_HEALTH_MAX):
+            _add(dadd, data['add'])
+            _mult(dmul, data['mult'])
 # end def
 
 # arm
@@ -4395,76 +4394,11 @@ def dehydrate(ent):
     # creator functions #
 '''
 
-#create a thing from STUFF; does not register thing
-def create_stuff(name, x, y, condition=1) -> int:
-    world = rog.world()
-    typ,mat,val,fgcol,hp,kg,script,idtype = STUFF[name]
-    if fgcol == "random":
-        fgcol = random.choice(list(COL.values()))
-    else:
-        fgcol = COL[fgcol]
-    ent = world.create_entity(
-        cmp.Name(name, title=TITLE_THE),
-        cmp.Position(x,y),
-        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
-        cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
-        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
-        cmp.Meters(),
-        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
-        cmp.Identify(idtype)
-        )
-    _setGenericData(ent, material=mat)
-    _setGenericShape(ent, idtype)
-    script(ent)
-    return ent
-#create a thing from FOOD; does not register thing
-#--Name-------------------$$$,  KG,   Mat, ResRot,script
-def create_food(name, x, y, condition=1) -> int:
-    world = rog.world()
-    name,val,kg,mat,hp,resrot,script,idtype = FOOD[name]
-    fgcol = COL['white']
-    ent = world.create_entity(
-        cmp.Name(name, title=TITLE_THE),
-        cmp.Position(x,y),
-        cmp.Draw(T_FOOD, fgcol=fgcol, bgcol=COL['deep']),
-        cmp.Form( mat=mat, val=max(1, rog.around(val*MULT_VALUE)) ),
-        cmp.Stats(
-            hp=hp*MULT_STATS,
-            mass=round(kg*MULT_MASS),
-            resrot=resrot),
-        cmp.Meters(),
-        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN, IMMUNERUST),
-        cmp.Identify(idtype)
-        )
-    _setGenericData(ent, material=mat)
-    _setGenericShape(ent, idtype)
-    script(ent)
-    return ent
-#create a thing from RAWMATERIALS; does not register thing
-def create_rawmat(name, x, y, condition=1) -> int:
-    typ,val,kg,hp,mat,fgcol,script,idtype = RAWMATERIALS[name]
-    world = rog.world()
-    if fgcol == "random":
-        fgcol = random.choice(list(COL.values()))
-    else:
-        fgcol = COL[fgcol]
-    ent = world.create_entity(
-        cmp.Name(name, title=TITLE_THE),
-        cmp.Position(x,y),
-        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
-        cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
-        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
-        cmp.Meters(),
-        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
-        cmp.Identify(idtype)
-        )
-    if (mat!=MAT_METAL and mat!=MAT_STEEL):
-        rog.make(ent, IMMUNERUST)
-    _setGenericData(ent, material=mat)
-    _setGenericShape(ent, idtype)
-    script(ent)
-    return ent
 
+
+#----------------------#
+
+# TODO: REFACTOR AND TEST THESE!!
 
 # fluids and powders / quantity items
 def create_fluid(x,y,mat,kg) -> int:
@@ -4508,6 +4442,84 @@ def create_powder(x,y,name,kg) -> int:
         )
     return ent
 
+#----------------------#
+
+# Regular item creation functions:
+# For all of these, the parameter list should be identical so that 
+#   the functions can be passed as parameters and called generically
+#   All of them should return the entity they create
+#   Params: (name:int,x:int,y:int, condition=1, mat=None)
+
+#create a thing from STUFF; does not register thing
+def create_stuff(name, x, y, condition=1, mat=None) -> int:
+    world = rog.world()
+    typ,mat,val,fgcol,hp,kg,script,idtype = STUFF[name]
+    if fgcol == "random":
+        fgcol = random.choice(list(COL.values()))
+    else:
+        fgcol = COL[fgcol]
+    ent = world.create_entity(
+        cmp.Name(name, title=TITLE_THE),
+        cmp.Position(x,y),
+        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
+        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
+        cmp.Meters(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
+        cmp.Identify(idtype)
+        )
+    _setGenericData(ent, material=mat)
+    _setGenericShape(ent, idtype)
+    script(ent)
+    return ent
+#create a thing from FOOD; does not register thing
+#--Name-------------------$$$,  KG,   Mat, ResRot,script
+def create_food(name, x, y, condition=1, mat=None) -> int:
+    world = rog.world()
+    name,val,kg,mat,hp,resrot,script,idtype = FOOD[name]
+    fgcol = COL['white']
+    ent = world.create_entity(
+        cmp.Name(name, title=TITLE_THE),
+        cmp.Position(x,y),
+        cmp.Draw(T_FOOD, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form( mat=mat, val=max(1, rog.around(val*MULT_VALUE)) ),
+        cmp.Stats(
+            hp=hp*MULT_STATS,
+            mass=round(kg*MULT_MASS),
+            resrot=resrot),
+        cmp.Meters(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN, IMMUNERUST),
+        cmp.Identify(idtype)
+        )
+    _setGenericData(ent, material=mat)
+    _setGenericShape(ent, idtype)
+    script(ent)
+    return ent
+#create a thing from RAWMATERIALS; does not register thing
+def create_rawmat(name, x, y, condition=1, mat=None) -> int:
+    typ,val,kg,hp,mat,fgcol,script,idtype = RAWMATERIALS[name]
+    world = rog.world()
+    if fgcol == "random":
+        fgcol = random.choice(list(COL.values()))
+    else:
+        fgcol = COL[fgcol]
+    ent = world.create_entity(
+        cmp.Name(name, title=TITLE_THE),
+        cmp.Position(x,y),
+        cmp.Draw(typ, fgcol=fgcol, bgcol=COL['deep']),
+        cmp.Form( mat=mat, val=max(1, round(val*MULT_VALUE)) ),
+        cmp.Stats(hp=hp*MULT_STATS, mass=round(kg*MULT_MASS)),
+        cmp.Meters(),
+        cmp.Flags(IMMUNEBLEED, IMMUNEFEAR, IMMUNEPAIN),
+        cmp.Identify(idtype)
+        )
+    if (mat!=MAT_METAL and mat!=MAT_STEEL):
+        rog.make(ent, IMMUNERUST)
+    _setGenericData(ent, material=mat)
+    _setGenericShape(ent, idtype)
+    script(ent)
+    return ent
+
 
 # non-weapon gear #
 
@@ -4532,13 +4544,13 @@ def _getGearStatsDict( ent,mass,resbio,resfire,rescold,reselec,
     rog.world().add_component(ent, cmp.Encumberance(enc))
     return statsDict
 
-def create_aboutarmor(name,x,y,condition=1) -> int:
+def create_aboutarmor(name,x,y, condition=1, mat=None) -> int:
     pass #TODO: make this func
-def create_tool(name,x,y,condition=1) -> int:
+def create_tool(name,x,y, condition=1, mat=None) -> int:
     pass #TODO: make this func
 
 #create_armor - create armor item on ARMOR table 
-def create_armor(name,x,y,condition=1) -> int:
+def create_armor(name,x,y, condition=1, mat=None) -> int:
     '''
         # Parameters:
         #   name : string = name of item to create from the data table
@@ -4614,7 +4626,7 @@ def create_armor(name,x,y,condition=1) -> int:
 #
 
 #create head armor - create armor item on HEADWEAR table 
-def create_headwear(name,x,y,condition=1) -> int:
+def create_headwear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4686,7 +4698,7 @@ def create_headwear(name,x,y,condition=1) -> int:
 #
 
 #create facewear - create armor item on FACEWEAR table 
-def create_facewear(name,x,y,condition=1) -> int:
+def create_facewear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4753,7 +4765,7 @@ def create_facewear(name,x,y,condition=1) -> int:
 #
 
 #create handwear - create armor item on HANDARMOR table | gloves/gauntlets
-def create_handwear(name,x,y,condition=1) -> int:
+def create_handwear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4819,7 +4831,7 @@ def create_handwear(name,x,y,condition=1) -> int:
 #
 
 #create armwear - create armor item on ARMARMOR table | arm armor
-def create_armwear(name,x,y,condition=1) -> int:
+def create_armwear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4884,7 +4896,7 @@ def create_armwear(name,x,y,condition=1) -> int:
 #
 
 #create legging - create armor item on LEGARMOR table | leg armor
-def create_legwear(name,x,y,condition=1) -> int:
+def create_legwear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -4952,7 +4964,7 @@ def create_legwear(name,x,y,condition=1) -> int:
 #
 
 #create foot armor - create armor item on FOOTARMOR table 
-def create_footwear(name,x,y,condition=1) -> int:
+def create_footwear(name,x,y, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -5164,7 +5176,7 @@ def create_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
     return ent
 #
 
-def create_ranged_weapon(name:str, x:int, y:int, condition=1) -> int:
+def create_ranged_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     
@@ -5254,7 +5266,7 @@ def create_ranged_weapon(name:str, x:int, y:int, condition=1) -> int:
 #
 
 # ranged weapon modifiers
-def create_ranged_mod(name:str, x:int, y:int, condition=1) -> int:
+def create_ranged_mod(name:str, x:int, y:int, condition=1, mat=None) -> int:
     world = rog.world()
     ent = world.create_entity()
     # get weapon data from table
@@ -7240,13 +7252,13 @@ CLS_ARMORSMITH  : ("A", "armorsmith",     90, 2000, 0,'',
         SKL_COMBAT      :_JOURNEYMAN,
     },
     (
-        ('metal cuirass', create_armor, 1, EQ_FRONT, _quality,),
-        ('pants', create_legwear, 1, EQ_MAINLEG, None,),
-        ('metal boot', create_footwear, 1, EQ_MAINFOOT, _quality,),
-        ('metal boot', create_footwear, 1, EQ_OFFFOOT, _quality,),
-        ('leather glove', create_handwear, 1, EQ_MAINHAND, None,),
-        ('leather glove', create_handwear, 1, EQ_OFFHAND, None,),
-        ('metal smithing hammer', create_weapon, 1, EQ_MAINHANDW, _quality,),
+        ('cuirass', create_armor, 1, EQ_FRONT, MAT_METAL, _quality,),
+        ('pants', create_legwear, 1, EQ_MAINLEG, None, None,),
+        ('boot', create_footwear, 1, EQ_MAINFOOT, MAT_METAL, _quality,),
+        ('boot', create_footwear, 1, EQ_OFFFOOT, MAT_METAL, _quality,),
+        ('glove', create_handwear, 1, EQ_MAINHAND, MAT_LEATHER, None,),
+        ('glove', create_handwear, 1, EQ_OFFHAND, MAT_LEATHER, None,),
+        ('smithing hammer', create_weapon, 1, EQ_MAINHANDW,MAT_METAL,  _quality,),
         ),
     ),
 CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
@@ -7256,9 +7268,9 @@ CLS_ATHLETE     : ("a", "athlete",   80, 500, 0,'',
         SKL_UNARMORED   :_JOURNEYMAN,
     },
     (
-        ('basketball shorts', create_legwear, 1, EQ_MAINLEG, None,),
-        ('running shoe', create_footwear, 1, EQ_MAINFOOT, None,),
-        ('running shoe', create_footwear, 1, EQ_OFFFOOT, None,),
+        ('basketball shorts', create_legwear, 1, EQ_MAINLEG, None, None,),
+        ('running shoe', create_footwear, 1, EQ_MAINFOOT, None, None,),
+        ('running shoe', create_footwear, 1, EQ_OFFFOOT, None, None,),
         ),
     ),
 CLS_BLADESMITH  : ("B", "bladesmith",     90, 1000, 0,'',
@@ -7288,7 +7300,7 @@ CLS_DOCTOR      : ("D", "doctor",    75, 2000,1,'',
         SKL_SURGERY     :_INTERMEDIATE,
     },
     (
-        ('scalpel', create_weapon, 1, EQ_NONE, None,),
+        ('scalpel', create_weapon, 1, EQ_NONE, None, None,),
         ),
     ),
 CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
@@ -7299,7 +7311,7 @@ CLS_DEPRIVED    : ("d", "deprived",  50, 5,   0,'',
         SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
-        ('wooden club', create_weapon, 1, EQ_MAINHAND, None,),
+        ('club', create_weapon, 1, EQ_MAINHAND, MAT_WOOD, None,),
         ),
     ),
 CLS_BOUNTYHUNTER : ("H", "bounty hunter",80, 2000, 0,'',
@@ -7315,7 +7327,7 @@ CLS_BOUNTYHUNTER : ("H", "bounty hunter",80, 2000, 0,'',
         SKL_RANGED      :_JOURNEYMAN,
     },
     (
-        ('9mm revolver', create_ranged_weapon, 1, EQ_NONE, None,),
+        ('9mm revolver', create_ranged_weapon, 1, EQ_NONE, None, None,),
 ##        ('9mm cartridge', create_ammo, 12, EQ_NONE, None,),
         ),
     ),
@@ -7351,7 +7363,7 @@ CLS_SECURITY    : ("O", "security",  80, 300, 5,'',
         SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
-        ('metal baton', create_weapon, 1, EQ_NONE, None,),
+        ('baton', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
         # taser?
         ),
     ),
@@ -7365,18 +7377,18 @@ CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
         SKL_RANGED      :_JOURNEYMAN,
     },
     (
-        ('metal globe helm', create_headwear, 1, EQ_MAINHEAD, None,),
-        ('metal gear', create_armor, 1, EQ_FRONT, None,),
-        ('leather vambrace', create_armwear, 1, EQ_MAINARM, None,),
-        ('leather vambrace', create_armwear, 1, EQ_OFFARM, None,),
-        ('leather greave', create_legwear, 1, EQ_MAINLEG, None,),
-        ('leather greave', create_legwear, 1, EQ_OFFLEG, None,),
-        ('riot shield', create_weapon, 1, EQ_NONE, None,),
-        ('metal truncheon', create_weapon, 1, EQ_NONE, None,),
-        ('6ga riot shotgun', create_ranged_weapon, 1, EQ_NONE, None,),
-##        ('6ga rubber slug', create_ammo, 4, EQ_NONE, None,),
-##        ('6ga rubber shell', create_ammo, 8, EQ_NONE, None,),
-##        ('6ga tear gas can', create_ammo, 2, EQ_NONE, None,),
+        ('globe helm', create_headwear, 1, EQ_MAINHEAD, MAT_METAL, None,),
+        ('gear', create_armor, 1, EQ_FRONT, MAT_METAL, None,),
+        ('vambrace', create_armwear, 1, EQ_MAINARM, MAT_LEATHER, None,),
+        ('vambrace', create_armwear, 1, EQ_OFFARM, MAT_LEATHER, None,),
+        ('greave', create_legwear, 1, EQ_MAINLEG, MAT_LEATHER, None,),
+        ('greave', create_legwear, 1, EQ_OFFLEG, MAT_LEATHER, None,),
+        ('riot shield', create_weapon, 1, EQ_NONE, None, None,),
+        ('truncheon', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
+        ('6ga riot shotgun', create_ranged_weapon, 1, EQ_NONE, None, None,),
+##        ('6ga rubber slug', create_ammo, 4, EQ_NONE, None, None,),
+##        ('6ga rubber shell', create_ammo, 8, EQ_NONE, None, None,),
+##        ('6ga tear gas can', create_ammo, 2, EQ_NONE, None, None,),
         ),
     ),
 CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
@@ -7396,8 +7408,8 @@ CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
         SKL_COMPUTERS   :_GRANDMASTER,
     },
     (
-        ('hoody', create_armor, 1, EQ_FRONT, None,),
-        ('pajamas', create_legwear, 1, EQ_MAINLEG, None,),
+        ('hoody', create_armor, 1, EQ_FRONT, None, None,),
+        ('pajamas', create_legwear, 1, EQ_MAINLEG, None, None,),
         ),
     ),
 CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
@@ -7406,8 +7418,8 @@ CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
         SKL_PERSUASION  :_MASTER,
     },
     (
-        ('shirt', create_armor, 1, EQ_FRONT, _exquisite,),
-        ('jeans', create_legwear, 1, EQ_MAINLEG, _exquisite,),
+        ('shirt', create_armor, 1, EQ_FRONT, _exquisite, None,),
+        ('jeans', create_legwear, 1, EQ_MAINLEG, _exquisite, None,),
         ),
     ),
 CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
@@ -7423,13 +7435,13 @@ CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
         SKL_RANGED      :_JOURNEYMAN,
     },
     (
-        ('kerflame vest', create_armor, 1, EQ_FRONT, None,),
-        ('pants', create_legwear, 1, EQ_MAINLEG, _camo,),
-        ('assault rifle', create_ranged_weapon, 1, EQ_NONE, None,),
-        ('metal bayonet', create_weapon, 1, EQ_NONE, None,),
-        ('leather gun strap', create_ranged_mod, 1, EQ_NONE, None,),
-        ('magazine, 5.56mm', create_ranged_mod, 1, EQ_NONE, None,),
-        ('5.56mm cartridge', create_ranged_mod, 60, EQ_NONE, None,),
+        ('kerflame vest', create_armor, 1, EQ_FRONT, None, None,),
+        ('pants', create_legwear, 1, EQ_MAINLEG, _camo, None,),
+        ('assault rifle', create_ranged_weapon, 1, EQ_NONE, None, None,),
+        ('bayonet', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
+        ('gun strap', create_ranged_mod, 1, EQ_NONE, MAT_LEATHER, None,),
+        ('magazine, 5.56mm', create_ranged_mod, 1, EQ_NONE, None, None,),
+        ('5.56mm cartridge', create_ranged_mod, 60, EQ_NONE, None, None,),
         ),
     ),
 CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
@@ -7439,10 +7451,10 @@ CLS_TECHNICIAN  : ("T", "technician",65, 500, 1,'',
         SKL_COMPUTERS   :_JOURNEYMAN,
     },
     (
-        ('t-shirt', create_armor, 1, EQ_FRONT, None,),
-        ('jeans', create_legwear, 1, EQ_MAINLEG, None,),
-        ('metal screwdriver', create_weapon, 1, EQ_NONE, None,),
-        ('metal Allen wrench', create_weapon, 1, EQ_NONE, None,),
+        ('t-shirt', create_armor, 1, EQ_FRONT, None, None,),
+        ('jeans', create_legwear, 1, EQ_MAINLEG, None, None,),
+        ('metal screwdriver', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
+        ('metal Allen wrench', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
         ),
     ),
 CLS_THIEF       : ("t", "thief",     70, 5000,0,'',
@@ -7458,10 +7470,10 @@ CLS_THIEF       : ("t", "thief",     70, 5000,0,'',
     (
         ('shirt', create_armor, 1, EQ_FRONT, _extravagant,),
         ('pants', create_legwear, 1, EQ_MAINLEG, _extravagant,),
-        ('leather boot', create_footwear, 1, EQ_MAINFOOT, _extravagant,),
-        ('leather boot', create_footwear, 1, EQ_OFFFOOT, _extravagant,),
-        ('bandana', create_facewear, 1, EQ_NONE, _extravagant,),
-        ('lockpick', create_stuff, 4, EQ_NONE, None,),
+        ('boot', create_footwear, 1, EQ_MAINFOOT, MAT_LEATHER, _extravagant,),
+        ('boot', create_footwear, 1, EQ_OFFFOOT, MAT_LEATHER, _extravagant,),
+        ('bandana', create_facewear, 1, EQ_NONE, None, _extravagant,),
+        ('lockpick', create_stuff, 4, EQ_NONE, None, None,),
         ),
     ),
 CLS_SMUGGLER    : ("u", "smuggler",  75, 5000,0,'',
@@ -7485,9 +7497,9 @@ CLS_WRESTLER    : ("w", "wrestler",  100, 300, 0,'',
         SKL_COMBAT      :_JOURNEYMAN,
     },
     (
-        ('gi', create_armor, 1, EQ_FRONT, None,),
-        ('padded hose', create_legwear, 1, EQ_MAINLEG, None,),
-        ('padded hose', create_legwear, 1, EQ_OFFLEG, None,),
+        ('gi', create_armor, 1, EQ_FRONT, None, None,),
+        ('padded hose', create_legwear, 1, EQ_MAINLEG, None, None,),
+        ('padded hose', create_legwear, 1, EQ_OFFLEG, None, None,),
         ),
     ),
 }

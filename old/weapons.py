@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 
 ##def create_steel_weapon(itemName, x, y) -> int:
 ##    '''
@@ -36,6 +37,8 @@
 
 
 
+=======
+>>>>>>> a253651713a50b14700a04ca20998632ff26e5e9
 WEAPONS={ #melee weapons
     # $$$$, Kg,  Dur, Mat, St,Dx,(Acc,Dam,Pen,DV, AV, Pro,Asp,Enc,Gra,Ctr,Sta,Rea,For,Gp,Ba,),TYPE,script,ID,
     # cost, mass, maxHP, material, strength required, dexterity requied, 

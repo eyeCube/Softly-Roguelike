@@ -1403,6 +1403,7 @@ BP_NECK         =i;i+=1;
 BP_FACE         =i;i+=1;
 BP_EYES         =i;i+=1;
 BP_EARS         =i;i+=1;
+BP_NOSE         =i;i+=1;
 BP_MOUTH        =i;i+=1;
 BP_FRONT        =i;i+=1;
 BP_BACK         =i;i+=1;
@@ -1641,181 +1642,192 @@ BP_HEALTH_STATMODS={
     # mods dict: {ratio (multiplied by BP_HEALTH_MAX) : {mods}}
     # some mods use multipliers (take note when updating _update_stats!)
 BP_HEAD         :{
-    0.8:({'int':-1, 'respain':-2, 'bal':-1,}, {'hearing':0.9, 'sight':0.9,},),
-    0.6:({'int':-2, 'respain':-4, 'bal':-2,}, {'hearing':0.8, 'sight':0.8,},),
-    0.4:({'int':-3, 'respain':-8, 'bal':-4,}, {'hearing':0.7, 'sight':0.7,},),
-    0.2:({'int':-4, 'respain':-16, 'bal':-8,}, {'hearing':0.6, 'sight':0.6,},),
-    0  :({'int':-5, 'respain':-32, 'bal':-16,}, {'hearing':0.5, 'sight':0.5,},),
+    0.8:{'add':{'int':-1, 'respain':-2, 'bal':-1,},'mult':{'hearing':0.9, 'sight':0.9,},},
+    0.6:{'add':{'int':-2, 'respain':-4, 'bal':-2,},'mult':{'hearing':0.8, 'sight':0.8,},},
+    0.4:{'add':{'int':-3, 'respain':-8, 'bal':-4,},'mult':{'hearing':0.7, 'sight':0.7,},},
+    0.2:{'add':{'int':-4, 'respain':-16, 'bal':-8,},'mult':{'hearing':0.6, 'sight':0.6,},},
+    0  :{'add':{'int':-5, 'respain':-32, 'bal':-16,},'mult':{'hearing':0.5, 'sight':0.5,},},
     },
 BP_NECK         :{
-    0.8:({'respain':-2, 'resbleed':-4,},{},),
-    0.6:({'respain':-4, 'resbleed':-8,},{},),
-    0.4:({'respain':-8, 'resbleed':-16,},{},),
-    0.2:({'respain':-16, 'resbleed':-32,},{},),
-    0  :({'respain':-32, 'resbleed':-64,},{},),
+    0.8:{'add':{'respain':-2, 'resbleed':-4,},'mult':{},},
+    0.6:{'add':{'respain':-4, 'resbleed':-8,},'mult':{},},
+    0.4:{'add':{'respain':-8, 'resbleed':-16,},'mult':{},},
+    0.2:{'add':{'respain':-16, 'resbleed':-32,},'mult':{},},
+    0  :{'add':{'respain':-32, 'resbleed':-64,},'mult':{},},
     },
 BP_FACE         :{
-    0.8:({'respain':-2, 'bea':-4, 'idn':-4,},{},),
-    0.6:({'respain':-4, 'bea':-8, 'idn':-8,},{},),
-    0.4:({'respain':-8, 'bea':-16, 'idn':-12,},{},),
-    0.2:({'respain':-16, 'bea':-32, 'idn':-16,},{},),
-    0  :({'respain':-32, 'bea':-64, 'idn':-20,},{},),
+    0.8:{'add':{'respain':-2, 'bea':-4, 'idn':-4,},'mult':{},},
+    0.6:{'add':{'respain':-4, 'bea':-8, 'idn':-8,},'mult':{},},
+    0.4:{'add':{'respain':-8, 'bea':-16, 'idn':-12,},'mult':{},},
+    0.2:{'add':{'respain':-16, 'bea':-32, 'idn':-16,},'mult':{},},
+    0  :{'add':{'respain':-32, 'bea':-64, 'idn':-20,},'mult':{},},
+    },
+BP_NOSE         :{
+    0.8:{'add':{'respain':-2, 'bea':-4, 'idn':-1,},'mult':{},},
+    0.6:{'add':{'respain':-4, 'bea':-8, 'idn':-2,},'mult':{},},
+    0.4:{'add':{'respain':-8, 'bea':-16, 'idn':-4,},'mult':{},},
+    0.2:{'add':{'respain':-16, 'bea':-32, 'idn':-8,},'mult':{},},
+    0  :{'add':{'respain':-32, 'bea':-64, 'idn':-12,},'mult':{},},
     },
 BP_EYES         :{
     # NOTE: in cases of multiple visual systems, the ratio is taken as the combined
     # average health of all visual systems for the entity. Thus, one destroyed set of
     # eyes and one fully healed set of eyes will together yield a ratio of 0.5 for the
     # purposes of the following stat penalties.
-    0.8:({'resbio': -2, 'pro': -1, 'dfn':-1,}, {'sight':0.9,},),
-    0.6:({'resbio': -4, 'pen':-1, 'pro': -2, 'atk':-1, 'dfn':-2,}, {'sight':0.8,},),
-    0.4:({'resbio': -8, 'pen':-2, 'pro': -3, 'atk':-2, 'dfn':-4,}, {'sight':0.6,},),
-    0.2:({'resbio': -16, 'pen':-4, 'pro': -6, 'atk':-4, 'dfn':-8,}, {'sight':0.3,},),
-    0  :({'resbio': -32, 'pen':-6, 'pro': -12, 'atk':-8, 'dfn':-16,}, {'sight':0,},),
+    0.8:{'add':{'resbio': -2, 'pro': -1, 'dfn':-1,},'mult':{'sight':0.9,},},
+    0.6:{'add':{'resbio': -4, 'pen':-1, 'pro': -2, 'atk':-1, 'dfn':-2,},'mult':{'sight':0.8,},},
+    0.4:{'add':{'resbio': -8, 'pen':-2, 'pro': -3, 'atk':-2, 'dfn':-4,},'mult':{'sight':0.6,},},
+    0.2:{'add':{'resbio': -16, 'pen':-4, 'pro': -6, 'atk':-4, 'dfn':-8,},'mult':{'sight':0.3,},},
+    0  :{'add':{'resbio': -32, 'pen':-6, 'pro': -12, 'atk':-8, 'dfn':-16,},'mult':{'sight':0,},},
     },
 BP_EARS         :{
     # NOTE: same averaging system applies to ears as to eyes
-    0.8:({'pro': -1, 'dfn':-1, 'bal':-1,}, {'hearing':0.9,},),
-    0.6:({'pro': -2, 'dfn':-2, 'bal':-2,}, {'hearing':0.8,},),
-    0.4:({'pro': -3, 'dfn':-4, 'bal':-4,}, {'hearing':0.6,},),
-    0.2:({'pro': -4, 'dfn':-6, 'bal':-6,}, {'hearing':0.3,},),
-    0  :({'pro': -5, 'dfn':-8, 'bal':-8,}, {'hearing':0,},),
+    0.8:{'add':{'pro': -1, 'dfn':-1, 'bal':-1,},'mult':{'hearing':0.9,},},
+    0.6:{'add':{'pro': -2, 'dfn':-2, 'bal':-2,},'mult':{'hearing':0.8,},},
+    0.4:{'add':{'pro': -3, 'dfn':-4, 'bal':-4,},'mult':{'hearing':0.6,},},
+    0.2:{'add':{'pro': -4, 'dfn':-6, 'bal':-6,},'mult':{'hearing':0.3,},},
+    0  :{'add':{'pro': -5, 'dfn':-8, 'bal':-8,},'mult':{'hearing':0,},},
     },
 BP_MOUTH        :{
-    0.8:({'respain':-4, 'bea':-4,},{},),
-    0.4:({'respain':-16, 'bea':-16, 'idn':-4,},{},),
-    0  :({'respain':-64, 'bea':-64, 'idn':-16,},{},),
+    0.8:{'add':{'respain':-4, 'bea':-4,},'mult':{},},
+    0.4:{'add':{'respain':-16, 'bea':-16, 'idn':-4,},'mult':{},},
+    0  :{'add':{'respain':-64, 'bea':-64, 'idn':-16,},'mult':{},},
     },
 BP_FRONT        :{
-    0.8:({'str':-1, 'respain':-1, 'asp': -3, 'msp': -3,},{},),
-    0.6:({'str':-2, 'respain':-2, 'asp': -6, 'msp': -6,},{},),
-    0.4:({'str':-3, 'respain':-4, 'asp': -9, 'msp': -9,},{},),
-    0.2:({'str':-4, 'respain':-8, 'asp': -12, 'msp': -12,},{},),
-    0  :({'str':-5, 'respain':-16, 'asp': -15, 'msp': -15,},{},),
+    0.8:{'add':{'str':-1, 'respain':-1, 'asp': -3, 'msp': -3,},'mult':{},},
+    0.6:{'add':{'str':-2, 'respain':-2, 'asp': -6, 'msp': -6,},'mult':{},},
+    0.4:{'add':{'str':-3, 'respain':-4, 'asp': -9, 'msp': -9,},'mult':{},},
+    0.2:{'add':{'str':-4, 'respain':-8, 'asp': -12, 'msp': -12,},'mult':{},},
+    0  :{'add':{'str':-5, 'respain':-16, 'asp': -15, 'msp': -15,},'mult':{},},
     },
 BP_BACK         :{
-    0.8:({'con':-1, 'respain':-1, 'asp': -3, 'msp': -3,},{},),
-    0.6:({'con':-2, 'respain':-2, 'asp': -6, 'msp': -6,},{},),
-    0.4:({'con':-3, 'respain':-4, 'asp': -9, 'msp': -9,},{},),
-    0.2:({'con':-4, 'respain':-8, 'asp': -12, 'msp': -12,},{},),
-    0  :({'con':-5, 'respain':-16, 'asp': -15, 'msp': -15,},{},),
+    0.8:{'add':{'con':-1, 'respain':-1, 'asp': -3, 'msp': -3,},'mult':{},},
+    0.6:{'add':{'con':-2, 'respain':-2, 'asp': -6, 'msp': -6,},'mult':{},},
+    0.4:{'add':{'con':-3, 'respain':-4, 'asp': -9, 'msp': -9,},'mult':{},},
+    0.2:{'add':{'con':-4, 'respain':-8, 'asp': -12, 'msp': -12,},'mult':{},},
+    0  :{'add':{'con':-5, 'respain':-16, 'asp': -15, 'msp': -15,},'mult':{},},
     },
 BP_HIPS         :{
-    0.8:({'end':-1, 'respain':-1, 'asp': -3, 'msp': -12,},{},),
-    0.6:({'end':-2, 'respain':-2, 'asp': -6, 'msp': -24,},{},),
-    0.4:({'end':-3, 'respain':-4, 'asp': -12, 'msp': -36,},{},),
-    0.2:({'end':-4, 'respain':-8, 'asp': -24, 'msp': -48,},{},),
-    0  :({'end':-5, 'respain':-16, 'asp': -36, 'msp': -64,},{},),
+    0.8:{'add':{'end':-1, 'respain':-1, 'asp': -3, 'msp': -12,},'mult':{},},
+    0.6:{'add':{'end':-2, 'respain':-2, 'asp': -6, 'msp': -24,},'mult':{},},
+    0.4:{'add':{'end':-3, 'respain':-4, 'asp': -12, 'msp': -36,},'mult':{},},
+    0.2:{'add':{'end':-4, 'respain':-8, 'asp': -24, 'msp': -48,},'mult':{},},
+    0  :{'add':{'end':-5, 'respain':-16, 'asp': -36, 'msp': -64,},'mult':{},},
     },
 BP_CORE         :{
-    0.8:({'agi':-1, 'respain':-1, 'asp': -6, 'msp': -3,},{},),
-    0.6:({'agi':-2, 'respain':-2, 'asp': -12, 'msp': -6,},{},),
-    0.4:({'agi':-3, 'respain':-4, 'asp': -24, 'msp': -9,},{},),
-    0.2:({'agi':-4, 'respain':-8, 'asp': -36, 'msp': -12,},{},),
-    0  :({'agi':-5, 'respain':-16, 'asp': -48, 'msp': -15,},{},),
+    0.8:{'add':{'agi':-1, 'respain':-1, 'asp': -6, 'msp': -3,},'mult':{},},
+    0.6:{'add':{'agi':-2, 'respain':-2, 'asp': -12, 'msp': -6,},'mult':{},},
+    0.4:{'add':{'agi':-3, 'respain':-4, 'asp': -24, 'msp': -9,},'mult':{},},
+    0.2:{'add':{'agi':-4, 'respain':-8, 'asp': -36, 'msp': -12,},'mult':{},},
+    0  :{'add':{'agi':-5, 'respain':-16, 'asp': -48, 'msp': -15,},'mult':{},},
     },
 BP_ARM          :{
-    0.8:({'dex':-1, 'respain':-1,},{},),
-    0.6:({'dex':-2, 'respain':-2,},{},),
-    0.4:({'dex':-3, 'respain':-4,},{},),
-    0.2:({'dex':-4, 'respain':-8,},{},),
-    0  :({'dex':-5, 'respain':-16,},{},),
+    0.8:{'add':{'dex':-1, 'respain':-1,},'mult':{},},
+    0.6:{'add':{'dex':-2, 'respain':-2,},'mult':{},},
+    0.4:{'add':{'dex':-3, 'respain':-4,},'mult':{},},
+    0.2:{'add':{'dex':-4, 'respain':-8,},'mult':{},},
+    0  :{'add':{'dex':-5, 'respain':-16,},'mult':{},},
     },
 BP_LEG          :{
-    0.8:({'agi':-1, 'respain':-1, 'msp':-3,},{},),
-    0.6:({'agi':-2, 'respain':-2, 'msp':-6,},{},),
-    0.4:({'agi':-3, 'respain':-4, 'msp':-12,},{},),
-    0.2:({'agi':-4, 'respain':-8, 'msp':-24,},{},),
-    0  :({'agi':-5, 'respain':-16, 'msp':-48,},{},),
+    0.8:{'add':{'agi':-1, 'respain':-1, 'msp':-3,},'mult':{},},
+    0.6:{'add':{'agi':-2, 'respain':-2, 'msp':-6,},'mult':{},},
+    0.4:{'add':{'agi':-3, 'respain':-4, 'msp':-12,},'mult':{},},
+    0.2:{'add':{'agi':-4, 'respain':-8, 'msp':-24,},'mult':{},},
+    0  :{'add':{'agi':-5, 'respain':-16, 'msp':-48,},'mult':{},},
     },
 BP_HAND         :{
-    0.8:({'dex':-1, 'respain':-1,},{},),
-    0.6:({'dex':-2, 'respain':-2,},{},),
-    0.4:({'dex':-3, 'respain':-4,},{},),
-    0.2:({'dex':-4, 'respain':-8,},{},),
-    0  :({'dex':-5, 'respain':-16,},{},),
+    0.8:{'add':{'dex':-1, 'respain':-1,},'mult':{},},
+    0.6:{'add':{'dex':-2, 'respain':-2,},'mult':{},},
+    0.4:{'add':{'dex':-3, 'respain':-4,},'mult':{},},
+    0.2:{'add':{'dex':-4, 'respain':-8,},'mult':{},},
+    0  :{'add':{'dex':-5, 'respain':-16,},'mult':{},},
     },
 BP_FOOT         :{
-    0.8:({'respain':-1, 'msp':-6,},{},),
-    0.6:({'respain':-2, 'msp':-12,},{},),
-    0.4:({'respain':-4, 'msp':-18,},{},),
-    0.2:({'respain':-8, 'msp':-30,},{},),
-    0  :({'respain':-16, 'msp':-60,},{},),
+    0.8:{'add':{'respain':-1, 'msp':-6,},'mult':{},},
+    0.6:{'add':{'respain':-2, 'msp':-12,},'mult':{},},
+    0.4:{'add':{'respain':-4, 'msp':-18,},'mult':{},},
+    0.2:{'add':{'respain':-8, 'msp':-30,},'mult':{},},
+    0  :{'add':{'respain':-16, 'msp':-60,},'mult':{},},
     },
 BP_WING         :{
-    0.8:({},{'flight':0.6,},), # TODO: figure this out. Can/should flight be a pseudostat?
-    0.4:({},{'flight':0.2,},),
-    0  :({},{'flight':0,},),),
+    0.8:{'add':{},'mult':{'flight':0.6,},}, # TODO: figure this out. Can/should flight be a pseudostat?
+    0.4:{'add':{},'mult':{'flight':0.2,},},
+    0  :{'add':{},'mult':{'flight':0,},},
     },
 BP_TAIL         :{
-    0.8:({'bal':-1,},{},),
-    0.6:({'bal':-2,},{},),
-    0.4:({'bal':-4,},{},),
-    0.2:({'bal':-8,},{},),
-    0  :({'bal':-12,},{},),
+    0.8:{'add':{'bal':-1,},'mult':{},},
+    0.6:{'add':{'bal':-2,},'mult':{},},
+    0.4:{'add':{'bal':-4,},'mult':{},},
+    0.2:{'add':{'bal':-8,},'mult':{},},
+    0  :{'add':{'bal':-12,},'mult':{},},
     },
 BP_BEAK         :{
-    0.8:({'bea':-8, 'idn':-4,},{},),
-    0.4:({'bea':-32, 'idn':-8,},{},),
-    0  :({'bea':-64, 'idn':-16,},{},),
+    0.8:{'add':{'bea':-8, 'idn':-4,},'mult':{},},
+    0.4:{'add':{'bea':-32, 'idn':-8,},'mult':{},},
+    0  :{'add':{'bea':-64, 'idn':-16,},'mult':{},},
     },
 BP_GENITALS     :{
-    0.8:({'respain':-32,},{},),
-    0.4:({'respain':-64,},{},),
-    0  :({'respain':-128,},{},),
+    0.8:{'add':{'respain':-32,},'mult':{},},
+    0.4:{'add':{'respain':-64,},'mult':{},},
+    0  :{'add':{'respain':-128,},'mult':{},},
     },
 BP_APPENDAGE    :{
-    0.5:({'respain':-8,},{},),
-    0  :({'respain':-32,},{},),
+    0.5:{'add':{'respain':-8,},'mult':{},},
+    0  :{'add':{'respain':-32,},'mult':{},},
     },
 BP_TENTACLE     :{
-    0.8:({'str':-1,},{},),
-    0.4:({'str':-2,},{},),
-    0  :({'str':-3,},{},),
+    0.8:{'add':{'str':-1,},'mult':{},},
+    0.4:{'add':{'str':-2,},'mult':{},},
+    0  :{'add':{'str':-3,},'mult':{},},
     },
 BP_PSEUDOPOD    :{
-    0.8:({'str':-1, 'agi':-2,},{},),
-    0.4:({'str':-2, 'agi':-4,},{},),
-    0  :({'str':-3, 'agi':-6,},{},),
+    0.8:{'add':{'str':-1, 'agi':-2,},'mult':{},},
+    0.4:{'add':{'str':-2, 'agi':-4,},'mult':{},},
+    0  :{'add':{'str':-3, 'agi':-6,},'mult':{},},
     },
 BP_AMEBOID      :{
-    0.8:({'con':-2, 'end':-2,},{},),
-    0.4:({'con':-4, 'end':-4,},{},),
-    0  :({'con':-6, 'end':-6,},{},),
+    0.8:{'add':{'con':-2, 'end':-2,},'mult':{},},
+    0.4:{'add':{'con':-4, 'end':-4,},'mult':{},},
+    0  :{'add':{'con':-6, 'end':-6,},'mult':{},},
     },
 BP_MANDIBLE     :{
-    0.5:({'respain':-8,},{},),
-    0  :({'respain':-32,},{},),
+    0.5:{'add':{'respain':-8,},'mult':{},},
+    0  :{'add':{'respain':-32,},'mult':{},},
     },
 BP_INSECTHEAD   :{
-    0.8:({'int':-1, 'bal':-1,}, {'sight':0.9,},),
-    0.6:({'int':-2, 'bal':-2,}, {'sight':0.8,},),
-    0.4:({'int':-3, 'bal':-4,}, {'sight':0.7,},),
-    0.2:({'int':-4, 'bal':-8,}, {'sight':0.6,},),
-    0  :({'int':-5, 'bal':-16,}, {'sight':0.5,},),
+    0.8:{'add':{'int':-1, 'bal':-1,},'mult':{'sight':0.9,},},
+    0.6:{'add':{'int':-2, 'bal':-2,},'mult':{'sight':0.8,},},
+    0.4:{'add':{'int':-3, 'bal':-4,},'mult':{'sight':0.7,},},
+    0.2:{'add':{'int':-4, 'bal':-8,},'mult':{'sight':0.6,},},
+    0  :{'add':{'int':-5, 'bal':-16,},'mult':{'sight':0.5,},},
     },
 BP_INSECTLEG    :{
-    0.8:({'msp':-3,},{},),
-    0.6:({'msp':-6,},{},),
-    0.4:({'msp':-12,},{},),
-    0.2:({'msp':-18,},{},),
-    0  :({'msp':-24,},{},),
+    0.8:{'add':{'msp':-3,},'mult':{},},
+    0.6:{'add':{'msp':-6,},'mult':{},},
+    0.4:{'add':{'msp':-12,},'mult':{},},
+    0.2:{'add':{'msp':-18,},'mult':{},},
+    0  :{'add':{'msp':-24,},'mult':{},},
     },
 BP_INSECTTHORAX :{
-    0.8:({'con':-2, 'end':-2,},{},),
-    0.4:({'con':-4, 'end':-4,},{},),
-    0  :({'con':-6, 'end':-6,},{},),
+    0.8:{'add':{'con':-2, 'end':-2,},'mult':{},},
+    0.4:{'add':{'con':-4, 'end':-4,},'mult':{},},
+    0  :{'add':{'con':-6, 'end':-6,},'mult':{},},
     },
 BP_INSECTABDOMEN:{
-    0.8:({'agi':-2,},{},),
-    0.4:({'agi':-4,},{},),
-    0  :({'agi':-6,},{},),
+    0.8:{'add':{'agi':-2,},'mult':{},},
+    0.4:{'add':{'agi':-4,},'mult':{},},
+    0  :{'add':{'agi':-6,},'mult':{},},
     },
 }
-# Reverse the ordering of the ratios from low->high for ease of iteration / comparison
-temp={}
-for k,v in sorted(BP_HEALTH_MODS.items(), reverse=False):
-    temp[k] = v
-BP_HEALTH_MODS = temp
+# reverse order for ease of iteration
+temp = {}
+for k,v in BP_HEALTH_STATMODS.items():
+    temp[k] = {}
+    for ratio,mods in sorted(v.items()):
+        temp[k][ratio] = mods
+
+
+
 
 
 
