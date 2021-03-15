@@ -19,15 +19,16 @@
 
 
 
-#
-# split stanza
-#
-# take a string, return list of strings each no longer than nlines lines
-#
-# - string must already have '\n' newlines in place;
-#       this function does not wrap text or add newlines!
-#
+
 def split_stanza(text,nlines):
+    '''
+    # split stanza
+    #
+    # create list of strings where each string has # new lines <= nlines
+    #
+    # - string must already have '\n' newlines in place;
+    #       this function does not wrap text or add newlines!
+    '''
     boxes = []
     count = start = i = 0
     for ch in text:

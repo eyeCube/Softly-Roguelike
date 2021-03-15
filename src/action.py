@@ -742,12 +742,15 @@ def _equip(ent, item, equipType):
         w = EQ_TYPE_STRINGS[equipType][0]
         prep = EQ_TYPE_STRINGS[equipType][1]
         bp = EQ_TYPE_STRINGS[equipType][2]
-        entname = rog.world().component_for_entity(ent, cmp.Name)
-        itemname = rog.world().component_for_entity(item, cmp.Name)
-        # example: "the hobgoblin wields plastic knife in his mainhand"
-        rog.msg("{t}{n} {w}s {i} {pre} {prn} {bp}".format(
-            t=entname.title, n=entname.name, i=itemname.name, w=w,
-            prn=rog.get_pronoun_possessive(ent), pre=prep, bp=bp))
+        # example: "hobgoblin wield plastic knife"
+        pos = world.component_for_entity(ent, cmp.Position)
+        rog.event_sight(pos.x,pos.y, "{n} {w} {i}".format(
+            n=rog.getname(ent), i=rog.getname(item), w=w))
+        # wordy text (idea: option for wordy or terse msg text)
+        # example: "the hobgoblin wields the plastic knife in his mainhand"
+##        rog.msg("{n} {w}s {i} {pre} {prn} {bp}".format(
+##            n=rog.gettitlename(ent), i=rog.gettitlename(item),
+##            w=w, prn=rog.get_pronoun_possessive(ent), pre=prep, bp=bp))
         
     return result
 # end def
@@ -755,16 +758,16 @@ def _equip(ent, item, equipType):
 def pocketThing(ent, item): #entity puts item in its inventory
     world = rog.world()
     rog.pocket(ent, item)
-    entn = world.component_for_entity(ent, cmp.Name)
-    itemn = world.component_for_entity(item, cmp.Name)
     # messages
-    rog.msg("{t}{n} packs {ti}{ni}.".format(
-        t=TITLES[entn.title],n=entn.name,
-        ti=TITLES[itemn.title],ni=itemn.name) )
+    pos = world.component_for_entity(ent, cmp.Position)
+    rog.event_sight(pos.x,pos.y, "{n} pack {ni}.".format(
+        n=rog.getname(ent), ni=rog.getname(item)))
+    rog.event_sound(pos.x,pos.y, SND_RUMMAGE)
     # over-encumbered message
     if rog.getms(ent, 'enc') >= rog.getms(ent, 'encmax'):
-        rog.msg("{t}{n} is over-encumbered.".format(
-            t=TITLES[entn.title],n=entn.name) )
+        rog.event_sight(pos.x,pos.y, "{n} overburdened.".format(
+            n=rog.getname(ent)))
+    rog.event_sound(pos.x,pos.y, SND_RUMMAGE)
     return True
 
 def drop(ent, item, dx, dy):
@@ -777,11 +780,9 @@ def drop(ent, item, dx, dy):
     #   success, drop the item.
         rog.drop(ent,item, dx,dy)
         rog.spendAP(ent, NRG_RUMMAGE)
-        entn = world.component_for_entity(ent, cmp.Name)
-        itemn = world.component_for_entity(item, cmp.Name)
-        rog.msg("{t}{n} drops {ti}{ni}.".format(
-            t=TITLES[entn.title],n=entn.name,
-            ti=TITLES[itemn.title],ni=itemn.name))
+        pos = world.component_for_entity(ent, cmp.Position)
+        rog.event_sight(pos.x,pos.y, "{n} drop {ni}.".format(
+            n=rog.getname(ent), ni=rog.getname(ent)))
         return True
     
     else: # failure
@@ -795,8 +796,6 @@ def quaff(ent, drink):
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
     quaffable=world.component_for_entity(drink, cmp.Quaffable)
-    entn = world.component_for_entity(ent, cmp.Name)
-    drinkn = world.component_for_entity(drink, cmp.Name)
     
     #quaff function
     quaffable.func(ent)
@@ -808,14 +807,15 @@ def quaff(ent, drink):
 
     #events - sight
     if ent == rog.pc():
-        rog.msg("It tastes {t}".format(t=quaffable.taste))
+        rog.msg("Tastes {t}".format(t=quaffable.taste))
     else:
-        rog.event_sight(pos.x,pos.y, "{t}{n} quaffs a {p}.".format(
-            t=TITLES[entn.title], n=entn.name, p=drinkn.name))
+        rog.event_sight(pos.x,pos.y, "{n} quaffs {q}.".format(
+            n=rog.getname(ent), q=rog.getname(drink)))
     #events - sound
     rog.event_sound(pos.x,pos.y, SND_QUAFF)
-    # TODO: make sure this works...
-    world.delete_entity(drink)
+    # TODO: quantity reduction -- consumption / deletion of consumed drink
+##    # TODO: make sure this works...
+##    world.delete_entity(drink)
 
 def standup(ent):
     actor = rog.world().component_for_entity(ent, cmp.Actor)
@@ -960,38 +960,50 @@ def openClose(ent, xto, yto):
     #TODO: containers, test doors
     world = rog.world()
     actor = world.component_for_entity(ent, cmp.Actor)
-    entn = world.component_for_entity(ent, cmp.Name)
-    #open containers
-    #close containers
+    pos = world.component_for_entity(ent, cmp.Position)
+    
+    #open containers (TODO)
+    #close containers (TODO)
+    
     #open doors
     if rog.tile_get(xto,yto) == DOORCLOSED:
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOOROPEN)
-        ss = "opened a door"
-        rog.msg("{t}{n} {ss}.".format(
-            t=TITLES[entn.title],n=entn.name,ss=ss))
+        ss = "opened door"
+        rog.event_sight(pos.x,pos.y, "{n} {ss}.".format(
+            n=rog.getname(ent),ss=ss))
+        rog.event_sound(pos.x,pos.y, SND_CREAKDOOR)
         return True
     #close doors
     if rog.tile_get(xto,yto) == DOOROPEN:
         actor.ap -= NRG_OPEN
         rog.tile_change(xto,yto, DOORCLOSED)
-        ss = "closed a door"
-        rog.msg("{t}{n} {ss}.".format(
-            t=TITLES[entn.title],n=entn.name,ss=ss))
+        ss = "closed door"
+        rog.event_sight(pos.x,pos.y, "{n} {ss}.".format(
+            n=rog.getname(ent),ss=ss))
+        rog.event_sound(pos.x,pos.y, SND_CREAKDOOR)
         return True
-    if ent==rog.pc(): rog.alert("It won't open.") # TODO: message about why you failed
+
+    # failure if we made it this far
+    if ent==rog.pc():
+        rog.alert("It won't open.")
+        # TODO: message about why you failed?
     return False
 
 def sprint(ent):
     #if sprint cooldown elapsed
     rog.world().add_component(ent, cmp.Sprint(SPRINT_TIME))
     entn = rog.world().component_for_entity(ent, cmp.Name)
-    rog.msg("{n} begins sprinting.".format(n=entn.name))
+    pos = world.component_for_entity(ent, cmp.Position)
+    rog.event_sight(pos.x,pos.y, "{n} sprinting.".format(n=entn.name))
 
 
     #------------#
     #   COMBAT   #
     #------------#
+
+def formatCombatResult(dm=0,ro=0,pn=0):
+    return " (-{dm}|r{ro}|x{pn})".format(dm=_dmg,ro=roll,pn=pens)
 
 ##def _calc_bpdmg(pens,bonus,dmg,hpmax):
 ##    bpdmg = dice.roll(6) - 6 + pens + bonus + (8*dmg//hpmax)
@@ -1217,7 +1229,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         
         # body damage
         # damage body part (and possibly inflict status)
-        if (bpdmg > 0):
+        if trueDmg > 0:
             rog.attackbp(attkr, dfndr, bptarget, aweap, trueDmg, skill)
         
         # gear damage #
@@ -1569,22 +1581,19 @@ def missile_attack(
     hitDie=pens=roll=0
     land=breaks=None
     hit=False
-    
-    # get components
-    aname=world.component_for_entity(attkr, cmp.Name)
-    iname=world.component_for_entity(ent, cmp.Name)
+    pos = world.component_for_entity(attkr, cmp.Position)
+    dpos= world.component_for_entity(dfndr, cmp.Position)
     
     # draw line to target and try to attack
     for (xx,yy,) in rog.line(spos.x,spos.y, dpos.x,dpos.y):
         if land:
             break
         
-        # collision with creature
+        # collision with creature at this tile
         mon=rog.monat(xx,yy)
         if (not mon or mon == attkr):
             continue
         # get defender's stats
-        dname=world.component_for_entity(mon, cmp.Name)
         monpos = world.component_for_entity(mon, cmp.Position)
         mdfn = rog.getms(mon, 'dfn')//MULT_STATS
         marm = rog.getms(mon, 'arm')//MULT_STATS
@@ -1657,16 +1666,17 @@ def missile_attack(
         rog.kill(ent)
     
     # message
-    if hit:
-        result = " (-{dm}|d{ro}|x{pn})".format(dm=_dmg,ro=roll,pn=pens)
+    if (attkr == rog.pc() and hit):
+        result = formatCombatResult(dm=_dmg,ro=roll,pn=pens)
     else:
         result = ", missing"
-    rog.msg("{ta}{na} throws {ti}{ni} at {td}{nd}{result}".format(
-        ta=TITLES[aname.title],na=aname.name,
-        ti=TITLES[iname.title],ni=iname.name,
-        td=TITLES[dname.title],nd=dname.name,
+        rog.event_sight(pos.x,pos.y, "{a} launch {i} at {d}{result}".format(
+        a=rog.gettitlename(attkr),
+        i=rog.gettitlename(ent),
+        d=rog.gettitlename(dfndr),
         result=result))
 # end def
+
     
 
 #######################################################################
@@ -2033,7 +2043,7 @@ def equipment_pc(ent):
 
 #TODO: UPDATE THIS FUNCTION
 def explosion(bomb):
-    rog.msg("{t}{n} explodes! <UNIMPLEMENTED>".format(t=bomb.title, n=bomb.name))
+    rog.msg("{t}{n} explode <UNIMPLEMENTED>".format(t=bomb.title, n=bomb.name))
     '''
     con=libtcod.console_new(ROOMW, ROOMH)
     fov=rog.fov_init()

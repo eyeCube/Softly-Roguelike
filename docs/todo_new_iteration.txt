@@ -5,11 +5,16 @@ TODO:
 		corpses get Rots
 	do the same thing we did to weapons to armor and ranged weapons
 		(material type changes stats)
+	display wounds and BP damage/sp in the Body Examination screen
+		display wounds on Player status screen
+	delayed actions
+	level generation
 		
 SIMPLIFY:
 	body parts
 		remove organs. Just have status effects for organ damage.
 		Each BP has two stats: Health and stamina
+		
 
 
 Quantity component for by-quantity items like liquids and powders.

@@ -507,6 +507,11 @@ def identify_entity(ent, quality): # only PC can Identify things
 
 # Name functions
 
+def getMatName(mat): return MATERIALS[mat][0]
+def getMatDT(mat): return MATERIALS[mat][1]
+def getMatHardness(mat): return MATERIALS[mat][2]
+def getMatPrice(mat, mass=MULT_MASS): # $/kg (default mass == 1kg)
+    return around(mass/MULT_MASS * MATERIALS[mat][3]*MULT_VALUE)
 def fullname_gear(ent):
     world=Rogue.world
     fullname = world.component_for_entity(ent, cmp.Name).name
@@ -561,7 +566,7 @@ def fullname(ent):
             if world.has_component(ent, cmp.MaterialPrefix):
                 mat = world.component_for_entity(ent, cmp.Form).material
             fullname = "{} {} {}".format(
-                UNID, MATERIALS[mat][0], identify_get_name(idtype)
+                UNID, getMatName(mat), identify_get_name(idtype)
                 )
             return fullname
 
@@ -584,7 +589,7 @@ def fullname(ent):
     
     if world.has_component(ent, cmp.MaterialPrefix):
         mat = world.component_for_entity(ent, cmp.Form).material
-        fullname = "{} {}".format(MATERIALS[mat][0], fullname)
+        fullname = "{} {}".format(getMatName(mat), fullname)
             
     if world.has_component(ent, cmp.Prefixes):
         compo = world.component_for_entity(ent, cmp.Prefixes)
@@ -672,6 +677,11 @@ def getdir(ent):
     return Rogue.world.component_for_entity(ent, cmp.Direction)
 def getname(ent):
     return Rogue.world.component_for_entity(ent, cmp.Name).name
+def gettitle(ent):
+    return TITLES[Rogue.world.component_for_entity(ent, cmp.Name).title]
+def gettitlename(ent):
+    compo = Rogue.world.component_for_entity(ent, cmp.Name)
+    return "{}{}".format(TITLES[compo.title], compo.name)
 def getinv(ent):
     return Rogue.world.component_for_entity(ent, cmp.Inventory).data
 def get_value(ent):
@@ -830,8 +840,8 @@ def train(ent, skill, pts): # train (improve) skill
         skills = Rogue.world.component_for_entity(ent, cmp.Skills)
         __train(ent, skills, skill, pts)
     # level up message
-    if (pc()==ent and getskill(ent, skill) > level):
-        msg("Leveled up {} to {}".format(
+    if (Rogue.pc==ent and getskill(ent, skill) > level):
+        msg("Level up {} to {}".format(
             get_skill_name(skill), getskill(ent, skill)))
 # end def
 def __train(ent, skills, skill, pts): # train one level at a time
@@ -916,10 +926,8 @@ def mutate(ent):
     # TODO: do mutation
     mutable = Rogue.world.component_for_entity(ent, cmp.Mutable)
     pos = Rogue.world.component_for_entity(ent, cmp.Position)
-    entn = Rogue.world.component_for_entity(ent, cmp.Name)
     # TODO: message based on mutation (i.e. "{t}{n} grew an arm!") Is this dumb?
-    event_sight(pos.x,pos.y,"{t}{n} mutated!".format(
-        t=TITLES[entn.title],n=entn.name))
+    event_sight(pos.x,pos.y,"{n} mutated!".format(n=gettitlename(ent)))
 
 def has_sight(ent):
     if (Rogue.world.has_component(ent, cmp.SenseSight) and not on(ent,BLIND)):
@@ -1017,7 +1025,7 @@ def push(ent, _dir, n=1):
 # identifying
 ##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
 def look_identify_at(x,y):
-    if in_view(pc(),x,y):
+    if in_view(Rogue.pc,x,y):
         pass
     desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
     return "{}{}".format(char, desc)
@@ -1050,7 +1058,7 @@ def damage(ent, dmg: int):
         kill(ent)
         return
     mat = Rogue.world.component_for_entity(ent, cmp.Form).material
-    dt = MATERIALS[mat][1]
+    dt = getMatDamageThreshold(mat)
     if dmg >= dt:
         kill(ent)
         return
@@ -1115,8 +1123,8 @@ def contact(ent1,ent2,force=0): # touch two entities together
     mat2=world.component_for_entity(ent1, cmp.Form).material
     mass1=getms(ent1, 'mass')
     mass2=getms(ent2, 'mass')
-    hard1=MATERIALS[mat1][2]
-    hard2=MATERIALS[mat2][2]
+    hard1=getMatHardness(mat1)
+    hard2=getMatHardness(mat2)
     gforce(ent1, force)
     gforce(ent2, force)
     if (hard1 > hard2):
@@ -1489,8 +1497,6 @@ def create_entity():
 ##    ent = Rogue.world.create_entity()
 ##    Rogue.world.add_component(ent, cmp.Flags) #flagset
 ##    return ent
-def material_damage_threshold(mat):
-    return MATERIALS[mat][1]
 
 # harvesting
 def breakitem(item, tool=None):
@@ -1773,111 +1779,113 @@ def wound(ent: int, woundtype: int, quality: int) -> bool:
         world.add_component(ent, woundcls(quality))
         wounded = True
     if wounded:
-        # message
-        pass
+        pos = world.component_for_entity(ent, cmp.Position)
+        event_sight(pos.x,pos.y,"{} wounded ({})".format(
+            gettitlename(ent), WOUNDS[woundtype][quality]['name']]
+            ))
     return wounded
     
-def __damagebp(bptarget, damage) -> int:
+def __damagebp(ent, bptarget, damage) -> int:
     ''' return int signifying if BP was
         crippled (1), dismembered (2), or neither (0) '''
     if damage <= 0:
-        return 0
+        return
+    pos = world.component_for_entity(ent, cmp.Position)
     bptarget.hp -= damage
     if bptarget.hp <= -20:
-        return 2
-    if bptarget.hp <= 0:
+        if bptarget.status != BPSTATUS_AMPUTATED:
+            # TODO: handle creation of limb object
+            # and logic for handling an amputated body part
+            #   (hint: cannot use that body part for ANYTHING)
+            #   (use bp.status to determine if crippled/amputated etc.)
+            bptarget.status = BPSTATUS_AMPUTATED
+            event_sight(pos.x,pos.y, "{}'s {} is dismembered".format(
+                gettitlename(ent), cmp.BPNAMES[type(bptarget)]
+                ))
+    elif bptarget.hp <= 0:
         bptarget.hp = 0 # padding for dismemberment
-        return 1
-    return 0
+        if bptarget.status == BPSTATUS_NORMAL:
+            bptarget.status = BPSTATUS_CRIPPLED
+            event_sight(pos.x, pos.y, "{}'s {} is crippled".format(
+                gettitlename(ent), cmp.BPNAMES[type(bptarget)]
+                ))
 def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int):
     '''
         ent        entity who owns the bp being targeted
         bptarget   BP_ (Body Part) component object instance to damage
         dmgtype    DMGTYPE_ const
-        quality    >=1: damage value -- how high of a priority of
-                    status is inflicted? 1 is least severe
-                    Quality might be altered for effective weapon
+        quality    damage value -- how high of a priority of
+                    status is inflicted? 1 is least severe, 9 most
+                    Quality may be altered in case of effective weapon
                     pairing i.e. blunt vs. bony BP or cut vs. fleshy BP.
 
         Damage the body part and possibly inflict a wound
     '''
     
     woundtype = None
-    softTarget = bptarget.SOFT_TARGET
+    brainDmg = 1
+    organDmg = 1
     
     if dmgtype==DMGTYPE_ABRASION: # rash
         woundtype = WOUND_RASH
-        dmg = dmg*1.5 if softTarget else dmg*0.2
+        brainDmg = 0
+        organDmg = 0
+        if bptarget.SOFT_TARGET: dmg = dmg*1.5
     elif dmgtype==DMGTYPE_BURN: # burn
         woundtype = WOUND_RASH
-        dmg = dmg*1 if softTarget else 0
+        brainDmg = 0
+        organDmg = 0
+        if bptarget.SOFT_TARGET: dmg = dmg*2
     elif dmgtype==DMGTYPE_CUT: # cut
         woundtype = WOUND_CUT
-        if softTarget:
+        brainDmg = 0
+        if bptarget.SOFT_TARGET:
             quality += 1
             dmg = dmg*3
-        else:
-            dmg*0.5
     elif dmgtype==DMGTYPE_PIERCE: # pierce
         woundtype = WOUND_PUNCTURE
-        if softTarget:
+        brainDmg = 0
+        if bptarget.SOFT_TARGET:
             quality += 1
             dmg = dmg*4
-        else:
-            dmg = 0
     elif dmgtype==DMGTYPE_HACK: # hack - axes
-        dmg = dmg*2 if softTarget else dmg*4
-        quality += 1 # hack damage is very wounding
+        # hack damage is very wounding
+        dmg = dmg*2 if bptarget.SOFT_TARGET else dmg*4
+        quality += 1
         if dice.roll(6) % 2 == 0: # cut damage
-            if softTarget: quality += 1
+            if bptarget.SOFT_TARGET: quality += 1
             woundtype = WOUND_CUT
         else: # bruise damage
-            if not softTarget: quality += 2
+            if not bptarget.SOFT_TARGET: quality += 2
             woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_BLUNT:
-        dmg = dmg*0.5 if softTarget else dmg*3
+        dmg = dmg*2 if bptarget.BONES else dmg*0.75
         woundtype = WOUND_MUSCLE
-        if not softTarget: quality += 2
-    elif dmgtype==DMGTYPE_STUDS:
-        dmg = dmg*1 if softTarget else dmg*3
-        if dice.roll(6) == 1: # cut damage
-            if softTarget: quality += 1
-            woundtype = WOUND_CUT
-        else: # bruise damage
-            if not softTarget: quality += 2
-            woundtype = WOUND_MUSCLE
+        if not bptarget.SOFT_TARGET: quality += 2
     elif dmgtype==DMGTYPE_SPIKES:
-        dmg = dmg*2 if softTarget else dmg*1.5
+        dmg = dmg*1.5 if bptarget.BONES else dmg*1
         if dice.roll(6) % 2 == 0: # puncture damage
-            if softTarget: quality += 1
+            if bptarget.SOFT_TARGET: quality += 1
             woundtype = WOUND_PUNCTURE
         else: # bruise damage
-            if not softTarget: quality += 2
+            if not bptarget.SOFT_TARGET: quality += 2
             woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_GUNSHOT:
-        dmg = dmg*2 if softTarget else dmg*0.5
+        if bptarget.SOFT_TARGET: dmg *= 2
         woundtype = WOUND_GUNSHOT
 
     # deal HP damage
     dmg *= BP_DAMAGE_MULTIPLIER
-    crippled = __damagebp(bptarget, around(dmg))
-    if crippled:
-##        if crippled==1: # crippled
-##        if crippled==2: # dismembered
-#           TODO: message like "yooo shit entity's BP fell off!!"
-#           AND logic to consider the body part as dismembered (not here)
-        pass
+    __damagebp(ent, bptarget, around(dmg))
 
-    # generic wound
+    # attempt generic wound
     wound(ent, woundtype, quality)
     
-    # organ and brain damage
-    if dmgIndex >= 3:
-        if bptarget.HAS_ORGANS:
-            wound(ent, WOUND_ORGAN, dmgIndex - 2)
-    if dmgIndex >= 2:
-        if bptarget.HAS_BRAINS:
-            wound(ent, WOUND_BRAIN, dmgIndex - 1)
+    # attempt to wound organs and/or brains
+    if (organDmg and bptarget.HAS_ORGANS):
+        wound(ent, WOUND_ORGAN, quality - dice.roll(3))
+    if (brainDmg and bptarget.HAS_BRAINS):
+        wound(ent, WOUND_BRAIN, quality - dice.roll(2))
 # end def
 
 def attackbp(
@@ -1886,7 +1894,7 @@ def attackbp(
     ''' entity attkr attacks dfndr's bp bptarget with weapon weap
         using skill skill_type and damage type dmgtype if !=-1 '''
     world=Rogue.world
-    dmgIndex = 1
+    dmgIndex = 0 # wound amount (quality)
 
     # TODO: add randomness to dmgIndex
     
@@ -1898,8 +1906,8 @@ def attackbp(
         else: # damage type based on skill of the weapon by default
             if skill_type:
                 dmgtype = DMGTYPES[skill_type]
-                # increase based on skill level
-                skill_lv = getskill(ent, skill_type)
+                # increase wounding quality based on skill level
+                skill_lv = getskill(attkr, skill_type)
                 dmgIndex += 1 + skill_lv*SKILL_LV_WOUND_MODIFIER
             else: # no skill involved
                 if weap: # default to blunt damage
@@ -1930,7 +1938,8 @@ def attackbp(
     #
     
     # deal body damage
-    damagebp(bptarget, dmgtype, dmgIndex)
+    # ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int
+    damagebp(dfndr, bptarget, dmg, dmgtype, dmgIndex)
     
 # end if
 
@@ -2339,44 +2348,44 @@ def _initThing(ent):
     register_entity(ent)
     grid_insert(ent)
     givehp(ent) #give random quality based on dlvl?
-def create_weapon(name,x,y): #,quality=1
-    ent=entities.create_weapon(name,x,y)
+def create_weapon(name,x,y,condition=1,mat=None):
+    ent=entities.create_weapon(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_armor(name,x,y):
-    ent=entities.create_armor(name,x,y)
+def create_armor(name,x,y,condition=1,mat=None):
+    ent=entities.create_armor(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_legwear(name,x,y):
-    ent=entities.create_legwear(name,x,y)
+def create_legwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_legwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_armwear(name,x,y):
-    ent=entities.create_armwear(name,x,y)
+def create_armwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_armwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_footwear(name,x,y):
-    ent=entities.create_footwear(name,x,y)
+def create_footwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_footwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_headwear(name,x,y):
-    ent=entities.create_headwear(name,x,y)
+def create_headwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_headwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_neckwear(name,x,y):
-    ent=entities.create_neckwear(name,x,y)
+def create_neckwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_neckwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_facewear(name,x,y):
-    ent=entities.create_facewear(name,x,y)
+def create_facewear(name,x,y,condition=1,mat=None):
+    ent=entities.create_facewear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_eyewear(name,x,y):
-    ent=entities.create_eyewear(name,x,y)
+def create_eyewear(name,x,y,condition=1,mat=None):
+    ent=entities.create_eyewear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
-def create_earwear(name,x,y):
-    ent=entities.create_earwear(name,x,y)
+def create_earwear(name,x,y,condition=1,mat=None):
+    ent=entities.create_earwear(name,x,y,condition=condition,mat=mat)
     _initThing(ent)
     return ent
 
@@ -3642,7 +3651,7 @@ def aim_find_target(xs, ys, selectfunc, *args, **kwargs):
     Rogue.view.fixed_mode_disable()
     # listener -- handles the shooting
     listener = Aim_Manager_Listener(
-        world(), pc(), selectfunc, *args, **kwargs)
+        world(), Rogue.pc, selectfunc, *args, **kwargs)
     manager_listeners_add(listener)
 
 # Manager_PrintScroll
@@ -3681,7 +3690,9 @@ def routine_print_charPage():
     game_set_state("manager") #character page
     width   = window_w()
     height  = window_h()
-    strng   = misc.render_charpage_string(width,height,pc(),get_turn(),dlvl())
+    strng   = misc.render_charpage_string(
+        width, height, Rogue.pc, get_turn(), dlvl()
+        )
     nlines  = 1 + strng.count('\n')
     hud1h   = 3
     hud2h   = 3

@@ -604,9 +604,9 @@ def _amputate(item, value):
 def _spikes(item, q=1):
     rog.world().add_component( item, cmp.DamageTypeMelee(
         {DMGTYPE_SPIKES:q, DMGTYPE_BLUNT:1}, DMGTYPE_SPIKES) )
-def _studs(item, q=1):
-    rog.world().add_component( item, cmp.DamageTypeMelee(
-        {DMGTYPE_STUDS:q, DMGTYPE_BLUNT:1}, DMGTYPE_STUDS) )
+##def _studs(item, q=1):
+##    rog.world().add_component( item, cmp.DamageTypeMelee(
+##        {DMGTYPE_STUDS:q, DMGTYPE_BLUNT:1}, DMGTYPE_STUDS) )
 
     # /
 
@@ -898,7 +898,7 @@ def _dosimeter(tt):
     def funcUsePC(self, ent): 
         pos=world.component_for_entity(ent, cmp.Position)
         reading = rog.radsat(pos.x,pos.y)
-        rog.msg("The geiger counter reads '{} RADS'".format(reading))
+        rog.msg("Reads: '{} RADS'".format(reading))
         #could do, instead:
         # use turns it on, activates an observer.
         # updates when rad damage received by player. Adds rad value to dosimeter
@@ -907,7 +907,7 @@ def _dosimeter(tt):
     def funcUseNPC(self, ent):
         rog.spendAP(ent, NRG_USE)
         pos=world.component_for_entity(ent, cmp.Position)
-        rog.event_sight(pos.x,pos.y,"{t}{n} looks at a geiger counter.")
+##        rog.event_sight(pos.x,pos.y,"{t}{n} looks at a geiger counter.")
     #components
     _canThrow(ent, rng=4)
     _weapon(ent, atk=1, dmg=1, asp=-6)
@@ -1600,7 +1600,6 @@ def _mace(item, toArmor=10, cm=40):
     _bonusToHard(item, toArmor)
     _canThrow(item, acc=-2, rng=8, skill=SKL_ENDOVEREND)
     _length(item, cm)
-    _studs(item)
 def _pMace(item):
     _mace(item, toArmor=1)
 def _wMace(item):
@@ -3621,7 +3620,7 @@ def _update_from_bpc_torso(lis, ent, bpc, armorSkill, unarmored):
 def get_statmods_from_bp(ent, bp, bpType, dadd, dmul):
     compo = rog.world().component_for_entity(ent, cmp.ModdedStats)
     for ratio,data in BP_HEALTH_STATMODS[bpType].items():
-        if (bp.hp <= ratio*BP_HEALTH_MAX):
+        if (bp.hp <= ratio*compo.MAX_HP):
             _add(dadd, data['add'])
             _mult(dmul, data['mult'])
 # end def
@@ -4600,11 +4599,7 @@ def create_armor(name,x,y, condition=1, mat=None) -> int:
     if enc==0: enc=1
     world.add_component(ent, cmp.Encumberance(enc))
     # stats component
-    stats = cmp.Stats(
-        hp = rog.around(hpmax * condition),
-        mp = hpmax,
-        mass = mass
-        )
+    stats = cmp.Stats(hp=max(1, rog.around(hpmax * condition)), mp=1, mass=mass)
     world.add_component(ent, stats)
     
     _setGenericData(ent, material=material)
@@ -7398,8 +7393,8 @@ CLS_PILOT       : ("p", "pilot",     70, 500, 0,'P',
         SKL_PERCEPTION  :_INTERMEDIATE,
     },
     (
-        ('shirt', create_armor, 1, EQ_FRONT, _fine,),
-        ('pants', create_legwear, 1, EQ_MAINLEG, _fine,),
+        ('shirt', create_armor, 1, EQ_FRONT,  None, _fine,),
+        ('pants', create_legwear, 1, EQ_MAINLEG,  None, _fine,),
         ),
     ),
 CLS_PROGRAMMER  : ("q", "programmer",65, 2000,0,'',
@@ -7418,8 +7413,8 @@ CLS_POLITICIAN  : ("I", "politician",60,20000,4,'K',
         SKL_PERSUASION  :_MASTER,
     },
     (
-        ('shirt', create_armor, 1, EQ_FRONT, _exquisite, None,),
-        ('jeans', create_legwear, 1, EQ_MAINLEG, _exquisite, None,),
+        ('shirt', create_armor, 1, EQ_FRONT, None, _exquisite,),
+        ('jeans', create_legwear, 1, EQ_MAINLEG, None, _exquisite,),
         ),
     ),
 CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
@@ -7436,7 +7431,7 @@ CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
     },
     (
         ('kerflame vest', create_armor, 1, EQ_FRONT, None, None,),
-        ('pants', create_legwear, 1, EQ_MAINLEG, _camo, None,),
+        ('pants', create_legwear, 1, EQ_MAINLEG, None, _camo,),
         ('assault rifle', create_ranged_weapon, 1, EQ_NONE, None, None,),
         ('bayonet', create_weapon, 1, EQ_NONE, MAT_METAL, None,),
         ('gun strap', create_ranged_mod, 1, EQ_NONE, MAT_LEATHER, None,),
@@ -7468,8 +7463,8 @@ CLS_THIEF       : ("t", "thief",     70, 5000,0,'',
         SKL_PERCEPTION  :_JOURNEYMAN,
     },
     (
-        ('shirt', create_armor, 1, EQ_FRONT, _extravagant,),
-        ('pants', create_legwear, 1, EQ_MAINLEG, _extravagant,),
+        ('shirt', create_armor, 1, EQ_FRONT, None, _extravagant,),
+        ('pants', create_legwear, 1, EQ_MAINLEG, None, _extravagant,),
         ('boot', create_footwear, 1, EQ_MAINFOOT, MAT_LEATHER, _extravagant,),
         ('boot', create_footwear, 1, EQ_OFFFOOT, MAT_LEATHER, _extravagant,),
         ('bandana', create_facewear, 1, EQ_NONE, None, _extravagant,),

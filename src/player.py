@@ -855,7 +855,7 @@ def _select_class():
         _jobkeys = entities.getJobClearance(_classID)
         
         # for display by confirmation prompt
-        _classDescription = entities.getJobDescription(_classID) #TODO: make
+        _classDescription = entities.getJobDescription(_classID)
         # create class stats info
         _classStats=""
         if _jobstats:
@@ -866,8 +866,9 @@ def _select_class():
         _classItems = ""
         if _jobitems:
             for tupl in _jobitems:
-                name,table,quantity,slot,script = tupl
-                _classItems += "{}, x{}; ".format(name,quantity)
+                name,table,quantity,slot,mat,script = tupl
+                matname = "{} ".format(rog.getMatName(mat)) if mat else ""
+                _classItems += "{}{}, x{}; ".format(matname, name, quantity)
             _classItems=_classItems[:-2]
         
         # info about class && confirmation
@@ -876,7 +877,7 @@ def _select_class():
             text = '''Class: {name}.
 {desc}
 Mass: {kg} KG.
-Starts with ( ${money}, {items} ).
+Starts with (${money}, {items}).
 [ {stats} ]'''.format(
                 name=_className,
                 kg=_mass,
@@ -887,7 +888,7 @@ Starts with ( ${money}, {items} ).
                 )
             rog.dbox(
                 0,0,rog.msgs_w(),12,text,
-                wrap=False,border=1,con=rog.con_final()
+                wrap=True,border=1,con=rog.con_final()
                 )
             ans=rog.prompt(
                 0,rog.window_h()-ph,rog.window_w(),ph,

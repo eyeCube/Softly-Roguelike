@@ -772,352 +772,495 @@ class BPM_Hearts:
     - All BPs have HP (health) and SP (stamina) values.
     - Usually contain a slot
     - Has optional BPP sub-components
-    - DO NOT have a STATUS
+    - Have status variable that indicates whether it is crippled, dismembered,
+         or neither.
 
     static constants:
-    SOFT_TARGET  - fleshy (True) or bony (False)?
-                    Affects blunt / sharp damage to BPs and wounding
-    HAS_ORGANS   - if yes, can deal organ wounds
-    HAS_BRAINS   - if yes, can deal brain wounds
+    SOFT_TARGET  - unused
+    MAX_HP       - maximum health of body part (absolute max is BP_HEALTH_MAX)
+    MAX_SP       - maximum stamina of body part (absolute max is BP_STAMINA_MAX)
+    HAS_ORGANS   - bool. Does this BP have internal organs? (For organ damage)
+    HAS_BRAINS   - bool. Does this BP have brains? (For causing brain damage)
+    MATERIAL     - MAT_ const -- outer material (flesh usually)
+    BONES        - MAT_ const -- inner material (bone usually or 0 for None)
     WEAR_TYPE    - EQ_ const (equipped item: armor, clothing, etc.)
     HOLD_TYPE    - EQ_ const (held item: weapons, etc.)
 '''
 class BP_TorsoCore: # abdomen
     __slots__=['slot','hp','sp']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_CORE
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_CORE
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_TorsoFront: # thorax front (chest)
     __slots__=['slot','hp','sp']
+    MAX_HP      = 1.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_FRONT
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_FRONT
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_TorsoBack: # thorax back
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
+    MAX_HP      = 1.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_BACK
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_BACK
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_Hips: # pelvic region
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_HIPS
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_HIPS
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_Cell:
-    __slots__=['slot']
+    __slots__=['slot','status']
+    MAX_HP      = 0.25*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_CELL
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_CELL
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
+        self.status=BPSTATUS_NORMAL
 class BP_Head:
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    WEAR_TYPE   = EQ_MAINHEAD
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = True
-    WEAR_TYPE = EQ_MAINHEAD
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = True
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_Neck:
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINNECK
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINNECK
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_Face:
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINFACE
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = True
-    WEAR_TYPE = EQ_MAINFACE
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = True
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
+        self.status=BPSTATUS_NORMAL
 class BP_Mouth:
-    __slots__=['held','gustatorySystem','hp','sp','weapon']
+    __slots__=['held','gustatorySystem','hp','sp','weapon','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_NONE
+    HOLD_TYPE   = EQ_MAINMOUTH
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_NONE
-    HOLD_TYPE = EQ_MAINMOUTH
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, taste=20): # quality of taste system
         self.held=Slot() # grabbed slot (weapon equip, etc.) (TODO: mouth holding / equipping items/weapons)
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.weapon=LIMBWPN_TEETH
         self.gustatorySystem=BPP_GustatorySystem(quality=taste)
+        self.status=BPSTATUS_NORMAL
 class BP_Eyes:
-    __slots__=['slot','visualSystem','open','hp','sp']
+    __slots__=['slot','visualSystem','open','hp','sp','status']
+    MAX_HP      = 0.25*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINEYES
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINEYES
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, quantity=2, quality=20): #numEyes; vision;
         self.slot=Slot()        # eyewear for protecting eyes
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.visualSystem=BPP_VisualSystem(quantity=quantity,quality=quality)
         self.open=True #eyelids open or closed? (affects resistance to chemical / light / dust damage etc.)
+        self.status=BPSTATUS_NORMAL
 class BP_Ears:
-    __slots__=['slot','auditorySystem','hp','sp']
+    __slots__=['slot','auditorySystem','hp','sp','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINEARS
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINEARS
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, quantity=2, quality=60):
         self.slot=Slot()        # earplugs, for protecting ears
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.auditorySystem=BPP_AuditorySystem(quantity=quantity,quality=quality)
+        self.status=BPSTATUS_NORMAL
 class BP_Nose:
-    __slots__=['olfactorySystem','hp','sp']
+    __slots__=['olfactorySystem','hp','sp','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_NONE
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_NONE
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, quality=10):
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
+        self.status=BPSTATUS_NORMAL
 class BP_Arm: # upper / middle arm and shoulder
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINARM
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINARM
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Hand: # hand and lower forearm
-    __slots__=['slot','held','hp','sp','grip','weapon']
+    __slots__=['slot','held','hp','sp','grip','weapon','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINHAND
+    HOLD_TYPE   = EQ_MAINHANDW
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINHAND
-    HOLD_TYPE = EQ_MAINHANDW
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, grip=10):
         self.slot=Slot() # armor slot (gloves etc.)
         self.held=Slot() # grabbed slot (weapon equip, etc.)
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.weapon=LIMBWPN_HAND # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.grip=grip # grip your bare hand has
+        self.status=BPSTATUS_NORMAL
 class BP_Leg: # thigh and knee
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINLEG
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINLEG
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Foot: # foot, ankle and lower leg
-    __slots__=['slot','hp','sp','covered','grip']
+    __slots__=['slot','hp','sp','covered','grip','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINFOOT
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINFOOT
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, grip=10):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.grip=grip # grip your bare foot has
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_InsectThorax:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_CHITIN
+    BONES       = 0
+    WEAR_TYPE   = EQ_ITHORAX
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_ITHORAX
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_InsectAbdomen:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_CHITIN
+    BONES       = 0
+    WEAR_TYPE   = EQ_IABDOMEN
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = True
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_IABDOMEN
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_InsectHead:
-    __slots__=['slot','hp','sp','visualSystem','covered']
+    __slots__=['slot','hp','sp','visualSystem','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_CHITIN
+    BONES       = 0
+    WEAR_TYPE   = EQ_IHEAD
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = True
-    WEAR_TYPE = EQ_IHEAD
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = True
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.visualSystem=BPP_VisualSystem()
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Mandible:
-    __slots__=['held','hp','sp','holding','weapon']
+    __slots__=['held','hp','sp','holding','weapon','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_CHITIN
+    BONES       = 0
+    WEAR_TYPE   = EQ_IMANDIBLE
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_IMANDIBLE
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.held=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.weapon=LIMBWPN_PINCER # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.holding=False
+        self.status=BPSTATUS_NORMAL
 class BP_InsectLeg:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_CHITIN
+    BONES       = 0
+    WEAR_TYPE   = EQ_IMAINLEG
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_IMAINLEG
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
-    __slots__=['slot','held','hp','sp','stickies','covered','holding','weapon']
+    __slots__=['slot','held','hp','sp','stickies','covered','holding','weapon','status']
+    MAX_HP      = BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = 0
+    WEAR_TYPE   = EQ_1TENTACLE
+    HOLD_TYPE   = EQ_1TENTACLEW
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_1TENTACLE
-    HOLD_TYPE = EQ_1TENTACLEW
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, stickies=0):
         self.slot=Slot()
         self.held=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.weapon=LIMBWPN_TENTACLE # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
         self.covered=False
         self.holding=False
+        self.status=BPSTATUS_NORMAL
 class BP_Pseudopod:
-    __slots__=['slot','hp','sp','covered','weapon']
+    __slots__=['slot','hp','sp','covered','weapon','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_MUCOUS
+    BONES       = 0
+    WEAR_TYPE   = EQ_NONE
+    HOLD_TYPE   = EQ_PSEUDOPOD
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_NONE
-    HOLD_TYPE = EQ_PSEUDOPOD
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.weapon=LIMBWPN_PSEUDOPOD # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Ameboid:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_MUCOUS
+    BONES       = 0
+    WEAR_TYPE   = EQ_AMEBOID
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = True
-    HAS_BRAINS = True
-    WEAR_TYPE = EQ_AMEBOID
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = True
+    HAS_BRAINS  = True
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Wing:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_MAINWING
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_MAINWING
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Tail:
-    __slots__=['slot','hp','sp','covered']
+    __slots__=['slot','hp','sp','covered','status']
+    MAX_HP      = 0.5*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = MAT_BONE
+    WEAR_TYPE   = EQ_1TAIL
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = False
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_1TAIL
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
         self.slot=Slot()
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 class BP_Genitals:
-    __slots__=['hp','sp','covered']
+    __slots__=['hp','sp','covered','status']
+    MAX_HP      = 0.25*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = 0
+    WEAR_TYPE   = EQ_GENITALS
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_GENITALS
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self):
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
-class BP_Appendage: #worthless appendage (small boneless, musclesless tails, etc.)
-    __slots__=['kind','hp','sp','covered']
+        self.status=BPSTATUS_NORMAL
+class BP_Appendage: #worthless fleshy appendage (small boneless, musclesless tails, etc.)
+    __slots__=['kind','hp','sp','covered','status']
+    MAX_HP      = 0.2*BP_HEALTH_MAX
+    MAX_SP      = BP_STAMINA_MAX
+    MATERIAL    = MAT_FLESH
+    BONES       = 0
+    WEAR_TYPE   = EQ_NONE
+    HOLD_TYPE   = EQ_NONE
     SOFT_TARGET = True
-    HAS_ORGANS = False
-    HAS_BRAINS = False
-    WEAR_TYPE = EQ_NONE
-    HOLD_TYPE = EQ_NONE
+    HAS_ORGANS  = False
+    HAS_BRAINS  = False
     def __init__(self, kind):
         self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
-        self.hp=BP_HEALTH_MAX
-        self.sp=BP_STAMINA_MAX
+        self.hp=self.MAX_HP
+        self.sp=self.MAX_SP
         self.covered=False
+        self.status=BPSTATUS_NORMAL
 
 ''' BPP components (Body part component's subcomponents) ''' 
 class BPP_VisualSystem:

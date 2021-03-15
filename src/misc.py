@@ -1115,24 +1115,25 @@ def rectangle(con,x,y,w,h,border):
 
 
 
-'''
-#
-# func textbox
-#
-# display text box with border and word wrapping
-#
-    Args:
-    x,y,w,h     location and size
-    text        display string
-    border      border style. None = No border
-    wrap        whether to use automatic word wrapping
-    margin      inside-the-box text padding on top and sides
-    con         console on which to blit textbox, should never be 0
-    disp        display mode: 'poly','mono'
 
-'''
 
 def dbox(x,y,w,h,text, wrap=True,border=0,margin=0,con=0,disp='poly') :
+    '''
+    #
+    # func dbox (textbox / dialogue box / dialog box)
+    #
+    # display text box with border and word wrapping
+    #
+        Args:
+        x,y,w,h     location and size
+        text        display string
+        border      border style. None = No border
+        wrap        whether to use automatic word wrapping
+        margin      inside-the-box text padding on top and sides
+        con         console on which to blit textbox, should never be 0
+        disp        display mode: 'poly','mono'
+
+    '''
     con_box = libtcod.console_new(w,h)
     
     pad=0 if border == None else 1

@@ -1395,6 +1395,11 @@ CORETYPES={
 BODYPLAN_HUMANOID : CORETYPE_TORSO,
 }
 
+# BP statuses
+BPSTATUS_NORMAL     = 0
+BPSTATUS_CRIPPLED   = 1
+BPSTATUS_AMPUTATED  = 2
+
 # body parts
 
 i=1;
@@ -1426,6 +1431,7 @@ BP_INSECTHEAD   =i;i+=1;
 BP_INSECTLEG    =i;i+=1;
 BP_INSECTTHORAX =i;i+=1;
 BP_INSECTABDOMEN=i;i+=1;
+
 # coverage of specific body parts, for armor skill bonuses
 COVERAGE={
     BP_HAND  : 0.05,
@@ -1663,11 +1669,11 @@ BP_FACE         :{
     0  :{'add':{'respain':-32, 'bea':-64, 'idn':-20,},'mult':{},},
     },
 BP_NOSE         :{
-    0.8:{'add':{'respain':-2, 'bea':-4, 'idn':-1,},'mult':{},},
-    0.6:{'add':{'respain':-4, 'bea':-8, 'idn':-2,},'mult':{},},
-    0.4:{'add':{'respain':-8, 'bea':-16, 'idn':-4,},'mult':{},},
-    0.2:{'add':{'respain':-16, 'bea':-32, 'idn':-8,},'mult':{},},
-    0  :{'add':{'respain':-32, 'bea':-64, 'idn':-12,},'mult':{},},
+    0.8:{'add':{'respain':-1, 'bea':-2, 'idn':-1,},'mult':{},},
+    0.6:{'add':{'respain':-2, 'bea':-4, 'idn':-2,},'mult':{},},
+    0.4:{'add':{'respain':-4, 'bea':-8, 'idn':-4,},'mult':{},},
+    0.2:{'add':{'respain':-8, 'bea':-16, 'idn':-8,},'mult':{},},
+    0  :{'add':{'respain':-16, 'bea':-32, 'idn':-12,},'mult':{},},
     },
 BP_EYES         :{
     # NOTE: in cases of multiple visual systems, the ratio is taken as the combined
@@ -2368,7 +2374,8 @@ i=0;
 GENDER_NONE     =i;i+=1; # for inanimate objects and genderless creatures
 GENDER_MALE     =i;i+=1;
 GENDER_FEMALE   =i;i+=1;
-GENDER_OTHER    =i;i+=1; # nonbinary
+GENDER_NONBINARY=i;i+=1;
+GENDER_CUSTOM   =i;i+=1;
 GENDER_NEW      =i; # index for creating a new gender
 
 GENDERS={
@@ -2383,9 +2390,12 @@ GENDER_MALE     : (
 GENDER_FEMALE   : (
     "female",
     ('she', 'her', 'her', 'hers', "woman", "madam", "girl",),),
-GENDER_OTHER    : (
+GENDER_NONBINARY: (
     "nonbinary",
     ('they','them','their','theirs',"person","individual","person",),),
+GENDER_CUSTOM   : (
+    "name",
+    ('subject','object','possessive','plural',"generic","polite","formal",),),
 }
 
 
@@ -2516,6 +2526,7 @@ TOOL_DECAY_RATES={
 #
 i=1;
 MAT_FLESH       =i;i+=1;
+MAT_MUCOUS      =i;i+=1;
 MAT_BONE        =i;i+=1;
 MAT_METAL       =i;i+=1;
 MAT_CARBON      =i;i+=1;
@@ -2575,6 +2586,7 @@ MATERIALS={
     #   gasoline, and hazmats.
 # ID            : (name,            DT, hardness,$/kg)
 MAT_FLESH       : ("flesh",         100, 0, 5,),
+MAT_MUCOUS      : ("mucous",        100, 0, 0,),
 MAT_BONE        : ("bone",          20,  3, 4,),
 MAT_METAL       : ("metal",         80,  5, 50,),
 MAT_CARBON      : ("carbon",        160, 4, 10,),
@@ -2609,13 +2621,124 @@ FL_SMOKE        : ("smoke",         999, 0, 0,),
 FL_ALCOHOL      : ("alcohol",       999, 0, 10,),
 FL_NAPALM       : ("napalm",        999, 0, 400,),
 FL_GASOLINE     : ("petrol",        999, 0, 20,),
-FL_HAZMATS      : ("bio-hazard",    999, 0, 0,),
+FL_HAZMATS      : ("bio-hazard",    999, 0, 1,),
 }
+
+# materials considered soft for purposes of combat damage / wounding body parts (BPs)
+SOFT_MATERIALS=(
+MAT_FLESH,
+MAT_MUCOUS,
+MAT_LEATHER,
+    )
+
+# material BP damage modifiers for specific wound types
+##MATERIAL_BODY={
+##MAT_FLESH       :{
+##    WOUND_RASH:1.5,
+##    WOUND_CUT:3,
+##    WOUND_PUNCTURE:4,
+##    WOUND_GUNSHOT:2,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_MUCOUS      :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:2,
+##    WOUND_PUNCTURE:1.5,
+##    WOUND_GUNSHOT:3,
+##    WOUND_MUSCLE:0,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_BONE        :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_METAL       :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_PLASTIC     :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_LEATHER     :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_BLEATHER    :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_CHITIN      :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_KERATIN     :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##MAT_STEEL       :{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##0:{
+##    WOUND_RASH:1,
+##    WOUND_CUT:1,
+##    WOUND_PUNCTURE:1,
+##    WOUND_GUNSHOT:1,
+##    WOUND_MUSCLE:1,
+##    WOUND_ORGAN:1,
+##    WOUND_BRAIN:1,
+##    },
+##    }
 
 # material fuel values
 FUEL_MULT       = 1.00 # global multiplier for all materials
 MAT_FUEL={
 MAT_FLESH       : 1,
+MAT_MUCOUS      : 0,
 MAT_BONE        : 0,
 MAT_METAL       : 0,
 MAT_CARBON      : 0,
@@ -2653,7 +2776,7 @@ MAT_CERAMIC     : MAXGRIND_CERAMIC,
 MAT_CLOTH       : MAXGRIND_CLOTH,
 }
 
-# Boiling, Melting, flash (Ignition) Points
+# Boiling (BP), Melting (MP), flash (Ignition) Points (IP)
 # temperature related to the points:
 #   below MP, it's solid
 #   between MP and BP, it's liquid
@@ -2661,6 +2784,7 @@ MAT_CLOTH       : MAXGRIND_CLOTH,
 MATERIAL_PHYSICS={
 # material      : (MP,  BP,  IP,)
 MAT_FLESH       : (300, 900, 150,),
+MAT_MUCOUS      : (50,  200, 9999,),
 MAT_BONE        : (1600,9999,1500,),
 MAT_METAL       : (1500,9999,9999,),
 MAT_CARBON      : (4200,9999,350,),
@@ -2709,18 +2833,6 @@ MAT_QUARTZ : 'crystal',
 
 
 
-
-
-#
-# phases of matter
-#
-i=1;
-PHASE_SOLID     =i;i+=1;
-PHASE_FLUID     =i;i+=1;   # liquid and gas
-
-
-
-
 #
 # Armor #
 #
@@ -2729,6 +2841,7 @@ ARMOR_HARD = 2
 
 ARMOR={ # default armor types from material
 MAT_FLESH       : ARMOR_SOFT,
+MAT_MUCOUS      : ARMOR_SOFT,
 MAT_BONE        : ARMOR_HARD,
 MAT_METAL       : ARMOR_HARD,
 MAT_CARBON      : ARMOR_HARD,
@@ -2756,6 +2869,46 @@ MAT_ALUMINUM    : ARMOR_HARD,
 MAT_STEEL       : ARMOR_HARD,
 MAT_DIAMOND     : ARMOR_HARD,
 }
+
+WETNESS_MAX_MATERIAL={
+MAT_FLESH       : 0.01,
+MAT_MUCOUS      : 0.01,
+MAT_BONE        : 0.1,
+MAT_METAL       : 0.01,
+MAT_CARBON      : 0.01,
+MAT_PLASTIC     : 0.01,
+MAT_TARP        : 0,
+MAT_STONE       : 0.1,
+MAT_DUST        : 0.25,
+MAT_WOOD        : 1.2,
+MAT_PAPER       : 8,
+MAT_LEATHER     : 0.1,
+MAT_BLEATHER    : 0,
+MAT_CLOTH       : 1.5,
+MAT_ROPE        : 0.1,
+MAT_GLASS       : 0,
+MAT_RUST        : 0.1,
+MAT_CLAY        : 1,
+MAT_CERAMIC     : 0,
+##MAT_GAS         : 1,
+##MAT_WATER       : 0,
+##MAT_OIL         : 0,
+MAT_QUARTZ      : 0.01,
+MAT_RUBBER      : 0.01,
+MAT_CHITIN      : 0.01,
+MAT_KERATIN     : 0.01,
+}
+
+
+
+
+
+#
+# phases of matter
+#
+i=1;
+PHASE_SOLID     =i;i+=1;
+PHASE_FLUID     =i;i+=1;   # liquid and gas
 
 
 
@@ -2845,33 +2998,6 @@ ROTTEDNESS={
 0.333: (0.7, 0.1, "rotted",),
 0.667: (0.3, 0.01,"deeply rotted",),
 0.950: (0,   0.001,"thoroughly rotted",),
-}
-WETNESS_MAX_MATERIAL={
-MAT_FLESH       : 0.01,
-MAT_BONE        : 0.1,
-MAT_METAL       : 0.01,
-MAT_CARBON      : 0.01,
-MAT_PLASTIC     : 0.01,
-MAT_TARP        : 0,
-MAT_STONE       : 0.1,
-MAT_DUST        : 0.25,
-MAT_WOOD        : 1.2,
-MAT_PAPER       : 8,
-MAT_LEATHER     : 0.1,
-MAT_BLEATHER    : 0,
-MAT_CLOTH       : 1.5,
-MAT_ROPE        : 0.1,
-MAT_GLASS       : 0,
-MAT_RUST        : 0.1,
-MAT_CLAY        : 1,
-MAT_CERAMIC     : 0,
-##MAT_GAS         : 1,
-##MAT_WATER       : 0,
-##MAT_OIL         : 0,
-MAT_QUARTZ      : 0.01,
-MAT_RUBBER      : 0.01,
-MAT_CHITIN      : 0.01,
-MAT_KERATIN     : 0.01,
 }
 
 PAIN_QUALITIES={
@@ -4052,22 +4178,34 @@ DIPLOMACY={
 NOISE_SOME      = "something"
 NOISE_WHISPER   = "someone whisper"
 NOISE_SQUEAK    = "a squeak"
+NOISE_CREAK     = "a creak"
 NOISE_RACKET    = "a violent racket"
 NOISE_POP       = "popping noises"
 NOISE_BANG      = "an explosion"
-NOISE_DING      = "a high-pitched ringing sound"
+NOISE_DING      = "a high-pitched ring"
 NOISE_SCREECH   = "someone screeching"
+NOISE_SHUFFLING = "shuffling"
 NOISE_WATERFALL = "water falling"
-NOISE_CLATTER   = "the kind of clattering that causes concern"
+NOISE_CLATTER   = "a concerning clattering"
 
                 # vol, superHearing, generic sound
 SND_FIRE        = (40, "a fire",    NOISE_POP,)
-SND_FIGHT       = (100,"a struggle",NOISE_RACKET,)
+SND_CREAKDOOR   = (20, "a creaking door",NOISE_CREAK,)
+SND_FIGHT       = (120,"a struggle",NOISE_RACKET,)
 SND_DOUSE       = (30, "a fire going out",NOISE_WHISPER,)
 SND_QUAFF       = (20, "gulping noises",NOISE_SOME,)
-SND_COUGH       = (80, "someone coughing",NOISE_SCREECH,)
+SND_COUGH       = (120, "someone coughing",NOISE_BANG,)
 SND_VOMIT       = (80, "someone vomiting",NOISE_WATERFALL,)
-SND_GUNSHOT     = (450,"a gunshot",NOISE_BANG,)
+SND_RUMMAGE     = (40, "someone rummaging",NOISE_SHUFFLING,)
+SND_RATTLING    = (60, "something rattling",NOISE_CLATTERING,)
+SND_VLIGHTSTEPS = (10, "silent strides",NOISE_SHUFFLING,)
+SND_LIGHTSTEPS  = (25, "soft footfall",NOISE_SHUFFLING,)
+SND_STEPS       = (40, "footsteps",NOISE_SHUFFLING,)
+SND_HEAVYSTEPS  = (60, "a heavy treading",NOISE_SHUFFLING,)
+SND_VHEAVYSTEPS = (80, "a blundering stomping",NOISE_SHUFFLING,)
+SND_GUNSHOT1    = (200,"a low-caliber gunshot",NOISE_BANG,)
+SND_GUNSHOT2    = (450,"a gunshot",NOISE_BANG,)
+SND_GUNSHOT3    = (1000,"a high-caliber gunshot",NOISE_BANG,)
 
 
 
