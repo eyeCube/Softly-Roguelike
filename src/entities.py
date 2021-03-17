@@ -259,7 +259,7 @@ def get_weapon_idtype(gData):       return gData[7]
 def get_weapon_mats(gData):         return gData[8]
 def get_weapon_script(gData,mat):   return gData[8][mat]
     #weapon variations
-def get_wpvari_script(vData):       return vData[7]
+def get_wpvari_script(vData):       return vData[6]
     # ranged weapons
 def get_ranged_ammotype(gData):  return gData[0]
 def get_ranged_value(gData):     return gData[1]
@@ -3618,9 +3618,8 @@ def _update_from_bpc_torso(lis, ent, bpc, armorSkill, unarmored):
 
 # BP
 def get_statmods_from_bp(ent, bp, bpType, dadd, dmul):
-    compo = rog.world().component_for_entity(ent, cmp.ModdedStats)
     for ratio,data in BP_HEALTH_STATMODS[bpType].items():
-        if (bp.hp <= ratio*compo.MAX_HP):
+        if (bp.hp <= ratio*bp.MAX_HP):
             _add(dadd, data['add'])
             _mult(dmul, data['mult'])
 # end def
@@ -4452,11 +4451,11 @@ def create_powder(x,y,name,kg) -> int:
 #create a thing from STUFF; does not register thing
 def create_stuff(name, x, y, condition=1, mat=None) -> int:
     world = rog.world()
-    typ,mat,val,fgcol,hp,kg,script,idtype = STUFF[name]
-    if fgcol == "random":
+    typ,mat,val,strcol,hp,kg,script,idtype = STUFF[name]
+    if strcol == "random":
         fgcol = random.choice(list(COL.values()))
     else:
-        fgcol = COL[fgcol]
+        fgcol = COL[strcol]
     ent = world.create_entity(
         cmp.Name(name, title=TITLE_THE),
         cmp.Position(x,y),
@@ -5091,7 +5090,7 @@ def create_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
             mat_bal         = get_weapon_bal(vdata)
             mat_script      = get_wpvari_script(vdata)
             # combine stats
-            value = math.ceil(value*mat_value)
+            value = rog.around(value*mat_value)
             mass = rog.around(mass*mat_mass)
             hpmax = rog.around(hpmax*mat_hpmax)
             strReq += mat_strReq
@@ -5117,7 +5116,7 @@ def create_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
     script      = get_weapon_script(data, material)
     
     # color
-    fgcol = MATERIAL_COLORS.get(material, 'accent')
+    fgcol = COL[MATERIAL_COLORS.get(material, 'accent')]
     bgcol = COL['deep']
     
     # build entity -- we're finished collecting stats now
@@ -7345,7 +7344,6 @@ CLS_MONK        : ("m", "monk",     60, 100, 0,'',
         SKL_UNARMORED   :_MASTER,
         SKL_STAVES      :_INTERMEDIATE,
         SKL_PERCEPTION  :_INTERMEDIATE,
-        SKL_COMBAT      :_INTERMEDIATE,
     },
     (),
     ),
@@ -7369,6 +7367,7 @@ CLS_RIOTPOLICE  : ("P","riot police",85, 500, 2,'',
         SKL_SHIELDS     :_INTERMEDIATE,
         SKL_ARMOR       :_INTERMEDIATE,
         SKL_BLUDGEONS   :_JOURNEYMAN,
+        SKL_COMBAT      :_JOURNEYMAN,
         SKL_RANGED      :_JOURNEYMAN,
     },
     (
@@ -7427,7 +7426,7 @@ CLS_SOLDIER     : ("S", "soldier",    85, 1000,3,'',
         SKL_SMGS        :_JOURNEYMAN,
         SKL_ATHLETE     :_JOURNEYMAN,
         SKL_COMBAT      :_JOURNEYMAN,
-        SKL_RANGED      :_JOURNEYMAN,
+        SKL_RANGED      :_INTERMEDIATE,
     },
     (
         ('kerflame vest', create_armor, 1, EQ_FRONT, None, None,),

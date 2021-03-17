@@ -236,9 +236,9 @@ class Introduced: # PC has had this person introduced to them.
 
 # traits
 class Talented:
-    __slots__=['skill']
-    def __init__(self, skill: int):
-        self.skill=skill
+    __slots__=['talents']
+    def __init__(self, talents: dict):
+        self.talents=talents # {skill : exp_modifier}
 class AttractedToMen:
     __slots__=[]
     def __init__(self):
@@ -776,7 +776,7 @@ class BPM_Hearts:
          or neither.
 
     static constants:
-    SOFT_TARGET  - unused
+    SOFT_TARGET  - soft target for purposes of wounding / BP damage
     MAX_HP       - maximum health of body part (absolute max is BP_HEALTH_MAX)
     MAX_SP       - maximum stamina of body part (absolute max is BP_STAMINA_MAX)
     HAS_ORGANS   - bool. Does this BP have internal organs? (For organ damage)
@@ -787,7 +787,7 @@ class BPM_Hearts:
     HOLD_TYPE    - EQ_ const (held item: weapons, etc.)
 '''
 class BP_TorsoCore: # abdomen
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -803,7 +803,7 @@ class BP_TorsoCore: # abdomen
         self.sp=self.MAX_SP
         self.status=BPSTATUS_NORMAL
 class BP_TorsoFront: # thorax front (chest)
-    __slots__=['slot','hp','sp']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = 1.5*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -851,7 +851,7 @@ class BP_Hips: # pelvic region
         self.sp=self.MAX_SP
         self.status=BPSTATUS_NORMAL
 class BP_Cell:
-    __slots__=['slot','status']
+    __slots__=['slot','status','status']
     MAX_HP      = 0.25*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1139,7 +1139,8 @@ class BP_InsectLeg:
         self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
-    __slots__=['slot','held','hp','sp','stickies','covered','holding','weapon','status']
+    __slots__=['slot','held','hp','sp','stickies',
+               'covered','holding','weapon','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH

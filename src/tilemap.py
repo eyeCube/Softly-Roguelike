@@ -474,6 +474,11 @@ Reason: entity has no position component.'''.format(ent))
                             # render
                             libtcod.console_put_char(
                                 self.con_map_state, x,y, char )
+                            
+##                            if type(fgcol)==type("s"): # TEST
+##                                print("~~~ problem entity: {} named '{}'".format(
+##                                    ent, rog.getname(ent)))
+
                             libtcod.console_set_char_foreground(
                                 self.con_map_state, x,y, fgcol)
                             self._apply_rendered_bgcol(x,y, ent)

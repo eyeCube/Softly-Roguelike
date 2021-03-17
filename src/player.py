@@ -1351,7 +1351,8 @@ def _select_talent():
         )
     if choice!=-1:
         selected = menu[choice]
-        rog.world().add_component(Chargen.pc, cmp.Talented(selected))
+        rog.world().add_component(Chargen.pc, cmp.Talented(
+            {selected: TALENTED_EXPMOD} ))
         return True
     return False
 

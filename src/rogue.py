@@ -826,8 +826,7 @@ def train(ent, skill, pts): # train (improve) skill
     # trait bonuses
     if Rogue.world.has_component(ent, cmp.Talented):
         compo = Rogue.world.component_for_entity(ent, cmp.Talented)
-        if compo.skill==skill:
-            pts = pts * TALENTED_EXPMOD
+        pts = pts * compo.talents.get(skill, 1)
     if Rogue.world.has_component(ent, cmp.FastLearner):
         pts = pts * FASTLEARNER_EXPMOD
     # intelligence bonus to experience
@@ -1058,7 +1057,7 @@ def damage(ent, dmg: int):
         kill(ent)
         return
     mat = Rogue.world.component_for_entity(ent, cmp.Form).material
-    dt = getMatDamageThreshold(mat)
+    dt = getMatDT(mat)
     if dmg >= dt:
         kill(ent)
         return
@@ -1748,18 +1747,20 @@ def get_arm_length(bodyplan, height): #temporary solution to get arm length base
 
 
 # inflict injury / wound / damage body part
-def wound(ent: int, woundtype: int, quality: int) -> bool:
+def wound(ent: int, woundtype: int, tier: int) -> bool:
     '''
         (Try to) inflict a wound status upon an entity
         Since only one wound of each wound type can exist on one entity,
         we will ignore any wounds that are less significant than any
         existing wounds of that type.
 
-        Return whether the entity was significantly wounded (quality of 
+        Return whether the entity was significantly wounded (tier of 
         wound increased or new wound status applied)
+
+        Tier of wound indicates the Status quality -- minimum == 1
     '''
     world=Rogue.world
-    if quality <= 0:
+    if tier <= 0:
         return False
     woundcls = cmp.WOUND_TYPE_TO_STATUS[woundtype] # get StatusWound class corresponding to the wound type
     degrees = WOUNDS[woundtype]['degrees']
@@ -1767,30 +1768,32 @@ def wound(ent: int, woundtype: int, quality: int) -> bool:
     if world.has_component(ent, woundcls):
         # edit existing Wound status
         compo = world.component_for_entity(ent, woundcls)
-        if (compo.quality == quality and compo.quality < degrees):
+        # compound wounds
+        # 2 wounds of same class and same tier == 1 higher tier wound
+        if (compo.quality == tier and compo.quality < degrees):
             compo.quality += 1
             wounded = True
-        if (compo.quality < quality):
-            compo.quality = min(quality, degrees)
+        # upgrade existing wound to new tier level
+        if (compo.quality < tier):
+            compo.quality = min(tier, degrees)
             wounded = True
-        wounded = False # compo.quality > quality, so ignore the wound
+        wounded = False # compo.quality > tier, so ignore the wound
     else:
         # create a new Wound status
-        world.add_component(ent, woundcls(quality))
+        world.add_component(ent, woundcls(tier))
         wounded = True
     if wounded:
         pos = world.component_for_entity(ent, cmp.Position)
         event_sight(pos.x,pos.y,"{} wounded ({})".format(
-            gettitlename(ent), WOUNDS[woundtype][quality]['name']]
+            gettitlename(ent), WOUNDS[woundtype][tier]['name']
             ))
     return wounded
     
 def __damagebp(ent, bptarget, damage) -> int:
-    ''' return int signifying if BP was
-        crippled (1), dismembered (2), or neither (0) '''
+    ''' just damage HP of BP, changing status if necessary '''
     if damage <= 0:
         return
-    pos = world.component_for_entity(ent, cmp.Position)
+    pos = Rogue.world.component_for_entity(ent, cmp.Position)
     bptarget.hp -= damage
     if bptarget.hp <= -20:
         if bptarget.status != BPSTATUS_AMPUTATED:
@@ -1809,15 +1812,15 @@ def __damagebp(ent, bptarget, damage) -> int:
             event_sight(pos.x, pos.y, "{}'s {} is crippled".format(
                 gettitlename(ent), cmp.BPNAMES[type(bptarget)]
                 ))
-def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int):
+def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, tier:int):
     '''
         ent        entity who owns the bp being targeted
         bptarget   BP_ (Body Part) component object instance to damage
         dmgtype    DMGTYPE_ const
-        quality    damage value -- how high of a priority of
-                    status is inflicted? 1 is least severe, 9 most
-                    Quality may be altered in case of effective weapon
-                    pairing i.e. blunt vs. bony BP or cut vs. fleshy BP.
+        tier       damage value -- how high of a priority of
+                    status is inflicted? 1 is least severe, 9 most.
+                       - Tier may be altered in case of effective weapon
+                           pairing i.e. blunt vs. bony or cut vs. fleshy BP.
 
         Damage the body part and possibly inflict a wound
     '''
@@ -1840,35 +1843,35 @@ def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int):
         woundtype = WOUND_CUT
         brainDmg = 0
         if bptarget.SOFT_TARGET:
-            quality += 1
+            tier += 1
             dmg = dmg*3
     elif dmgtype==DMGTYPE_PIERCE: # pierce
         woundtype = WOUND_PUNCTURE
         brainDmg = 0
         if bptarget.SOFT_TARGET:
-            quality += 1
+            tier += 1
             dmg = dmg*4
     elif dmgtype==DMGTYPE_HACK: # hack - axes
         # hack damage is very wounding
         dmg = dmg*2 if bptarget.SOFT_TARGET else dmg*4
-        quality += 1
+        tier += 1
         if dice.roll(6) % 2 == 0: # cut damage
-            if bptarget.SOFT_TARGET: quality += 1
+            if bptarget.SOFT_TARGET: tier += 1
             woundtype = WOUND_CUT
         else: # bruise damage
-            if not bptarget.SOFT_TARGET: quality += 2
+            if not bptarget.SOFT_TARGET: tier += 2
             woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_BLUNT:
         dmg = dmg*2 if bptarget.BONES else dmg*0.75
         woundtype = WOUND_MUSCLE
-        if not bptarget.SOFT_TARGET: quality += 2
+        if not bptarget.SOFT_TARGET: tier += 2
     elif dmgtype==DMGTYPE_SPIKES:
         dmg = dmg*1.5 if bptarget.BONES else dmg*1
         if dice.roll(6) % 2 == 0: # puncture damage
-            if bptarget.SOFT_TARGET: quality += 1
+            if bptarget.SOFT_TARGET: tier += 1
             woundtype = WOUND_PUNCTURE
         else: # bruise damage
-            if not bptarget.SOFT_TARGET: quality += 2
+            if not bptarget.SOFT_TARGET: tier += 2
             woundtype = WOUND_MUSCLE
     elif dmgtype==DMGTYPE_GUNSHOT:
         if bptarget.SOFT_TARGET: dmg *= 2
@@ -1879,22 +1882,23 @@ def damagebp(ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int):
     __damagebp(ent, bptarget, around(dmg))
 
     # attempt generic wound
-    wound(ent, woundtype, quality)
+    wound(ent, woundtype, tier)
     
     # attempt to wound organs and/or brains
     if (organDmg and bptarget.HAS_ORGANS):
-        wound(ent, WOUND_ORGAN, quality - dice.roll(3))
+        wound(ent, WOUND_ORGAN, tier - dice.roll(3))
     if (brainDmg and bptarget.HAS_BRAINS):
-        wound(ent, WOUND_BRAIN, quality - dice.roll(2))
+        wound(ent, WOUND_BRAIN, tier - dice.roll(2))
 # end def
 
 def attackbp(
     attkr:int,dfndr:int,bptarget:int,weap:int,dmg:int,skill_type:int,dmgtype=-1
     ):
     ''' entity attkr attacks dfndr's bp bptarget with weapon weap
-        using skill skill_type and damage type dmgtype if !=-1 '''
+        using skill skill_type and damage type dmgtype if !=-1
+        Possibly inflict wounding and BP damage '''
     world=Rogue.world
-    dmgIndex = 0 # wound amount (quality)
+    dmgIndex = 0 # wound amount (tier)
 
     # TODO: add randomness to dmgIndex
     
@@ -1906,9 +1910,9 @@ def attackbp(
         else: # damage type based on skill of the weapon by default
             if skill_type:
                 dmgtype = DMGTYPES[skill_type]
-                # increase wounding quality based on skill level
+                # increase wounding tier based on skill level
                 skill_lv = getskill(attkr, skill_type)
-                dmgIndex += 1 + skill_lv*SKILL_LV_WOUND_MODIFIER
+                dmgIndex += 1 + math.floor(skill_lv*SKILL_LV_WOUND_MODIFIER)
             else: # no skill involved
                 if weap: # default to blunt damage
                     dmgtype = DMGTYPE_BLUNT
@@ -1938,7 +1942,7 @@ def attackbp(
     #
     
     # deal body damage
-    # ent:int, bptarget:int, dmg:int, dmgtype:int, quality:int
+    # ent:int, bptarget:int, dmg:int, dmgtype:int, tier:int
     damagebp(dfndr, bptarget, dmg, dmgtype, dmgIndex)
     
 # end if

@@ -3110,10 +3110,10 @@ EXP_DIMINISH_RATE   = 20    # you gain x less exp per level
 
 i=1;
 # Melee
-SKL_ARMOR       =i;i+=1; #combat skill: armor wearing
+SKL_ARMOR       =i;i+=1; #combat skill: armor wearing -- heavy/medium armor
 SKL_UNARMORED   =i;i+=1; #combat skill: wearing no armor / light armor
-SKL_COMBAT      =i;i+=1; #combat skill: melee combat (generic)
-SKL_RANGED      =i;i+=1; #combat skill: ranged combat (generic)
+SKL_COMBAT      =i;i+=1; #combat skill: melee combat (gained from fighting living creatures)
+SKL_RANGED      =i;i+=1; #combat skill: ranged combat (gained from fighting living creatures)
 SKL_SHIELDS     =i;i+=1; #combat skill: shields
 SKL_BOXING      =i;i+=1; #combat skill: fisticuffs
 SKL_WRESTLING   =i;i+=1; #combat skill: fight on ground, grappling: knocking down foes, binds, locks, mounting foes, throwing foes, and resisting grappling
@@ -4197,7 +4197,7 @@ SND_QUAFF       = (20, "gulping noises",NOISE_SOME,)
 SND_COUGH       = (120, "someone coughing",NOISE_BANG,)
 SND_VOMIT       = (80, "someone vomiting",NOISE_WATERFALL,)
 SND_RUMMAGE     = (40, "someone rummaging",NOISE_SHUFFLING,)
-SND_RATTLING    = (60, "something rattling",NOISE_CLATTERING,)
+SND_RATTLING    = (60, "something rattling",NOISE_CLATTER,)
 SND_VLIGHTSTEPS = (10, "silent strides",NOISE_SHUFFLING,)
 SND_LIGHTSTEPS  = (25, "soft footfall",NOISE_SHUFFLING,)
 SND_STEPS       = (40, "footsteps",NOISE_SHUFFLING,)

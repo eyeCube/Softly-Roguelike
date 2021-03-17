@@ -120,7 +120,7 @@ class GlobalSettings:
 0 - GLSL
 1 - OPENGL
 2 - SDL''',
-        "#DEEP"         : "Colors. RGB Values 0-255. Feel free to change the values!",
+        "#WHITE"        : "Colors. RGB Values 0-255. Feel free to change the values!",
     }
 
     ##
@@ -239,12 +239,12 @@ class GlobalSettings:
             comment=self.COMMENTS.get(k, None)
             if comment:
                 comment=comment.replace('\n','\n// ')
-                file.write('// {}\n'.format(comment))
-            newline = "{:20s}= {}\n\n".format(k,v)
+                file.write('\n// {}\n'.format(comment))
+            newline = "{:20s}= {}\n".format(k,v)
             file.write(newline)
             
         with open(self.file, 'w+') as file:
-            file.write('// {}\n\n'.format(GlobalSettings.settingsFileName))
+            file.write('// {}\n'.format(GlobalSettings.settingsFileName))
             for k,v in GlobalSettings.DEFAULTS.items():
                 write_line(file, k,v)
         #   default Colors

@@ -107,15 +107,15 @@ def main():
     #
     pos=rog.get(rog.pc(),cmp.Position)
     
-    w=rog.create_monster('W',pos.x,pos.y-1)
-    rog.world().add_component(w, cmp.AttractedToMen())
-    rog.world().add_component(w, cmp.AttractedToWomen())
-    
-     #testing speech
-    rog.init_person(w)
+##    w=rog.create_monster('W',pos.x,pos.y-1)
+##    rog.world().add_component(w, cmp.AttractedToMen())
+##    rog.world().add_component(w, cmp.AttractedToWomen())
+##    
+##     #testing speech
+##    rog.init_person(w)
     #
-    w2=rog.create_monster('W',pos.x,pos.y+1)
-    w3=rog.create_monster('W',pos.x,pos.y+2)
+##    w2=rog.create_monster('W',pos.x,pos.y+1)
+##    w3=rog.create_monster('W',pos.x,pos.y+2)
     
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
     rog.setskill(rog.pc(), SKL_PERSUASION, 0)

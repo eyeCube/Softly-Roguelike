@@ -23,9 +23,11 @@
 #  for if the settings file is corrupted.
 
 # Global Settings object modifies these values at runtime,
-#  using the settings file. The values for each key are
-#  converted from strings into libtcod Color objects,
-#  derived from the RGB string.
+#  using the settings file (in game.py). The values for each key are
+#  converted from strings into libtcod Color objects matching the string.
+
+# keys are stored as strings so that the user can add additional colors
+# using the settings.txt
 
 colored_strings=[]
 COLORS={
