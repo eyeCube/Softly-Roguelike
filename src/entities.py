@@ -665,7 +665,7 @@ def _runningShoe(item):
 
 def _molotov(tt):
     def deathFunc(ent):
-        pos=rog.world().component_for_entity(ent, cmp.Position)
+        pos=rog.getpos(ent)
         diameter = 7
         radius = int(diameter/2)
         for i in range(diameter):
@@ -3618,10 +3618,15 @@ def _update_from_bpc_torso(lis, ent, bpc, armorSkill, unarmored):
 
 # BP
 def get_statmods_from_bp(ent, bp, bpType, dadd, dmul):
+    # get add / mult stat mods based on body part's HP relative to its maximum
+    if bp.hp >= bp.MAX_HP: # no damage to bp, no need to calculate
+        return
+    hpp = bp.hp / bp.MAX_HP
     for ratio,data in BP_HEALTH_STATMODS[bpType].items():
-        if (bp.hp <= ratio*bp.MAX_HP):
+        if (hpp <= ratio):
             _add(dadd, data['add'])
             _mult(dmul, data['mult'])
+            break # only add 1 mod dict for the damage to this specific bp
 # end def
 
 # arm

@@ -894,6 +894,37 @@ class TextInputManager(managers.Manager): #Manager_Input | ManagerInput
 # functions #
 #-----------#
 
+# help page
+def render_help() -> str: # may not display all commands
+    return ''' ~~~~~ Help / Command List ~~~~~
+
+Command =================== Default Key Combo
+
+ ~~~~~ Global commands ~~~~~
+show this help page ======= Shift+/
+
+ ~~~~~ Movement controls ~~~~~
+# Default movement controls use vim keys or keypad numbers
+
+north ===================== k -or- keypad 8
+west ====================== h -or- keypad 4
+south ===================== j -or- keypad 2
+east ====================== l -or- keypad 6
+northwest ================= y -or- keypad 7
+southwest ================= b -or- keypad 1
+southeast ================= n -or- keypad 3
+northeast ================= u -or- keypad 9
+towards self ============== . -or- keypad 5
+up ======================== Shift+,
+down ====================== Shift+.
+
+ ~~~~~ Basic controls ~~~~~
+perform action ============ Space
+
+ ~~~~~ Movement controls ~~~~~
+
+'''
+
 
 #key functions
 def key_getchar(k):

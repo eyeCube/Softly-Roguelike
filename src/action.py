@@ -201,7 +201,6 @@ def equipment_pc(pc):
     world=rog.world()
     assert(world.has_component(pc, cmp.Body))
     body = world.component_for_entity(pc, cmp.Body)
-    pcn = world.component_for_entity(pc, cmp.Name)
     x=0
     y=rog.view_port_y()
     equipment = {} # {'torso' : {name : (slot,eq_const,),},}
@@ -274,7 +273,7 @@ def equipment_pc(pc):
                 for kk,vv in v.items():
                     slot,eq_const = vv
                     if slot.item:
-                        itemname = rog.getname(slot.item)
+                        itemname = rog.fullname(slot.item)
                     elif slot.covered:
                         itemname = "X"
                     else:
@@ -288,8 +287,8 @@ def equipment_pc(pc):
             else:
                 menu["+ {}".format(k)] = "open_{}".format(k)
                 
-        opt=rog.menu("{}{}'s equipment".format(
-            TITLES[pcn.title],pcn.name), x,y, menu.keys())
+        opt=rog.menu("{}'s equipment".format(
+            rog.gettitlename(pc)), x,y, menu.keys())
         
         if opt == -1: break
         selected=menu[opt]
@@ -316,7 +315,7 @@ def equipment_pc(pc):
             data_id = int(selected[5:])
             slot, eq_const = data[data_id]
             item = slot.item
-            itemn = world.component_for_entity(item, cmp.Name)
+            itemn = rog.fullname(item)
             menu_viewItem={
                 "r" : "remove",
                 "x" : "examine",
@@ -402,14 +401,13 @@ def _inventory_pc(pc):
     world=rog.world()
     assert(world.has_component(pc, cmp.Inventory))
     pcInv = world.component_for_entity(pc, cmp.Inventory)
-    pcn = world.component_for_entity(pc, cmp.Name)
     x=rog.view_port_x()
     y=rog.view_port_y()
     selected=None
     item=None
     #   items menu
-    item=rog.menu("{}{}'s inventory".format(
-        TITLES[pcn.title], pcn.name), x,y, pcInv.data)
+    item=rog.menu("{}'s inventory".format(
+        rog.gettitlename(pc)), x,y, pcInv.data)
     return item
 # end def
 def _menu_item(pc, item):
@@ -417,7 +415,7 @@ def _menu_item(pc, item):
     world = rog.world()
     selected=None
     if item != -1:
-        itemn = world.component_for_entity(item, cmp.Name)
+        itemn = rog.fullname(item)
         pos = world.component_for_entity(pc, cmp.Position)
         menu = _getMenuItems_item(item)
         opt=rog.menu(
@@ -465,7 +463,7 @@ def _getMenuItems_item(item) -> dict:
 # end def
 
 def drop_pc(pc,item):
-    itemname=rog.world().component_for_entity(item, cmp.Name).name
+    itemname=rog.fullname(item)
     rog.alert("Place {i} where?{d}".format(d=dirStr,i=itemname))
     args=rog.get_direction()
     if not args: return
@@ -708,23 +706,21 @@ def wait(ent):
 def cough(ent):
     world = rog.world()
     pos = world.component_for_entity(ent, cmp.Position)
-    entn = world.component_for_entity(ent, cmp.Name)
     wait(ent)
     rog.event_sound(pos.x,pos.y, SND_COUGH)
-    rog.event_sight(pos.x,pos.y, "{t}{n} doubles over coughing.".format(
-        t=entn.title,n=entn.name))
+    rog.event_sight(pos.x,pos.y, "{n} doubles over coughing.".format(
+        n=rog.getname(ent)))
 # end def
 
 def intimidate(ent):
     world=rog.world()
     stats=world.component_for_entity(ent, cmp.Stats)
     pos=world.component_for_entity(ent, cmp.Position)
-    entn=world.component_for_entity(ent, cmp.Name)
     fear=rog.getms(ent, 'intimidation')
     world.add_component(ent, cmp.StatusFrightening(10))
     rog.event_sound(pos.x,pos.y,SND_ROAR)
-    rog.event_sight(pos.x,pos.y,"{t}{n} makes an intimidating display.".format(
-        t=entn.title,n=entn.name))
+    rog.event_sight(pos.x,pos.y,"{n} makes an intimidating display.".format(
+        n=rog.getname(ent)))
 # end def
 
 #use
@@ -742,10 +738,10 @@ def _equip(ent, item, equipType):
         w = EQ_TYPE_STRINGS[equipType][0]
         prep = EQ_TYPE_STRINGS[equipType][1]
         bp = EQ_TYPE_STRINGS[equipType][2]
-        # example: "hobgoblin wield plastic knife"
+        # example: "hobgoblin wield wet plastic knife"
         pos = world.component_for_entity(ent, cmp.Position)
         rog.event_sight(pos.x,pos.y, "{n} {w} {i}".format(
-            n=rog.getname(ent), i=rog.getname(item), w=w))
+            n=rog.getname(ent), i=rog.fullname(item), w=w))
         # wordy text (idea: option for wordy or terse msg text)
         # example: "the hobgoblin wields the plastic knife in his mainhand"
 ##        rog.msg("{n} {w}s {i} {pre} {prn} {bp}".format(
@@ -761,7 +757,7 @@ def pocketThing(ent, item): #entity puts item in its inventory
     # messages
     pos = world.component_for_entity(ent, cmp.Position)
     rog.event_sight(pos.x,pos.y, "{n} pack {ni}.".format(
-        n=rog.getname(ent), ni=rog.getname(item)))
+        n=rog.getname(ent), ni=rog.fullname(item)))
     rog.event_sound(pos.x,pos.y, SND_RUMMAGE)
     # over-encumbered message
     if rog.getms(ent, 'enc') >= rog.getms(ent, 'encmax'):
@@ -782,7 +778,7 @@ def drop(ent, item, dx, dy):
         rog.spendAP(ent, NRG_RUMMAGE)
         pos = world.component_for_entity(ent, cmp.Position)
         rog.event_sight(pos.x,pos.y, "{n} drop {ni}.".format(
-            n=rog.getname(ent), ni=rog.getname(ent)))
+            n=rog.getname(ent), ni=rog.fullname(ent)))
         return True
     
     else: # failure
@@ -810,7 +806,7 @@ def quaff(ent, drink):
         rog.msg("Tastes {t}".format(t=quaffable.taste))
     else:
         rog.event_sight(pos.x,pos.y, "{n} quaffs {q}.".format(
-            n=rog.getname(ent), q=rog.getname(drink)))
+            n=rog.getname(ent), q=rog.fullname(drink)))
     #events - sound
     rog.event_sound(pos.x,pos.y, SND_QUAFF)
     # TODO: quantity reduction -- consumption / deletion of consumed drink
@@ -993,9 +989,8 @@ def openClose(ent, xto, yto):
 def sprint(ent):
     #if sprint cooldown elapsed
     rog.world().add_component(ent, cmp.Sprint(SPRINT_TIME))
-    entn = rog.world().component_for_entity(ent, cmp.Name)
     pos = world.component_for_entity(ent, cmp.Position)
-    rog.event_sight(pos.x,pos.y, "{n} sprinting.".format(n=entn.name))
+    rog.event_sight(pos.x,pos.y, "{n} sprinting.".format(n=rog.getname(ent)))
 
 
     #------------#
@@ -1342,8 +1337,8 @@ def fight(attkr,dfndr,adv=0,power=0):
     aactor = world.component_for_entity(attkr, cmp.Actor)
     apos = world.component_for_entity(attkr, cmp.Position)
     dpos = world.component_for_entity(dfndr, cmp.Position)
-    aname=world.component_for_entity(attkr, cmp.Name)
-    dname=world.component_for_entity(dfndr, cmp.Name)
+    aname=rog.getname(attkr)
+    dname=rog.getname(dfndr)
         # weapons of the combatants (temporary ?)
     abody = world.component_for_entity(attkr, cmp.Body)
     dbody = world.component_for_entity(dfndr, cmp.Body)
@@ -1402,7 +1397,6 @@ def fight(attkr,dfndr,adv=0,power=0):
     # finishing up
     message = True # TEMPORARY!!!!
     a=aname.name; n=dname.name;
-    at=TITLES[aname.title]; dt=TITLES[dname.title];
     x='.'; ex=""; m="";
     dr="d{}".format(CMB_ROLL_ATK) #"d20"
         # make a message describing the fight
@@ -1415,9 +1409,8 @@ def fight(attkr,dfndr,adv=0,power=0):
         # TODO: show messages for grazed, crit, counter, ret.feelStrings
         if ret.canreach==False:
             rog.event_sight(
-                dpos.x,dpos.y,
-                "{at}{a} strikes out at {dt}{n}, but cannot reach.".format(
-                    a=a,n=n,at=at,dt=dt )
+                dpos.x, dpos.y,
+                "{a} strikes out at {n}, but cannot reach.".format(a=a,n=n)
             )
         if ret.hit==False:
             v="misses"
@@ -1454,8 +1447,8 @@ def fight(attkr,dfndr,adv=0,power=0):
 ##    aactor = world.component_for_entity(attkr, cmp.Actor)
 ##    apos = world.component_for_entity(attkr, cmp.Position)
 ##    dpos = world.component_for_entity(dfndr, cmp.Position)
-##    aname=world.component_for_entity(attkr, cmp.Name)
-##    dname=world.component_for_entity(dfndr, cmp.Name)
+##    aname=rog.getname(attkr)
+##    dname=rog.getname(dfndr)
 ##    # weapons of the combatants
 ##    abody = Rogue.world.component_for_entity(grplr, cmp.Body)
 ##    dbody = Rogue.world.component_for_entity(target, cmp.Body)
@@ -1728,7 +1721,7 @@ def _eat_finishFunc(ent, item): # helper func for eat action
 # end def
 def _eat_cancelFunc(ent, qa): # helper func for eat action
     item = qa.data
-    name = world.component_for_entity(item, cmp.Name)
+    name = rog.fullname(qa)
     edible = world.component_for_entity(item, cmp.Edible)
     form = world.component_for_entity(item, cmp.Form)
     draw = world.component_for_entity(item, cmp.Draw)
@@ -1792,10 +1785,9 @@ def craft(ent, recipe):
     world=rog.world()
     data = recipes.RECIPES.get(recipe, {})
     if not data:
-        entname=world.component_for_entity(ent, cmp.Name)
         entpos=world.component_for_entity(ent, cmp.Position)
         print("entity named '{}' at {},{} tried to craft recipe '{}', which does not exist.".format(
-            entname, entpos.x, entpos.y, recipe))
+            rog.getname(ent), entpos.x, entpos.y, recipe))
         return False
     
     # ensure entity has appropriate crafting skill levels
@@ -1904,7 +1896,7 @@ def equipment_pc(ent):
     # init
     world=rog.world()
     body = world.component_for_entity(pc, cmp.Body)
-    name = world.component_for_entity(pc, cmp.Name)
+    name = rog.getname(pc)
     x=rog.view_port_x()
     y=rog.view_port_y()
     #

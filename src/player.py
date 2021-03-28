@@ -708,7 +708,7 @@ def chargen(sx, sy):
         name, func, quantity, eq_const, material, script = itemdata
         for _ in range(quantity):
             item = func(name, sx,sy, mat=material)
-            rog._initThing(item) # register (init stats), fill HP, 
+            rog._initThing(item) # register (init stats), fill HP,
             rog.give(pc, item)
             if script: script(item)
             if eq_const: rog.equip(pc, item, eq_const)

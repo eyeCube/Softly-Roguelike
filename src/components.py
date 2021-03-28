@@ -623,9 +623,11 @@ class Slot:
     __slots__=['item','fit','covers','covered']
     def __init__(self, item=None, fit=0, covers=()):
         self.item=item
-        self.fit=fit        # how well this item is secured in its slot currently
         self.covers=covers  # tuple of additional component instances
         self.covered=False  # covered by the item in this slot
+        self.fit=fit        # how well this item is secured in its slot currently
+                            #   0-100; but 100 should never be reached
+                            #   (item adds 0 encumberance at value of 100; 0 has no effect)
 
 class Body:
     '''
@@ -644,7 +646,7 @@ class Body:
     sleep       int, units of sleep satisfaction / maximum
     '''
     __slots__=[
-        'plan','slot','covered',
+        'plan','slot',
         'core','parts','height','position',
         'blood','bloodMax','bodyfat',
         'hydration','hydrationMax',
@@ -656,7 +658,7 @@ class Body:
         self.slot=Slot()    # 'about' slot
         self.core=core      # core body component (BPC core)
         self.parts=parts        # dict of BPC objects other than the core
-        self.bodyfat=fat        # total mass of body fat : floating point
+        self.bodyfat=fat        # total mass of body fat
         self.blood=blood                # mass of blood in the body
         self.bloodMax=blood             #   (7% of total mass of the body for humans)
         self.satiation=satiation        # calories available to the body
@@ -791,10 +793,10 @@ class BP_TorsoCore: # abdomen
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
-    BONES       = MAT_BONE
+    BONES       = 0
     WEAR_TYPE   = EQ_CORE
     HOLD_TYPE   = EQ_NONE
-    SOFT_TARGET = False
+    SOFT_TARGET = True
     HAS_ORGANS  = True
     HAS_BRAINS  = False
     def __init__(self):
@@ -981,7 +983,7 @@ class BP_Nose:
         self.olfactorySystem=BPP_OlfactorySystem(quality=quality)
         self.status=BPSTATUS_NORMAL
 class BP_Arm: # upper / middle arm and shoulder
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -995,7 +997,6 @@ class BP_Arm: # upper / middle arm and shoulder
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Hand: # hand and lower forearm
     __slots__=['slot','held','hp','sp','grip','weapon','status']
@@ -1017,7 +1018,7 @@ class BP_Hand: # hand and lower forearm
         self.grip=grip # grip your bare hand has
         self.status=BPSTATUS_NORMAL
 class BP_Leg: # thigh and knee
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1031,10 +1032,9 @@ class BP_Leg: # thigh and knee
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Foot: # foot, ankle and lower leg
-    __slots__=['slot','hp','sp','covered','grip','status']
+    __slots__=['slot','hp','sp','grip','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1049,10 +1049,9 @@ class BP_Foot: # foot, ankle and lower leg
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
         self.grip=grip # grip your bare foot has
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_InsectThorax:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_CHITIN
@@ -1066,10 +1065,9 @@ class BP_InsectThorax:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_InsectAbdomen:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_CHITIN
@@ -1083,10 +1081,9 @@ class BP_InsectAbdomen:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_InsectHead:
-    __slots__=['slot','hp','sp','visualSystem','covered','status']
+    __slots__=['slot','hp','sp','visualSystem','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_CHITIN
@@ -1101,7 +1098,6 @@ class BP_InsectHead:
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
         self.visualSystem=BPP_VisualSystem()
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Mandible:
     __slots__=['held','hp','sp','holding','weapon','status']
@@ -1122,7 +1118,7 @@ class BP_Mandible:
         self.holding=False
         self.status=BPSTATUS_NORMAL
 class BP_InsectLeg:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_CHITIN
@@ -1136,11 +1132,10 @@ class BP_InsectLeg:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
     __slots__=['slot','held','hp','sp','stickies',
-               'covered','holding','weapon','status']
+               'holding','weapon','status']
     MAX_HP      = BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1157,11 +1152,10 @@ class BP_Tentacle: # arm and "hand" in one, can grasp things like a hand can
         self.sp=self.MAX_SP
         self.weapon=LIMBWPN_TENTACLE # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
         self.stickies=stickies      # number/quality of suction cups on the tentacles (or other sticky thingies)
-        self.covered=False
         self.holding=False
         self.status=BPSTATUS_NORMAL
 class BP_Pseudopod:
-    __slots__=['slot','hp','sp','covered','weapon','status']
+    __slots__=['slot','hp','sp','weapon','status']
     MAX_HP      = 0.5*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_MUCOUS
@@ -1176,10 +1170,9 @@ class BP_Pseudopod:
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
         self.weapon=LIMBWPN_PSEUDOPOD # bare limb damage type w/ no weapon equipped (LIMBWPN_ const)
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Ameboid:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = 0.5*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_MUCOUS
@@ -1193,10 +1186,9 @@ class BP_Ameboid:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Wing:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = 0.5*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1210,10 +1202,9 @@ class BP_Wing:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Tail:
-    __slots__=['slot','hp','sp','covered','status']
+    __slots__=['slot','hp','sp','status']
     MAX_HP      = 0.5*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1227,10 +1218,9 @@ class BP_Tail:
         self.slot=Slot()
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Genitals:
-    __slots__=['hp','sp','covered','status']
+    __slots__=['hp','sp','status']
     MAX_HP      = 0.25*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1243,10 +1233,9 @@ class BP_Genitals:
     def __init__(self):
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 class BP_Appendage: #worthless fleshy appendage (small boneless, musclesless tails, etc.)
-    __slots__=['kind','hp','sp','covered','status']
+    __slots__=['kind','hp','sp','status']
     MAX_HP      = 0.2*BP_HEALTH_MAX
     MAX_SP      = BP_STAMINA_MAX
     MATERIAL    = MAT_FLESH
@@ -1260,7 +1249,6 @@ class BP_Appendage: #worthless fleshy appendage (small boneless, musclesless tai
         self.kind=kind # int const referring to a pre-conceived name in a pre-defined dict
         self.hp=self.MAX_HP
         self.sp=self.MAX_SP
-        self.covered=False
         self.status=BPSTATUS_NORMAL
 
 ''' BPP components (Body part component's subcomponents) ''' 
@@ -2232,39 +2220,61 @@ class StatusBPos_CQB:   # body position: CQB (close-quarters battle) stance
 # wound statuses
 class StatusWound_Rash:
     __slots__=['timer','quality']
+    TYPE = WOUND_RASH
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Cut:
     __slots__=['timer','quality']
+    TYPE = WOUND_CUT
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Puncture:
     __slots__=['timer','quality']
+    TYPE = WOUND_PUNCTURE
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Gunshot:
     __slots__=['timer','quality']
+    TYPE = WOUND_GUNSHOT
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Muscle:
     __slots__=['timer','quality']
+    TYPE = WOUND_MUSCLE
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Organ:
     __slots__=['timer','quality']
+    TYPE = WOUND_ORGAN
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
 class StatusWound_Brain:
     __slots__=['timer','quality']
+    TYPE = WOUND_BRAIN
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
+class StatusWound_Burn:
+    __slots__=['timer','quality']
+    TYPE = WOUND_BURN
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+# remember to add new wounds to WOUND_STATUSES and WOUND_TYPE_TO_STATUS
+class StatusWound_:
+    __slots__=['timer','quality']
+    TYPE = WOUND_
+    def __init__(self, q=1, t=-1):
+        self.quality=q
+        self.timer=t
+
+        
 # other quality statuses
 class StatusAdrenaline: # adrenaline boosts fight/flight capability
     # boosts resistance to pain, and physical res.
@@ -2448,9 +2458,29 @@ STATUSES={ # dict of statuses that have a timer
     StatusBPos_Prone    : "prone",
     StatusBPos_Supine   : "supine",
 ##    StatusBleed, # removed b/c it has quality
-    }
 ##StatusDigest
-
+    }
+# wound statuses
+WOUND_STATUSES=[
+    StatusWound_Rash,
+    StatusWound_Burn,
+    StatusWound_Cut,
+    StatusWound_Puncture,
+    StatusWound_Gunshot,
+    StatusWound_Muscle,
+    StatusWound_Brain,
+    ]
+WOUND_TYPE_TO_STATUS={ # connect WOUND_ const type to status component
+WOUND_CUT       : StatusWound_Cut,
+WOUND_BURN      : StatusWound_Burn,
+WOUND_RASH      : StatusWound_Rash,
+WOUND_PUNCTURE  : StatusWound_Puncture,
+WOUND_MUSCLE    : StatusWound_Muscle,
+WOUND_GUNSHOT   : StatusWound_Gunshot,
+WOUND_ORGAN     : StatusWound_Organ,
+WOUND_BRAIN     : StatusWound_Brain,
+    }
+# body positions
 STATUSES_BODYPOSITIONS=[
     StatusBPos_Crouched,
     StatusBPos_Seated,
@@ -2609,16 +2639,6 @@ Tool_ChoppingBlock      : 'cutting board',
 ##BP_Ears         : (BPP_AUDITORY,),
 ##BP_Neck         : (BPP_SKIN, BPP_BONE, BPP_MUSCLE, BPP_ARTERY,),
 ##    }
-
-WOUND_TYPE_TO_STATUS={ # connect WOUND_ const type to status component
-WOUND_CUT       : StatusWound_Cut,
-WOUND_RASH      : StatusWound_Rash,
-WOUND_PUNCTURE  : StatusWound_Puncture,
-WOUND_MUSCLE    : StatusWound_Muscle,
-WOUND_GUNSHOT   : StatusWound_Gunshot,
-WOUND_ORGAN     : StatusWound_Organ,
-WOUND_BRAIN     : StatusWound_Brain,
-    }
 
 EQ_BPS_HOLD=(EQ_MAINHANDW, EQ_OFFHANDW,)
 BP_BPS_HOLD=(BP_HAND,BP_TENTACLE,)

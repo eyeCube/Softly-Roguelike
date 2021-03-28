@@ -118,7 +118,7 @@ def main():
 ##    w3=rog.create_monster('W',pos.x,pos.y+2)
     
     ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
-    rog.setskill(rog.pc(), SKL_PERSUASION, 0)
+##    rog.setskill(rog.pc(), SKL_PERSUASION, 0)
 ##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
 ##    rog.sets(rog.pc(), 'dex', 12*MULT_STATS)
 ##    rog.sets(rog.pc(), 'int', 4*MULT_STATS)
@@ -129,27 +129,24 @@ def main():
     
     
 ##    rog.alts(rog.pc(), 'sight', 50)
-##    weap=rog.create_weapon("metal halberd", 0,0)
-####    rog.damage(weap, 200)
-####    rog.fitgear(weap, rog.pc())
-##    print(rog.pc())
-##    print(rog.world().has_component(rog.pc(), cmp.Inventory))
-##    print(rog.equip(
-##        rog.pc(),weap,EQ_MAINHANDW
-##        ))
-####    print("QWWQ")
+    weap=rog.create_weapon("halberd", 0,0, mat=MAT_METAL)
+##    rog.damage(weap, 200)
+##    rog.fitgear(weap, rog.pc())
+    print(rog.equip(
+        rog.pc(),weap,EQ_MAINHANDW
+        ))
 ##    rog.create_weapon("wooden club", pos.x,pos.y)
 ##    rog.create_weapon("estoc", pos.x-1,pos.y)
-####    shield=rog.create_weapon("metal shield", 0,0)
-####    rog.equip(
-####        rog.pc(),shield,EQ_OFFHAND
-####        )
-####    rog.fitgear(shield, rog.pc())
+##    shield=rog.create_weapon("metal shield", 0,0)
+##    rog.equip(
+##        rog.pc(),shield,EQ_OFFHAND
+##        )
+##    rog.fitgear(shield, rog.pc())
 ##    armor=rog.create_armor("metal gear", 0,0)
 ##    rog.equip(
 ##        rog.pc(),armor,EQ_FRONT
 ##        )
-####    rog.fitgear(armor, rog.pc())
+##    rog.fitgear(armor, rog.pc())
 ##    helm=rog.create_headwear("metal helm", 0,0)
 ##    rog.equip(
 ##        rog.pc(),helm,EQ_MAINHEAD

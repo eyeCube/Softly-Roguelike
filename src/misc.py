@@ -158,8 +158,13 @@ def Bresenham2D(x1, y1, x2, y2):
     return lis
 # end def
 
+# math functions
 def dist(x1,y1,x2,y2):
     return math.sqrt(abs(x1-x2)**2 + abs(y1-y2)**2)
+def ceil(val):
+    return math.ceil(val)
+def floor(val):
+    return math.floor(val)
 
 
 '''
@@ -175,9 +180,9 @@ class _HUD_Stat(): # helper classes/ functions for the render functions
         self.color=color
 def _HUD_get_color(stat):
     col=COL['white']
-    if stat[:3] == 'HP:':
+    if stat[:3] == 'Wil:':
         col=COL['yellow']
-    elif stat[:3] == 'SP:':
+    elif stat[:3] == 'Vgr:':
         col=COL['orange']
     elif stat[:4] == 'Atk:':
         col=COL['scarlet']
@@ -423,171 +428,150 @@ def __gdmul(mods):
     if string: string = string[:-2] # remove final delim
     return string
 
-# _get_body_effects 
-# function for showing a body part status, for use by _get_body_effects
-def __sbps(fxlist,bppname,status, bpstatusdict, amd=None, mmd=None):
-    # amd : add mod dict
-    # mmd : mult. mod dict
-    if status:
-        adict = amd.get(status, None) if amd else None
-        mdict = mmd.get(status, None) if mmd else None
-        if (not adict and not mdict):
-            return
+# _get_body_effects
+def __gbe_show_terse(fxlist, bpconst, bp):
+    pass # TODO
+def __gbe_show(fxlist, bpconst, bp, terse=False):
+    ''' function for showing full body part info i.e. status / 
+        HP / SP / stat mods -- for use by _get_body_effects '''
 
-        # priority -- depending on status AND type of body part
-        priority = status
-        if "scalp" in bppname: # head skin higher priority than regular skin
-            priority += 10
-        elif "muscle" in bppname: # muscles have higher priority than skin
-            priority += 20
-        elif "bone" in bppname: # bones have high priority
-            priority += 30 # a broken bone is no bueno
-        elif "skull" in bppname: # skull has very high priority
-            priority += 40
-        elif "brain" in bppname: # brain has very highest priority
-            priority += 50
-            
-        am=""
-        if amd:
-            am = "\n            [ {} ]".format(
-                __gdadd(adict))
-        mm=""
-        if mmd:
-            mm = "\n            [ {} ]".format(
-                __gdmul(mdict) )
-        fxlist.append(
-            (priority, "        {bpn}: {eff}{am}{mm}\n".format(
-            bpn=bppname, eff=bpstatusdict[status], am=am, mm=mm ),)
-            )
-def _get_body_effects(world, body): # TODO: finish all of these for each body part, and each BPP for each body part
-    fxlist=[] # [ (priority, string,), ... ]
+    if terse: # use the terse version instead
+        __gbe_show_terse(fxlist, bpconst, bp)
+        return
     
+    adict = {}
+    mdict = {}
+    bpName = cmp.BPNAMES[type(bp)]
+    hpp = bp.hp / bp.MAX_HP
+    spp = bp.sp / bp.MAX_SP
+    
+    for ratio,data in BP_HEALTH_STATMODS[bpconst].items():
+        if (hpp <= ratio):
+            adict = data['add']
+            mdict = data['mult']
+            break
+
+    # start building the string to display to show status of BP
+    
+    hpstr = "HP {}%".format(max(0, math.ceil(hpp*100)))
+    spstr = "SP {}%".format(max(0, math.ceil(spp*100)))
+    fxstr = "        {0:<12}: {1:<8} | {2:<8}".format(bpName,hpstr,spstr)
+    
+    if bp.status:
+        fxstr = "{} ({})".format(fxstr, BPSTATUS_DESCRIPTIONS[bp.status][0])
+
+    # priority -- depending on status AND type of body part
+    priority = bp.status
+    if "head" in bpName:
+        priority += 200
+    elif "neck" in bpName:
+        priority += 190
+    elif "eyes" in bpName:
+        priority += 150
+    elif "ears" in bpName:
+        priority += 140
+    elif "back" in bpName:
+        priority += 80
+    elif "chest" in bpName:
+        priority += 70
+    elif "core" in bpName:
+        priority += 60
+    elif "hips" in bpName:
+        priority += 50
+    
+    am = "\n            [ {} ]".format(__gdadd(adict)) if adict else ""
+    mm = "\n            [ {} ]".format(__gdmul(mdict)) if mdict else ""
+    fxlist.append( (priority, "{}{}{}\n".format(fxstr, am, mm ),) )
+# end def
+def __gbe_get_wounds(world, fxlist, ent):
+    for woundcls in cmp.WOUND_STATUSES:
+        if world.has_component(ent, woundcls):
+            compo = world.component_for_entity(ent, woundcls)
+            data = WOUNDS[woundcls.TYPE][compo.quality]
+            
+            # determine priority
+            priority = 1000 + compo.quality
+            if woundcls==cmp.StatusWound_Brain:
+                priority += 100
+            elif woundcls==cmp.StatusWound_Organ:
+                priority += 90
+            
+            # get the mod dict
+            amods = {}
+            for k,v in data.items():
+                # filter useless data
+                if (k=='name' or k=='desc' or k=='type'):
+                    continue
+                amods.update({k:v})
+                
+            # make the string
+            string = "        Wound: {n}\n{t}{t}{t}[ {am} ]".format(
+                n=data['name'],t="    ",am=__gdadd(amods))
+                )
+
+            # append
+            fxlist.append( (priority, string,) )
+    # end for
+# end def
+def _get_body_effects(world, ent, body): # TODO: finish all of these for each body part, and each BPP for each body part
+    '''
+        Parameters:
+            world     esper world
+            ent       entity body belongs to
+            body      cmp.Body instance
+
+        Create a list of information about the body pertaining to
+            damage and wounding. List is a priority list with format:
+                [ (priority:int, string:str,), ... ]
+                where string is newline-terminated
+    '''
+
+    fxlist=[]
+    terse = False
+    
+    # TODO:
+    #   wounds (irrespective of body plan)
+    #   all types of body parts and all body plans
+        
     # what body type are we?
     # humanoid
     if body.plan == BODYPLAN_HUMANOID:
-        # end def
 
-        # for every body part in the plan, if it has a status,
-        # add the status
+        __gbe_show(fxlist, BP_CORE, body.core.core, terse=terse)
+        __gbe_show(fxlist, BP_FRONT, body.core.front, terse=terse)
+        __gbe_show(fxlist, BP_HIPS, body.core.hips, terse=terse)
+        __gbe_show(fxlist, BP_BACK, body.core.back, terse=terse)
 
-        # TODO:(?) guts, lungs, heart statuses???
+        # TODO: multiple heads
+        __gbe_show(fxlist, BP_HEAD, body.parts[cmp.BPC_Heads].heads[0].head, terse=terse)
+        __gbe_show(fxlist, BP_FACE, body.parts[cmp.BPC_Heads].heads[0].face, terse=terse)
+        __gbe_show(fxlist, BP_NECK, body.parts[cmp.BPC_Heads].heads[0].neck, terse=terse)
+        __gbe_show(fxlist, BP_EYES, body.parts[cmp.BPC_Heads].heads[0].eyes, terse=terse)
+        __gbe_show(fxlist, BP_EARS, body.parts[cmp.BPC_Heads].heads[0].ears, terse=terse)
+        __gbe_show(fxlist, BP_NOSE, body.parts[cmp.BPC_Heads].heads[0].nose, terse=terse)
 
-        # core
-        
-        __sbps(fxlist,"core skin",body.core.core.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"core muscle",body.core.core.muscle.status,
-            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
-        
-        __sbps(fxlist,"chest skin",body.core.front.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"chest muscle",body.core.front.muscle.status,
-            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
-        __sbps(fxlist,"chest bone",body.core.front.bone.status,
-            BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
-            mmd=MULTMODS_BPP_TORSO_BONESTATUS)
-        
-        __sbps(fxlist,"hip skin",body.core.hips.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"hip muscle",body.core.hips.muscle.status,
-            MUSCLESTATUSES, amd=ADDMODS_BPP_TORSO_MUSCLESTATUS )
-        __sbps(fxlist,"hip bone",body.core.hips.bone.status,
-            BONESTATUSES, amd=ADDMODS_BPP_TORSO_BONESTATUS,
-            mmd=MULTMODS_BPP_TORSO_BONESTATUS)
-        
-        __sbps(fxlist,"back skin",body.core.back.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"back muscle",body.core.back.muscle.status,
-            MUSCLESTATUSES, amd=ADDMODS_BPP_BACK_MUSCLESTATUS )
-        __sbps(fxlist,"back bone",body.core.back.bone.status,
-            BONESTATUSES, amd=ADDMODS_BPP_BACK_BONESTATUS,
-            mmd=MULTMODS_BPP_BACK_BONESTATUS)
-
-        # head
-        
-        __sbps(fxlist,"scalp",body.parts[cmp.BPC_Heads].heads[0].head.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"skull",body.parts[cmp.BPC_Heads].heads[0].head.bone.status,
-            BONESTATUSES, amd=ADDMODS_BPP_HEAD_BONESTATUS,
-            mmd=MULTMODS_BPP_HEAD_BONESTATUS)
-        __sbps(fxlist,"brain",body.parts[cmp.BPC_Heads].heads[0].head.brain.status,
-            BRAINSTATUSES, amd=ADDMODS_BPP_BRAINSTATUS,
-            mmd=MULTMODS_BPP_BRAINSTATUS)
-        
-        __sbps(fxlist,"face skin",body.parts[cmp.BPC_Heads].heads[0].face.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_FACE_SKINSTATUS )
-        
-        __sbps(fxlist,"neck skin",body.parts[cmp.BPC_Heads].heads[0].neck.skin.status,
-            SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-        __sbps(fxlist,"neck muscle",body.parts[cmp.BPC_Heads].heads[0].neck.muscle.status,
-            MUSCLESTATUSES, amd=ADDMODS_BPP_NECK_MUSCLESTATUS)
-        __sbps(fxlist,"neck bone",body.parts[cmp.BPC_Heads].heads[0].neck.bone.status,
-            BONESTATUSES, amd=ADDMODS_BPP_NECK_BONESTATUS,
-            mmd=MULTMODS_BPP_NECK_BONESTATUS)
-
-        # arm 1
-        
+        # arms
         index = 0
         for arm in body.parts[cmp.BPC_Arms].arms:
             index += 1
-            __sbps(fxlist,"arm {} skin".format(index),
-                arm.arm.skin.status,
-                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __sbps(fxlist,"arm {} muscle".format(index),
-                arm.arm.muscle.status,
-                MUSCLESTATUSES, amd=ADDMODS_BPP_ARM_MUSCLESTATUS)
-            __sbps(fxlist,"arm {} bone".format(index),
-                arm.arm.bone.status,
-                BONESTATUSES, amd=ADDMODS_BPP_ARM_BONESTATUS)
-            
-            __sbps(fxlist,"hand {} skin".format(index),
-                arm.hand.skin.status,
-                SKINSTATUSES, amd=ADDMODS_BPP_HAND_SKINSTATUS )
-            __sbps(fxlist,"hand {} muscle".format(index),
-                arm.hand.muscle.status,
-                MUSCLESTATUSES, amd=ADDMODS_BPP_HAND_MUSCLESTATUS)
-            __sbps(fxlist,"hand {} bone".format(index),
-                arm.hand.bone.status,
-                BONESTATUSES, amd=ADDMODS_BPP_HAND_BONESTATUS)
-        # end for
+            __gbe_show(fxlist, BP_ARM, arm.arm, terse=terse)
+            __gbe_show(fxlist, BP_HAND, arm.hand, terse=terse)
 
-        # leg 1
-        
+        # legs
         index = 0
         for leg in body.parts[cmp.BPC_Legs].legs:
             index += 1
-            __sbps(fxlist,"leg {} skin".format(index),
-                leg.leg.skin.status,
-                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __sbps(fxlist,"leg {} muscle".format(index),
-                leg.leg.muscle.status,
-                MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
-            __sbps(fxlist,"leg {} bone".format(index),
-                leg.leg.bone.status,
-                BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
-                mmd=MULTMODS_BPP_LEG_BONESTATUS)
-            
-            __sbps(fxlist,"foot {} skin".format(index),
-                leg.foot.skin.status,
-                SKINSTATUSES, amd=ADDMODS_BPP_SKINSTATUS )
-            __sbps(fxlist,"foot {} muscle".format(index),
-                leg.foot.muscle.status,
-                MUSCLESTATUSES, amd=ADDMODS_BPP_LEG_MUSCLESTATUS)
-            __sbps(fxlist,"foot {} bone".format(index),
-                leg.foot.bone.status,
-                BONESTATUSES, amd=ADDMODS_BPP_LEG_BONESTATUS,
-                mmd=MULTMODS_BPP_LEG_BONESTATUS)
-        # end for
-
-        
+            __gbe_show(fxlist, BP_LEG, leg.leg, terse=terse)
+            __gbe_show(fxlist, BP_FOOT, leg.foot, terse=terse)        
     # end if
+
+    __gbe_get_wounds(world, fxlist, ent)
     
     # get the return string
     effects = ""
     fxlist.sort(key=lambda x: x[0], reverse=True) # sort by priority
     for eff in fxlist:
-        priority, string = eff
-        effects += string
+        effects = "{}{}".format(effects, eff[1]) # get the string
     if effects: effects=effects[:-1] # remove final '\n'
     return effects
 
@@ -699,7 +683,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     #
     # body (and equipment)
     body=world.component_for_entity(pc, cmp.Body)
-    bodystatus=_get_body_effects(world, body)
+    bodystatus=_get_body_effects(world, pc, body)
     equipment=_get_equipment(body)
     basemass=rog.around((_getb('mass') + body.hydrationMax//MULT_HYD + body.bodyfat + body.blood)/MULT_MASS)
     satstr=_get_satiation(body)
@@ -769,8 +753,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}
 {p1}                   satiation:{tab}{satstr}
 {p1}                   hydration:{tab}{hydstr}
-{p1}         (life / max.)----HP{predelim}{hp:>5} / {hpmax:<5}{tab}{hppc}%
-{p1}      (stamina / max.)----SP{predelim}{sp:>5} / {spmax:<5}{tab}{sppc}%
+{p1}    (will / willpower)----WIL{predelim}{hp:>5} / {hpmax:<5}{tab}{hppc}%
+{p1}    (vigor / vitality)----VGR{predelim}{sp:>5} / {spmax:<5}{tab}{sppc}%
 {p1} (encumberance / max.)---ENC{predelim}{enc:>5} / {encmax:<5}{tab}{encpc}%{encmods}
 {p1}        
 {p1}                        {subdelim} attribute {subdelim}
@@ -813,9 +797,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}
 {p1}               (mass)-----KG{predelim}{kg:<7}{shortdelim}({bkg})
 {p1}             (height)-----CM{predelim}{cm:<4}{statdelim}({bcm})
-{p1}           (max.life)--HPMAX{predelim}{hpmax:<4}{statdelim}({bhpmax})
-{p1}        (max.stamina)--SPMAX{predelim}{spmax:<4}{statdelim}({bspmax})
-{p1}   (max.encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
+{p1}          (willpower)----WLP{predelim}{hpmax:<4}{statdelim}({bhpmax})
+{p1}           (vitality)----VIT{predelim}{spmax:<4}{statdelim}({bspmax})
+{p1}   (max encumberance)-ENCMAX{predelim}{encmax:<4}{statdelim}({bencmax})
 {p1}
 {p1}                        {subdelim} resistance {subdelim}
 {p1}
@@ -962,7 +946,7 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
 {p1}                PEN:    {pen<20}PRO:    {pro<20}
 {p1}                ASP:    {asp<20}BAL:    {bal<20}
 {p1}                CTR:    {ctr<20}GRA:    {gra<20}
-{p1}                ENC:    {enc<20}SP:     {spcost<20}
+{p1}                ENC:    {enc<20}
 {p1}                {auxeffects}
 {p1}'''.format(
             p1="",
@@ -973,7 +957,8 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
             pen=moddict.get('pen',0),pro=moddict.get('pro',0),
             asp=moddict.get('asp',0),enc=moddict.get('enc',0),
             ctr=moddict.get('ctr',0),bal=moddict.get('bal',0),
-            gra=moddict.get('gra',0),spcost=equipable.stamina,
+            gra=moddict.get('gra',0),
+            #spcost=equipable.stamina,
             auxeffects=auxeffects,
         )
     def _tool_s(item):
@@ -1005,8 +990,8 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
 {p1}            ( {typ} ) {subcls}
 {p1}                    type: {proto}
 {p1}                   skill: {skill}
-{p1}            condition: {hp} / {hpmax}
-{p1}            $ {value}, {kg:.3f} ({valueperkg} $$/kg)
+{p1}            condition: {hppercent}%
+{p1}            $ {value}.{value2}, {kg:.3f} (~{valueperkg:.1f} $/kg)
 {p1}            primary material: {mat}
 {p1}
 {p1}{equipstats}
@@ -1019,11 +1004,15 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
         subdelim ="--",
         predelim =": ",
         typ=draw.char,
-        fullname=rog.getfname(item), #TODO: make this function
+        fullname=rog.getfullname(item),
         skill=skill,proto=name.name,
         hp=rog.getms(item,'hp'),hpmax=rog.getms(item,'hpmax'),
+        hppercent=int(100*rog.getms(item,'hp')/rog.getms(item,'hpmax')),
         kg=rog.getms(item,'mass'),
-        value=form.value,mat=form.material,
+        value=form.value//MULT_VALUE,
+        value2=form.value%MULT_VALUE,
+        mat=form.material,
+        valueperkg=form.value/MULT_VALUE / (rog.getms(item,'mass')/MULT_MASS),
         equipstats=equipstats,
     )
 # end def
@@ -1038,7 +1027,7 @@ def render_hud(w,h,pc,turn,dlvl):
     name = rog.world().component_for_entity(pc, cmp.Name)
     # TODO: update HUD:
     #  change to show more relevant stats, resistances are less important
-    strngStats = "__{name}__|HP: {hp}|SP: {mp}|Speed: {spd}/{msp}/{asp}|Atk: {hit}|Dmg: {dmg}|Pen: {pen}|DV: {dfn}|AV: {arm}|Pro: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|{t}".format(
+    strngStats = "__{name}__|WIL: {hp}|VGR: {mp}|Speed: {spd}/{msp}/{asp}|ATK: {hit}|DMG: {dmg}|PEN: {pen}|DV: {dfn}|AV: {arm}|PRO: {pro}|FIR: {fir}|BIO: {bio}|ELC: {elc}|DLvl: {dlv}|{t}".format(
         name=name.name,
         hp=_get('hp'),mp=_get('mp'),
         spd=_get('spd'),asp=_get('asp'),msp=_get('msp'),

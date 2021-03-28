@@ -1485,7 +1485,6 @@ i=1;
 WOUNDTYPE_A     =i;i+=1;
 WOUNDTYPE_B     =i;i+=1;
 WOUNDTYPE_C     =i;i+=1;
-WOUNDTYPE_0     =i;i+=1;
 WOUNDTYPE_1     =i;i+=1;
 WOUNDTYPE_2     =i;i+=1;
 WOUNDTYPE_3A    =i;i+=1;
@@ -1494,16 +1493,15 @@ WOUNDTYPE_3C    =i;i+=1;
 WOUNDTYPE_4     =i;i+=1;
 
 WOUNDTYPE_DESCRIPTIONS={
-WOUNDTYPE_A  :"Type A wound: superficial or microscopic soft tissue damage.",
-WOUNDTYPE_B  :"Type B wound: damage to deep nervous or muscle tissue.",
-WOUNDTYPE_C  :"Type C wound: deep organ damage requiring urgent medical care.",
-WOUNDTYPE_0  :"Type 0 wound: <= 1mm, microscopic or no tissue damage.",
-WOUNDTYPE_1  :"Type 1 wound: <= 1cm, minimal contamination or muscle damage.",
-WOUNDTYPE_2  :"Type 2 wound: <= 10cm, moderate soft tissue injury",
-WOUNDTYPE_3A :"Type 3A wound: typically > 10cm, extensive soft tissue damage and contamination",
-WOUNDTYPE_3B :"Type 3B wound: extensive periosteal stripping, requires soft tissue coverage",
-WOUNDTYPE_3C :"Type 3C wound: typically > 10cm, vascular or arterial injury requiring urgent surgery",
-WOUNDTYPE_4  :"Type 4 wound: typically > 10cm, vascular or arterial injury requiring urgent specialist surgery"
+WOUNDTYPE_A  :"Type A wound: superficial or microscopic soft tissue damage",
+WOUNDTYPE_B  :"Type B wound: damage to deep nervous or muscle tissue",
+WOUNDTYPE_C  :"Type C wound: moderate to severe internal organ damage requiring urgent medical care",
+WOUNDTYPE_1  :"Type 1 wound: <= 1cm; minimal contamination or muscle damage",
+WOUNDTYPE_2  :"Type 2 wound: <= 10cm; moderate soft tissue injury",
+WOUNDTYPE_3A :"Type 3A wound: typically > 10cm; extensive soft tissue damage and contamination",
+WOUNDTYPE_3B :"Type 3B wound: extensive periosteal stripping; requires soft tissue coverage",
+WOUNDTYPE_3C :"Type 3C wound: typically > 10cm; vascular or arterial injury requiring urgent surgery",
+WOUNDTYPE_4  :"Type 4 wound: extensive damage; deep or vital tissue injury requiring immediate specialist surgery"
 }
 #Type 4: wound typically > 10cm, vascular or arterial injury requiring urgent specialist surgery
 
@@ -1513,6 +1511,7 @@ WOUNDTYPE_4  :"Type 4 wound: typically > 10cm, vascular or arterial injury requi
 # to exceed the maximum).
 i=1;
 WOUND_RASH      =i;i+=1;
+WOUND_BURN      =i;i+=1;
 WOUND_CUT       =i;i+=1;
 WOUND_PUNCTURE  =i;i+=1;
 WOUND_GUNSHOT   =i;i+=1;
@@ -1529,26 +1528,36 @@ WOUNDS={
 #           (TODO: make this)
 WOUND_RASH:{ # abrasions, burns, etc.
     'degrees':8,
-    1:{'name':'irritation', 'desc':'rash', 'type':WOUNDTYPE_A,
+    1:{'name':'irritation', 'desc':'rash; redness, swelling', 'type':WOUNDTYPE_A,
        'resbio':-2, 'respain':-2, 'resbleed':-2, 'resfire':-1,},
     2:{'name':'inflammation', 'desc':'a scape or multiple rashes', 'type':WOUNDTYPE_A,
        'resbio':-4, 'respain':-4, 'resbleed':-4, 'resfire':-2,},
     3:{'name':'abrasion', 'desc':'or multiple scrapes', 'type':WOUNDTYPE_A,
        'resbio':-6, 'respain':-8, 'resbleed':-6, 'resfire':-4,},
-    4:{'name':'laceration', 'desc':'or multiple abrasions', 'type':WOUNDTYPE_0,
-       'resbio':-8, 'respain':-16, 'resbleed':-8, 'resfire':-8,'rescold':-2,},
-    5:{'name':'burn', 'desc':'or multiple lacerations', 'type':WOUNDTYPE_1,
-       'resbio':-8, 'respain':-32, 'resbleed':-8, 'resfire':-16,'rescold':-4,},
-    6:{'name':'deep burn', 'desc':'or multiple burns', 'type':WOUNDTYPE_2,
-       'resbio':-16, 'respain':-64, 'resbleed':-16, 'resfire':-32,'rescold':-8,},
+    4:{'name':'minor laceration', 'desc':'a tear in the superficial flesh', 'type':WOUNDTYPE_1,
+       'resbio':-8, 'respain':-16, 'resbleed':-8, 'resfire':-8,},
+    5:{'name':'major laceration', 'desc':'a deep tear in the flesh', 'type':WOUNDTYPE_2,
+       'resbio':-16, 'respain':-32, 'resbleed':-16, 'resfire':-12,'rescold':-4,},
+    6:{'name':'avulsion', 'desc':'deep tearing injury involving ligaments and bone', 'type':WOUNDTYPE_2,
+       'resbio':-32, 'respain':-64, 'resbleed':-32, 'resfire':-16,'rescold':-8,},
     7:{'name':'skinned', 'desc':'substantial amount of damaged skin', 'type':WOUNDTYPE_3B,
-       'resbio':-32, 'respain':-64, 'resbleed':-32, 'resfire':-32,'rescold':-16,},
-    8:{'name':'fully skinned', 'desc':'<= 1/2 total skin remaining', 'type':WOUNDTYPE_3B,
-       'resbio':-64, 'respain':-128, 'resbleed':-64, 'resfire':-64,'rescold':-32,},
+       'resbio':-48, 'respain':-96, 'resbleed':-64, 'resfire':-24,'rescold':-24,},
+    8:{'name':'fully skinned', 'desc':'< 50% total skin remaining', 'type':WOUNDTYPE_3B,
+       'resbio':-64, 'respain':-128, 'resbleed':-128, 'resfire':-32,'rescold':-48,},
     },
+WOUND_BURN:{
+    1:{'name':'1st degree burn', 'desc':'damaged superficial epidermis', 'type':WOUNDTYPE_1,
+       'resbio':-8, 'respain':-16, 'resbleed':-8, 'resfire':-16,'rescold':-4,},
+    2:{'name':'2nd degree  burn', 'desc':'damaged dermis; blistering present', 'type':WOUNDTYPE_2,
+       'resbio':-16, 'respain':-48, 'resbleed':-16, 'resfire':-32,'rescold':-8,},
+    3:{'name':'3rd degree burn', 'desc':'damaged underlying tissue and/or bone', 'type':WOUNDTYPE_3A,
+       'resbio':-32, 'respain':-128, 'resbleed':-32, 'resfire':-48,'rescold':-16,},
+    4:{'name':'4th degree burn', 'desc':'widespread destruction of nervous system', 'type':WOUNDTYPE_4,
+       'resbio':-64, 'respain':32, 'resbleed':-64, 'resfire':-64,'rescold':-32,},
+    }
 WOUND_CUT:{ # cuts
     'degrees':6,
-    1:{'name':'nick', 'desc':'paper cut', 'type':WOUNDTYPE_0,
+    1:{'name':'nick', 'desc':'small cut', 'type':WOUNDTYPE_A,
        'resbio':-4, 'respain':-1, 'resbleed':-2,},
     2:{'name':'cut', 'desc':'or multiple nicks', 'type':WOUNDTYPE_1,
        'resbio':-8, 'respain':-2, 'resbleed':-4,},
@@ -1558,14 +1567,14 @@ WOUND_CUT:{ # cuts
        'gra':-2, 'resbio':-32, 'respain':-8, 'resbleed':-16,},
     5:{'name':'arterial cut', 'desc':'or multiple deep cuts', 'type':WOUNDTYPE_3C,
        'gra':-4, 'resbio':-64, 'respain':-16, 'resbleed':-32,},
-    6:{'name':'gushing slice', 'desc':'possibly inhumane blades used', 'type':WOUNDTYPE_4,
+    6:{'name':'gushing slice', 'desc':'possibly inhumane weapons used', 'type':WOUNDTYPE_4,
        'gra':-8, 'resbio':-64, 'respain':-32, 'resbleed':-64,},
     },
 WOUND_PUNCTURE:{ # puncture or stab wounds.
     # Harder to heal than cuts, and cause more bleeding at the time of the damage.
     # However, stat mods are less penalizing than with cuts.
     'degrees':6,
-    1:{'name':'incision', 'desc':'needle poke', 'type':WOUNDTYPE_0,
+    1:{'name':'incision', 'desc':'needle poke', 'type':WOUNDTYPE_1,
        'resbio':-4, 'resbleed':-1,},
     2:{'name':'piercing', 'desc':'or multiple incisions', 'type':WOUNDTYPE_1,
        'resbio':-8, 'resbleed':-2,},
@@ -1575,7 +1584,7 @@ WOUND_PUNCTURE:{ # puncture or stab wounds.
        'resbio':-32, 'resbleed':-8,},
     5:{'name':'arterial puncture', 'desc':'or multible stab wounds', 'type':WOUNDTYPE_3C,
        'resbio':-64, 'resbleed':-16,},
-    6:{'name':'gushing hole', 'desc':'possibly inhumane blades used', 'type':WOUNDTYPE_4,
+    6:{'name':'gushing hole', 'desc':'possibly inhumane weapons used', 'type':WOUNDTYPE_4,
        'resbio':-64, 'respain':-16, 'resbleed':-32,},
     },
 WOUND_GUNSHOT:{ # gun shot wounds
@@ -1588,38 +1597,38 @@ WOUND_GUNSHOT:{ # gun shot wounds
        'resbio':-32, 'respain':-32, 'resbleed':-16,},
     4:{'name':'arterial gunshot', 'desc':'or high high-velocity gunshots', 'type':WOUNDTYPE_3C,
        'resbio':-64, 'respain':-64, 'resbleed':-32,},
-    5:{'name':'gushing gunshot', 'desc':'possibly inhumane rounds used', 'type':WOUNDTYPE_4,
+    5:{'name':'gushing gunshot', 'desc':'possibly inhumane weapons used', 'type':WOUNDTYPE_4,
        'resbio':-96, 'respain':-96, 'resbleed':-64,},
     },
 WOUND_MUSCLE:{ # bruising and tears / ruptured muscle
     'degrees':8,
     1:{'name':'sore muscles', 'desc':'dull ache', 'type':WOUNDTYPE_A,
-       'respain':-16, 'msp':0.98, },
-    2:{'name':'knotted muscles', 'desc':'or intense soreness', 'type':WOUNDTYPE_A,
-       'atk':-1,'dfn':-1,'gra':-1, 'respain':-24, 'msp':0.95, 'asp':0.98,},
+       'respain':-16,},
+    2:{'name':'knotted muscles', 'desc':'localized ischemia or intense soreness', 'type':WOUNDTYPE_A,
+       'atk':-1, 'dfn':-1, 'gra':-1, 'respain':-24, 'msp':0.95, 'asp':0.98,},
     3:{'name':'contusion', 'desc':'a bruise or edema; microscopic muscle tears', 'type':WOUNDTYPE_A,
-       'atk':-2,'dfn':-2,'gra':-2, 'respain':-32, 'msp':0.9, 'asp':0.96,},
+       'str':-1, 'atk':-2, 'dfn':-2, 'gra':-2, 'respain':-32, 'msp':0.9, 'asp':0.96,},
     4:{'name':'strained muscles', 'desc':'or sprain; macroscopic muscular tears', 'type':WOUNDTYPE_B,
-       'atk':-3,'dfn':-3,'gra':-3, 'respain':-48, 'msp':0.85, 'asp':0.94,},
+       'str':-2, 'atk':-3, 'dfn':-3, 'gra':-3, 'respain':-48, 'msp':0.85, 'asp':0.94,},
     5:{'name':'torn muscles', 'desc':'or multiple strained muscles', 'type':WOUNDTYPE_B,
-       'atk':-4,'dfn':-4,'gra':-4, 'respain':-64, 'msp':0.8, 'asp':0.92,},
+       'str':-3, 'atk':-4, 'dfn':-4, 'gra':-4, 'respain':-64, 'msp':0.8, 'asp':0.92,},
     6:{'name':'ripped muscles', 'desc':'or multiple torn muscles', 'type':WOUNDTYPE_B,
-       'atk':-6,'dfn':-6,'gra':-6, 'respain':-80, 'msp':0.7, 'asp':0.9,},
+       'str':-4, 'atk':-6, 'dfn':-6, 'gra':-6, 'respain':-80, 'msp':0.7, 'asp':0.9,},
     7:{'name':'ruptured muscles', 'desc':'or multiple ripped muscles', 'type':WOUNDTYPE_3B,
-       'atk':-8,'dfn':-8,'gra':-8, 'respain':-96, 'msp':0.6, 'asp':0.85,},
+       'str':-6, 'atk':-8, 'dfn':-8, 'gra':-8, 'respain':-96, 'msp':0.6, 'asp':0.85,},
     8:{'name':'mangled muscles', 'desc':'or multiple ruptured muscles', 'type':WOUNDTYPE_3B,
-       'atk':-16,'dfn':-16,'gra':-16, 'respain':-128, 'msp':0.5, 'asp':0.75,},
+       'str':-8, 'atk':-16, 'dfn':-16, 'gra':-16, 'respain':-128, 'msp':0.5, 'asp':0.75,},
     },
 WOUND_ORGAN:{ # internal organ damage
     'degrees':4,
     1:{'name':'bruised organs', 'desc':'minor internal organ damage', 'type':WOUNDTYPE_A,
-       'end':-1, 'con':-1, 'respain':-16, 'resbleed':-16, },
+       'end':-1, 'con':-1, 'resbleed':-16, },
     2:{'name':'organ damage', 'desc':'permanent internal organ damage', 'type':WOUNDTYPE_C,
-       'end':-2, 'con':-2, 'respain':-32, 'resbleed':-32,},
+       'end':-2, 'con':-2, 'respain':-16, 'resbleed':-32,},
     3:{'name':'organ failure', 'desc':'life-threatening organ damage', 'type':WOUNDTYPE_C,
-       'end':-4, 'con':-4, 'respain':-64, 'resbleed':-64,},
+       'end':-4, 'con':-4, 'respain':-32, 'resbleed':-64,},
     4:{'name':'septic shock', 'desc':'systemic organ failure', 'type':WOUNDTYPE_C,
-       'end':-8, 'con':-8, 'respain':-128, 'resbleed':-128,},
+       'end':-8, 'con':-8, 'respain':-64, 'resbleed':-128,},
     },
 WOUND_BRAIN:{ # uses multipliers
     'degrees':6,
@@ -1655,11 +1664,11 @@ BP_HEAD         :{
     0  :{'add':{'int':-5, 'respain':-32, 'bal':-16,},'mult':{'hearing':0.5, 'sight':0.5,},},
     },
 BP_NECK         :{
-    0.8:{'add':{'respain':-2, 'resbleed':-4,},'mult':{},},
-    0.6:{'add':{'respain':-4, 'resbleed':-8,},'mult':{},},
-    0.4:{'add':{'respain':-8, 'resbleed':-16,},'mult':{},},
-    0.2:{'add':{'respain':-16, 'resbleed':-32,},'mult':{},},
-    0  :{'add':{'respain':-32, 'resbleed':-64,},'mult':{},},
+    0.8:{'add':{'respain':-4, 'resbleed':-4,},'mult':{'msp':0.95,'asp':0.95,},},
+    0.6:{'add':{'respain':-8, 'resbleed':-8,},'mult':{'msp':0.9,'asp':0.9,},},
+    0.4:{'add':{'respain':-16, 'resbleed':-16,},'mult':{'msp':0.8,'asp':0.85,},},
+    0.2:{'add':{'respain':-32, 'resbleed':-32,},'mult':{'msp':0.7,'asp':0.8,},},
+    0  :{'add':{'respain':-64, 'resbleed':-64,},'mult':{'msp':0.6,'asp':0.75,},},
     },
 BP_FACE         :{
     0.8:{'add':{'respain':-2, 'bea':-4, 'idn':-4,},'mult':{},},
@@ -1700,65 +1709,65 @@ BP_MOUTH        :{
     0  :{'add':{'respain':-64, 'bea':-64, 'idn':-16,},'mult':{},},
     },
 BP_FRONT        :{
-    0.8:{'add':{'str':-1, 'respain':-1, 'asp': -3, 'msp': -3,},'mult':{},},
-    0.6:{'add':{'str':-2, 'respain':-2, 'asp': -6, 'msp': -6,},'mult':{},},
-    0.4:{'add':{'str':-3, 'respain':-4, 'asp': -9, 'msp': -9,},'mult':{},},
-    0.2:{'add':{'str':-4, 'respain':-8, 'asp': -12, 'msp': -12,},'mult':{},},
-    0  :{'add':{'str':-5, 'respain':-16, 'asp': -15, 'msp': -15,},'mult':{},},
+    0.8:{'add':{'str':-1, 'respain':-4, 'asp': -3,},'mult':{},},
+    0.6:{'add':{'str':-2, 'respain':-8, 'asp': -6,},'mult':{},},
+    0.4:{'add':{'str':-3, 'respain':-16, 'asp': -9,},'mult':{},},
+    0.2:{'add':{'str':-4, 'respain':-32, 'asp': -12,},'mult':{},},
+    0  :{'add':{'str':-6, 'respain':-64, 'asp': -15,},'mult':{},},
     },
 BP_BACK         :{
-    0.8:{'add':{'con':-1, 'respain':-1, 'asp': -3, 'msp': -3,},'mult':{},},
-    0.6:{'add':{'con':-2, 'respain':-2, 'asp': -6, 'msp': -6,},'mult':{},},
-    0.4:{'add':{'con':-3, 'respain':-4, 'asp': -9, 'msp': -9,},'mult':{},},
-    0.2:{'add':{'con':-4, 'respain':-8, 'asp': -12, 'msp': -12,},'mult':{},},
-    0  :{'add':{'con':-5, 'respain':-16, 'asp': -15, 'msp': -15,},'mult':{},},
+    0.8:{'add':{'con':-1, 'respain':-4,},'mult':{'msp':0.95,'asp':0.95,},},
+    0.6:{'add':{'con':-2, 'respain':-8,},'mult':{'msp':0.9,'asp':0.9,},},
+    0.4:{'add':{'con':-3, 'respain':-16,},'mult':{'msp':0.85,'asp':0.85,},},
+    0.2:{'add':{'con':-4, 'respain':-32,},'mult':{'msp':0.8,'asp':0.8,},},
+    0  :{'add':{'con':-6, 'respain':-64,},'mult':{'msp':0.75,'asp':0.75,},},
     },
 BP_HIPS         :{
-    0.8:{'add':{'end':-1, 'respain':-1, 'asp': -3, 'msp': -12,},'mult':{},},
-    0.6:{'add':{'end':-2, 'respain':-2, 'asp': -6, 'msp': -24,},'mult':{},},
-    0.4:{'add':{'end':-3, 'respain':-4, 'asp': -12, 'msp': -36,},'mult':{},},
-    0.2:{'add':{'end':-4, 'respain':-8, 'asp': -24, 'msp': -48,},'mult':{},},
-    0  :{'add':{'end':-5, 'respain':-16, 'asp': -36, 'msp': -64,},'mult':{},},
+    0.8:{'add':{'end':-1, 'respain':-4,},'mult':{'msp':0.9,'asp':0.92,},},
+    0.6:{'add':{'end':-2, 'respain':-8,},'mult':{'msp':0.8,'asp':0.8,},},
+    0.4:{'add':{'end':-3, 'respain':-16,},'mult':{'msp':0.7,'asp':0.67,},},
+    0.2:{'add':{'end':-4, 'respain':-32,},'mult':{'msp':0.6,'asp':0.5,},},
+    0  :{'add':{'end':-6, 'respain':-64,},'mult':{'msp':0.5,'asp':0.4,},},
     },
 BP_CORE         :{
-    0.8:{'add':{'agi':-1, 'respain':-1, 'asp': -6, 'msp': -3,},'mult':{},},
-    0.6:{'add':{'agi':-2, 'respain':-2, 'asp': -12, 'msp': -6,},'mult':{},},
-    0.4:{'add':{'agi':-3, 'respain':-4, 'asp': -24, 'msp': -9,},'mult':{},},
-    0.2:{'add':{'agi':-4, 'respain':-8, 'asp': -36, 'msp': -12,},'mult':{},},
-    0  :{'add':{'agi':-5, 'respain':-16, 'asp': -48, 'msp': -15,},'mult':{},},
+    0.8:{'add':{'agi':-1, 'respain':-1, 'asp': -6,},'mult':{},},
+    0.6:{'add':{'agi':-2, 'respain':-2, 'asp': -12,},'mult':{},},
+    0.4:{'add':{'agi':-3, 'respain':-4, 'asp': -24,},'mult':{},},
+    0.2:{'add':{'agi':-4, 'respain':-8, 'asp': -36,},'mult':{},},
+    0  :{'add':{'agi':-6, 'respain':-16, 'asp': -48,},'mult':{},},
     },
 BP_ARM          :{
-    0.8:{'add':{'dex':-1, 'respain':-1,},'mult':{},},
-    0.6:{'add':{'dex':-2, 'respain':-2,},'mult':{},},
-    0.4:{'add':{'dex':-3, 'respain':-4,},'mult':{},},
-    0.2:{'add':{'dex':-4, 'respain':-8,},'mult':{},},
-    0  :{'add':{'dex':-5, 'respain':-16,},'mult':{},},
+    0.8:{'add':{'dex':-1, 'respain':-2,},'mult':{},},
+    0.6:{'add':{'dex':-2, 'respain':-4,},'mult':{},},
+    0.4:{'add':{'dex':-3, 'respain':-8,},'mult':{},},
+    0.2:{'add':{'dex':-4, 'respain':-16,},'mult':{},},
+    0  :{'add':{'dex':-5, 'respain':-32,},'mult':{},},
     },
 BP_LEG          :{
-    0.8:{'add':{'agi':-1, 'respain':-1, 'msp':-3,},'mult':{},},
-    0.6:{'add':{'agi':-2, 'respain':-2, 'msp':-6,},'mult':{},},
-    0.4:{'add':{'agi':-3, 'respain':-4, 'msp':-12,},'mult':{},},
-    0.2:{'add':{'agi':-4, 'respain':-8, 'msp':-24,},'mult':{},},
-    0  :{'add':{'agi':-5, 'respain':-16, 'msp':-48,},'mult':{},},
+    0.8:{'add':{'agi':-1, 'respain':-2,},'mult':{'msp':0.95, 'asp':0.99,},},
+    0.6:{'add':{'agi':-2, 'respain':-4,},'mult':{'msp':0.9, 'asp':0.97,},},
+    0.4:{'add':{'agi':-3, 'respain':-8,},'mult':{'msp':0.8, 'asp':0.94,},},
+    0.2:{'add':{'agi':-4, 'respain':-16,},'mult':{'msp':0.7, 'asp':0.9,},},
+    0  :{'add':{'agi':-5, 'respain':-32,},'mult':{'msp':0.6, 'asp':0.8,},},
     },
 BP_HAND         :{
-    0.8:{'add':{'dex':-1, 'respain':-1,},'mult':{},},
-    0.6:{'add':{'dex':-2, 'respain':-2,},'mult':{},},
-    0.4:{'add':{'dex':-3, 'respain':-4,},'mult':{},},
-    0.2:{'add':{'dex':-4, 'respain':-8,},'mult':{},},
-    0  :{'add':{'dex':-5, 'respain':-16,},'mult':{},},
+    0.8:{'add':{'dex':-1, 'respain':-2,},'mult':{},},
+    0.6:{'add':{'dex':-2, 'respain':-4,},'mult':{},},
+    0.4:{'add':{'dex':-3, 'respain':-8,},'mult':{},},
+    0.2:{'add':{'dex':-4, 'respain':-16,},'mult':{},},
+    0  :{'add':{'dex':-5, 'respain':-32,},'mult':{},},
     },
 BP_FOOT         :{
-    0.8:{'add':{'respain':-1, 'msp':-6,},'mult':{},},
-    0.6:{'add':{'respain':-2, 'msp':-12,},'mult':{},},
-    0.4:{'add':{'respain':-4, 'msp':-18,},'mult':{},},
-    0.2:{'add':{'respain':-8, 'msp':-30,},'mult':{},},
-    0  :{'add':{'respain':-16, 'msp':-60,},'mult':{},},
+    0.8:{'add':{'respain':-2, 'msp':-6,},'mult':{},},
+    0.6:{'add':{'respain':-4, 'msp':-12,},'mult':{},},
+    0.4:{'add':{'respain':-8, 'msp':-24,},'mult':{},},
+    0.2:{'add':{'respain':-16, 'msp':-36,},'mult':{},},
+    0  :{'add':{'respain':-32, 'msp':-48,},'mult':{},},
     },
 BP_WING         :{
-    0.8:{'add':{},'mult':{'flight':0.6,},}, # TODO: figure this out. Can/should flight be a pseudostat?
-    0.4:{'add':{},'mult':{'flight':0.2,},},
-    0  :{'add':{},'mult':{'flight':0,},},
+    0.8:{'add':{'respain':-4,},'mult':{'flight':0.6,},}, # TODO: figure this out. Can/should flight be a pseudostat?
+    0.4:{'add':{'respain':-8,},'mult':{'flight':0.2,},},
+    0  :{'add':{'respain':-16,},'mult':{'flight':0,},},
     },
 BP_TAIL         :{
     0.8:{'add':{'bal':-1,},'mult':{},},
@@ -1768,9 +1777,9 @@ BP_TAIL         :{
     0  :{'add':{'bal':-12,},'mult':{},},
     },
 BP_BEAK         :{
-    0.8:{'add':{'bea':-8, 'idn':-4,},'mult':{},},
-    0.4:{'add':{'bea':-32, 'idn':-8,},'mult':{},},
-    0  :{'add':{'bea':-64, 'idn':-16,},'mult':{},},
+    0.8:{'add':{'bea':-8, 'idn':-4, 'respain':-8,},'mult':{},},
+    0.4:{'add':{'bea':-32, 'idn':-8, 'respain':-16,},'mult':{},},
+    0  :{'add':{'bea':-64, 'idn':-16, 'respain':-32,},'mult':{},},
     },
 BP_GENITALS     :{
     0.8:{'add':{'respain':-32,},'mult':{},},
@@ -1831,6 +1840,12 @@ for k,v in BP_HEALTH_STATMODS.items():
     temp[k] = {}
     for ratio,mods in sorted(v.items()):
         temp[k][ratio] = mods
+
+BPSTATUS_DESCRIPTIONS={
+BPSTATUS_NORMAL     : ("normal",),
+BPSTATUS_CRIPPLED   : ("crippled",),
+BPSTATUS_AMPUTATED  : ("amputated",),
+}
 
 
 

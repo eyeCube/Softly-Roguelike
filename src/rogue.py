@@ -514,7 +514,7 @@ def getMatPrice(mat, mass=MULT_MASS): # $/kg (default mass == 1kg)
     return around(mass/MULT_MASS * MATERIALS[mat][3]*MULT_VALUE)
 def fullname_gear(ent):
     world=Rogue.world
-    fullname = world.component_for_entity(ent, cmp.Name).name
+    name = fullname(ent)
     if ( world.has_component(ent, cmp.Fitted)
          and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
         fullname = "fitted {}".format(fullname)
@@ -557,18 +557,16 @@ def fullname(ent):
         # LOW-LEVEL ID (type of thing) (identify basic type)
         elif quality==1:
             idtype = world.component_for_entity(ent, cmp.Identify).generic
-            fullname = "{} {}".format(UNID, identify_get_name(idtype))
-            return fullname
+            return "{} {}".format(UNID, identify_get_name(idtype))
         
         # LOW-LEVEL ID (+ MATERIAL) (identify make-up)
         elif quality==2: 
             idtype = world.component_for_entity(ent, cmp.Identify).generic
             if world.has_component(ent, cmp.MaterialPrefix):
                 mat = world.component_for_entity(ent, cmp.Form).material
-            fullname = "{} {} {}".format(
+            return "{} {} {}".format(
                 UNID, getMatName(mat), identify_get_name(idtype)
                 )
-            return fullname
 
         # IDEA: mid-level Identification: identify skill required,
         #  uses, etc. (identify the purpose of the item)
@@ -585,23 +583,26 @@ def fullname(ent):
     # full identification #
     # if we made it this far, return a full name #
 
-    fullname = world.component_for_entity(ent, cmp.Name).name
+    name = world.component_for_entity(ent, cmp.Name).name
+
+    # TEST
+    print("called fullname on ent {}".format(name))
     
     if world.has_component(ent, cmp.MaterialPrefix):
         mat = world.component_for_entity(ent, cmp.Form).material
-        fullname = "{} {}".format(getMatName(mat), fullname)
+        name = "{} {}".format(getMatName(mat), name)
             
     if world.has_component(ent, cmp.Prefixes):
         compo = world.component_for_entity(ent, cmp.Prefixes)
         for prefix in compo.prefixes:
-            fullname = "{} {}".format(PREFIXES[prefix], fullname)
+            name = "{} {}".format(PREFIXES[prefix], name)
             
     if world.has_component(ent, cmp.StatusRusted):
         compo = world.component_for_entity(ent, cmp.StatusRusted)
         for k,v in RUST_QUALITIES.items():
             if compo.quality == k:
                 string = RUSTEDNESS[v][2] # TODO: test
-                fullname = "{} {}".format(string, fullname)
+                name = "{} {}".format(string, name)
                 break
             
     if world.has_component(ent, cmp.StatusRotted):
@@ -609,10 +610,10 @@ def fullname(ent):
         for k,v in ROT_QUALITIES.items():
             if compo.quality == k:
                 string = ROTTEDNESS[v][2] # TODO: test
-                fullname = "{} {}".format(string, fullname)
+                name = "{} {}".format(string, name)
                 break
             
-    return fullname
+    return name
 # end def
 
 
@@ -637,10 +638,13 @@ def sign(n):
     if n<0: return -1
     return 0
 def numberplace(i): # convert integer to numbering position / numbering place / number position / number place
-    if i==1: return "1st"
-    if i==2: return "2nd"
-    if i==3: return "3rd"
-    return "{}th".format(i)
+    imod10 = i % 10
+    imod100 = i % 100
+    if (imod100 < 11 or imod100 > 13): # except *11, *12, *13 which end in "th"
+        if imod10==1: return "{}st".format(i) # e.g. 21st
+        if imod10==2: return "{}nd".format(i) # e.g. 172nd
+        if imod10==3: return "{}rd".format(i) # e.g. 3rd
+    return "{}th".format(i) # e.g. 212th
 
 # stat getters
 def _getkg(value):      return value//MULT_MASS
@@ -772,6 +776,9 @@ def dupCmpMeters(meters):
     #------------------#
     # entity functions #
     #------------------#
+
+def entity_exists(ent):
+    return ent in world._entities.keys()
 
 # getms: GET Modified Statistic (base stat + modifiers (permanent and conditional))
 def getms(ent, _var): # NOTE: must set the DIRTY_STATS flag to true whenever any stats or stat modifiers change in any way! Otherwise the function will return an old value!
@@ -906,6 +913,7 @@ def give(ent,item):
         burn(ent, FIRE_BURN)
         cooldown(item)
     
+    grid_remove(item)
     Rogue.world.component_for_entity(ent, cmp.Inventory).data.append(item)
     Rogue.world.add_component(item, cmp.Carried(ent))
     Rogue.world.add_component(item, cmp.Child(ent))
@@ -924,7 +932,7 @@ def take(ent,item):
 def mutate(ent):
     # TODO: do mutation
     mutable = Rogue.world.component_for_entity(ent, cmp.Mutable)
-    pos = Rogue.world.component_for_entity(ent, cmp.Position)
+    pos = getpos(ent)
     # TODO: message based on mutation (i.e. "{t}{n} grew an arm!") Is this dumb?
     event_sight(pos.x,pos.y,"{n} mutated!".format(n=gettitlename(ent)))
 
@@ -1024,7 +1032,7 @@ def push(ent, _dir, n=1):
 # identifying
 ##def map_generate(Map,level): levels.generate(Map,level) #OLD OBSELETE
 def look_identify_at(x,y):
-    if in_view(Rogue.pc,x,y):
+    if in_view(Rogue.pc,x,y): # TODO: finish implementation
         pass
     desc="__IDENTIFY UNIMPLEMENTED__" #IDENTIFIER.get(asci,"???")
     return "{}{}".format(char, desc)
@@ -1083,7 +1091,7 @@ def sap(ent, dmg: int, exhaustOnZero=True):
             stats.mp = 0
 
 def exhaust(ent):
-    print('ent named {} exhausted.'.format(getname(ent)))
+    print('ent named {} exhausted.'.format(fullname(ent)))
     knockout(ent)
 
 # sleepiness
@@ -1265,7 +1273,14 @@ def inreach(x1,y1, x2,y2, reach):
 # end def
 def dist(x1,y1,x2,y2): return misc.dist(x1,y1,x2,y2)
 def fitgear(gear, ent):
-    Rogue.world.add_component(gear, cmp.Fitted(ent))
+    world = Rogue.world
+    if world.has_component(gear, cmp.Fitted):
+        oldent = world.component_for_entity(gear, cmp.Fitted).entity
+        if entity_exists(oldent):
+            make(oldent, DIRTY_STATS)
+    make(ent, DIRTY_STATS)
+    world.add_component(gear, cmp.Fitted(ent))
+    make(ent, DIRTY_STATS)
 
 def _get_encsp(enc:int,encmax:int,spregen:int) -> int:
     ''' max SP modifier from encumberance % '''
@@ -2114,7 +2129,7 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
 ##                #TODO: add special effects; light, etc. How to??
             light: make the light a Child of the equipper
     '''
-##    print("trying to equip {} to {}".format(getname(item), getname(ent)))
+##    print("trying to equip {} to {}".format(fullname(item), fullname(ent)))
 # init and failure checking #
     # first check that the entity can equip the item in the indicated slot.
     world = Rogue.world
@@ -2174,13 +2189,13 @@ def equip(ent,item,equipType): # equip an item in 'equipType' slot
         # success! Equip the item #
         #-------------------------#
         
-##    print("successfully equipped {} to {}".format(getname(item), getname(ent)))
+##    print("successfully equipped {} to {}".format(fullname(item), fullname(ent)))
 
     # remove item from the map and from agent's inventory if applicable
     grid_remove(item)
     if item in getinv(ent):
         take(ent, item)
-##        print("taken {} from {}".format(getname(item), getname(ent)))
+##        print("taken {} from {}".format(fullname(item), fullname(ent)))
     # indicate that the item is equipped using components
     world.add_component(item, cmp.Child(ent))
     if holdtype:
@@ -2352,44 +2367,44 @@ def _initThing(ent):
     register_entity(ent)
     grid_insert(ent)
     givehp(ent) #give random quality based on dlvl?
-def create_weapon(name,x,y,condition=1,mat=None):
-    ent=entities.create_weapon(name,x,y,condition=condition,mat=mat)
+def create_weapon(name,x,y,cond=1,mat=None):
+    ent=entities.create_weapon(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_armor(name,x,y,condition=1,mat=None):
-    ent=entities.create_armor(name,x,y,condition=condition,mat=mat)
+def create_armor(name,x,y,cond=1,mat=None):
+    ent=entities.create_armor(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_legwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_legwear(name,x,y,condition=condition,mat=mat)
+def create_legwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_legwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_armwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_armwear(name,x,y,condition=condition,mat=mat)
+def create_armwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_armwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_footwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_footwear(name,x,y,condition=condition,mat=mat)
+def create_footwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_footwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_headwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_headwear(name,x,y,condition=condition,mat=mat)
+def create_headwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_headwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_neckwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_neckwear(name,x,y,condition=condition,mat=mat)
+def create_neckwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_neckwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_facewear(name,x,y,condition=1,mat=None):
-    ent=entities.create_facewear(name,x,y,condition=condition,mat=mat)
+def create_facewear(name,x,y,cond=1,mat=None):
+    ent=entities.create_facewear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_eyewear(name,x,y,condition=1,mat=None):
-    ent=entities.create_eyewear(name,x,y,condition=condition,mat=mat)
+def create_eyewear(name,x,y,cond=1,mat=None):
+    ent=entities.create_eyewear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
-def create_earwear(name,x,y,condition=1,mat=None):
-    ent=entities.create_earwear(name,x,y,condition=condition,mat=mat)
+def create_earwear(name,x,y,cond=1,mat=None):
+    ent=entities.create_earwear(name,x,y,condition=cond,mat=mat)
     _initThing(ent)
     return ent
 
@@ -3800,7 +3815,7 @@ def get_wear_type(ent, item): #TEST!
         name = cmp.WEARABLE_COMPONENTS[equippableCompo]
         _menu[name] = equippableCompo
     if len(_menu.keys()) == 0: # cannot be equipped anywhere
-        alert("This {} cannot be equipped.".format(getname(item)))
+        alert("This {} cannot be equipped.".format(fullname(item)))
         return EQ_NONE
     opt = menu("wear it where?", 0,0,_menu.keys())
     bpname = opt
@@ -3815,7 +3830,7 @@ def get_wear_type(ent, item): #TEST!
         _menu["{} {}".format(bpname, i+1)] = compo.WEAR_TYPE + i
         i += 1
     if len(_menu.keys()) == 0: # cannot be equipped to entity
-        alert("You cannot equip this {}.".format(getname(item)))
+        alert("You cannot equip this {}.".format(fullname(item)))
         return EQ_NONE
     opt = menu("which {}?".format(bpname), 0,0,_menu.keys())
     result = _menu[opt]
