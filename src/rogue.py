@@ -512,14 +512,6 @@ def getMatDT(mat): return MATERIALS[mat][1]
 def getMatHardness(mat): return MATERIALS[mat][2]
 def getMatPrice(mat, mass=MULT_MASS): # $/kg (default mass == 1kg)
     return around(mass/MULT_MASS * MATERIALS[mat][3]*MULT_VALUE)
-def fullname_gear(ent):
-    world=Rogue.world
-    name = fullname(ent)
-    if ( world.has_component(ent, cmp.Fitted)
-         and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
-        fullname = "fitted {}".format(fullname)
-    return fullname
-# end def
 def add_prefix(ent, prefix): # add a prefix to an entity
     if Rogue.world.has_component(ent, cmp.Prefixes):
         compo = Rogue.world.component_for_entity(ent, cmp.Prefixes)
@@ -613,6 +605,14 @@ def fullname(ent):
                 name = "{} {}".format(string, name)
                 break
             
+    return name
+# end def
+def fullname_gear(ent):
+    world=Rogue.world
+    name = fullname(ent)
+    if ( world.has_component(ent, cmp.Fitted)
+         and Rogue.pc==world.component_for_entity(ent, cmp.Fitted).entity ):
+        name = "fitted {}".format(name)
     return name
 # end def
 
@@ -762,6 +762,8 @@ def copyflags(toEnt,fromEnt): #use this to set an object's flags to that of anot
 def dupCmpMeters(meters):
     newMeters = cmp.Meters()
     newMeters.temp = meters.temp
+    newMeters.fire = meters.fire
+    newMeters.frost = meters.frost
     newMeters.rads = meters.rads
     newMeters.sick = meters.sick
     newMeters.expo = meters.expo
@@ -2867,6 +2869,15 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
     if world.has_component(ent, cmp.StatusWound_Rash):
         compo = world.component_for_entity(ent, cmp.StatusWound_Rash)
         data = WOUNDS[WOUND_RASH][compo.quality]
+        modded.resbio += data.get('resbio',0)
+        modded.respain += data.get('respain',0)
+        modded.resbleed += data.get('resbleed',0)
+        modded.resfire += data.get('resfire',0)
+        modded.rescold += data.get('rescold',0)
+    # burn wounds
+    if world.has_component(ent, cmp.StatusWound_Burn):
+        compo = world.component_for_entity(ent, cmp.StatusWound_Burn)
+        data = WOUNDS[WOUND_BURN][compo.quality]
         modded.resbio += data.get('resbio',0)
         modded.respain += data.get('respain',0)
         modded.resbleed += data.get('resbleed',0)

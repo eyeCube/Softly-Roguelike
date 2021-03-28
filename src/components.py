@@ -280,12 +280,14 @@ class HasStuck: # entity(s) are stuck inside this entity
 
 class Meters:
     __slots__=[
-        'temp','rads','sick','expo','pain','bleed',
-        'rust','rot','wet','fear','dirt',
+        'temp','fire','frost','rads','sick','expo','pain',
+        'bleed','rust','rot','wet','fear','dirt',
         ]
     def __init__(self):
         # all floating point values, no need for hyper precision
-        self.temp=0 # temperature
+        self.temp=0 # temperature (hot or cold -- for environmental influence)
+        self.fire=0 # burning -- separate thing altogether from temp
+        self.frost=0 # frostbite
         self.rads=0 # radiation
         self.sick=0 # illness / infection
         self.expo=0 # exposure to harmful chemicals
@@ -2266,10 +2268,13 @@ class StatusWound_Burn:
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t
-# remember to add new wounds to WOUND_STATUSES and WOUND_TYPE_TO_STATUS
+# remember to add new wounds to:
+#   WOUND_STATUSES
+#   WOUND_TYPE_TO_STATUS
+#   rogue._update_stats()
 class StatusWound_:
     __slots__=['timer','quality']
-    TYPE = WOUND_
+    TYPE = WOUND_BURN
     def __init__(self, q=1, t=-1):
         self.quality=q
         self.timer=t

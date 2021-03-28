@@ -2974,8 +2974,8 @@ def burn(ent, amt, maxTemp): # heat damage
     # TODO: heat while wet reduces wetness, may create steam
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
-    if meters.temp < MAX_TEMP:
-        meters.temp = min(MAX_TEMP, meters.temp + dmg)
+    if meters.fire < MAX_FIRE:
+        meters.fire = min(MAX_FIRE, meters.fire + dmg)
         rog.make(ent, DIRTY_STATS)
     return dmg # TODO: burns when returned dmg exceeds certain amount
 def cool(ent, amt, minTemp): # cold damage
@@ -2984,8 +2984,8 @@ def cool(ent, amt, minTemp): # cold damage
     # TODO: wet resistance to cold. Put this logic in _update_stats
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
-    if meters.temp > MIN_TEMP:
-        meters.temp = max(MIN_TEMP, meters.temp - dmg)
+    if meters.frost > MAX_FROST:
+        meters.frost = max(MAX_FROST, meters.temp - dmg)
         rog.make(ent, DIRTY_STATS)
     return dmg
 ##def normalizeTemperature(ent, roomTemp=0): # normalize to room temp

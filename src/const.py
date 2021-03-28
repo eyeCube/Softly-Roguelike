@@ -1546,15 +1546,16 @@ WOUND_RASH:{ # abrasions, burns, etc.
        'resbio':-64, 'respain':-128, 'resbleed':-128, 'resfire':-32,'rescold':-48,},
     },
 WOUND_BURN:{
+    'degrees':4,
     1:{'name':'1st degree burn', 'desc':'damaged superficial epidermis', 'type':WOUNDTYPE_1,
        'resbio':-8, 'respain':-16, 'resbleed':-8, 'resfire':-16,'rescold':-4,},
-    2:{'name':'2nd degree  burn', 'desc':'damaged dermis; blistering present', 'type':WOUNDTYPE_2,
+    2:{'name':'2nd degree burn', 'desc':'damaged dermis; blistering present', 'type':WOUNDTYPE_2,
        'resbio':-16, 'respain':-48, 'resbleed':-16, 'resfire':-32,'rescold':-8,},
     3:{'name':'3rd degree burn', 'desc':'damaged underlying tissue and/or bone', 'type':WOUNDTYPE_3A,
        'resbio':-32, 'respain':-128, 'resbleed':-32, 'resfire':-48,'rescold':-16,},
     4:{'name':'4th degree burn', 'desc':'widespread destruction of nervous system', 'type':WOUNDTYPE_4,
        'resbio':-64, 'respain':32, 'resbleed':-64, 'resfire':-64,'rescold':-32,},
-    }
+    },
 WOUND_CUT:{ # cuts
     'degrees':6,
     1:{'name':'nick', 'desc':'small cut', 'type':WOUNDTYPE_A,
@@ -2939,8 +2940,9 @@ ELEM_BIO    =i;i+=1;
 ELEM_RADS   =i;i+=1;
 ELEM_CHEM   =i;i+=1;
 ELEM_IRIT   =i;i+=1;  # irritation
-ELEM_FIRE   =i;i+=1;
-ELEM_COLD   =i;i+=1;
+ELEM_HEAT   =i;i+=1;  # heat/cold (environmental)
+ELEM_FIRE   =i;i+=1;  # burn
+ELEM_COLD   =i;i+=1;  # frost
 ELEM_ELEC   =i;i+=1;
 ELEM_PAIN   =i;i+=1;
 ELEM_BLEED  =i;i+=1;
@@ -2956,8 +2958,9 @@ ELEM_BIO    : ('BIO','bio-hazard',),
 ELEM_RADS   : ('RAD','radiation',),
 ELEM_CHEM   : ('CHM','chemical',),
 ELEM_IRIT   : ('IRR','irritation',),
-ELEM_FIRE   : ('FIR','heat',),
-ELEM_COLD   : ('ICE','cold',),
+ELEM_HEAT   : ('ENV','heat',),
+ELEM_FIRE   : ('FIR','fire',),
+ELEM_COLD   : ('ICE','frost',),
 ELEM_ELEC   : ('ELC','electricity',),
 ELEM_PAIN   : ('PAI','pain',),
 ELEM_BLEED  : ('BLD','bleed',),
@@ -2978,8 +2981,10 @@ SOUND_DMG_DEAFEN        = 10000
 
 MAX_PAIN    = 1000
 MAX_BLEED   = 200
-MAX_TEMP    = 999999
+MAX_TEMP    = 1000
 MIN_TEMP    = -200
+MAX_FIRE    = 1000
+MAX_FROST   = 1000
 MAX_SICK    = 100
 MAX_EXPO    = 100
 MAX_RUST    = 1000

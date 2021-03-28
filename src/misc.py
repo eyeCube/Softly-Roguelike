@@ -343,6 +343,10 @@ def _get_equipment(body):
 def _get_gauges(meters):
     lgauges=[]
     gauges=""
+    if meters.fire > 0:
+        lgauges.append( (meters.fire, "{v:>24}: {a:<6}\n".format(v='fire',a=meters.rads),) )
+    if meters.frost > 0:
+        lgauges.append( (meters.frost, "{v:>24}: {a:<6}\n".format(v='frostbite',a=meters.rads),) )
     if meters.rads > 0:
         lgauges.append( (meters.rads, "{v:>24}: {a:<6}\n".format(v='radiation',a=meters.rads),) )
     if meters.sick > 0:
@@ -431,9 +435,18 @@ def __gdmul(mods):
 # _get_body_effects
 def __gbe_show_terse(fxlist, bpconst, bp):
     pass # TODO
-def __gbe_show(fxlist, bpconst, bp, terse=False):
-    ''' function for showing full body part info i.e. status / 
-        HP / SP / stat mods -- for use by _get_body_effects '''
+def __gbe_show(fxlist, bpconst, bp, index, terse=False):
+    '''
+        add to fxlist: full body part bp info i.e. status / 
+        HP / SP / stat mods -- for use by _get_body_effects
+        Parameters
+            fxlist: fxlist from _get_body_effects
+            bpconst: BP_ const
+            bp: cmp.BP_ instance
+            index: if multiple of this BP, which one? 0 if N/A
+            terse: use terse mode, which shows less info
+                (for the main stat page)
+    '''
 
     if terse: # use the terse version instead
         __gbe_show_terse(fxlist, bpconst, bp)
@@ -455,7 +468,9 @@ def __gbe_show(fxlist, bpconst, bp, terse=False):
     
     hpstr = "HP {}%".format(max(0, math.ceil(hpp*100)))
     spstr = "SP {}%".format(max(0, math.ceil(spp*100)))
-    fxstr = "        {0:<12}: {1:<8} | {2:<8}".format(bpName,hpstr,spstr)
+    indexstr = " {}".format(index) if index else ""
+    namestr = "{}{}".format(bpName, indexstr)
+    fxstr = "        {0:<12}: {1:<8} | {2:<8}".format(namestr,hpstr,spstr)
     
     if bp.status:
         fxstr = "{} ({})".format(fxstr, BPSTATUS_DESCRIPTIONS[bp.status][0])
@@ -470,6 +485,10 @@ def __gbe_show(fxlist, bpconst, bp, terse=False):
         priority += 150
     elif "ears" in bpName:
         priority += 140
+    elif "face" in bpName:
+        priority += 130
+    elif "nose" in bpName:
+        priority += 120
     elif "back" in bpName:
         priority += 80
     elif "chest" in bpName:
@@ -498,17 +517,24 @@ def __gbe_get_wounds(world, fxlist, ent):
             
             # get the mod dict
             amods = {}
+            mmods = {}
             for k,v in data.items():
                 # filter useless data
                 if (k=='name' or k=='desc' or k=='type'):
                     continue
-                amods.update({k:v})
+                if (k=='msp' or k=='asp' or k=='int' or k=='dex' or
+                    k=='agi' or k=='bal'):
+                    mmods.update({k:v})
+                else:
+                    amods.update({k:v})
                 
             # make the string
-            string = "        Wound: {n}\n{t}{t}{t}[ {am} ]".format(
-                n=data['name'],t="    ",am=__gdadd(amods))
-                )
-
+            tab = "    "
+            am = "\n{t}{t}{t}[ {m} ]".format(t=tab,m=__gdadd(amods)) if amods else ""
+            mm = "\n{t}{t}{t}[ {m} ]".format(t=tab,m=__gdmul(mmods)) if mmods else ""
+            string = "{t}{t}Wound: {n}{am}{mm}\n".format(
+                t=tab,n=data['name'],am=am,mm=mm)
+            
             # append
             fxlist.append( (priority, string,) )
     # end for
@@ -530,39 +556,38 @@ def _get_body_effects(world, ent, body): # TODO: finish all of these for each bo
     terse = False
     
     # TODO:
-    #   wounds (irrespective of body plan)
     #   all types of body parts and all body plans
         
     # what body type are we?
     # humanoid
     if body.plan == BODYPLAN_HUMANOID:
 
-        __gbe_show(fxlist, BP_CORE, body.core.core, terse=terse)
-        __gbe_show(fxlist, BP_FRONT, body.core.front, terse=terse)
-        __gbe_show(fxlist, BP_HIPS, body.core.hips, terse=terse)
-        __gbe_show(fxlist, BP_BACK, body.core.back, terse=terse)
+        __gbe_show(fxlist, BP_CORE, body.core.core, 0, terse=terse)
+        __gbe_show(fxlist, BP_FRONT, body.core.front, 0, terse=terse)
+        __gbe_show(fxlist, BP_HIPS, body.core.hips, 0, terse=terse)
+        __gbe_show(fxlist, BP_BACK, body.core.back, 0, terse=terse)
 
         # TODO: multiple heads
-        __gbe_show(fxlist, BP_HEAD, body.parts[cmp.BPC_Heads].heads[0].head, terse=terse)
-        __gbe_show(fxlist, BP_FACE, body.parts[cmp.BPC_Heads].heads[0].face, terse=terse)
-        __gbe_show(fxlist, BP_NECK, body.parts[cmp.BPC_Heads].heads[0].neck, terse=terse)
-        __gbe_show(fxlist, BP_EYES, body.parts[cmp.BPC_Heads].heads[0].eyes, terse=terse)
-        __gbe_show(fxlist, BP_EARS, body.parts[cmp.BPC_Heads].heads[0].ears, terse=terse)
-        __gbe_show(fxlist, BP_NOSE, body.parts[cmp.BPC_Heads].heads[0].nose, terse=terse)
+        __gbe_show(fxlist, BP_HEAD, body.parts[cmp.BPC_Heads].heads[0].head, 0, terse=terse)
+        __gbe_show(fxlist, BP_FACE, body.parts[cmp.BPC_Heads].heads[0].face, 0, terse=terse)
+        __gbe_show(fxlist, BP_NECK, body.parts[cmp.BPC_Heads].heads[0].neck, 0, terse=terse)
+        __gbe_show(fxlist, BP_EYES, body.parts[cmp.BPC_Heads].heads[0].eyes, 0, terse=terse)
+        __gbe_show(fxlist, BP_EARS, body.parts[cmp.BPC_Heads].heads[0].ears, 0, terse=terse)
+        __gbe_show(fxlist, BP_NOSE, body.parts[cmp.BPC_Heads].heads[0].nose, 0, terse=terse)
 
         # arms
         index = 0
         for arm in body.parts[cmp.BPC_Arms].arms:
             index += 1
-            __gbe_show(fxlist, BP_ARM, arm.arm, terse=terse)
-            __gbe_show(fxlist, BP_HAND, arm.hand, terse=terse)
+            __gbe_show(fxlist, BP_ARM, arm.arm, index, terse=terse)
+            __gbe_show(fxlist, BP_HAND, arm.hand, index, terse=terse)
 
         # legs
         index = 0
         for leg in body.parts[cmp.BPC_Legs].legs:
             index += 1
-            __gbe_show(fxlist, BP_LEG, leg.leg, terse=terse)
-            __gbe_show(fxlist, BP_FOOT, leg.foot, terse=terse)        
+            __gbe_show(fxlist, BP_LEG, leg.leg, index, terse=terse)
+            __gbe_show(fxlist, BP_FOOT, leg.foot, index, terse=terse)        
     # end if
 
     __gbe_get_wounds(world, fxlist, ent)
@@ -803,8 +828,8 @@ def render_charpage_string(w, h, pc, turn, dlvl):
 {p1}
 {p1}                        {subdelim} resistance {subdelim}
 {p1}
-{p1}               (heat)----FIR{predelim}{fir:<4}{resdelim}{bfir:<6}
-{p1}               (cold)----ICE{predelim}{ice:<4}{resdelim}{bice:<6}
+{p1}               (fire)----FIR{predelim}{fir:<4}{resdelim}{bfir:<6}
+{p1}              (frost)----ICE{predelim}{ice:<4}{resdelim}{bice:<6}
 {p1}         (bio-hazard)----BIO{predelim}{bio:<4}{resdelim}{bbio:<6}{immbio:>8}
 {p1}        (electricity)----ELC{predelim}{elc:<4}{resdelim}{belc:<6}
 {p1}           (physical)----PHS{predelim}{phs:<4}{resdelim}{bphs:<6}

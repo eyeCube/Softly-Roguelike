@@ -92,6 +92,7 @@ def main():
             break
         
     rog.Rogue.create_player(xpos, ypos) # create player
+    pc = rog.pc()
     
     # TESTING
     # HELP THE PLAYER TO SEE
@@ -99,13 +100,6 @@ def main():
 ##    rog.make(rog.pc(), NVISION)
     #
     
-##    import action
-    import components as cmp
-##    from colors import COLORS as COL
-##    import debug
-##    import entities
-    #
-    pos=rog.get(rog.pc(),cmp.Position)
     
 ##    w=rog.create_monster('W',pos.x,pos.y-1)
 ##    rog.world().add_component(w, cmp.AttractedToMen())
@@ -129,12 +123,15 @@ def main():
     
     
 ##    rog.alts(rog.pc(), 'sight', 50)
-    weap=rog.create_weapon("halberd", 0,0, mat=MAT_METAL)
+    weap=rog.create_weapon("halberd", xpos,ypos, mat=MAT_METAL)
+
+    rog.wound(pc, WOUND_BURN, 2)
+    
 ##    rog.damage(weap, 200)
 ##    rog.fitgear(weap, rog.pc())
-    print(rog.equip(
-        rog.pc(),weap,EQ_MAINHANDW
-        ))
+##    print(rog.equip(
+##        rog.pc(),weap,EQ_MAINHANDW
+##        ))
 ##    rog.create_weapon("wooden club", pos.x,pos.y)
 ##    rog.create_weapon("estoc", pos.x-1,pos.y)
 ##    shield=rog.create_weapon("metal shield", 0,0)
