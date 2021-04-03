@@ -921,7 +921,7 @@ def _towel(ent):
         pass
     def funcNPC(thing, actor):
         pass
-    world.add_component(ent, cmp.GetsWet(capacity=100))
+    world.add_component(ent, cmp.Wets(capacity=100))
     world.add_component(ent, cmp.Usable(funcPC,funcNPC))
 ##    statMods={cmp.BasisStats : {"rescold":20,},} # THat's not a resistance stat yet. Dunno if we should add it...
 ##    world.add_component(ent, cmp.EquipableInAboutSlot(300,statMods))
@@ -2968,9 +2968,9 @@ def _apply_grease(item):
 # TODO: ADD NEW ELEMENTAL TYPE FUNCTIONS!
 
 #   TEMP METER
-def burn(ent, amt, maxTemp): # heat damage
+def burn(ent, amt): # fire
     assert(amt > 0)
-    res = max(MIN_RES, rog.getms(ent, 'resfire'))
+    res = rog.getms(ent, 'resfire')
     # TODO: heat while wet reduces wetness, may create steam
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -2978,14 +2978,25 @@ def burn(ent, amt, maxTemp): # heat damage
         meters.fire = min(MAX_FIRE, meters.fire + dmg)
         rog.make(ent, DIRTY_STATS)
     return dmg # TODO: burns when returned dmg exceeds certain amount
-def cool(ent, amt, minTemp): # cold damage
+def cool(ent, amt): # frost
     assert(amt > 0)
-    res = max(MIN_RES, rog.getms(ent, 'rescold'))
+    res = rog.getms(ent, 'rescold')
     # TODO: wet resistance to cold. Put this logic in _update_stats
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
-    if meters.frost > MAX_FROST:
+    if meters.frost < MAX_FROST:
         meters.frost = max(MAX_FROST, meters.temp - dmg)
+        rog.make(ent, DIRTY_STATS)
+    return dmg
+def change_temp(ent, amt, minTemp, maxTemp): # temperature damage hot/cold
+    assert(amt > 0)
+    res = rog.getms(ent, 'insul')
+    # TODO: wet resistance to cold. Put this logic in _update_stats
+    dmg = amt*100/(res+100)
+    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    temptemp = meters.temp
+    meters.temp = min(maxTemp, max(minTemp, meters.temp + dmg))
+    if temptemp != meters.temp:
         rog.make(ent, DIRTY_STATS)
     return dmg
 ##def normalizeTemperature(ent, roomTemp=0): # normalize to room temp
@@ -3004,9 +3015,9 @@ def cool(ent, amt, minTemp): # cold damage
 def hurt(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEPAIN): return 0
-    res = max(MIN_RES, rog.getms(ent, 'respain'))
+    res = rog.getms(ent, 'respain')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.FeelsPain)
     if meters.pain < MAX_PAIN:
         meters.pain = min(MAX_PAIN, meters.pain + dmg)
         rog.make(ent, DIRTY_STATS)
@@ -3014,7 +3025,7 @@ def hurt(ent, amt):
 def healhurt(ent, val):
     if rog.on(ent, IMMUNEPAIN): return
     assert(val > 0)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.FeelsPain)
     if meters.pain > 0:
         meters.pain = max(0, meters.pain - val)
         rog.make(ent, DIRTY_STATS)
@@ -3023,9 +3034,9 @@ def healhurt(ent, val):
 def bleed(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBLEED): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbleed'))
+    res = rog.getms(ent, 'resbleed')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Bleeds)
     if meters.bleed < MAX_BLEED:
         meters.bleed = min(MAX_BLEED, meters.bleed + dmg)
         rog.make(ent, DIRTY_STATS)
@@ -3033,7 +3044,7 @@ def bleed(ent, amt):
 def healbleed(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNEBLEED): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Bleeds)
     if meters.bleed > 0:
         meters.bleed = max(0, meters.bleed - val)
         rog.make(ent, DIRTY_STATS)
@@ -3042,9 +3053,9 @@ def healbleed(ent, val):
 def scare(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEFEAR): return 0
-    res = max(MIN_RES, rog.getms(ent, 'cou'))
+    res = rog.getms(ent, 'cou')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.FeelsFear)
     meters.fear += max(0, dmg )
     if meters.fear >= MAX_FEAR:
         meters.fear = 0
@@ -3056,9 +3067,9 @@ def scare(ent, amt):
 def disease(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.GetsSick)
     meters.sick += max(0, dmg )
     if meters.sick >= MAX_SICK:
         meters.sick = 0
@@ -3068,9 +3079,9 @@ def disease(ent, amt):
 def intoxicate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.GetsSick)
     meters.sick += max(0, dmg )
     if meters.sick >= MAX_SICK:
         meters.sick = 0
@@ -3080,7 +3091,7 @@ def intoxicate(ent, amt):
 def healsick(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNEBIO): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.GetsSick)
     if meters.sick > 0:
         meters.sick = max(0, meters.sick - val)
         rog.make(ent, DIRTY_STATS) # this is probably unnecessary since BIO statuses just run out of time. When they do run out of time though, DIRTY_STATS needs to be set!!
@@ -3089,7 +3100,7 @@ def healsick(ent, val):
 def irradiate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.rads += max(0, dmg )
@@ -3110,7 +3121,7 @@ def healrads(ent, val):
 def exposure(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     #increase exposure meter
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
@@ -3125,7 +3136,7 @@ def exposure(ent, amt):
 def corrode(ent, amt): # acid
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -3137,7 +3148,7 @@ def corrode(ent, amt): # acid
 def cough(ent, amt): # throat irritation
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -3149,7 +3160,7 @@ def cough(ent, amt): # throat irritation
 def vomit(ent, amt): # nausea
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
     meters.expo += max(0, dmg)
@@ -3161,12 +3172,12 @@ def vomit(ent, amt): # nausea
 def irritate(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEBIO): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resbio'))
+    res = rog.getms(ent, 'resbio')
     dmg = amt*100/(res+100)
     meters = rog.world().component_for_entity(ent, cmp.Meters)
-    meters.expo += max(0, dmg)
-    if meters.expo >= MAX_EXPO:
-        meters.expo = MAX_EXPO//2 #leave half exposure
+    meters.rads += max(0, dmg)
+    if meters.rads >= MAX_EXPO:
+        meters.rads = MAX_EXPO//2 #leave half exposure
         rog.set_status(ent, cmp.StatusIrritated)
         rog.make(ent, DIRTY_STATS)
     return dmg
@@ -3183,9 +3194,9 @@ def wet(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEWET): return 0
     world=rog.world()
-    res = max(MIN_RES, rog.getms(ent, 'reswet'))
+    res = rog.getms(ent, 'reswet')
     dmg = amt*100/(res+100)
-    meters = world.component_for_entity(ent, cmp.Meters)
+    meters = world.component_for_entity(ent, cmp.Wets)
     mat = world.component_for_entity(ent, cmp.Form).material
 ##    if world.has_component(ent, cmp.WetnessCapacity): ... # else get from material.
     max_wet = rog.getms(ent,'mass')/MULT_MASS * WETNESS_MAX_MATERIAL[mat]
@@ -3200,7 +3211,7 @@ def wet(ent, amt):
 def healwet(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNEWET): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Wets)
     if meters.wet > 0:
         meters.wet = max(0, meters.wet - val)
         rog.make(ent, DIRTY_STATS)
@@ -3209,9 +3220,9 @@ def healwet(ent, val):
 def dirty(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEWET): return 0
-    res = max(MIN_RES, rog.getms(ent, 'reswet'))
+    res = rog.getms(ent, 'reswet')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Dirties)
     if meters.dirt < MAX_DIRT: # IDEA: slough off excess dirt
         meters.dirt = min(MAX_DIRT, meters.dirt + dmg)
         rog.make(ent, DIRTY_STATS)
@@ -3219,7 +3230,7 @@ def dirty(ent, amt):
 def healdirt(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNEWET): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Dirties)
     if meters.dirt > 0:
         meters.dirt = max(0, meters.dirt - val)
         rog.make(ent, DIRTY_STATS)
@@ -3228,9 +3239,9 @@ def healdirt(ent, val):
 def rust(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNERUST): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resrust'))
+    res = rog.getms(ent, 'resrust')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Rusts)
     if meters.rust < MAX_RUST:
         meters.rust = min(MAX_RUST, meters.rust + dmg)
         rog.make(ent, DIRTY_STATS)
@@ -3238,7 +3249,7 @@ def rust(ent, amt):
 def healrust(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNERUST): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Rusts)
     if meters.rust > 0:
         meters.rust = max(0, meters.rust - val)
         rog.make(ent, DIRTY_STATS)
@@ -3247,9 +3258,9 @@ def healrust(ent, val):
 def rot(ent, amt):
     assert(amt > 0)
     if rog.on(ent, IMMUNEROT): return 0
-    res = max(MIN_RES, rog.getms(ent, 'resrot'))
+    res = rog.getms(ent, 'resrot')
     dmg = amt*100/(res+100)
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Rots)
     if meters.rot < MAX_ROT:
         meters.rot = min(MAX_ROT, meters.rot + dmg)
         rog.make(ent, DIRTY_STATS)
@@ -3257,7 +3268,7 @@ def rot(ent, amt):
 def healrot(ent, val):
     assert(val > 0)
     if rog.on(ent, IMMUNERUST): return
-    meters = rog.world().component_for_entity(ent, cmp.Meters)
+    meters = rog.world().component_for_entity(ent, cmp.Rots)
     if meters.rot > 0:
         meters.rot = max(0, meters.rot - val)
         rog.make(ent, DIRTY_STATS)
@@ -3267,7 +3278,7 @@ def healrot(ent, val):
 # elemental -> physical damage
 def electrify(ent, amt):
     assert(amt > 0)
-    res = max(MIN_RES, rog.getms(ent, 'reselec'))
+    res = rog.getms(ent, 'reselec')
     dmg = amt*100/(res+100) * 0.1 * MULT_STATS
     if dmg:
         rog.damage(ent, dmg)
@@ -3281,7 +3292,7 @@ def electrify(ent, amt):
 # light damage
 def lightdmg(ent, amt):
     assert(amt > 0)
-    res = max(MIN_RES, rog.getms(ent, 'reslight'))
+    res = rog.getms(ent, 'reslight')
     dmg = amt*100/(res+100)
     if rog.has_sight(ent):
         if dmg >= LIGHT_DMG_THRESHOLD_PERMABLIND:
@@ -5057,6 +5068,7 @@ def create_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
     bal         = get_weapon_bal(data)*MULT_STATS
     skill       = get_weapon_skill(data)
     idtype      = get_weapon_idtype(data)
+    mat_script  = None
     
     # material and material stats
     matkeys = get_weapon_mats(data).keys()
@@ -5354,11 +5366,6 @@ def create_monster(_type:int, x:int, y:int, col=None, money=0) -> int:
         reselec=BASE_RESELEC+statData.get('reselec',0),
         resphys=BASE_RESPHYS+statData.get('resphys',0),
         rescold=BASE_RESCOLD+statData.get('rescold',0),
-        resbleed=BASE_RESBLEED+statData.get('resbleed',0),
-        respain=BASE_RESPAIN+statData.get('respain',0),
-        resrust=BASE_RESRUST+statData.get('resrust',0),
-        resrot=BASE_RESROT+statData.get('resrot',0),
-        reswet=BASE_RESWET+statData.get('reswet',0),
         reslight=BASE_RESLIGHT+statData.get('reslight',0),
         ressound=BASE_RESSOUND+statData.get('ressound',0),
         spd=BASE_SPD+statData.get('spd',0),
@@ -5379,7 +5386,6 @@ def create_monster(_type:int, x:int, y:int, col=None, money=0) -> int:
         bal=(BASE_BAL+statData.get('bal',0))*MULT_STATS,
         ctr=(BASE_CTR+statData.get('ctr',0))*MULT_STATS,
         gra=(BASE_GRA+statData.get('gra',0))*MULT_STATS,
-        courage=BASE_COURAGE+statData.get('cou',0),
         scary=BASE_SCARY+statData.get('idn',0),
         beauty=BASE_BEAUTY+statData.get('bea',0)
         )
@@ -5403,11 +5409,19 @@ def create_monster(_type:int, x:int, y:int, col=None, money=0) -> int:
         cmp.Flags(),
         cmp.Mutable(),
         cmp.Targetable(), # so it can be targeted by the player
+        cmp.Wets(BASE_RESWET+statData.get('reswet',0)),
+        cmp.Dirties(BASE_RESWET+statData.get('reswet',0)),
+        cmp.Bleeds(BASE_RESBLEED+statData.get('resbleed',0)),
+        cmp.FeelsPain(BASE_RESWET+statData.get('respain',0)),
+        cmp.FeelsFear(BASE_RESWET+statData.get('cou',0)),
+        cmp.Insulated(BASE_INSUL),
+        cmp.GetsSick(),
         )
     if sight:
         rog.world().add_component(ent, cmp.SenseSight())
     if hear:
         rog.world().add_component(ent, cmp.SenseHearing())
+        
     for flag in flags:
         rog.make(ent, flag)
     if script: script(ent)
@@ -5553,13 +5567,11 @@ def _setGenericData(ent, material=0) -> int:
         rog.world().add_component(ent, cmp.Fuel(fuelValue))
     # resistances,
     if material==MAT_METAL:
-        stats.resrust=0
-        rog.world().add_component(ent, cmp.Rusts())
+        rog.world().add_component(ent, cmp.Rusts(0))
         stats.arm=6
         stats.pro=18
     elif material==MAT_STEEL:
-        stats.resrust=50
-        rog.world().add_component(ent, cmp.Rusts())
+        rog.world().add_component(ent, cmp.Rusts(50))
         stats.arm=9
         stats.pro=24
     elif material==MAT_COPPER:
@@ -5583,24 +5595,22 @@ def _setGenericData(ent, material=0) -> int:
         stats.arm=2
         stats.pro=24
     elif material==MAT_LEATHER:
-        rog.world().add_component(ent, cmp.Wets())
+        rog.world().add_component(ent, cmp.Wets(200))
         stats.arm=1
         stats.pro=1
     elif material==MAT_BLEATHER:
         stats.arm=1
         stats.pro=3
     elif material==MAT_WOOD:
-        rog.world().add_component(ent, cmp.Rots())
-        rog.world().add_component(ent, cmp.Wets())
-        stats.resrot=0
-        stats.resfire=0
+        rog.world().add_component(ent, cmp.Rots(0))
+        rog.world().add_component(ent, cmp.Wets(50))
         stats.arm=1
         stats.pro=6
     elif material==MAT_CLOTH:
-        rog.world().add_component(ent, cmp.Wets())
+        rog.world().add_component(ent, cmp.Wets(20))
         stats.resfire=0
     elif material==MAT_PAPER:
-        rog.world().add_component(ent, cmp.Wets())
+        rog.world().add_component(ent, cmp.Wets(0))
         stats.resfire=-500
     elif material==MAT_OIL:
         stats.resfire=-100

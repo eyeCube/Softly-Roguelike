@@ -370,6 +370,7 @@ def __init__Chargen():
     Chargen._jobkeys=''
     Chargen._jobmass=0
     Chargen.statsCompo=None
+    Chargen.fearCompo=None
     Chargen.skillsCompo=None
     Chargen.flags=None
     # multipliers and characteristics (component indicators)
@@ -534,9 +535,7 @@ def chargen(sx, sy):
             encmax=BASE_ENCMAX,
             resfire=BASE_RESFIRE, rescold=BASE_RESCOLD,
             resbio=BASE_RESBIO, reselec=BASE_RESELEC,
-            resphys=BASE_RESPHYS, reswet=BASE_RESWET,
-            respain=BASE_RESPAIN, resbleed=BASE_RESBLEED,
-            resrust=BASE_RESRUST, resrot=BASE_RESROT,
+            resphys=BASE_RESPHYS,
             reslight=BASE_RESLIGHT, ressound=BASE_RESSOUND,
             _str=BASE_STR*MULT_ATT, _con=BASE_CON*MULT_ATT,
             _int=BASE_INT*MULT_ATT, _agi=BASE_AGI*MULT_ATT,
@@ -549,10 +548,10 @@ def chargen(sx, sy):
             reach=BASE_REACH*MULT_STATS,
             spd=BASE_SPD, asp=BASE_ASP, msp=BASE_MSP,
             sight=0, hearing=0, # senses gained from Body component now. TODO: do the same things for monster gen...
-            courage=BASE_COURAGE + PLAYER_COURAGE, # + MAS_COU if not female else 0,
-            scary=BASE_SCARY, # + MAS_IDN if not female else 0,
-            beauty=BASE_BEAUTY # + FEM_BEA if female else 0
+            scary=BASE_SCARY,
+            beauty=BASE_BEAUTY
             )
+        Chargen.fearCompo=cmp.FeelsFear(BASE_COURAGE + PLAYER_COURAGE)
         #add specific class stats
         for stat, val in Chargen._jobstats:
             value=val*MULT_STATS if stat in STATS_TO_MULT.keys() else val
@@ -692,6 +691,13 @@ def chargen(sx, sy):
         world.add_component(pc, cmp.Job(Chargen._classID))
         world.add_component(pc, cmp.Speaks())
         world.add_component(pc, cmp.Personality(personality))
+        world.add_component(pc, cmp.Wets(BASE_RESWET))
+        world.add_component(pc, cmp.Dirties(BASE_RESDIRT))
+        world.add_component(pc, cmp.Bleeds(BASE_RESBLEED))
+        world.add_component(pc, cmp.FeelsPain(BASE_RESPAIN))
+        world.add_component(pc, Chargen.fearCompo)
+        world.add_component(pc, cmp.Insulated(BASE_INSUL))
+        world.add_component(pc, cmp.GetsSick())
     # end if
     
     # init PC entity
@@ -997,7 +1003,7 @@ def _chargen_stats():
         idn_d=CHARGEN_STATS['idn']
         camo_d=CHARGEN_STATS['camo']
         stealth_d=CHARGEN_STATS['stealth']
-        
+        # stats component
         stats=Chargen.statsCompo
         _hp=stats.hpmax
         _sp=stats.mpmax
@@ -1007,11 +1013,12 @@ def _chargen_stats():
 ##        _gra=stats.gra//MULT_STATS
         _bal=stats.bal//MULT_STATS
         _ctr=stats.ctr//MULT_STATS
-        _cou=stats.cou
         _bea=stats.bea
         _idn=stats.idn
         _camo=stats.camo
         _stealth=stats.stealth
+        # other stat components
+        _cou=Chargen.fearCompo.cou
         
         Chargen.menu.update(
             {"- base stats (pts: {})".format(Chargen.statPts) : "close-stats",})
@@ -1044,7 +1051,10 @@ def _select_stat(_stat):
     
     # change stat value
     val = CHARGEN_STATS[_stat] # the amount added depends on the stat
-    Chargen.statsCompo.__dict__[_stat] += val
+    if _stat=='cou':
+        Chargen.fearCompo.cou += val
+    else:
+        Chargen.statsCompo.__dict__[_stat] += val
     
     # save selected data
     Chargen.statPts -= 1

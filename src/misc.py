@@ -220,7 +220,7 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
     item=slot.item
     if item:
         world = rog.world()
-        equipable = world.component_for_entity(item, equipableCompo)
+        equipable = rog.get(item, equipableCompo)
         life=int(100*rog.getms(item, "hp")/rog.getms(item, "hpmax"))
         ishand = 'hand' in bpname
         
@@ -250,22 +250,22 @@ def __add_eq(equipment, bpname, slot, equipableCompo):
             # skill modifiers (TODO)
         
         # weapon skill bonus for item-weapons (armed combat)
-        if ( ishand and world.has_component(item, cmp.WeaponSkill) ):
-            weapClass=world.component_for_entity(item, cmp.WeaponSkill).skill
-            skillsCompo=world.component_for_entity(pc, cmp.Skills)
+        if ( ishand and rog.has(item, cmp.WeaponSkill) ):
+            weapClass=rog.get(item, cmp.WeaponSkill).skill
+            skillsCompo=rog.get(pc, cmp.Skills)
             skillLv = rog._getskill(skillsCompo.skills.get(weapClass, 0))
             modf *= SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC)
-        elif not world.has_component(item, cmp.Clothes):
-            skillsCompo=world.component_for_entity(pc, cmp.Skills)
+        elif not rog.has(item, cmp.Clothes):
+            skillsCompo=rog.get(pc, cmp.Skills)
             skillLv = rog._getskill(skillsCompo.skills.get(SKL_ARMOR, 0))
             modf *= SKILL_MAXIMUM / (SKILL_MAXIMUM + skillLv*DEFAULT_SKLMOD_ENC)
             
             # insufficient str/dex modifiers
-        if ( world.has_component(item, cmp.Fitted)
-             and pc==world.component_for_entity(item, cmp.Fitted).entity
+        if ( rog.has(item, cmp.Fitted)
+             and pc==rog.get(item, cmp.Fitted).entity
              ):
             modf *= FITTED_ENCMOD
-        encvalue=world.component_for_entity(item, cmp.Encumberance).value
+        encvalue=rog.get(item, cmp.Encumberance).value
         encumberance=rog.around(modf*encvalue*rog.getms(item, 'mass')/MULT_MASS)
         
         equipment += '''    < {bp} {cov}>{req}
@@ -340,7 +340,17 @@ def _get_equipment(body):
     #
     if equipment: equipment = equipment[:-1]
     return equipment
-def _get_gauges(meters):
+def _get_gauges(pc):
+    world = rog.world()
+    meters = world.component_for_entity(pc, cmp.Meters)
+    sick = rog.get(pc, cmp.GetsSick).sick if rog.has(pc, cmp.GetsSick) else 0
+    fear = rog.get(pc, cmp.FeelsFear).fear if rog.has(pc, cmp.FeelsFear) else 0
+    pain = rog.get(pc, cmp.FeelsPain).pain if rog.has(pc, cmp.FeelsPain) else 0
+    bleed = rog.get(pc, cmp.Bleeds).bleed if rog.has(pc, cmp.Bleeds) else 0
+    rust = rog.get(pc, cmp.Rusts).rust if rog.has(pc, cmp.Rusts) else 0
+    rot = rog.get(pc, cmp.Rots).rot if rog.has(pc, cmp.Rots) else 0
+    wet = rog.get(pc, cmp.Wets).wet if rog.has(pc, cmp.Wets) else 0
+    dirt = rog.get(pc, cmp.Dirties).dirt if rog.has(pc, cmp.Dirties) else 0
     lgauges=[]
     gauges=""
     if meters.fire > 0:
@@ -349,22 +359,24 @@ def _get_gauges(meters):
         lgauges.append( (meters.frost, "{v:>24}: {a:<6}\n".format(v='frostbite',a=meters.rads),) )
     if meters.rads > 0:
         lgauges.append( (meters.rads, "{v:>24}: {a:<6}\n".format(v='radiation',a=meters.rads),) )
-    if meters.sick > 0:
-        lgauges.append( (meters.sick, "{v:>24}: {a:<6}\n".format(v='sickness',a=meters.sick),) )
     if meters.expo > 0:
         lgauges.append( (meters.expo, "{v:>24}: {a:<6}\n".format(v='exposure',a=meters.expo),) )
-    if meters.pain > 0:
-        lgauges.append( (meters.pain, "{v:>24}: {a:<6}\n".format(v='pain',a=meters.pain),) )
-    if meters.fear > 0:
-        lgauges.append( (meters.fear, "{v:>24}: {a:<6}\n".format(v='fear',a=meters.fear),) )
-    if meters.bleed > 0:
-        lgauges.append( (meters.bleed, "{v:>24}: {a:<6}\n".format(v='bleed',a=meters.bleed),) )
-    if meters.rust > 0:
-        lgauges.append( (meters.rust, "{v:>24}: {a:<6}\n".format(v='rust',a=meters.rust),) )
-    if meters.rot > 0:
-        lgauges.append( (meters.rot, "{v:>24}: {a:<6}\n".format(v='rot',a=meters.rot),) )
-    if meters.wet > 0:
-        lgauges.append( (meters.wet, "{v:>24}: {a:<6}\n".format(v='wetness',a=meters.wet),) )
+    if sick > 0:
+        lgauges.append( (sick, "{v:>24}: {a:<6}\n".format(v='sickness',a=sick),) )
+    if pain > 0:
+        lgauges.append( (pain, "{v:>24}: {a:<6}\n".format(v='pain',a=pain),) )
+    if fear > 0:
+        lgauges.append( (fear, "{v:>24}: {a:<6}\n".format(v='fear',a=fear),) )
+    if bleed > 0:
+        lgauges.append( (bleed, "{v:>24}: {a:<6}\n".format(v='bleed',a=bleed),) )
+    if rust > 0:
+        lgauges.append( (rust, "{v:>24}: {a:<6}\n".format(v='rust',a=rust),) )
+    if rot > 0:
+        lgauges.append( (rot, "{v:>24}: {a:<6}\n".format(v='rot',a=rot),) )
+    if wet > 0:
+        lgauges.append( (wet, "{v:>24}: {a:<6}\n".format(v='wetness',a=wet),) )
+    if dirt > 0:
+        lgauges.append( (dirt, "{v:>24}: {a:<6}\n".format(v='dirt',a=dirt),) )
     # sort
     lgauges.sort(key = lambda x: x[0], reverse=True)
     # get all in one string
@@ -375,10 +387,10 @@ def _get_gauges(meters):
 def _get_effects(world, pc):
     effects=""
     for cls, dics in cmp.STATUS_MODS.items():
-        if not world.has_component(pc, cls):
+        if not rog.has(pc, cls):
             continue
         dadd, dmul = dics
-        compo=world.component_for_entity(pc, cls)
+        compo=rog.get(pc, cls)
         name=cmp.STATUSES[cls]
 
         if dadd:
@@ -470,7 +482,7 @@ def __gbe_show(fxlist, bpconst, bp, index, terse=False):
     spstr = "SP {}%".format(max(0, math.ceil(spp*100)))
     indexstr = " {}".format(index) if index else ""
     namestr = "{}{}".format(bpName, indexstr)
-    fxstr = "        {0:<12}: {1:<8} | {2:<8}".format(namestr,hpstr,spstr)
+    fxstr = "{0:>12} : {1:<8} | {2:<8}".format(namestr,hpstr,spstr)
     
     if bp.status:
         fxstr = "{} ({})".format(fxstr, BPSTATUS_DESCRIPTIONS[bp.status][0])
@@ -504,8 +516,8 @@ def __gbe_show(fxlist, bpconst, bp, index, terse=False):
 # end def
 def __gbe_get_wounds(world, fxlist, ent):
     for woundcls in cmp.WOUND_STATUSES:
-        if world.has_component(ent, woundcls):
-            compo = world.component_for_entity(ent, woundcls)
+        if rog.has(ent, woundcls):
+            compo = rog.get(ent, woundcls)
             data = WOUNDS[woundcls.TYPE][compo.quality]
             
             # determine priority
@@ -532,7 +544,7 @@ def __gbe_get_wounds(world, fxlist, ent):
             tab = "    "
             am = "\n{t}{t}{t}[ {m} ]".format(t=tab,m=__gdadd(amods)) if amods else ""
             mm = "\n{t}{t}{t}[ {m} ]".format(t=tab,m=__gdmul(mmods)) if mmods else ""
-            string = "{t}{t}Wound: {n}{am}{mm}\n".format(
+            string = "{t}{t}wound: {n}{am}{mm}\n".format(
                 t=tab,n=data['name'],am=am,mm=mm)
             
             # append
@@ -695,34 +707,50 @@ def render_charpage_string(w, h, pc, turn, dlvl):
     statdelim="......"
     world = rog.world()
     con = libtcod.console_new(w,h)
-    name = world.component_for_entity(pc, cmp.Name)
-    meterscompo = world.component_for_entity(pc, cmp.Meters)
-    creature = world.component_for_entity(pc, cmp.Creature)
+    name = rog.get(pc, cmp.Name)
+    meterscompo = rog.get(pc, cmp.Meters)
+    creature = rog.get(pc, cmp.Creature)
     effects = _get_effects(world, pc)
-    gauges = _get_gauges(meterscompo)
-    skills = _get_skills(world.component_for_entity(pc, cmp.Skills))
+    gauges = _get_gauges(pc)
+    skills = _get_skills(rog.get(pc, cmp.Skills))
     augs=""
     npaugs=0
     nmaugs=0
     encmods=_get_encumberance_mods(pc)
     #
     # body (and equipment)
-    body=world.component_for_entity(pc, cmp.Body)
+    body=rog.get(pc, cmp.Body)
     bodystatus=_get_body_effects(world, pc, body)
     equipment=_get_equipment(body)
     basemass=rog.around((_getb('mass') + body.hydrationMax//MULT_HYD + body.bodyfat + body.blood)/MULT_MASS)
     satstr=_get_satiation(body)
     hydstr=_get_hydration(body)
+    # stats
+    immunebio = rog.on(pc, IMMUNEBIO)
+    immunerust = (rog.on(pc, IMMUNERUST) or not rog.has(pc, cmp.Rusts))
+    immunerot = (rog.on(pc, IMMUNEROT) or not rog.has(pc, cmp.Rots))
+    immunewater = (rog.on(pc, IMMUNEWATER) or not rog.has(pc, cmp.Wets))
+    immunebleed = (rog.on(pc, IMMUNEBLEED) or not rog.has(pc, cmp.Bleeds))
+    immunepain = (rog.on(pc, IMMUNEPAIN) or not rog.has(pc, cmp.FeelsPain))
+    immunedirt = (rog.on(pc, IMMUNEWATER) or not rog.has(pc, cmp.Dirties))
+    immunefear = (rog.on(pc, IMMUNEFEAR) or not rog.has(pc, cmp.FeelsFear))
+    bresbleed = rog.get(pc, cmp.Bleeds).resbleed if rog.has(pc, cmp.Bleeds) else 0
+    brespain = rog.get(pc, cmp.FeelsPain).respain if rog.has(pc, cmp.FeelsPain) else 0
+    bresrust = rog.get(pc, cmp.Rusts).resrust if rog.has(pc, cmp.Rusts) else 0
+    bresrot = rog.get(pc, cmp.Rots).resrot if rog.has(pc, cmp.Rots) else 0
+    breswet = rog.get(pc, cmp.Wets).reswet if rog.has(pc, cmp.Wets) else 0
+    bresdirt = rog.get(pc, cmp.Dirties).resdirt if rog.has(pc, cmp.Dirties) else 0
+    bcourage = rog.get(pc, cmp.FeelsFear).cou if rog.has(pc, cmp.FeelsFear) else 0
     #
     # weapon information
     mainweap=rog.dominant_arm(pc).hand.held.item # temporary
     _type="melee"
     if mainweap:
-        if world.has_component(mainweap, cmp.Shootable):
-            shootable=world.component_for_entity(mainweap, cmp.Shootable)
+        if rog.has(mainweap, cmp.Shootable):
+            shootable=rog.get(mainweap, cmp.Shootable)
         else: shootable=None
-        if world.has_component(mainweap, cmp.Throwable):
-            throwable=world.component_for_entity(mainweap, cmp.Throwable)
+        if rog.has(mainweap, cmp.Throwable):
+            throwable=rog.get(mainweap, cmp.Throwable)
         else: throwable=None
         minrng = shootable.minrng if shootable else 0
         # TODO: get type from last attack type you performed
@@ -880,12 +908,12 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         dlv=dlvl,t=turn,
         _type=_type,
         # flags
-        immbio  =">>IMMUNE TO BIO" if rog.on(pc, IMMUNEBIO) else "",
-        immrust =">>CANNOT RUST" if rog.on(pc, IMMUNERUST) else "",
-        immrot  =">>CANNOT ROT" if rog.on(pc, IMMUNEROT) else "",
-        immwater=">>WATERPROOF" if rog.on(pc, IMMUNEWATER) else "",
-        immbleed=">>CANNOT BLEED" if rog.on(pc, IMMUNEBLEED) else "",
-        immpain =">>CANNOT FEEL PAIN" if rog.on(pc, IMMUNEPAIN) else "",
+        immbio  =">>IMMUNE" if immunebio else "",
+        immrust =">>CANNOT RUST" if immunerust else "",
+        immrot  =">>CANNOT ROT" if immunerot else "",
+        immwater=">>WATERPROOF" if immunewater else "",
+        immbleed=">>CANNOT BLEED" if immunebleed else "",
+        immpain =">>CANNOT FEEL PAIN" if immunepain else "",
         # component data
         effects=effects,gauges=gauges,augs=augs,
         equipment=equipment,skills=skills,bodystatus=bodystatus,
@@ -931,7 +959,7 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         bspr=_getbs('mpregen'),
         breach="{__:.1f}".format(__=_getb('reach')/2/MULT_STATS),
         bspd=_getb('spd'),bmsp=_getb('msp'),
-        bcrg=_getb('cou'),bidn=_getb('idn'),bbea=_getb('bea'),
+        bcrg=bcourage,bidn=_getb('idn'),bbea=_getb('bea'),
         bvis=_getb('sight'),baud=_getb('hearing'),
         bencmax=_getb('encmax'),
         bhpmax=_getb('hpmax'),bspmax=_getb('mpmax'),
@@ -944,9 +972,9 @@ def render_charpage_string(w, h, pc, turn, dlvl):
         rus=_get('resrust'),rot=_get('resrot'),wet=_get('reswet'),
         # base res
         bfir=_getbr('resfire'),bice=_getbr('rescold'),bphs=_getbr('resphys'),
-        bbld=_getbr('resbleed'),bbio=_getbr('resbio'),belc=_getbr('reselec'),
-        bpai=_getbr('respain'),blgt=_getbr('reslight'),bsnd=_getbr('ressound'),
-        brus=_getbr('resrust'),brot=_getbr('resrot'),bwet=_getbr('reswet'),
+        bbio=_getbr('resbio'),belc=_getbr('reselec'),
+        blgt=_getbr('reslight'),bsnd=_getbr('ressound'),
+        brus=bresrust,brot=bresrot,bwet=breswet,bbld=bresbleed,bpai=brespain,
     )
 # end def
 
@@ -954,15 +982,15 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
     world=rog.world()
     def _getmaux(item): # melee auxiliary elemental effects
         strng=""
-        if world.has_component(item, cmp.ElementalDamageMelee):
-            compo=world.component_for_entity(item, cmp.ElementalDamageMelee)
+        if rog.has(item, cmp.ElementalDamageMelee):
+            compo=rog.get(item, cmp.ElementalDamageMelee)
             for elem, amt in compo.elements.items():
                 strng = "{s}{eff>16}:    {amt}\n".format(
                     s=strng,eff=ELEMENTS[elem][1],amt=amt
                     )
     def _eq_weap_s(header, item):
         md=equipable.mods
-        equipable = world.component_for_entity(item, cmp.EquipableInHoldSlot)
+        equipable = rog.get(item, cmp.EquipableInHoldSlot)
         auxeffects=_getmaux(item)
         return '''{p1}        {subdelim} {header} {subdelim}
 {p1}                StrReq. {strreq<20}DexReq. {dexreq}
@@ -989,22 +1017,22 @@ def render_itempage_string(w, h, item): # very unfinished! Only shows weapon sta
     def _tool_s(item):
         strng=""
         for cls, name in cmp.TOOLS.items():
-            if world.has_component(item, cls):
-                compo=world.component_for_entity(item, cls)
+            if rog.has(item, cls):
+                compo=rog.get(item, cls)
                 strng = "{s}\n                {tool>10}:    {val}".format(
                     s=strng, tool=name, val=compo.quality
                     )
         return strng
     # end nested def
-    draw=world.component_for_entity(item, cmp.Draw)
-    name=world.component_for_entity(item, cmp.Name)
-    if world.has_component(item, cmp.WeaponSkill):
-        skillc=world.component_for_entity(item, cmp.WeaponSkill).skill
+    draw=rog.get(item, cmp.Draw)
+    name=rog.get(item, cmp.Name)
+    if rog.has(item, cmp.WeaponSkill):
+        skillc=rog.get(item, cmp.WeaponSkill).skill
         skill=get_skill_name(skillc)
     else:
         skill=""
     
-    if world.has_component(item, cmp.EquipableInHoldSlot):
+    if rog.has(item, cmp.EquipableInHoldSlot):
         equipstats=_eq_weap_s("equipment statistic")
     else:
         equipstats=""

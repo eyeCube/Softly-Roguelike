@@ -567,7 +567,7 @@ BASE_ATK        = 0
 BASE_DMG        = 1
 BASE_PEN        = 0
 BASE_DFN        = 10
-BASE_ARM        = 0
+BASE_ARM        = 1
 BASE_PRO        = 6
 BASE_SPD        = 100
 BASE_MSP        = 100
@@ -583,16 +583,18 @@ BASE_SCARY      = 32
 BASE_BEAUTY     = 16
 BASE_RESFIRE    = 20
 BASE_RESCOLD    = 20
-BASE_RESBIO     = 20
+BASE_RESBIO     = 40
 BASE_RESPHYS    = 20
 BASE_RESELEC    = 20
 BASE_RESPAIN    = 20
-BASE_RESBLEED   = 20
+BASE_RESBLEED   = 40
 BASE_RESRUST    = 0
 BASE_RESROT     = 0
 BASE_RESWET     = 20
+BASE_RESDIRT    = 20
 BASE_RESLIGHT   = 0
 BASE_RESSOUND   = 0
+BASE_INSUL      = 32
 # player bonuses
 PLAYER_COURAGE  = 64    # a hero must be exceptionally courageous
 
@@ -656,7 +658,7 @@ ATT_END_SPREGEN         = 1     # stamina regen
 ATT_END_RESHEAT         = 2     # endurance grants many resistances
 ATT_END_RESCOLD         = 2
 ATT_END_RESPHYS         = 1
-ATT_END_RESPAIN         = 3     # res pain -- significantly more than Con bonus
+ATT_END_RESPAIN         = 5     # res pain -- significantly more than Con bonus
 ATT_END_RESBIO          = 1     # res bio -- less than Con bonus
 ATT_END_RESBLEED        = 1
 
@@ -1526,8 +1528,9 @@ WOUNDS={
 #   descriptions are only available if you hover over the injury name with the mouse
 #       or go to the body status page, which details the body status specifically
 #           (TODO: make this)
-WOUND_RASH:{ # abrasions, burns, etc.
+WOUND_RASH:{ # abrasions, tears, etc.
     'degrees':8,
+    'type':'abrasions',
     1:{'name':'irritation', 'desc':'rash; redness, swelling', 'type':WOUNDTYPE_A,
        'resbio':-2, 'respain':-2, 'resbleed':-2, 'resfire':-1,},
     2:{'name':'inflammation', 'desc':'a scape or multiple rashes', 'type':WOUNDTYPE_A,
@@ -1540,24 +1543,28 @@ WOUND_RASH:{ # abrasions, burns, etc.
        'resbio':-16, 'respain':-32, 'resbleed':-16, 'resfire':-12,'rescold':-4,},
     6:{'name':'avulsion', 'desc':'deep tearing injury involving ligaments and bone', 'type':WOUNDTYPE_2,
        'resbio':-32, 'respain':-64, 'resbleed':-32, 'resfire':-16,'rescold':-8,},
-    7:{'name':'skinned', 'desc':'substantial amount of damaged skin', 'type':WOUNDTYPE_3B,
+    7:{'name':'skinned', 'desc':'substantial amount of damaged flesh', 'type':WOUNDTYPE_3B,
        'resbio':-48, 'respain':-96, 'resbleed':-64, 'resfire':-24,'rescold':-24,},
-    8:{'name':'fully skinned', 'desc':'< 50% total skin remaining', 'type':WOUNDTYPE_3B,
+    8:{'name':'fully skinned', 'desc':'< 50% total dermis remaining', 'type':WOUNDTYPE_3B,
        'resbio':-64, 'respain':-128, 'resbleed':-128, 'resfire':-32,'rescold':-48,},
     },
 WOUND_BURN:{
-    'degrees':4,
-    1:{'name':'1st degree burn', 'desc':'damaged superficial epidermis', 'type':WOUNDTYPE_1,
+    'degrees':5,
+    'type':'burns',
+    1:{'name':'0th degree burn', 'desc':'painful swelling', 'type':WOUNDTYPE_1,
+       'resbio':-4, 'respain':-8, 'resbleed':-4, 'resfire':-8,'rescold':-2,},
+    2:{'name':'1st degree burn', 'desc':'damaged superficial epidermis', 'type':WOUNDTYPE_1,
        'resbio':-8, 'respain':-16, 'resbleed':-8, 'resfire':-16,'rescold':-4,},
-    2:{'name':'2nd degree burn', 'desc':'damaged dermis; blistering present', 'type':WOUNDTYPE_2,
+    3:{'name':'2nd degree burn', 'desc':'damaged dermis; blistering present', 'type':WOUNDTYPE_2,
        'resbio':-16, 'respain':-48, 'resbleed':-16, 'resfire':-32,'rescold':-8,},
-    3:{'name':'3rd degree burn', 'desc':'damaged underlying tissue and/or bone', 'type':WOUNDTYPE_3A,
-       'resbio':-32, 'respain':-128, 'resbleed':-32, 'resfire':-48,'rescold':-16,},
-    4:{'name':'4th degree burn', 'desc':'widespread destruction of nervous system', 'type':WOUNDTYPE_4,
-       'resbio':-64, 'respain':32, 'resbleed':-64, 'resfire':-64,'rescold':-32,},
+    4:{'name':'3rd degree burn', 'desc':'damaged underlying tissue and/or bone', 'type':WOUNDTYPE_3A,
+       'str':-1, 'resbio':-32, 'respain':-128, 'resbleed':-32, 'resfire':-48,'rescold':-16,},
+    5:{'name':'4th degree burn', 'desc':'widespread destruction of nervous system', 'type':WOUNDTYPE_4,
+       'str':-2, 'resbio':-64, 'respain':32, 'resbleed':-64, 'resfire':-64,'rescold':-32,},
     },
 WOUND_CUT:{ # cuts
     'degrees':6,
+    'type':'cuts',
     1:{'name':'nick', 'desc':'small cut', 'type':WOUNDTYPE_A,
        'resbio':-4, 'respain':-1, 'resbleed':-2,},
     2:{'name':'cut', 'desc':'or multiple nicks', 'type':WOUNDTYPE_1,
@@ -1575,6 +1582,7 @@ WOUND_PUNCTURE:{ # puncture or stab wounds.
     # Harder to heal than cuts, and cause more bleeding at the time of the damage.
     # However, stat mods are less penalizing than with cuts.
     'degrees':6,
+    'type':'punctures',
     1:{'name':'incision', 'desc':'needle poke', 'type':WOUNDTYPE_1,
        'resbio':-4, 'resbleed':-1,},
     2:{'name':'piercing', 'desc':'or multiple incisions', 'type':WOUNDTYPE_1,
@@ -1590,6 +1598,7 @@ WOUND_PUNCTURE:{ # puncture or stab wounds.
     },
 WOUND_GUNSHOT:{ # gun shot wounds
     'degrees':5,
+    'type':'gunshots',
     1:{'name':'low-velocity gunshot', 'desc':'projectile speed <=1100 ft/s', 'type':WOUNDTYPE_1,
        'resbio':-8, 'respain':-8, 'resbleed':-4,},
     2:{'name':'medium-velocity gunshot', 'desc':'projectile speed 1200-2000 ft/s or multiple low-velocity gunshots', 'type':WOUNDTYPE_2,
@@ -1603,6 +1612,7 @@ WOUND_GUNSHOT:{ # gun shot wounds
     },
 WOUND_MUSCLE:{ # bruising and tears / ruptured muscle
     'degrees':8,
+    'type':'bruising',
     1:{'name':'sore muscles', 'desc':'dull ache', 'type':WOUNDTYPE_A,
        'respain':-16,},
     2:{'name':'knotted muscles', 'desc':'localized ischemia or intense soreness', 'type':WOUNDTYPE_A,
@@ -1621,18 +1631,22 @@ WOUND_MUSCLE:{ # bruising and tears / ruptured muscle
        'str':-8, 'atk':-16, 'dfn':-16, 'gra':-16, 'respain':-128, 'msp':0.5, 'asp':0.75,},
     },
 WOUND_ORGAN:{ # internal organ damage
-    'degrees':4,
+    'degrees':5,
+    'type':'organ damage',
     1:{'name':'bruised organs', 'desc':'minor internal organ damage', 'type':WOUNDTYPE_A,
        'end':-1, 'con':-1, 'resbleed':-16, },
-    2:{'name':'organ damage', 'desc':'permanent internal organ damage', 'type':WOUNDTYPE_C,
-       'end':-2, 'con':-2, 'respain':-16, 'resbleed':-32,},
-    3:{'name':'organ failure', 'desc':'life-threatening organ damage', 'type':WOUNDTYPE_C,
-       'end':-4, 'con':-4, 'respain':-32, 'resbleed':-64,},
-    4:{'name':'septic shock', 'desc':'systemic organ failure', 'type':WOUNDTYPE_C,
+    2:{'name':'organ damage', 'desc':'temporary major internal organ damage', 'type':WOUNDTYPE_C,
+       'end':-2, 'con':-2, 'respain':-8, 'resbleed':-32,},
+    3:{'name':'organ failure', 'desc':'permanent internal organ damage', 'type':WOUNDTYPE_C,
+       'end':-3, 'con':-3, 'respain':-16, 'resbleed':-64,},
+    4:{'name':'organ death', 'desc':'life-threatening organ damage', 'type':WOUNDTYPE_4,
+       'end':-4, 'con':-4, 'respain':-32, 'resbleed':-96,},
+    5:{'name':'septic shock', 'desc':'systemic organ failure', 'type':WOUNDTYPE_4,
        'end':-8, 'con':-8, 'respain':-64, 'resbleed':-128,},
     },
 WOUND_BRAIN:{ # uses multipliers
     'degrees':6,
+    'type':'brain damage',
     1:{'name':'brain contusion', 'desc':'bleeding and swelling of the brain', 'type':WOUNDTYPE_C,
        'int':0.9, 'agi':0.9, 'dex':0.9, 'bal':0.9, },
     2:{'name':'concussion', 'desc':'temporary unconsciousness or confusion', 'type':WOUNDTYPE_C,
@@ -2932,7 +2946,6 @@ PHASE_FLUID     =i;i+=1;   # liquid and gas
 #
 # Elements (types of damage)
 #
-MIN_RES = -95   # minimum resistance
 
 i=1;
 ELEM_PHYS   =i;i+=1;
@@ -2979,24 +2992,26 @@ SOUND_DMG_DEAFEN        = 10000
 
 # Elemental Meters
 
-MAX_PAIN    = 1000
-MAX_BLEED   = 200
 MAX_TEMP    = 1000
 MIN_TEMP    = -200
 MAX_FIRE    = 1000
 MAX_FROST   = 1000
-MAX_SICK    = 100
-MAX_EXPO    = 100
+MAX_PAIN    = 1000
+MAX_BLEED   = 1000
+MAX_SICK    = 1000
+MAX_EXPO    = 1000
 MAX_RUST    = 1000
 MAX_ROT     = 1000
 MAX_RADS    = 1000
-MAX_FEAR    = 100
-MAX_DIRT    = 100
+MAX_FEAR    = 1000
+MAX_DIRT    = 1000
 # (max wetness depends on the item.)
 
+# resistances
+MIN_RES         = -95   # minimum resistance (at this value, elemental damage 20x effectiveness)
 
 RUSTEDNESS={
-# amt   - rustedness amount
+# amt   - rustedness ratio 0-1
 # sm    - stat modifier
 # vm    - value modifier (value cannot go below the cost of the raw mats)
 #amt : (sm,  vm,  name mod)
@@ -3009,26 +3024,36 @@ RUSTEDNESS={
 1.000: (0.1, 0.04,"fully rusted",),
 }
 ROTTEDNESS={
-# amt   - rot amount
+# amt   - rot ratio 0-1
 # sm    - stat modifier
 # vm    - value modifier
 #amt : (sm,  vm,  name mod)
 0.025: (0.98,0.8, "moldy",),
-0.100: (0.9, 0.5, "rotting",),
-0.333: (0.7, 0.1, "rotted",),
-0.667: (0.3, 0.01,"deeply rotted",),
-0.950: (0,   0.001,"thoroughly rotted",),
+0.100: (0.9, 0.4, "rotting",),
+0.333: (0.75,0.1, "rotted",),
+0.667: (0.4, 0.01,"deeply rotted",),
+0.900: (0.1, 0,   "thoroughly rotted",),
+0.950: (0,   0,   "fully rotted",),
+}
+DIRTINESS={
+# amt   - dirtiness ratio 0-1
+# sm    - stat modifier
+# vm    - value modifier
+#amt : (sm,  vm,  name mod)
+0.010: (1,   0.95,"dusty",),
+0.050: (0.98,0.85,"dirty",),
+0.150: (0.95,0.5, "grimy",),
+0.350: (0.9, 0.1, "filthy",),
+0.600: (0.7, 0.01,"dirt-covered",),
+0.900: (0.5, 0.001,"dirt-caked",),
 }
 
 PAIN_QUALITIES={
 1 : 0.1,
-2 : 0.333,
-3 : 0.75,
-}
-DIRT_QUALITIES={
-1 : 0.1,
-2 : 0.333,
-3 : 0.75,
+2 : 0.3,
+3 : 0.5,
+4 : 0.7,
+5 : 0.9,
 }
 RUST_QUALITIES={}
 i=0
@@ -3040,6 +3065,11 @@ i=0
 for k,v in ROTTEDNESS.items():
     i+=1
     ROT_QUALITIES[i] = k
+DIRT_QUALITIES={}
+i=0
+for k,v in DIRTINESS.items():
+    i+=1
+    DIRT_QUALITIES[i] = k
 
 
 
@@ -4042,7 +4072,6 @@ CHARACTERISTICS_DESCRIPT={ # TODO: apply these when selecting traits in chargen.
 "rapid metabolism"      : '''gain energy/water from consumed food and fluids more rapidly; gain overall less energy/water''',
 "iron gut"              : '''increased resistance to ingested poisons''',
 "pain tolerance"        : '''increased resistance to pain''',
-"strong immune system"  : '''increased resistance to bio-hazards''',
 "hemophilia"            : '''decreased resistance to bleeding''',
 "HIV"                   : '''decreased resistance to bio-hazards''',
 "immune to pain"        : '''pain has no effect on you''',

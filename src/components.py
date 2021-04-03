@@ -278,26 +278,15 @@ class HasStuck: # entity(s) are stuck inside this entity
         for arg in args:
             self.stuck.append(arg)
 
-class Meters:
-    __slots__=[
-        'temp','fire','frost','rads','sick','expo','pain',
-        'bleed','rust','rot','wet','fear','dirt',
-        ]
+class Meters: # meters that basically all physical entities share
+    __slots__=['temp','fire','frost','rads','expo']
     def __init__(self):
         # all floating point values, no need for hyper precision
         self.temp=0 # temperature (hot or cold -- for environmental influence)
         self.fire=0 # burning -- separate thing altogether from temp
-        self.frost=0 # frostbite
+        self.frost=0 # frostbite / freezing
         self.rads=0 # radiation
-        self.sick=0 # illness / infection
         self.expo=0 # exposure to harmful chemicals
-        self.pain=0 # respain increases the thresholds for pain tolerance
-        self.fear=0 # 100 fear == fully overcome by fear
-        self.bleed=0 # greater bleed -> take damage more frequently
-        self.rust=0 # amount of rustedness
-        self.rot=0 # amount of rot
-        self.wet=0 # amount of water it's taken on
-        self.dirt=0 # how dirty it is. Dirt Res == Water Res. for simplicity.
 class Stats: #base stats
     # all stats should be stored as integers
     # the actual in-game displayed value / value used for calculations
@@ -310,8 +299,7 @@ class Stats: #base stats
     def __init__(self, hp=1,mp=1,mpregen=1,hpregen=0, mass=1,height=0,
                  _str=0,_con=0,_int=0,_agi=0,_dex=0,_end=0,
                  resfire=100,rescold=100,resbio=100,reselec=100,
-                 resphys=100,resrust=100,resrot=100,reswet=100,
-                 respain=100,resbleed=100,reslight=100,ressound=100,
+                 resphys=100,reslight=100,ressound=100,
                  atk=0,dmg=0,pen=0,dfn=0,arm=0,pro=0,reach=0,
                  gra=0,ctr=0,bal=0,spd=0,asp=0,msp=0,
                  encmax=0,sight=0,hearing=0,
@@ -325,17 +313,12 @@ class Stats: #base stats
         self.agi=int(_agi)
         self.dex=int(_dex)
         self.end=int(_end)
-        # resistances
+        # resistances that basically all entities have
         self.resfire=int(resfire)   # FIR
         self.rescold=int(rescold)   # ICE
         self.resbio=int(resbio)     # BIO
         self.reselec=int(reselec)   # ELC
         self.resphys=int(resphys)   # PHS - resist physical damage excepting falls / G forces.
-        self.respain=int(respain)   # PAI
-        self.resrust=int(resrust)   # RUS
-        self.resrot=int(resrot)     # ROT
-        self.reswet=int(reswet)     # WET
-        self.resbleed=int(resbleed) # BLD
         self.reslight=int(reslight) # LGT
         self.ressound=int(ressound) # SND
         # stats
@@ -364,7 +347,6 @@ class Stats: #base stats
         self.bal=int(bal)    # Balance (MULT_STATS)
         self.sight=int(sight)        # senses
         self.hearing=int(hearing)
-        self.cou=int(courage)   # courage -- resistance to fear
         self.idn=int(scary) # intimidation / scariness
         self.bea=int(beauty) # factors into persuasion / love
         self.camo=int(camo)     # affects visibility
@@ -374,7 +356,52 @@ class ModdedStats: # stores the modified stat values for an entity
     def __init__(self):
         pass
 
+# special meters / resistances that certain entities may have
+class Rots: # thing is susceptible to rotting
+    __slots__=['rot','resrot']
+    def __init__(self, resrot):
+        self.resrot=int(resrot)     # ROT
+        self.rot=0 # amount of rot
+class Rusts: # thing is susceptible to rusting
+    __slots__=['rust','resrust']
+    def __init__(self, resrust):
+        self.resrust=int(resrust)   # RUS
+        self.rust=0 # amount of rustedness
+class Wets: # gets wet
+    __slots__=['wet','reswet']
+    def __init__(self, reswet):
+        self.reswet=int(reswet)     # WET
+        self.wet=0 # amount of water it's taken on
+class Dirties: # gets dirty
+    __slots__=['dirt','resdirt']
+    def __init__(self, resdirt):
+        self.resdirt=int(resdirt)   # DRT
+        self.dirt=0 # how dirty it is
+class Bleeds: # can bleed
+    __slots__=['bleed','resbleed']
+    def __init__(self, resbleed):
+        self.resbleed=int(resbleed) # BLD
+        self.bleed=0 # greater bleed -> take damage more frequently
+class FeelsPain: # sucsceptible to pain
+    __slots__=['pain','respain']
+    def __init__(self, respain):
+        self.respain=int(respain)   # PAI
+        self.pain=0 # respain increases the thresholds for pain tolerance
+class FeelsFear: # sucsceptible to fear
+    __slots__=['fear','cou']
+    def __init__(self, courage):
+        self.cou=int(courage)   # CRG -- resistance to fear
+        self.fear=0
+class GetsSick: # sucsceptible to getting sick
+    __slots__=['sick']
+    def __init__(self):
+        self.sick=0 # illness / infection
+class Insulated: # has insulation (environmental heat/cold resistance) stat
+    __slots__=['insul']
+    def __init__(self, insul=0):
+        self.insul = insul # insulation amount
 
+        
 class LightSource:
     __slots__=['lightID','light']
     def __init__(self, lightID, light):
@@ -580,39 +607,8 @@ class ReactsWithElectricity: # / powered by electricity
     __slots__=['func']
     def __init__(self, func):
         self.func=func  # params: (entity, powerInput)
-    
-class Rots: # thing is susceptible to rotting
-    __slots__=[]
-    def __init__(self):
-        pass
-class Rusts: # thing is susceptible to rusting
-    __slots__=[]
-    def __init__(self):
-        pass
-class Wets: # gets wet
-    __slots__=[]
-    def __init__(self):
-        pass
-class Dirties: # gets dirty
-    __slots__=[]
-    def __init__(self):
-        pass
-class Bleeds: # can bleed
-    __slots__=[]
-    def __init__(self):
-        pass
-class FeelsPain: # sucsceptible to pain
-    __slots__=[]
-    def __init__(self):
-        pass
-class FeelsFear: # sucsceptible to fear
-    __slots__=[]
-    def __init__(self):
-        pass
-class GetsSick: # sucsceptible to getting sick
-    __slots__=[]
-    def __init__(self):
-        pass
+
+        
         
 
 
@@ -2473,6 +2469,7 @@ WOUND_STATUSES=[
     StatusWound_Puncture,
     StatusWound_Gunshot,
     StatusWound_Muscle,
+    StatusWound_Organ,
     StatusWound_Brain,
     ]
 WOUND_TYPE_TO_STATUS={ # connect WOUND_ const type to status component

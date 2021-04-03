@@ -690,6 +690,10 @@ def getinv(ent):
     return Rogue.world.component_for_entity(ent, cmp.Inventory).data
 def get_value(ent):
     return Rogue.world.component_for_entity(ent, cmp.Form).value
+def get_value_dollars(ent):
+    return Rogue.world.component_for_entity(ent, cmp.Form).value//MULT_VALUE
+def get_value_cents(ent):
+    return Rogue.world.component_for_entity(ent, cmp.Form).value % MULT_VALUE
 def get_personality(ent):
     return Rogue.world.component_for_entity(ent, cmp.Personality).personality
 def get_disposition(ent):
@@ -765,14 +769,14 @@ def dupCmpMeters(meters):
     newMeters.fire = meters.fire
     newMeters.frost = meters.frost
     newMeters.rads = meters.rads
-    newMeters.sick = meters.sick
     newMeters.expo = meters.expo
-    newMeters.pain = meters.pain
-    newMeters.fear = meters.fear
-    newMeters.bleed = meters.bleed
-    newMeters.rust = meters.rust
-    newMeters.rot = meters.rot
-    newMeters.wet = meters.wet
+##    newMeters.sick = meters.sick
+##    newMeters.pain = meters.pain
+##    newMeters.fear = meters.fear
+##    newMeters.bleed = meters.bleed
+##    newMeters.rust = meters.rust
+##    newMeters.rot = meters.rot
+##    newMeters.wet = meters.wet
     return newMeters
 
     #------------------#
@@ -1002,6 +1006,20 @@ def caphp(ent): # does not make stats dirty! Doing so is a huge glitch!
 def capmp(ent): # does not make stats dirty! Doing so is a huge glitch!
     stats = Rogue.world.component_for_entity(ent, cmp.Stats)
     stats.mp = min(stats.mp, getms(ent,'mpmax'))
+def capres(ent): # does not make stats dirty! Doing so is a huge glitch!
+    modded = Rogue.world.component_for_entity(ent, cmp.ModdedStats)
+    modded.resfire  = max(MIN_RES, modded.resfire)
+    modded.rescold  = max(MIN_RES, modded.rescold)
+    modded.resbio   = max(MIN_RES, modded.resbio)
+    modded.reselec  = max(MIN_RES, modded.reselec)
+    modded.resphys  = max(MIN_RES, modded.resphys)
+    modded.respain  = max(MIN_RES, modded.respain)
+    modded.resrust  = max(MIN_RES, modded.resrust)
+    modded.resrot   = max(MIN_RES, modded.resrot)
+    modded.reswet   = max(MIN_RES, modded.reswet)
+    modded.resbleed = max(MIN_RES, modded.resbleed)
+    modded.reslight = max(MIN_RES, modded.reslight)
+    modded.ressound = max(MIN_RES, modded.ressound)
 
 
 # these aren't tested, nor are they well thought-out
@@ -1788,18 +1806,22 @@ def wound(ent: int, woundtype: int, tier: int) -> bool:
         # compound wounds
         # 2 wounds of same class and same tier == 1 higher tier wound
         if (compo.quality == tier and compo.quality < degrees):
+            tier += 1
             compo.quality += 1
             wounded = True
         # upgrade existing wound to new tier level
-        if (compo.quality < tier):
+        elif (compo.quality < tier):
             compo.quality = min(tier, degrees)
             wounded = True
-        wounded = False # compo.quality > tier, so ignore the wound
+        else:
+            wounded = False # compo.quality > tier, so ignore the wound
     else:
         # create a new Wound status
         world.add_component(ent, woundcls(tier))
         wounded = True
     if wounded:
+        print("wound type: ", WOUNDS[woundtype]['type'])
+        print("wound tier: ", tier)
         pos = world.component_for_entity(ent, cmp.Position)
         event_sight(pos.x,pos.y,"{} wounded ({})".format(
             gettitlename(ent), WOUNDS[woundtype][tier]['name']
@@ -2642,8 +2664,14 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.__dict__[k] = v
 
     # init pseudo-stats (stats which have no base value)
+    # throwing stats
     modded.tatk=modded.tdmg=modded.tpen=modded.tasp=modded.trng=0
+    # range stats
     modded.ratk=modded.rdmg=modded.rpen=modded.rasp=modded.minrng=modded.maxrng=0
+    # resistances
+    modded.insul=modded.respain=0
+    modded.cou=modded.reswet=modded.resbleed=modded.resrust=modded.resrot=0
+    
     
     # useful stats to keep track of
     basekg = base.mass / MULT_MASS
@@ -2752,48 +2780,67 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
 
         # pain
         if (not on(ent, IMMUNEPAIN) and world.has_component(ent, cmp.FeelsPain)):
+            compo = world.component_for_entity(ent, cmp.FeelsPain)
             q=0
             for _q, dec in PAIN_QUALITIES.items():
-                if meters.pain >= MAX_PAIN*dec:
+                if compo.pain >= MAX_PAIN*dec:
                     q=_q
             overwrite_status(ent, cmp.StatusPain, q=q)
         
         # bleed
         if (not on(ent, IMMUNEBLEED) and world.has_component(ent, cmp.Bleeds)):
-            q = meters.bleed // (0.5*basekg)
+            compo = world.component_for_entity(ent, cmp.Bleeds)
+            q = compo.bleed // (0.5*basekg)
             overwrite_status(ent, cmp.StatusBleed, q=q)
         
         # dirty
         if world.has_component(ent, cmp.Dirties):
+            compo = world.component_for_entity(ent, cmp.Dirties)
             q=0
             for _q, dec in DIRT_QUALITIES.items():
-                if meters.dirt >= MAX_DIRT*dec:
+                if compo.dirt >= MAX_DIRT*dec:
                     q=_q
             overwrite_status(ent, cmp.StatusDirty, q=q)
         
         # wet
         if (not on(ent, IMMUNEWATER) and world.has_component(ent, cmp.Wets)):
-            q = meters.wet // (MULT_MASS//100) # every 10g (is this too many g?)
+            compo = world.component_for_entity(ent, cmp.Wets)
+            q = compo.wet // (MULT_MASS//100) # every 10g (is this too many g?)
             overwrite_status(ent, cmp.StatusWet, q=q)
         
         # rust
             # TODO: rust status affecting stats
         if world.has_component(ent, cmp.Rusts):
+            compo = world.component_for_entity(ent, cmp.Rusts)
             q=0
             for _q, dec in RUST_QUALITIES.items():
-                if meters.rust >= MAX_RUST*dec:
+                if compo.rust >= MAX_RUST*dec:
                     q=_q
             overwrite_status(ent, cmp.StatusRusted, q=q)
         
         # rot
             # TODO: rot status affecting stats
         if world.has_component(ent, cmp.Rots):
+            compo = world.component_for_entity(ent, cmp.Rots)
             q=0
             for _q, dec in ROT_QUALITIES.items():
-                if meters.rot >= MAX_ROT*dec:
+                if compo.rot >= MAX_ROT*dec:
                     q=_q
             overwrite_status(ent, cmp.StatusRotted, q=q)
+
+        # fear
+        # sickness
     # end if
+
+
+    
+#~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        # components  #
+        #---------------------------------#
+
+
+
+
     
     
 #~~~~~~~#------------~~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -2883,6 +2930,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.resbleed += data.get('resbleed',0)
         modded.resfire += data.get('resfire',0)
         modded.rescold += data.get('rescold',0)
+        modded.str += data.get('str',0)*MULT_ATT
     # cut wounds
     if world.has_component(ent, cmp.StatusWound_Cut):
         compo = world.component_for_entity(ent, cmp.StatusWound_Cut)
@@ -2915,6 +2963,7 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
         modded.respain += data.get('respain',0)
         modded.msp *= data.get('msp',0) # multipliers
         modded.asp *= data.get('asp',0)
+        modded.str *= data.get('str',0)*MULT_ATT
     # organ wounds (internal organ damage or failure)
     if world.has_component(ent, cmp.StatusWound_Organ):
         compo = world.component_for_entity(ent, cmp.StatusWound_Organ)
@@ -3289,12 +3338,14 @@ def _update_stats(ent): # PRIVATE, ONLY TO BE CALLED FROM getms(...)
                 if modded.__dict__[k] > 0:
                     modded.__dict__[k] = v * modded.__dict__[k]
     
-    # round values as the final step
+    # round values
     for k,v in modded.__dict__.items():
         modded.__dict__[k] = around(v)
 
+    # cap values at their limits
     caphp(ent)
     capmp(ent)
+    capres(ent)
 
 ##    print(" ** ~~~~ ran _update_stats.")
 
@@ -3492,10 +3543,12 @@ def NEWburn(ent, dmg, maxTemp=999999):
 
 def settemp(ent, temp):
     Rogue.world.component_for_entity(ent, cmp.Meters).temp = temp
-def burn(ent, dmg, maxTemp=999999):
-    return entities.burn(ent, dmg, maxTemp)
-def cool(ent, dmg, minTemp=-300):
-    return entities.burn(ent, dmg, minTemp)
+def burn(ent, dmg):
+    return entities.burn(ent, dmg)
+def frost(ent, dmg):
+    return entities.cool(ent, dmg)
+def ctemp(ent, dmg, minTemp=-300, maxTemp=999999):
+    return entities.change_temp(ent, dmg, minTemp, maxTemp)
 def bleed(ent, dmg):
     return entities.bleed(ent, dmg)
 def scare(ent, dmg):

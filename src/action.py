@@ -1274,7 +1274,7 @@ def _strike(attkr,dfndr,aweap,dweap,
             elif element == ELEM_IRIT:
                 rog.irritate(dfndr, elemDmg)
             elif element == ELEM_COLD:
-                rog.cool(dfndr, elemDmg)
+                rog.frost(dfndr, elemDmg)
             elif element == ELEM_PAIN:
                 # reduce pain if damage is low
                 if trueDmg <= 0:
@@ -1309,7 +1309,7 @@ def _strike(attkr,dfndr,aweap,dweap,
         )
 # end def
 
-def fight(attkr,dfndr,adv=0,power=0):
+def fight(attkr,dfndr,adv=0,power=0, terse=True):
     '''
     Combat function. Engage in combat:
     # Arguments:
@@ -1337,8 +1337,8 @@ def fight(attkr,dfndr,adv=0,power=0):
     aactor = world.component_for_entity(attkr, cmp.Actor)
     apos = world.component_for_entity(attkr, cmp.Position)
     dpos = world.component_for_entity(dfndr, cmp.Position)
-    aname=rog.getname(attkr)
-    dname=rog.getname(dfndr)
+    aname=rog.getname(attkr) if terse else rog.gettitlename(attkr)
+    dname=rog.getname(dfndr) if terse else rog.gettitlename(dfndr)
         # weapons of the combatants (temporary ?)
     abody = world.component_for_entity(attkr, cmp.Body)
     dbody = world.component_for_entity(dfndr, cmp.Body)
@@ -1396,8 +1396,10 @@ def fight(attkr,dfndr,adv=0,power=0):
     
     # finishing up
     message = True # TEMPORARY!!!!
-    a=aname.name; n=dname.name;
-    x='.'; ex=""; m="";
+    a=aname
+    n=dname
+    x='.'
+    ex=m=""
     dr="d{}".format(CMB_ROLL_ATK) #"d20"
         # make a message describing the fight
     if message:
@@ -1429,11 +1431,11 @@ def fight(attkr,dfndr,adv=0,power=0):
                     v = "*crits*" if ret.crit else "hits"
         if ret.ctrd:
             # TODO: more detailed counter message (i.e., " and ... counters (8x2)")
-            m = " and {dt}{n} counters".format(dt=dt,n=n)
+            m = " and {n} counters".format(n=n)
         rog.event_sight(
             dpos.x,dpos.y,
-            "{at}{a} {v} {dt}{n}{ex}{m}{x}".format(
-                a=a,v=v,n=n,at=at,dt=dt,ex=ex,x=x,m=m )
+            "{a} {v} {n}{ex}{m}{x}".format(
+                a=a,v=v,n=n,ex=ex,x=x,m=m )
         )
         rog.event_sound(dpos.x,dpos.y, SND_FIGHT)
 #
@@ -1707,7 +1709,7 @@ def _eat_finishFunc(ent, item): # helper func for eat action
 ##    if tempg > 0:
 ##        rog.burn(ent, tempg)
 ##    else:
-##        rog.cool(ent, -tempg)
+##        rog.frost(ent, -tempg)
     
     # function -- what happens when entity ent eats the item?
     if edible.func: # pass in 1 to indicate we ate the entire thing
@@ -1748,7 +1750,7 @@ def _eat_cancelFunc(ent, qa): # helper func for eat action
 ##    if tempg > 0:
 ##        rog.burn(ent, tempg)
 ##    else:
-##        rog.cool(ent, -tempg)
+##        rog.frost(ent, -tempg)
     
     
     # function -- some foods call functions when you eat them

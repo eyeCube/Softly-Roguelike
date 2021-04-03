@@ -101,84 +101,85 @@ def main():
     #
     
     
-##    w=rog.create_monster('W',pos.x,pos.y-1)
+    w=rog.create_monster('W',xpos,ypos-1)
 ##    rog.world().add_component(w, cmp.AttractedToMen())
 ##    rog.world().add_component(w, cmp.AttractedToWomen())
 ##    
 ##     #testing speech
 ##    rog.init_person(w)
     #
-##    w2=rog.create_monster('W',pos.x,pos.y+1)
-##    w3=rog.create_monster('W',pos.x,pos.y+2)
+##    w2=rog.create_monster('W',xpos,ypos+1)
+##    w3=rog.create_monster('W',xpos,ypos+2)
     
-    ##    rog.setskill(rog.pc(), SKL_BOXING, 100)
-##    rog.setskill(rog.pc(), SKL_PERSUASION, 0)
-##    rog.setskill(rog.pc(), SKL_ARMOR, 100)
-##    rog.sets(rog.pc(), 'dex', 12*MULT_STATS)
-##    rog.sets(rog.pc(), 'int', 4*MULT_STATS)
-##    rog.setskill(rog.pc(), SKL_UNARMORED, 40)
+    ##    rog.setskill(pc, SKL_BOXING, 100)
+##    rog.setskill(pc, SKL_PERSUASION, 0)
+##    rog.setskill(pc, SKL_ARMOR, 100)
+##    rog.sets(pc, 'dex', 12*MULT_STATS)
+##    rog.sets(pc, 'int', 4*MULT_STATS)
+##    rog.setskill(pc, SKL_UNARMORED, 40)
 
 ##    for x in range(20):
 ##        rog.create_monster("L", 1+x*5,1)
     
     
-##    rog.alts(rog.pc(), 'sight', 50)
-    weap=rog.create_weapon("halberd", xpos,ypos, mat=MAT_METAL)
-
-    rog.wound(pc, WOUND_BURN, 2)
+##    rog.alts(pc, 'sight', 50)
+    weap=rog.create_weapon("sword", xpos,ypos, mat=MAT_METAL)
+    weap=rog.create_weapon("buckler", xpos,ypos, mat=MAT_METAL)
+##
+##    rog.wound(pc, WOUND_BURN, 2)
     
 ##    rog.damage(weap, 200)
-##    rog.fitgear(weap, rog.pc())
+##    rog.fitgear(weap, pc)
 ##    print(rog.equip(
-##        rog.pc(),weap,EQ_MAINHANDW
+##        pc,weap,EQ_MAINHANDW
 ##        ))
-##    rog.create_weapon("wooden club", pos.x,pos.y)
-##    rog.create_weapon("estoc", pos.x-1,pos.y)
+##    rog.create_weapon("wooden club", xpos,ypos)
+##    rog.create_weapon("estoc", xpos-1,ypos)
 ##    shield=rog.create_weapon("metal shield", 0,0)
 ##    rog.equip(
-##        rog.pc(),shield,EQ_OFFHAND
+##        pc,shield,EQ_OFFHAND
 ##        )
-##    rog.fitgear(shield, rog.pc())
+##    rog.fitgear(shield, pc)
 ##    armor=rog.create_armor("metal gear", 0,0)
 ##    rog.equip(
-##        rog.pc(),armor,EQ_FRONT
+##        pc,armor,EQ_FRONT
 ##        )
-##    rog.fitgear(armor, rog.pc())
+##    rog.fitgear(armor, pc)
 ##    helm=rog.create_headwear("metal helm", 0,0)
 ##    rog.equip(
-##        rog.pc(),helm,EQ_MAINHEAD
+##        pc,helm,EQ_MAINHEAD
 ##        )
-##    rog.fitgear(helm, rog.pc())
+##    rog.fitgear(helm, pc)
 ##    leg1=rog.create_legwear("metal mail legging", 0,0)
 ##    rog.equip(
-##        rog.pc(),leg1,EQ_MAINLEG
+##        pc,leg1,EQ_MAINLEG
 ##        )
-##    rog.fitgear(leg1, rog.pc())
+##    rog.fitgear(leg1, pc)
 ##    leg2=rog.create_legwear("metal mail legging", 0,0)
 ##    rog.equip(
-##        rog.pc(),leg2,EQ_OFFLEG
+##        pc,leg2,EQ_OFFLEG
 ##        )
-##    rog.fitgear(leg2, rog.pc())
+##    rog.fitgear(leg2, pc)
 ##    arm1=rog.create_armwear("metal vambrace", 0,0)
 ##    rog.equip(
-##        rog.pc(),arm1,EQ_MAINARM
+##        pc,arm1,EQ_MAINARM
 ##        )
-##    rog.fitgear(arm1, rog.pc())
+##    rog.fitgear(arm1, pc)
 ##    arm2=rog.create_armwear("metal vambrace", 0,0)
 ##    rog.equip(
-##        rog.pc(),arm2,EQ_OFFARM
+##        pc,arm2,EQ_OFFARM
 ##        )
-##    rog.fitgear(arm2, rog.pc())
+##    rog.fitgear(arm2, pc)
 ##    foot1=rog.create_footwear("metal boot", 0,0)
 ##    rog.equip(
-##        rog.pc(),foot1,EQ_MAINFOOT
+##        pc,foot1,EQ_MAINFOOT
 ##        )
-##    rog.fitgear(foot1, rog.pc())
+##    rog.fitgear(foot1, pc)
 ##    foot2=rog.create_footwear("metal boot", 0,0)
 ##    rog.equip(
-##        rog.pc(),foot2,EQ_OFFFOOT
+##        pc,foot2,EQ_OFFFOOT
 ##        )
-##    rog.fitgear(foot2, rog.pc())
+##    rog.fitgear(foot2, pc)
     #
     
     # create light so player can see
@@ -201,14 +202,13 @@ def main():
     rog.game_set_state("normal")
     
     while rog.game_is_running():
-        pc=rog.pc()
         
         # manually close game #
         if libtcod.console_is_window_closed():
             rog.end()
         
         # defeat conditions #
-        if rog.on(pc, DEAD):
+        if rog.on(rog.pc(), DEAD):
             rog.game_set_state("game over")
         
         # get input #
@@ -216,7 +216,7 @@ def main():
         pcAct=IO.handle_mousekeys(pcInput).items()
         
         # commands that are available from anywhere #
-        player.commands_const(pc, pcAct)
+        player.commands_const(rog.pc(), pcAct)
         
         # Finally record game state after any/all changes #
         gameState=rog.game_state()

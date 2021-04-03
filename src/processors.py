@@ -913,7 +913,7 @@ class StatusProcessor(esper.Processor):
         # sweat sweating
         for ent, (status, meters) in world.get_components(
             cmp.StatusSweat, cmp.Meters ):
-            meters.temp -= SWEAT_TEMP_LOSS
+            rog.ctemp(ent, -SWEAT_TEMP_LOSS)
             status.timer -= 1
             if status.timer == 0:
                 Status.remove(ent, cmp.StatusSweat)
@@ -1066,24 +1066,36 @@ class MetersProcessor(esper.Processor):
 ##                    rog.set_status(ent, cmp.StatusFrozen)
             #
         
-        for ent,meters in self.world.get_component(
+        for ent,compo in self.world.get_component(
             cmp.Meters ):
-            if (meters.sick > 0):
+            if (compo.expo > 0):
                 rog.make(ent, DIRTY_STATS)
-                meters.sick = max(0, meters.sick - BIO_METERLOSS)
-            if (meters.expo > 0):
+                compo.expo = max(0, compo.expo - CHEM_METERLOSS)
+        for ent,compo in self.world.get_component(
+            cmp.GetsSick ):
+            if (compo.sick > 0):
                 rog.make(ent, DIRTY_STATS)
-                meters.expo = max(0, meters.expo - CHEM_METERLOSS)
-            if (meters.pain > 0):
+                compo.sick = max(0, compo.sick - BIO_METERLOSS)
+        for ent,compo in self.world.get_component(
+            cmp.FeelsPain ):
+            if (compo.pain > 0):
                 rog.make(ent, DIRTY_STATS)
-                meters.pain = max(0, meters.pain - PAIN_METERLOSS)
-            if (meters.fear > 0):
+                compo.pain = max(0, compo.pain - PAIN_METERLOSS)
+        for ent,compo in self.world.get_component(
+            cmp.FeelsFear ):
+            if (compo.fear > 0):
                 rog.make(ent, DIRTY_STATS)
-                meters.fear = max(0, meters.fear - FEAR_METERLOSS)
-            if (meters.bleed > 0):
+                compo.fear = max(0, compo.fear - FEAR_METERLOSS)
+        for ent,compo in self.world.get_component(
+            cmp.Bleeds ):
+            if (compo.bleed > 0):
                 rog.make(ent, DIRTY_STATS)
-                meters.bleed = max(0, meters.bleed - BLEED_METERLOSS)
+                compo.bleed = max(0, compo.bleed - BLEED_METERLOSS)
             # rads meter
+            # rust
+            # rot
+            # wet
+            # dirty
 # end class
 
 
