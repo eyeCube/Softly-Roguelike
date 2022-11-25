@@ -1236,8 +1236,8 @@ def _strike(attkr,dfndr,aweap,dweap,
             # Idea: could depend on armor-wearing skill of the wearer...
             geardmg = dmg - rog.getms(gearitem, 'arm')
             rog.damage(gearitem, geardmg)
-            if geardmg >= rog.material_damage_threshold(dweap1mat):
-                rog.breakitem(gearitem, aweap)
+##            if geardmg >= rog.material_damage_threshold(dweap1mat):
+##                rog.breakitem(gearitem, aweap)
         # end if
         
             #-------------------------------------#

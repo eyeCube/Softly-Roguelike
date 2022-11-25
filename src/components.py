@@ -94,6 +94,13 @@ class Form: #physical makeup of the object
         #   material is a FL_ constant
         #   mass indicates volume depending on density
 
+class ComplexMaterialMakeup: # just an idea... is this needed?
+    __slots__=['materials']
+    # materials: {MAT_ const : integer percentage value of total makeup}
+    def __init__(self, mats={}):
+        self.materials=mats
+    
+
 class AI:
     __slots__=['func']
     def __init__(self, func=None):

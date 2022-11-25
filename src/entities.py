@@ -4700,7 +4700,7 @@ def create_headwear(name,x,y, condition=1, mat=None) -> int:
     
     # quality
     minGrind=-2
-    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    maxGrind=MAXGRIND_FROM_MATERIAL.get(material,0)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -4767,7 +4767,7 @@ def create_facewear(name,x,y, condition=1, mat=None) -> int:
     
     # quality
     minGrind=-1
-    maxGrind=max(1,MAXGRIND_FROM_MATERIAL[material] - 2)
+    maxGrind=max(1,MAXGRIND_FROM_MATERIAL.get(material,0) - 2)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -4833,7 +4833,7 @@ def create_handwear(name,x,y, condition=1, mat=None) -> int:
     
     # quality
     minGrind=-1
-    maxGrind=max(1,MAXGRIND_FROM_MATERIAL[material] - 2)
+    maxGrind=max(1,MAXGRIND_FROM_MATERIAL.get(material,0) - 2)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -4898,7 +4898,7 @@ def create_armwear(name,x,y, condition=1, mat=None) -> int:
     
     # quality
     minGrind=-1
-    maxGrind=MAXGRIND_FROM_MATERIAL[material] - 1
+    maxGrind=max(1,MAXGRIND_FROM_MATERIAL.get(material,0) - 1)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -4966,7 +4966,7 @@ def create_legwear(name,x,y, condition=1, mat=None) -> int:
         
     # quality
     minGrind=-1
-    maxGrind=MAXGRIND_FROM_MATERIAL[material] - 1
+    maxGrind=max(1,MAXGRIND_FROM_MATERIAL.get(material,0) - 1)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -5032,7 +5032,7 @@ def create_footwear(name,x,y, condition=1, mat=None) -> int:
     
     # quality
     minGrind=-2
-    maxGrind=MAXGRIND_FROM_MATERIAL[material]
+    maxGrind=MAXGRIND_FROM_MATERIAL.get(material,0)
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     if script: script(ent)
@@ -5178,7 +5178,7 @@ def create_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
         
     # quality
     minGrind=-3
-    maxGrind=MAXGRIND_FROM_MATERIAL[material] + 1
+    maxGrind=MAXGRIND_FROM_MATERIAL.get(material,0) + 1
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     # script
@@ -5268,7 +5268,7 @@ def create_ranged_weapon(name:str, x:int, y:int, condition=1, mat=None) -> int:
         
     # quality
     minGrind=-3
-    maxGrind=MAXGRIND_FROM_MATERIAL[material] + 1
+    maxGrind=MAXGRIND_FROM_MATERIAL.get(material,0) + 1
     world.add_component(ent,cmp.Quality(0, minGrind, maxGrind))
     
     # script
@@ -6801,6 +6801,26 @@ armor type:
         Can't equip armor if you lack the dex to put it on.
         Higher dex also allows you to put on/take off armor quicker.
 '''
+
+ARMOR_VARIATIONS={
+# material    $$$%,KG%, Dur%,AP%, SR,(DV, AV%,Pro,Enc,Bal,FIR,ICE,BIO,ELE,PHS,BLD),script,
+MAT_METAL   :(1,   1,   1,   1,   0, (0,  1,  0,  0,  0,  -15,-15,0,  -15,  0,  6,),None,),
+MAT_FLESH   :(0.25,0.75,0.2, 0.33,-4,(-1, .25,-1, 0,  0,  -15,-15,0,  -15,  0,  0,),None,),
+MAT_LEATHER :(1,   1,   1,   1,   0, (1,  .33,0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_BLEATHER:(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_CERAMIC :(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_CLOTH   :(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_PLASTIC :(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_WOOD    :(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_BONE    :(0.5, 0.9, 0.4, 0.67,-2,(3,  1,  0,  0,  0,  -6, 6,  3,  6,    0,  6,),None,),
+MAT_CARBON  :(1,   1,   1,   1,   0, (0,  1,  0,  0,  0,  -15,-15,0,  -15,  0,  6,),None,),
+}
+
+HEADWEAR_VARIATIONS={
+# material    $$$%,KG%, Dur%,AP%, SR,(DV ,AV%,Pro,Enc,Bal,FIR,ICE,BIO,ELE,PHS,BLD),script,
+MAT_METAL   :(1,   1,   1,   1,   0, (0,  1,  0,  0, 0,-9, -9, 0,  -9,   0,  0,),None,),
+}
+
 # B - covers back?
 # C - covers core?
 # H - covers hips?

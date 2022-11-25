@@ -99,9 +99,21 @@ def main():
     rog.create_envlight(16)
 ##    rog.make(rog.pc(), NVISION)
     #
+
+
+    # test monster
+
+##    if not rog.wallat(xpos,ypos-2):
+##        w=rog.create_monster('W',xpos,ypos-2)
+##    elif not rog.wallat(xpos-2,ypos):
+##        w=rog.create_monster('W',xpos-2,ypos)
+##    elif not rog.wallat(xpos,ypos+2):
+##        w=rog.create_monster('W',xpos,ypos+2)
+##    elif not rog.wallat(xpos+2,ypos):
+##        w=rog.create_monster('W',xpos+2,ypos)
+
+
     
-    
-    w=rog.create_monster('W',xpos,ypos-1)
 ##    rog.world().add_component(w, cmp.AttractedToMen())
 ##    rog.world().add_component(w, cmp.AttractedToWomen())
 ##    
